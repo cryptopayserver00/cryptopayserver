@@ -60,7 +60,6 @@ export class WEB3 {
   }
 
   static checkAddress(isMainnet: boolean, chain: CHAINS, address: string): boolean {
-    console.log(chain);
     switch (chain) {
       case CHAINS.BITCOIN:
         return BTC.checkAddress(isMainnet, address);

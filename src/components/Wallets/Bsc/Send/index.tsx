@@ -346,12 +346,8 @@ const BscSend = () => {
             return;
           }
         }
-        setSnackSeverity('success');
-        setSnackMessage('Successful creation!');
-        setSnackOpen(true);
 
         setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', send_transaction_resp.data.hash));
-
         setPage(3);
       }
     } catch (e) {

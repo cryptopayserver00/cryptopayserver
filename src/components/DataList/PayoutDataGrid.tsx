@@ -93,7 +93,7 @@ export default function PayoutDataGrid(props: GridType) {
           case PAYOUT_STATUS.AwaitingApproval:
             setActionWidth(200);
             return [
-              <Box>
+              <Box key={row.id}>
                 <Button
                   onClick={() => {
                     onClickApprove(row);
@@ -113,7 +113,7 @@ export default function PayoutDataGrid(props: GridType) {
           case PAYOUT_STATUS.AwaitingPayment:
             setActionWidth(600);
             return [
-              <Box>
+              <Box key={row.id}>
                 <Button
                   onClick={() => {
                     onClickReject(row);
@@ -147,7 +147,7 @@ export default function PayoutDataGrid(props: GridType) {
           case PAYOUT_STATUS.InProgress:
             setActionWidth(300);
             return [
-              <Box>
+              <Box key={row.id}>
                 <Button
                   onClick={() => {
                     onClickCancel(row);

@@ -11,24 +11,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const amount = req.query.amount;
-        const chainId: any = req.query.chain_id;
+        const chainId = req.query.chain_id;
         const coin = req.query.coin;
         const address = req.query.address;
 
         const hash = await BLOCKSCAN.getFreeCoin(
-          WEB3.getChainIds(false, chainId as CHAINS),
+          WEB3.getChainIds(false, parseInt(chainId as string)),
           address as string,
           coin as string,
           amount as string,
         );
 
-        return res.status(200).json({
-          message: '',
-          result: true,
-          data: {
-            hash: hash,
-          },
-        });
+        if (hash && hash !== '') {
+          return res.status(200).json({
+            message: '',
+            result: true,
+            data: {
+              hash: hash,
+            },
+          });
+        } else {
+          return res.status(200).json({
+            message: '',
+            result: false,
+            data: null,
+          });
+        }
 
       default:
         throw 'no support the method of api';

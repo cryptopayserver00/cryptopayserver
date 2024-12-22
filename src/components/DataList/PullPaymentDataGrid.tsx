@@ -70,7 +70,7 @@ export default function PullPaymentDataGrid(props: GridType) {
           case PULL_PAYMENT_STATUS.Active:
             setActionWidth(300);
             return [
-              <Box>
+              <Box key={row.id}>
                 <Button
                   onClick={() => {
                     window.location.href = '/pull-payments/' + row.pullPaymentId;
@@ -97,7 +97,7 @@ export default function PullPaymentDataGrid(props: GridType) {
           case PULL_PAYMENT_STATUS.Expired:
             setActionWidth(200);
             return [
-              <Box>
+              <Box key={row.id}>
                 <Button
                   onClick={() => {
                     window.location.href = '/pull-payments/' + row.pullPaymentId;
@@ -117,7 +117,7 @@ export default function PullPaymentDataGrid(props: GridType) {
           case PULL_PAYMENT_STATUS.Archived:
             setActionWidth(200);
             return [
-              <Box>
+              <Box key={row.id}>
                 <Button
                   onClick={() => {
                     window.location.href = '/pull-payments/' + row.pullPaymentId;

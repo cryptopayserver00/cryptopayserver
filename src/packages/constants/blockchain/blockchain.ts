@@ -126,6 +126,26 @@ export const ETHEREUM_COINS: COIN[] = [
     contractAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     icon: require('assets/coin/weth.svg'),
   },
+  {
+    chainId: CHAINS.ETHEREUM,
+    name: COINS.POL,
+    isMainCoin: false,
+    symbol: COINS.POL,
+    decimals: 18,
+    displayDecimals: 8,
+    contractAddress: '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0',
+    icon: require('assets/coin/pol.svg'),
+  },
+  {
+    chainId: CHAINS.ETHEREUM,
+    name: COINS.ARB,
+    isMainCoin: false,
+    symbol: COINS.ARB,
+    decimals: 18,
+    displayDecimals: 8,
+    contractAddress: '0xB50721BCf8d664c30412Cfbc6cf7a15145234ad1',
+    icon: require('assets/coin/arb.svg'),
+  },
 ];
 
 export const ETHEREUM_SEPOLIA_COINS: COIN[] = [
@@ -315,6 +335,26 @@ export const BSC_TESTNET_COINS: COIN[] = [
     displayDecimals: 8,
     contractAddress: '0x8a10400271f38acea7d22e4968d37e32276ebac5',
     icon: require('assets/coin/usdt.svg'),
+  },
+  {
+    chainId: CHAINS.BSC,
+    name: COINS.USDC,
+    isMainCoin: false,
+    symbol: COINS.USDC,
+    decimals: 18,
+    displayDecimals: 8,
+    contractAddress: '0x8A34885Ade76107DD62b86DAb41e2A613c3609Bc',
+    icon: require('assets/coin/usdc.svg'),
+  },
+  {
+    chainId: CHAINS.BSC,
+    name: COINS.ETH,
+    isMainCoin: false,
+    symbol: COINS.ETH,
+    decimals: 18,
+    displayDecimals: 8,
+    contractAddress: '0xaD3603d21564Bdbd2867dc719724b23992508129',
+    icon: require('assets/coin/eth.svg'),
   },
 ];
 

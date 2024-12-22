@@ -40,14 +40,8 @@ export class BLOCKSCAN {
 
   static async getFreeCoin(chainId: number, address: string, coin: string, amount: string): Promise<string> {
     try {
-
-      console.log("chain", chainId, address, coin, amount)
-
-      return ""
-
-      const url = this.baseUrl + '/coin/free';
-
-      const response = await this.axiosInstance.get(url, {
+      const url = this.baseUrl + '/coinFree';
+      const response: any = await this.axiosInstance.get(url, {
         headers: {
           accept: 'application/json',
         },
@@ -60,7 +54,7 @@ export class BLOCKSCAN {
       });
 
       if (response && response.data && response.data.code === 10200) {
-        return response.data.hash;
+        return response.data.data.hash;
       }
 
       return '';

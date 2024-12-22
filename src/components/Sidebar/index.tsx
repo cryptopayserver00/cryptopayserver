@@ -264,6 +264,8 @@ const HomeSidebar = () => {
             <SubMenu
               label="PAYMENTS"
               icon={<Payment />}
+              active={router.pathname.includes('/payments') ? true : false}
+              defaultOpen={router.pathname.includes('/payments') ? true : false}
               // suffix={
               //   <Badge variant="danger" shape="circle">
               //     6
@@ -329,6 +331,8 @@ const HomeSidebar = () => {
             <SubMenu
               label="PLUGINS"
               icon={<Extension />}
+              active={router.pathname.includes('/plugins') ? true : false}
+              defaultOpen={router.pathname.includes('/plugins') ? true : false}
               // suffix={
               //   <Badge variant="danger" shape="circle">
               //     6
