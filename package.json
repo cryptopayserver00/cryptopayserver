@@ -61,6 +61,7 @@
     "react-dom": "^18",
     "react-pro-sidebar": "^1.1.0",
     "tiny-secp256k1": "^2.2.3",
+    "tronweb": "^6.0.0",
     "viem": "2.x",
     "wagmi": "^2.10.4",
     "zustand": "^4.5.4"

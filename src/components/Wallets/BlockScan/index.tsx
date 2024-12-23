@@ -5,6 +5,8 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import Image from 'next/image';
 import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINS } from 'packages/constants/blockchain';
+import Link from 'next/link';
+import { GetBlockchainAddressUrlByChainIds } from 'utils/web3';
 
 type walletType = {
   id: number;
@@ -162,51 +164,78 @@ const BlockScan = () => {
         </Stack>
 
         {blockchain &&
-          blockchain.map((item) => (
-            <Box mt={4}>
-              <Box mt={2}>
-                <Card>
-                  <CardContent>
-                    <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                      <Stack direction={'row'}>
-                        <Image src={item.icon} alt="image" width={50} height={50} />
-                        <Box ml={2}>
-                          <Typography fontSize={16} fontWeight={'bold'}>
-                            {item.name}
-                          </Typography>
-                          <Typography fontSize={16} fontWeight={'bold'}>
-                            {item.desc}
-                          </Typography>
-                          <Typography fontSize={16} fontWeight={'bold'} mt={2}>
-                            {item.explorerUrl}
-                          </Typography>
-                          <Typography fontSize={16} fontWeight={'bold'}>
-                            {item.websiteUrl}
-                          </Typography>
-                          <Typography fontSize={16} fontWeight={'bold'} mt={4}>
-                            Support Coins:
-                          </Typography>
-                          {item.coins.map((coin) => (
-                            <Stack direction={'row'} alignItems={'center'} pt={2}>
-                              <Image src={coin.icon} alt="coinImage" width={40} height={40} />
+          blockchain.map((item, index) => (
+            <Box mt={4} key={index}>
+              <Card>
+                <CardContent>
+                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} p={2}>
+                    <Stack direction={'row'}>
+                      <Image src={item.icon} alt="image" width={50} height={50} />
+                      <Box ml={2}>
+                        <Typography fontSize={16} fontWeight={'bold'}>
+                          {item.name}
+                        </Typography>
+                        <Typography fontSize={16} fontWeight={'bold'}>
+                          {item.desc}
+                        </Typography>
+
+                        <Stack direction={'row'} mt={2} gap={2}>
+                          <Button
+                            variant={'contained'}
+                            onClick={() => {
+                              window.location.href = item.explorerUrl as string;
+                            }}
+                          >
+                            Explorer
+                          </Button>
+                          <Button
+                            variant={'contained'}
+                            onClick={() => {
+                              window.location.href = item.websiteUrl as string;
+                            }}
+                          >
+                            Website
+                          </Button>
+                        </Stack>
+
+                        <Typography fontSize={16} fontWeight={'bold'} mt={2}>
+                          Support Coins:
+                        </Typography>
+                        {item.coins.map((coin, index) => (
+                          <Stack direction={'row'} alignItems={'center'} pt={2} key={index}>
+                            <Image src={coin.icon} alt="coinImage" width={40} height={40} />
+                            {coin.isMainCoin ? (
                               <Typography fontSize={14} fontWeight={'bold'} ml={1}>
                                 {coin.name}
                               </Typography>
-                            </Stack>
-                          ))}
-                          <Typography fontSize={16} fontWeight={'bold'} mt={4}>
-                            RPC:
-                          </Typography>
-                          <Typography mt={1}>{item.rpc && item.rpc[0]}</Typography>
-                        </Box>
-                      </Stack>
-                      <Typography color={'green'} width={70}>
-                        {item.time} ms
-                      </Typography>
+                            ) : (
+                              <Link
+                                href={GetBlockchainAddressUrlByChainIds(
+                                  item.isMainnet,
+                                  coin.chainId,
+                                  coin.contractAddress as string,
+                                )}
+                                target="_blank"
+                              >
+                                <Typography fontSize={14} fontWeight={'bold'} ml={1}>
+                                  {coin.name}
+                                </Typography>
+                              </Link>
+                            )}
+                          </Stack>
+                        ))}
+                        <Typography fontSize={16} fontWeight={'bold'} mt={4}>
+                          RPC:
+                        </Typography>
+                        <Typography mt={1}>{item.rpc && item.rpc[0]}</Typography>
+                      </Box>
                     </Stack>
-                  </CardContent>
-                </Card>
-              </Box>
+                    <Typography color={'green'} width={70}>
+                      {item.time} ms
+                    </Typography>
+                  </Stack>
+                </CardContent>
+              </Card>
             </Box>
           ))}
       </Container>
