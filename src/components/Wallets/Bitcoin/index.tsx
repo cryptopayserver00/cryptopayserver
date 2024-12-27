@@ -33,7 +33,7 @@ type walletType = {
   id: number;
   address: string;
   type: string;
-  balance: string;
+  balance: any;
   transactions: TransactionDetail[];
 };
 
@@ -104,7 +104,7 @@ const Bitcoin = () => {
             id: item.id,
             address: item.address,
             type: item.note,
-            balance: item.balance.BTC,
+            balance: item.balance,
             transactions: item.transactions,
           });
         });
@@ -521,7 +521,12 @@ const Bitcoin = () => {
                           {item.type}
                         </Typography>
                         <Typography mt={1}>{item.address}</Typography>
-                        <Typography mt={1}>{item.balance} BTC</Typography>
+                        {item.balance &&
+                          Object.entries(item.balance).map(([coin, amount], balanceIndex) => (
+                            <Typography mt={1} fontWeight={'bold'} key={balanceIndex}>
+                              {amount as string} {coin}
+                            </Typography>
+                          ))}
                       </Box>
                       <Box>
                         <Button

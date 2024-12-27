@@ -23,7 +23,7 @@ import {
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
 import Link from 'next/link';
 import { CHAINS } from 'packages/constants/blockchain';
-import { TransactionDetail } from 'packages/web3/types';
+import { EthereumTransactionDetail } from 'packages/web3/types';
 import { useEffect, useState } from 'react';
 import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/tron';
 import axios from 'utils/http/axios';
@@ -33,10 +33,8 @@ type walletType = {
   id: number;
   address: string;
   type: string;
-  trxBalance: string;
-  usdtBalance: string;
-  usdcBalance: string;
-  transactions: TransactionDetail[];
+  balance: any;
+  transactions: EthereumTransactionDetail[];
 };
 
 const Tron = () => {
@@ -81,9 +79,7 @@ const Tron = () => {
             id: item.id,
             address: item.address,
             type: item.note,
-            trxBalance: item.balance.TRX,
-            usdtBalance: item.balance.USDT,
-            usdcBalance: item.balance.USDC,
+            balance: item.balance,
             transactions: item.transactions,
           });
         });
@@ -341,15 +337,12 @@ const Tron = () => {
                           {item.type}
                         </Typography>
                         <Typography mt={1}>{item.address}</Typography>
-                        <Typography mt={1} fontWeight={'bold'}>
-                          {item.trxBalance} TRX
-                        </Typography>
-                        <Typography mt={1} fontWeight={'bold'}>
-                          {item.usdtBalance} USDT
-                        </Typography>
-                        <Typography mt={1} fontWeight={'bold'}>
-                          {item.usdcBalance} USDC
-                        </Typography>
+                        {item.balance &&
+                          Object.entries(item.balance).map(([coin, amount], balanceIndex) => (
+                            <Typography mt={1} fontWeight={'bold'} key={balanceIndex}>
+                              {amount as string} {coin}
+                            </Typography>
+                          ))}
                       </Box>
                       <Box>
                         <Button
@@ -379,7 +372,7 @@ const Tron = () => {
 
 export default Tron;
 
-function TransactionsTab({ rows }: { rows: TransactionDetail[] }) {
+function TransactionsTab({ rows }: { rows: EthereumTransactionDetail[] }) {
   const { getNetwork } = useUserPresistStore((state) => state);
 
   return (
@@ -388,9 +381,9 @@ function TransactionsTab({ rows }: { rows: TransactionDetail[] }) {
         <TableHead>
           <TableRow>
             <TableCell>Hash</TableCell>
-            {/* <TableCell>Value</TableCell> */}
+            <TableCell>Value</TableCell>
             <TableCell>Asset</TableCell>
-            {/* <TableCell>Contract Address</TableCell> */}
+            <TableCell>Contract Address</TableCell>
             <TableCell>Type</TableCell>
             <TableCell>Block Timestamp</TableCell>
             <TableCell>Status</TableCell>
@@ -404,11 +397,11 @@ function TransactionsTab({ rows }: { rows: TransactionDetail[] }) {
                   {row.hash}
                 </Link>
               </TableCell>
-              {/* <TableCell>{row.amount}</TableCell> */}
+              <TableCell>{row.amount}</TableCell>
               <TableCell>{row.asset}</TableCell>
-              {/* <TableCell>{row.contractAddress}</TableCell> */}
+              <TableCell>{row.contractAddress}</TableCell>
               <TableCell>{row.type}</TableCell>
-              <TableCell>{new Date((row.blockTimestamp as number) * 1000).toLocaleString()}</TableCell>
+              <TableCell>{new Date(row.blockTimestamp as number).toLocaleString()}</TableCell>
               <TableCell>{row.status}</TableCell>
             </TableRow>
           ))}

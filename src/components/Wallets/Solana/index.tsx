@@ -33,9 +33,7 @@ type walletType = {
   id: number;
   address: string;
   type: string;
-  solBalance: string;
-  usdcBalance: string;
-  usdtBalance: string;
+  balance: any;
   transactions: SolanaTransactionDetail[];
 };
 
@@ -79,9 +77,7 @@ const Solana = () => {
             id: item.id,
             address: item.address,
             type: item.note,
-            solBalance: item.balance.SOL ? item.balance.SOL : '0',
-            usdtBalance: item.balance.USDT ? item.balance.USDT : '0',
-            usdcBalance: item.balance.USDC ? item.balance.USDC : '0',
+            balance: item.balance,
             transactions: item.transactions,
           });
         });
@@ -258,15 +254,12 @@ const Solana = () => {
                           {item.type}
                         </Typography>
                         <Typography mt={1}>{item.address}</Typography>
-                        <Typography mt={1} fontWeight={'bold'}>
-                          {item.solBalance} SOL
-                        </Typography>
-                        <Typography mt={1} fontWeight={'bold'}>
-                          {item.usdcBalance} USDC
-                        </Typography>
-                        <Typography mt={1} fontWeight={'bold'}>
-                          {item.usdtBalance} USDT
-                        </Typography>
+                        {item.balance &&
+                          Object.entries(item.balance).map(([coin, amount], balanceIndex) => (
+                            <Typography mt={1} fontWeight={'bold'} key={balanceIndex}>
+                              {amount as string} {coin}
+                            </Typography>
+                          ))}
                       </Box>
                       <Box>
                         <Button

@@ -34,10 +34,7 @@ type walletType = {
   id: number;
   address: string;
   type: string;
-  ethBalance: string;
-  usdtBalance: string;
-  daiBalance: string;
-  usdcBalance: string;
+  balance: any;
   transactions: EthereumTransactionDetail[];
 };
 
@@ -89,10 +86,7 @@ const Ethereum = () => {
             id: item.id,
             address: item.address,
             type: item.note,
-            ethBalance: item.balance.ETH,
-            usdtBalance: item.balance.USDT,
-            daiBalance: item.balance.DAI,
-            usdcBalance: item.balance.USDC,
+            balance: item.balance,
             transactions: item.transactions,
           });
         });
@@ -350,18 +344,12 @@ const Ethereum = () => {
                           {item.type}
                         </Typography>
                         <Typography mt={1}>{item.address}</Typography>
-                        <Typography mt={1} fontWeight={'bold'}>
-                          {item.ethBalance} ETH
-                        </Typography>
-                        <Typography mt={1} fontWeight={'bold'}>
-                          {item.usdtBalance} USDT
-                        </Typography>
-                        <Typography mt={1} fontWeight={'bold'}>
-                          {item.usdcBalance} USDC
-                        </Typography>
-                        <Typography mt={1} fontWeight={'bold'}>
-                          {item.daiBalance} DAI
-                        </Typography>
+                        {item.balance &&
+                          Object.entries(item.balance).map(([coin, amount], balanceIndex) => (
+                            <Typography mt={1} fontWeight={'bold'} key={balanceIndex}>
+                              {amount as string} {coin}
+                            </Typography>
+                          ))}
                       </Box>
                       <Box>
                         <Button

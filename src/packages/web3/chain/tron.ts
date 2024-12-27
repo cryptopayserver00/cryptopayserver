@@ -1,12 +1,20 @@
 import axios from 'axios';
 import { BLOCKCHAINNAMES, CHAINIDS, CHAINS } from 'packages/constants/blockchain';
-import { AssetBalance, ChainAccountType, SendTransaction, TransactionDetail, TRANSACTIONSTATUS } from '../types';
+import {
+  AssetBalance,
+  ChainAccountType,
+  EthereumTransactionDetail,
+  SendTransaction,
+  TransactionDetail,
+  TRANSACTIONSTATUS,
+} from '../types';
 import { HDKey } from 'ethereum-cryptography/hdkey';
 import { TronWeb } from 'tronweb';
 import { ethers } from 'ethers';
 import { FindDecimalsByChainIdsAndContractAddress } from 'utils/web3';
 import { TRC20Abi } from '../abi/trc20';
 import { GetBlockchainTxUrl } from 'utils/chain/tron';
+import { BLOCKSCAN } from '../block_scan';
 
 export class TRON {
   static chain = CHAINS.TRON;
@@ -257,9 +265,25 @@ export class TRON {
     }
   }
 
-  static async getTransactions(isMainnet: boolean, address: string, symbol?: string): Promise<TransactionDetail[]> {
+  static async getTransactions(
+    isMainnet: boolean,
+    address: string,
+    symbol?: string,
+  ): Promise<EthereumTransactionDetail[]> {
     try {
-      return [];
+      symbol = symbol ? symbol : '';
+
+      const url = `${BLOCKSCAN.baseUrl}/node/tron/getTransactions?chain_id=${this.getChainIds(
+        isMainnet,
+      )}&address=${address}&asset=${symbol}`;
+      const response = await this.axiosInstance.get(url);
+      if (response.data.code === 10200 && response.data.data) {
+        const txs = response.data.data;
+
+        return txs;
+      } else {
+        return [];
+      }
     } catch (e) {
       console.error(e);
       throw new Error('can not get the transactions of tron');
