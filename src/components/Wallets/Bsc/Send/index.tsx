@@ -299,7 +299,7 @@ const BscSend = () => {
         });
 
         const rate = rate_response.data[ids][find_payout_resp.data[0].currency.toLowerCase()];
-        const totalPrice = parseFloat(BigDiv((find_payout_resp.data[0].amount as number).toString(), rate)).toFixed(8);
+        const totalPrice = parseFloat(BigDiv((find_payout_resp.data[0].amount as number).toString(), rate)).toFixed(4);
         setAmount(totalPrice);
         setCoin(find_payout_resp.data[0].crypto);
 

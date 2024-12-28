@@ -357,7 +357,7 @@ const SelectChainAndCrypto = (props: SelectType) => {
 
       const rate = rate_response.data[ids][props.currency.toLowerCase()];
       setRate(rate);
-      const totalPrice = parseFloat(BigDiv((props.amount as number).toString(), rate)).toFixed(8);
+      const totalPrice = parseFloat(BigDiv((props.amount as number).toString(), rate)).toFixed(4);
       setCryptoAmount(totalPrice);
     } catch (e) {
       console.error(e);

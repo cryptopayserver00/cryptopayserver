@@ -19,6 +19,10 @@ import {
   GetBlockchainAddressUrl as GetLtcBlockchainAddressUrl,
   GetBlockchainTxUrl as GetLtcBlockchainTxUrl,
 } from './chain/ltc';
+import {
+  GetBlockchainAddressUrl as GetTronBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetTronBlockchainTxUrl,
+} from './chain/tron';
 
 export function FindTokenByChainIdsAndContractAddress(chainIds: CHAINIDS, contractAddress: string): COIN {
   const coins = BLOCKCHAINNAMES.find((item) => item.chainId === chainIds)?.coins;
@@ -124,6 +128,8 @@ export function GetBlockchainTxUrlByChainIds(isMainnet: boolean, chain: CHAINS, 
       return GetBscBlockchainTxUrl(isMainnet, hash);
     case CHAINS.LITECOIN:
       return GetLtcBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.TRON:
+      return GetTronBlockchainTxUrl(isMainnet, hash);
     default:
       return '';
   }
@@ -141,6 +147,8 @@ export function GetBlockchainAddressUrlByChainIds(isMainnet: boolean, chain: CHA
       return GetBscBlockchainAddressUrl(isMainnet, address);
     case CHAINS.LITECOIN:
       return GetLtcBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.TRON:
+      return GetTronBlockchainAddressUrl(isMainnet, address);
     default:
       return '';
   }

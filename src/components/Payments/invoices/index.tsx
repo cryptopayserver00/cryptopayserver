@@ -68,7 +68,7 @@ const PaymentInvoices = () => {
 
       const rate = rate_response.data[ids][currency.toLowerCase()];
       setRate(rate);
-      const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(8);
+      const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(4);
       setCryptoAmount(totalPrice);
     } catch (e) {
       console.error(e);
@@ -350,35 +350,6 @@ const PaymentInvoices = () => {
                   />
                 </Box>
               </Box>
-
-              {/* <Box mt={4}>
-                <Typography>Supported Transaction Currencies</Typography>
-                <Box mt={1}>
-                  <Box mt={1}>
-                    <FormControlLabel control={<Checkbox defaultChecked />} label="BTC (On-Chain)" />
-                  </Box>
-                </Box>
-              </Box> */}
-
-              {/* <Box mt={4}>
-                <Typography>Default payment method on checkout</Typography>
-                <Box mt={1}>
-                  <FormControl sx={{ minWidth: 300 }}>
-                    <Select
-                      size={'small'}
-                      inputProps={{ 'aria-label': 'Without label' }}
-                      defaultValue={1}
-                      //   value={age}
-
-                      //   onChange={handleChange}
-                    >
-                      <MenuItem value={1}>USD</MenuItem>
-                      <MenuItem value={2}>AAA</MenuItem>
-                      <MenuItem value={3}>BBB</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-              </Box> */}
             </Box>
 
             <Box mt={5}>
@@ -396,25 +367,6 @@ const PaymentInvoices = () => {
                     size="small"
                   />
                 </Box>
-                {/* <Box mt={4}>
-                  <Typography>Require Refund Email</Typography>
-                  <Box mt={1}>
-                    <FormControl sx={{ minWidth: 300 }}>
-                      <Select
-                        size={'small'}
-                        inputProps={{ 'aria-label': 'Without label' }}
-                        defaultValue={1}
-                        //   value={age}
-
-                        //   onChange={handleChange}
-                      >
-                        <MenuItem value={1}>USD</MenuItem>
-                        <MenuItem value={2}>AAA</MenuItem>
-                        <MenuItem value={3}>BBB</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Box>
-                </Box> */}
               </Box>
             </Box>
 
@@ -543,19 +495,6 @@ const PaymentInvoices = () => {
                     ))}
                 </Select>
               </FormControl>
-              {/* <FormControl sx={{ minWidth: 120 }}>
-                <Select
-                  size={'small'}
-                  inputProps={{ 'aria-label': 'Without label' }}
-                  defaultValue={0}
-                  //   value={age}
-                  //   onChange={handleChange}
-                >
-                  <MenuItem value={0}>All Plugins</MenuItem>
-                  <Divider />
-                  <MenuItem value={1}>test</MenuItem>
-                </Select>
-              </FormControl> */}
               <FormControl sx={{ minWidth: 120 }}>
                 <Select
                   size={'small'}

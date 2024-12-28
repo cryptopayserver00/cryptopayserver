@@ -148,7 +148,7 @@ const PaymentInvoiceDetails = () => {
   return (
     <Box>
       <Container>
-        <Stack direction={'row'} alignItems={'center'}>
+        <Stack direction={'row'} alignItems={'center'} mt={4}>
           <Typography variant={'h5'} fontWeight={'bold'}>
             Invoice
           </Typography>
