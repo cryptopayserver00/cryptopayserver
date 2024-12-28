@@ -19,7 +19,7 @@ import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import { BigDiv, BigMul, GweiToEther, WeiToGwei } from 'utils/number';
+import { BigDiv } from 'utils/number';
 import TronSVG from 'assets/chain/tron.svg';
 import Image from 'next/image';
 import { OmitMiddleString } from 'utils/strings';
@@ -44,10 +44,9 @@ const TronSend = () => {
   const [destinationAddress, setDestinationAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
 
-  const [networkFee, setNetworkFee] = useState<string>('');
+  const [networkFee, setNetworkFee] = useState<string>('2');
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('');
-  const [coin, setCoin] = useState<string>('ETH');
-  const [displaySign, setDisplaySign] = useState<boolean>(false);
+  const [coin, setCoin] = useState<string>('TRX');
   const [amountRed, setAmountRed] = useState<boolean>(false);
 
   const [isDisableDestinationAddress, setIsDisableDestinationAddress] = useState<boolean>(false);
@@ -58,14 +57,174 @@ const TronSend = () => {
   const { getStoreId } = useStorePresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
-  const onClickSignTransaction = async () => {};
+  const getTron = async () => {
+    try {
+      const find_payment_resp: any = await axios.get(Http.find_payment_by_chain_id, {
+        params: {
+          user_id: getUserId(),
+          chain_id: CHAINS.TRON,
+          store_id: getStoreId(),
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      if (find_payment_resp.result) {
+        setFromAddress(find_payment_resp.data.address);
+        setBalance(find_payment_resp.data.balance);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-  const onClickSignAndPay = async () => {};
+  const getPayoutInfo = async (id: any) => {
+    try {
+      const find_payout_resp: any = await axios.get(Http.find_payout_by_id, {
+        params: {
+          id: id,
+        },
+      });
+
+      if (find_payout_resp.result && find_payout_resp.data.length === 1) {
+        setDestinationAddress(find_payout_resp.data[0].address);
+
+        const ids = COINGECKO_IDS[find_payout_resp.data[0].crypto as COINS];
+        const rate_response: any = await axios.get(Http.find_crypto_price, {
+          params: {
+            ids: ids,
+            currency: find_payout_resp.data[0].currency,
+          },
+        });
+
+        const rate = rate_response.data[ids][find_payout_resp.data[0].currency.toLowerCase()];
+        const totalPrice = parseFloat(BigDiv((find_payout_resp.data[0].amount as number).toString(), rate)).toFixed(8);
+        setAmount(totalPrice);
+        setCoin(find_payout_resp.data[0].crypto);
+
+        setIsDisableDestinationAddress(true);
+        setIsDisableAmount(true);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const checkAddress = async (): Promise<boolean> => {
+    if (destinationAddress === fromAddress) {
+      return false;
+    }
+
+    if (!destinationAddress || destinationAddress === '') {
+      return false;
+    }
+
+    try {
+      const checkout_resp: any = await axios.get(Http.checkout_chain_address, {
+        params: {
+          chain_id: CHAINS.TRON,
+          address: destinationAddress,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      return checkout_resp.result;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const checkAmount = (): boolean => {
+    if (
+      amount &&
+      networkFee &&
+      parseFloat(amount) != 0 &&
+      parseFloat(balance[coin]) >= parseFloat(amount) + parseFloat(networkFee)
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const onClickSignTransaction = async () => {
+    if (!(await checkAddress())) {
+      setSnackSeverity('error');
+      setSnackMessage('The destination address cannot be empty or input errors');
+      setSnackOpen(true);
+      return;
+    }
+
+    if (!checkAmount()) {
+      setSnackSeverity('error');
+      setSnackMessage('Insufficient balance or input error');
+      setSnackOpen(true);
+      return;
+    }
+
+    setPage(2);
+  };
+
+  const onClickSignAndPay = async () => {
+    try {
+      const send_transaction_resp: any = await axios.post(Http.send_transaction, {
+        chain_id: CHAINS.TRON,
+        from_address: fromAddress,
+        to_address: destinationAddress,
+        network: getNetwork() === 'mainnet' ? 1 : 2,
+        wallet_id: getWalletId(),
+        user_id: getUserId(),
+        value: amount,
+        coin: coin,
+      });
+
+      if (send_transaction_resp.result) {
+        // update payout order
+        if (payoutId) {
+          const update_payout_resp: any = await axios.put(Http.update_payout_by_id, {
+            user_id: getUserId(),
+            store_id: getStoreId(),
+            id: payoutId,
+            tx: send_transaction_resp.data.hash,
+            crypto_amount: amount,
+            payout_status: PAYOUT_STATUS.Completed,
+          });
+
+          if (!update_payout_resp.result) {
+            setSnackSeverity('error');
+            setSnackMessage('Can not update the status of payout!');
+            setSnackOpen(true);
+            return;
+          }
+        }
+
+        setSnackSeverity('success');
+        setSnackMessage('Successful creation!');
+        setSnackOpen(true);
+
+        setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', send_transaction_resp.data.hash));
+
+        setPage(3);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const init = async (payoutId: any) => {
+    await getTron();
+
+    if (payoutId) {
+      await getPayoutInfo(payoutId);
+    }
+  };
+
+  useEffect(() => {
+    init(payoutId);
+  }, [payoutId]);
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" mb={10}>
       <Typography variant="h4" mt={4}>
-        Send Coin on Ethereum
+        Send Coin on Tron
       </Typography>
       <Container>
         {page === 1 && (
@@ -165,112 +324,9 @@ const TronSend = () => {
               </Typography>
             </Box>
 
-            {/* <Box mt={4}>
-              <Typography>MaxFee (Gwei)</Typography>
-              <Box mt={1}>
-                <FormControl sx={{ width: '25ch' }} variant="outlined">
-                  <OutlinedInput
-                    size={'small'}
-                    type="number"
-                    aria-describedby="outlined-weight-helper-text"
-                    inputProps={{
-                      'aria-label': 'weight',
-                    }}
-                    value={maxFee}
-                    onChange={(e: any) => {
-                      setMaxFee(e.target.value);
-                    }}
-                  />
-                </FormControl>
-              </Box>
-            </Box> */}
-
-            {/* <Stack mt={4} direction={'row'} alignItems={'center'}>
-              <Typography>Confirm in the next</Typography>
-              <Box ml={2}>
-                <ToggleButtonGroup
-                  color="primary"
-                  value={alignment}
-                  exclusive
-                  onChange={handleChangeFees}
-                  aria-label="type"
-                >
-                  <ToggleButton value="high">High</ToggleButton>
-                  <ToggleButton value="average">Average</ToggleButton>
-                  <ToggleButton value="low">Low</ToggleButton>
-                </ToggleButtonGroup>
-              </Box>
-            </Stack> */}
-
-            {/* <Box mt={4}>
-              <Typography>MaxPriortyFee (Gwei)</Typography>
-              <Box mt={1}>
-                <FormControl sx={{ width: '25ch' }} variant="outlined">
-                  <OutlinedInput
-                    size={'small'}
-                    type="number"
-                    aria-describedby="outlined-weight-helper-text"
-                    inputProps={{
-                      'aria-label': 'weight',
-                    }}
-                    value={maxPriortyFee}
-                    onChange={(e: any) => {
-                      setMaxPriortyFee(e.target.value);
-                    }}
-                  />
-                </FormControl>
-              </Box>
-            </Box> */}
-
-            {/* <Stack mt={4} direction={'row'} alignItems={'center'}>
-              <Typography>Confirm in the next</Typography>
-              <Box ml={2}>
-                <ToggleButtonGroup
-                  color="primary"
-                  value={maxPriortyFeeAlignment}
-                  exclusive
-                  onChange={handleChangeMaxPriortyFee}
-                  aria-label="type"
-                >
-                  <ToggleButton value="fast">Fast</ToggleButton>
-                  <ToggleButton value="normal">Normal</ToggleButton>
-                  <ToggleButton value="slow">Slow</ToggleButton>
-                </ToggleButtonGroup>
-              </Box>
-            </Stack> */}
-
-            {/* {displaySign && (
-              <>
-                <Box mt={4}>
-                  <Typography>Gas</Typography>
-                  <Box mt={1}>
-                    <FormControl sx={{ width: '25ch' }} variant="outlined">
-                      <OutlinedInput
-                        size={'small'}
-                        type="number"
-                        aria-describedby="outlined-weight-helper-text"
-                        inputProps={{
-                          'aria-label': 'weight',
-                        }}
-                        value={gasLimit}
-                        onChange={(e: any) => {
-                          setGasLimit(e.target.value);
-                        }}
-                      />
-                    </FormControl>
-                  </Box>
-                </Box>
-                <Box mt={4}>
-                  <Typography>
-                    Miner Fee: {networkFee} ETH = MaxFee({maxFee}) * Gas({gasLimit})
-                  </Typography>
-                </Box>
-              </>
-            )} */}
-
             <Box mt={8}>
               <Button variant={'contained'} onClick={onClickSignTransaction}>
-                {displaySign ? 'Sign Transaction' : 'Calculate Gas Fee'}
+                Sign transaction
               </Button>
             </Box>
           </>
@@ -281,9 +337,7 @@ const TronSend = () => {
             <Box textAlign={'center'}>
               <Stack direction={'row'} alignItems={'center'} justifyContent={'center'} mt={4}>
                 <Image src={TronSVG} alt="" width={25} height={25} />
-                <Typography ml={1}>
-                  {getNetwork() === 'mainnet' ? 'Ethereum Mainnet' : 'Ethereum Sepolia Testnet'}
-                </Typography>
+                <Typography ml={1}>{getNetwork() === 'mainnet' ? 'Tron Mainnet' : 'Tron Nile Testnet'}</Typography>
               </Stack>
 
               <Box mt={4}>
@@ -301,7 +355,7 @@ const TronSend = () => {
                 </Stack>
                 <Stack direction={'row'} alignItems={'baseline'} justifyContent={'center'}>
                   <Typography mt={1}>{networkFee}</Typography>
-                  <Typography ml={1}>ETH</Typography>
+                  <Typography ml={1}>TRX</Typography>
                   <Typography ml={1}>(network fee)</Typography>
                 </Stack>
               </Box>
@@ -382,7 +436,7 @@ const TronSend = () => {
                   <FormControl variant="outlined">
                     <OutlinedInput
                       size={'small'}
-                      endAdornment={<InputAdornment position="end">ETH</InputAdornment>}
+                      endAdornment={<InputAdornment position="end">TRX</InputAdornment>}
                       aria-describedby="outlined-weight-helper-text"
                       inputProps={{
                         'aria-label': 'weight',
@@ -433,7 +487,7 @@ const TronSend = () => {
                   variant={'contained'}
                   style={{ width: 500 }}
                   onClick={() => {
-                    window.location.href = '/wallets/ethereum';
+                    window.location.href = '/wallets/tron';
                   }}
                 >
                   Done

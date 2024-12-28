@@ -3,6 +3,7 @@ import { BLOCKCHAINNAMES, CHAINIDS, CHAINS } from 'packages/constants/blockchain
 import {
   AssetBalance,
   ChainAccountType,
+  CreateTronTransaction,
   EthereumTransactionDetail,
   SendTransaction,
   TransactionDetail,
@@ -15,6 +16,7 @@ import { FindDecimalsByChainIdsAndContractAddress } from 'utils/web3';
 import { TRC20Abi } from '../abi/trc20';
 import { GetBlockchainTxUrl } from 'utils/chain/tron';
 import { BLOCKSCAN } from '../block_scan';
+import { SignedTransaction } from 'tronweb/lib/esm/types';
 
 export class TRON {
   static chain = CHAINS.TRON;
@@ -290,10 +292,6 @@ export class TRON {
     }
   }
 
-  static async sendTransaction(isMainnet: boolean, request: SendTransaction): Promise<string> {
-    return '';
-  }
-
   static decodeTransferTrc20(txData: string): any {
     if (txData.slice(0, 8) !== 'a9059cbb') {
       return null;
@@ -317,6 +315,95 @@ export class TRON {
     } catch (e) {
       console.error(e);
       return '';
+    }
+  }
+
+  static async createTransaction(isMainnet: boolean, request: CreateTronTransaction): Promise<SignedTransaction> {
+    console.log('qqq', request);
+    if (request.contractAddress) {
+      return await this.createTrc20Transaction(isMainnet, request);
+    } else {
+      return await this.createTRXTransaction(isMainnet, request);
+    }
+  }
+
+  static async createTrc20Transaction(isMainnet: boolean, request: CreateTronTransaction): Promise<SignedTransaction> {
+    try {
+      if (!request.contractAddress || request.contractAddress === '') {
+        throw new Error('can not get the contractAddress of tron');
+      }
+
+      const tronWeb = await this.getTronClient(isMainnet);
+      tronWeb.setPrivateKey(request.privateKey as string);
+
+      const decimals = await this.getTRC20Decimals(isMainnet, request.contractAddress);
+      const value = ethers.parseUnits(request.value, decimals);
+
+      const abi = 'transfer(address,uint256)';
+
+      const options = {
+        feeLimit: 80000000,
+        callValue: 0,
+      };
+      const parameter = [
+        { type: 'address', value: request.to },
+        { type: 'uint256', value: value },
+      ];
+      const transaction = await tronWeb.transactionBuilder.triggerSmartContract(
+        request.contractAddress,
+        abi,
+        options,
+        parameter,
+        tronWeb.defaultAddress.hex as string,
+      );
+      return await tronWeb.trx.sign(transaction.transaction);
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not create the trc20 transactions of tron');
+    }
+  }
+
+  static async createTRXTransaction(isMainnet: boolean, request: CreateTronTransaction): Promise<SignedTransaction> {
+    try {
+      const tronWeb = await this.getTronClient(isMainnet);
+      tronWeb.setPrivateKey(request.privateKey as string);
+
+      const value = ethers.parseUnits(request.value, 6);
+
+      const transaction = await tronWeb.transactionBuilder.sendTrx(request.to, Number(value), request.from);
+
+      return await tronWeb.trx.sign(transaction);
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not create the trx transactions of tron');
+    }
+  }
+
+  static async sendTransaction(isMainnet: boolean, request: SendTransaction): Promise<string> {
+    if (!request.privateKey || request.privateKey === '') {
+      throw new Error('can not get the private key of tron');
+    }
+
+    const cRequest: CreateTronTransaction = {
+      privateKey: request.privateKey,
+      from: request.from,
+      to: request.to,
+      value: request.value,
+      contractAddress: request.coin.contractAddress,
+    };
+
+    try {
+      const tronWeb = await this.getTronClient(isMainnet);
+      const tx = await this.createTransaction(isMainnet, cRequest);
+      const receipt = await tronWeb.trx.sendRawTransaction(tx);
+      if (receipt && receipt.result) {
+        return receipt.transaction.txID;
+      }
+
+      throw new Error('can not send the transaction of tron');
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not send the transaction of eth');
     }
   }
 }

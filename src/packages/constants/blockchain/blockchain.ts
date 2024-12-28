@@ -366,7 +366,6 @@ export const TRON_COINS: COIN[] = [
     symbol: COINS.TRX,
     decimals: 6,
     displayDecimals: 4,
-    contractAddress: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
     icon: require('assets/coin/trx.svg'),
   },
   {
@@ -439,7 +438,6 @@ export const TRON_NILE_COINS: COIN[] = [
     symbol: COINS.TRX,
     decimals: 6,
     displayDecimals: 4,
-    contractAddress: 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb',
     icon: require('assets/coin/trx.svg'),
   },
   {

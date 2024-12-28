@@ -182,3 +182,11 @@ export type CreateSolanaTransaction = {
   value: string;
   contractAddress?: string;
 };
+
+export type CreateTronTransaction = {
+  privateKey?: string;
+  from: string;
+  to: string;
+  value: string;
+  contractAddress?: string;
+};
