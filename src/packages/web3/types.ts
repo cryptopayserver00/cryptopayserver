@@ -190,3 +190,11 @@ export type CreateTronTransaction = {
   value: string;
   contractAddress?: string;
 };
+
+export type CreateTonTransaction = {
+  privateKey?: string;
+  from: string;
+  to: string;
+  value: string;
+  contractAddress?: string;
+};

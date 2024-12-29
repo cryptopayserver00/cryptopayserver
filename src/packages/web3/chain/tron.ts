@@ -319,7 +319,6 @@ export class TRON {
   }
 
   static async createTransaction(isMainnet: boolean, request: CreateTronTransaction): Promise<SignedTransaction> {
-    console.log('qqq', request);
     if (request.contractAddress) {
       return await this.createTrc20Transaction(isMainnet, request);
     } else {
