@@ -171,7 +171,7 @@ export class TRON {
     try {
       const tronWeb = await this.getTronClient(isMainnet);
       const balance = await tronWeb.trx.getBalance(address);
-      return ethers.formatUnits(balance, 6);
+      return tronWeb.fromSun(balance).toString();
     } catch (e) {
       console.error(e);
       throw new Error('can not get the eth balance of tron');
@@ -235,10 +235,7 @@ export class TRON {
         isContract = true;
         const data = transaction.raw_data.contract[0].parameter.value.data;
         const contractAddress = transaction.raw_data.contract[0].parameter.value.contract_address;
-        const decodeData = await this.decodeTransferTrc20(data);
-        // if (decodeData == null) {
-        //   return url;
-        // }
+        const decodeData = await this.decodeTransferTRC20(data);
         const { address, value } = decodeData;
 
         const decimals = await this.getTRC20Decimals(isMainnet, contractAddress);
@@ -259,7 +256,6 @@ export class TRON {
         fee: TronWeb.fromSun(transactionInfo.fee).toString(),
         url: explorerUrl,
         asset: '',
-        // isContract: isContract,
       };
     } catch (e) {
       console.error(e);
@@ -292,7 +288,7 @@ export class TRON {
     }
   }
 
-  static decodeTransferTrc20(txData: string): any {
+  static decodeTransferTRC20(txData: string): any {
     if (txData.slice(0, 8) !== 'a9059cbb') {
       return null;
     }
@@ -320,13 +316,13 @@ export class TRON {
 
   static async createTransaction(isMainnet: boolean, request: CreateTronTransaction): Promise<SignedTransaction> {
     if (request.contractAddress) {
-      return await this.createTrc20Transaction(isMainnet, request);
+      return await this.createTRC20Transaction(isMainnet, request);
     } else {
       return await this.createTRXTransaction(isMainnet, request);
     }
   }
 
-  static async createTrc20Transaction(isMainnet: boolean, request: CreateTronTransaction): Promise<SignedTransaction> {
+  static async createTRC20Transaction(isMainnet: boolean, request: CreateTronTransaction): Promise<SignedTransaction> {
     try {
       if (!request.contractAddress || request.contractAddress === '') {
         throw new Error('can not get the contractAddress of tron');
