@@ -7,6 +7,7 @@ import { SOLANA } from './chain/solana';
 import { BSC } from './chain/bsc';
 import { LTC } from './chain/ltc';
 import { TRON } from './chain/tron';
+import { TON } from './chain/ton';
 
 export class WEB3 {
   // support: Import and generate wallet
@@ -38,6 +39,7 @@ export class WEB3 {
       SOLANA.createAccountBySeed(isMainnet, seed),
       LTC.createAccountBySeed(isMainnet, seed),
       TRON.createAccountBySeed(isMainnet, seed),
+      TON.createAccountBySeed(isMainnet, seed),
     ]);
   }
 
@@ -58,6 +60,8 @@ export class WEB3 {
         return Array<ChainAccountType>(LTC.createAccountByPrivateKey(isMainnet, privateKey));
       case CHAINS.TRON:
         return Array<ChainAccountType>(TRON.createAccountByPrivateKey(isMainnet, privateKey));
+      case CHAINS.TON:
+        return Array<ChainAccountType>(TON.createAccountByPrivateKey(isMainnet, privateKey));
       default:
         return [];
     }
@@ -76,6 +80,8 @@ export class WEB3 {
         return LTC.checkAddress(isMainnet, address);
       case CHAINS.TRON:
         return TRON.checkAddress(address);
+      case CHAINS.TON:
+        return TON.checkAddress(isMainnet, address);
       default:
         return false;
     }
@@ -93,6 +99,8 @@ export class WEB3 {
         return BSC.getGasPrice(isMainnet);
       case CHAINS.LITECOIN:
         return LTC.getCurrentFeeRate(isMainnet);
+      case CHAINS.TON:
+        return null;
       default:
         return null;
     }
@@ -112,6 +120,8 @@ export class WEB3 {
         return LTC.getChainIds(isMainnet);
       case CHAINS.TRON:
         return TRON.getChainIds(isMainnet);
+      case CHAINS.TON:
+        return TON.getChainIds(isMainnet);
       default:
         return CHAINIDS.NONE;
     }
@@ -131,6 +141,8 @@ export class WEB3 {
         return await LTC.getAssetBalance(isMainnet, address);
       case CHAINS.TRON:
         return await TRON.getAssetBalance(isMainnet, address);
+      case CHAINS.TON:
+        return await TON.getAssetBalance(isMainnet, address);
       default:
         return {} as AssetBalance;
     }
@@ -188,6 +200,8 @@ export class WEB3 {
         return await LTC.getTransactionDetail(isMainnet, hash);
       case CHAINS.TRON:
         return await TRON.getTransactionDetail(isMainnet, hash);
+      case CHAINS.TON:
+        return await TON.getTransactionDetail(isMainnet, hash);
       default:
         return {} as TransactionDetail;
     }
@@ -207,6 +221,8 @@ export class WEB3 {
         return await LTC.getTransactions(isMainnet, address);
       case CHAINS.TRON:
         return await TRON.getTransactions(isMainnet, address, token?.symbol);
+      case CHAINS.TON:
+        return await TON.getTransactions(isMainnet, address, token?.symbol);
       default:
         return [];
     }
@@ -226,6 +242,8 @@ export class WEB3 {
         return await LTC.sendTransaction(isMainnet, req);
       case CHAINS.TRON:
         return await TRON.sendTransaction(isMainnet, req);
+      case CHAINS.TON:
+        return await TON.sendTransaction(isMainnet, req);
       default:
         return '';
     }

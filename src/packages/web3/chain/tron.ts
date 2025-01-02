@@ -174,7 +174,7 @@ export class TRON {
       return tronWeb.fromSun(balance).toString();
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the eth balance of tron');
+      throw new Error('can not get the trx balance of tron');
     }
   }
 
@@ -398,7 +398,7 @@ export class TRON {
       throw new Error('can not send the transaction of tron');
     } catch (e) {
       console.error(e);
-      throw new Error('can not send the transaction of eth');
+      throw new Error('can not send the transaction of tron');
     }
   }
 }

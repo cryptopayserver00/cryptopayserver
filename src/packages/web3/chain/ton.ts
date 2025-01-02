@@ -174,27 +174,120 @@ export class TON {
   }
 
   static async getTON20Balance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
-    const tonweb = this.getTonClient(isMainnet);
-    // const contract = tonweb.Contract(new TonWeb.HttpProvider(url, { apiKey: process.env.TON_API_KEY }), "")
-    const wallet = tonweb.wallet.create({ address: contractAddress });
-
+    // const tonweb = this.getTonClient(isMainnet);
+    // const je = new TonWeb.token.jetton.JettonWallet()
+    // await je.getAddress()
+    // const contract = new tonweb.Contract(new TonWeb.HttpProvider("", { apiKey: process.env.TON_API_KEY }))
+    // const seqno = contract.methods.seqno().call();
+    // const wallet = tonweb.wallet.create({ address: contractAddress });
+    return '';
   }
 
-  static async getTON20Decimals(isMainnet: boolean, contractAddress: string): Promise<number> {}
+  static async getTON20Decimals(isMainnet: boolean, contractAddress: string): Promise<number> {
+    const decimals = FindDecimalsByChainIdsAndContractAddress(this.getChainIds(isMainnet), contractAddress);
+    if (decimals && decimals > 0) {
+      return decimals;
+    }
 
-  static async getTransactionDetail(isMainnet: boolean, hash: string): Promise<TransactionDetail> {}
+    try {
+      const tonweb = this.getTonClient(isMainnet);
+
+      return 0;
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not get the decimals of ton');
+    }
+  }
+
+  static async getTransactionDetail(isMainnet: boolean, hash: string): Promise<TransactionDetail> {
+    try {
+      const tonweb = this.getTonClient(isMainnet);
+      const explorerUrl = GetBlockchainTxUrl(isMainnet, hash);
+
+      return {
+        blockNumber: 0,
+        blockTimestamp: 0,
+        hash: hash,
+        from: '',
+        to: '',
+        value: '',
+        status: TRANSACTIONSTATUS.SUCCESS,
+        fee: '',
+        url: explorerUrl,
+        asset: '',
+      };
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not get the transaction of ton');
+    }
+  }
 
   static async getTransactions(
     isMainnet: boolean,
     address: string,
     symbol?: string,
-  ): Promise<EthereumTransactionDetail[]> {}
+  ): Promise<EthereumTransactionDetail[]> {
+    try {
+      symbol = symbol ? symbol : '';
 
-  static async createTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<SignedTransaction> {}
+      const url = `${BLOCKSCAN.baseUrl}/node/ton/getTransactions?chain_id=${this.getChainIds(
+        isMainnet,
+      )}&address=${address}&asset=${symbol}`;
+      const response = await this.axiosInstance.get(url);
+      if (response.data.code === 10200 && response.data.data) {
+        const txs = response.data.data;
 
-  static async createTON20Transaction(isMainnet: boolean, request: CreateTonTransaction): Promise<SignedTransaction> {}
+        return txs;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not get the transactions of ton');
+    }
+  }
 
-  static async createTONTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<SignedTransaction> {}
+  static async createTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<any> {
+    if (request.contractAddress) {
+      return await this.createTON20Transaction(isMainnet, request);
+    } else {
+      return await this.createTONTransaction(isMainnet, request);
+    }
+  }
 
-  static async sendTransaction(isMainnet: boolean, request: SendTransaction): Promise<string> {}
+  static async createTON20Transaction(isMainnet: boolean, request: CreateTonTransaction): Promise<any> {
+    return '';
+  }
+
+  static async createTONTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<any> {
+    return '';
+  }
+
+  static async sendTransaction(isMainnet: boolean, request: SendTransaction): Promise<string> {
+    if (!request.privateKey || request.privateKey === '') {
+      throw new Error('can not get the private key of ton');
+    }
+
+    const cRequest: CreateTonTransaction = {
+      privateKey: request.privateKey,
+      from: request.from,
+      to: request.to,
+      value: request.value,
+      contractAddress: request.coin.contractAddress,
+    };
+
+    try {
+      const tonweb = this.getTonClient(isMainnet);
+      const tx = await this.createTransaction(isMainnet, cRequest);
+      // const receipt = await tonweb.sendRawTransaction(tx);
+      // if (receipt && receipt.result) {
+      //   return receipt.transaction.txID;
+      // }
+
+      throw new Error('can not send the transaction of ton');
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not send the transaction of ton');
+    }
+  }
 }

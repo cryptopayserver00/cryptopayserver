@@ -472,6 +472,18 @@ export const TRON_NILE_COINS: COIN[] = [
   },
 ];
 
+export const TON_COINS: COIN[] = [
+  {
+    chainId: CHAINS.TON,
+    name: COINS.TON,
+    isMainCoin: true,
+    symbol: COINS.TON,
+    decimals: 9,
+    displayDecimals: 9,
+    icon: require('assets/coin/ton.svg'),
+  },
+];
+
 export type BLOCKCHAIN = {
   name: CHAINNAMES;
   desc: string;
@@ -623,5 +635,27 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     coins: TRON_NILE_COINS,
     rpc: [''],
     icon: require('assets/chain/tron.svg'),
+  },
+  {
+    name: CHAINNAMES.TON,
+    desc: 'A decentralized and open internet, created by the community using a technology designed by Telegram.',
+    chainId: CHAINIDS.TON,
+    explorerUrl: 'https://tonscan.org',
+    websiteUrl: 'https://ton.org',
+    isMainnet: true,
+    coins: TON_COINS,
+    rpc: ['https://tonscan.org'],
+    icon: require('assets/chain/ton.svg'),
+  },
+  {
+    name: CHAINNAMES.TON,
+    desc: 'Bitcoin is a decentralized digital currency that operates on a peer-to-peer network, enabling secure, anonymous transactions worldwide.',
+    chainId: CHAINIDS.TON,
+    explorerUrl: 'https://testnet.tonscan.org',
+    websiteUrl: 'https://ton.org',
+    isMainnet: false,
+    coins: TON_COINS,
+    rpc: ['https://testnet.tonscan.org'],
+    icon: require('assets/chain/ton.svg'),
   },
 ];

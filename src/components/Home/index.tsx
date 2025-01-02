@@ -48,6 +48,8 @@ import LitecoinSend from 'components/Wallets/Litecoin/Send';
 import LitecoinReceive from 'components/Wallets/Litecoin/Receive';
 import TronSend from 'components/Wallets/Tron/Send';
 import TronReceive from 'components/Wallets/Tron/Receive';
+import TonSend from 'components/Wallets/Ton/Send';
+import TonReceive from 'components/Wallets/Ton/Receive';
 import PaymentTransactions from 'components/Payments/Transactions';
 import PaymentInvoices from 'components/Payments/Invoices';
 import PaymentInvoiceDetails from 'components/Payments/Invoices/id';
@@ -105,6 +107,8 @@ const Home = () => {
     '/wallets/litecoin/receive': <LitecoinReceive />,
     '/wallets/tron/send': <TronSend />,
     '/wallets/tron/receive': <TronReceive />,
+    '/wallets/ton/send': <TonSend />,
+    '/wallets/ton/receive': <TonReceive />,
     '/invoices/[id]': <InvoicesDetails />,
     '/payment-requests/[id]': <PaymentRequestsDetails />,
     '/pull-payments/[id]': <PullPaymentsDetails />,
@@ -132,6 +136,8 @@ const Home = () => {
     '/wallets/litecoin/receive': <LitecoinReceive />,
     '/wallets/tron/send': <TronSend />,
     '/wallets/tron/receive': <TronReceive />,
+    '/wallets/ton/send': <TonSend />,
+    '/wallets/ton/receive': <TonReceive />,
     '/wallets/ton': <Ton />,
     '/wallets/tron': <Tron />,
     '/wallets/bsc': <Bsc />,
