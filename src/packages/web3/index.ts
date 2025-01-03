@@ -39,7 +39,7 @@ export class WEB3 {
       SOLANA.createAccountBySeed(isMainnet, seed),
       LTC.createAccountBySeed(isMainnet, seed),
       TRON.createAccountBySeed(isMainnet, seed),
-      TON.createAccountBySeed(isMainnet, seed),
+      await TON.createAccountBySeed(isMainnet, seed),
     ]);
   }
 
@@ -61,7 +61,7 @@ export class WEB3 {
       case CHAINS.TRON:
         return Array<ChainAccountType>(TRON.createAccountByPrivateKey(isMainnet, privateKey));
       case CHAINS.TON:
-        return Array<ChainAccountType>(TON.createAccountByPrivateKey(isMainnet, privateKey));
+        return Array<ChainAccountType>(await TON.createAccountByPrivateKey(isMainnet, privateKey));
       default:
         return [];
     }

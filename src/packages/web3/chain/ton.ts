@@ -14,7 +14,8 @@ import { FindDecimalsByChainIdsAndContractAddress } from 'utils/web3';
 import { GetBlockchainTxUrl } from 'utils/chain/ton';
 import { BLOCKSCAN } from '../block_scan';
 import TonWeb from 'tonweb';
-import { keyPairFromSeed, keyPairFromSecretKey } from 'ton-crypto';
+import { keyPairFromSecretKey } from 'ton-crypto';
+import { HDKey } from 'ethereum-cryptography/hdkey';
 
 export class TON {
   static chain = CHAINS.TON;
@@ -32,18 +33,28 @@ export class TON {
     return new TonWeb(new TonWeb.HttpProvider(url, { apiKey: process.env.TON_API_KEY }));
   }
 
-  static createAccountBySeed(isMainnet: boolean, seed: Buffer): ChainAccountType {
+  static async createAccountBySeed(isMainnet: boolean, seed: Buffer): Promise<ChainAccountType> {
     const path = `m/44'/607'/0'/0/0`;
 
     try {
-      const keypair = keyPairFromSeed(seed);
-      const publicKey = keypair.publicKey.toString();
-      const secretKey = keypair.secretKey.toString();
+      const hdkey = HDKey.fromMasterSeed(Uint8Array.from(seed)).derive(path);
+
+      const privateKey = Buffer.from(hdkey.privateKey as Uint8Array).toString('hex');
+
+      const tonweb = this.getTonClient(isMainnet);
+
+      const keypair = keyPairFromSecretKey(Buffer.from(privateKey));
+
+      const wallet = tonweb.wallet.create({
+        publicKey: keypair.publicKey,
+      });
+
+      const walletAddress = (await wallet.getAddress()).toString(true, true, false, !isMainnet);
 
       return {
         chain: this.chain,
-        address: publicKey,
-        privateKey: secretKey,
+        address: walletAddress,
+        privateKey: privateKey,
         note: 'Ton',
         isMainnet: isMainnet,
       };
@@ -53,13 +64,21 @@ export class TON {
     }
   }
 
-  static createAccountByPrivateKey(isMainnet: boolean, privateKey: string): ChainAccountType {
+  static async createAccountByPrivateKey(isMainnet: boolean, privateKey: string): Promise<ChainAccountType> {
     try {
+      const tonweb = this.getTonClient(isMainnet);
+
       const keypair = keyPairFromSecretKey(Buffer.from(privateKey));
+
+      const wallet = tonweb.wallet.create({
+        publicKey: keypair.publicKey,
+      });
+
+      const walletAddress = (await wallet.getAddress()).toString(true, true, false, !isMainnet);
 
       return {
         chain: this.chain,
-        address: keypair.publicKey.toString(),
+        address: walletAddress,
         privateKey: privateKey,
         note: 'Ton',
         isMainnet: isMainnet,
