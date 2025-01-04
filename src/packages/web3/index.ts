@@ -8,6 +8,7 @@ import { BSC } from './chain/bsc';
 import { LTC } from './chain/ltc';
 import { TRON } from './chain/tron';
 import { TON } from './chain/ton';
+import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
 
 export class WEB3 {
   // support: Import and generate wallet
@@ -101,6 +102,15 @@ export class WEB3 {
         return LTC.getCurrentFeeRate(isMainnet);
       case CHAINS.TON:
         return null;
+      default:
+        return null;
+    }
+  }
+
+  static async estimateGasFee(isMainnet: boolean, req: SendTransaction): Promise<any> {
+    switch (req.coin.chainId) {
+      case CHAINS.TON:
+        return await TON.estimateGasFee(isMainnet, req);
       default:
         return null;
     }

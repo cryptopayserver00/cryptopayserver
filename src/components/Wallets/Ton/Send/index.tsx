@@ -44,9 +44,10 @@ const TonSend = () => {
   const [destinationAddress, setDestinationAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
 
-  const [networkFee, setNetworkFee] = useState<string>('2');
+  const [networkFee, setNetworkFee] = useState<string>('');
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('');
   const [coin, setCoin] = useState<string>('TON');
+  const [displaySign, setDisplaySign] = useState<boolean>(false);
   const [amountRed, setAmountRed] = useState<boolean>(false);
 
   const [isDisableDestinationAddress, setIsDisableDestinationAddress] = useState<boolean>(false);
@@ -70,6 +71,29 @@ const TonSend = () => {
       if (find_payment_resp.result) {
         setFromAddress(find_payment_resp.data.address);
         setBalance(find_payment_resp.data.balance);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const getGasFee = async () => {
+    try {
+      const find_gas_fee_resp: any = await axios.get(Http.find_gas_fee, {
+        params: {
+          user_id: getUserId(),
+          chain_id: CHAINS.TON,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+          coin: coin,
+          from: fromAddress,
+          to: destinationAddress,
+          value: amount,
+        },
+      });
+      if (find_gas_fee_resp.result) {
+        setNetworkFee(find_gas_fee_resp.data);
+
+        setDisplaySign(true);
       }
     } catch (e) {
       console.error(e);
@@ -153,6 +177,11 @@ const TonSend = () => {
       return;
     }
 
+    if (!networkFee) {
+      await getGasFee();
+      return;
+    }
+
     if (!checkAmount()) {
       setSnackSeverity('error');
       setSnackMessage('Insufficient balance or input error');
@@ -160,7 +189,20 @@ const TonSend = () => {
       return;
     }
 
-    setPage(2);
+    if (displaySign) {
+      if (coin === 'TON') {
+        if (!networkFee || !amount || parseFloat(networkFee) * 2 + parseFloat(amount) > parseFloat(balance['TON'])) {
+          setSnackSeverity('error');
+          setSnackMessage('Insufficient balance or input error');
+          setSnackOpen(true);
+          return;
+        }
+      }
+
+      if (networkFee && networkFee != '') {
+        setPage(2);
+      }
+    }
   };
 
   const onClickSignAndPay = async () => {
@@ -324,9 +366,31 @@ const TonSend = () => {
               </Typography>
             </Box>
 
+            {displaySign && (
+              <>
+                <Box mt={4}>
+                  <Typography>Gas Fee</Typography>
+                  <Box mt={1}>
+                    <FormControl sx={{ width: '25ch' }} variant="outlined">
+                      <OutlinedInput
+                        size={'small'}
+                        type="number"
+                        aria-describedby="outlined-weight-helper-text"
+                        inputProps={{
+                          'aria-label': 'weight',
+                        }}
+                        value={networkFee}
+                        disabled
+                      />
+                    </FormControl>
+                  </Box>
+                </Box>
+              </>
+            )}
+
             <Box mt={8}>
               <Button variant={'contained'} onClick={onClickSignTransaction}>
-                Sign transaction
+                {displaySign ? 'Sign Transaction' : 'Calculate Gas Fee'}
               </Button>
             </Box>
           </>

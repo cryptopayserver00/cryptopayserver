@@ -649,8 +649,8 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
   },
   {
     name: CHAINNAMES.TON,
-    desc: 'Bitcoin is a decentralized digital currency that operates on a peer-to-peer network, enabling secure, anonymous transactions worldwide.',
-    chainId: CHAINIDS.TON,
+    desc: 'A decentralized and open internet, created by the community using a technology designed by Telegram.',
+    chainId: CHAINIDS.TON_TESTNET,
     explorerUrl: 'https://testnet.tonscan.org',
     websiteUrl: 'https://ton.org',
     isMainnet: false,

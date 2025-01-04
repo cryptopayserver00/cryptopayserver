@@ -287,26 +287,82 @@ export class TON {
       throw new Error('can not get the private key of ton');
     }
 
-    const cRequest: CreateTonTransaction = {
-      privateKey: request.privateKey,
-      from: request.from,
-      to: request.to,
-      value: request.value,
-      contractAddress: request.coin.contractAddress,
-    };
-
     try {
       const tonweb = this.getTonClient(isMainnet);
-      const tx = await this.createTransaction(isMainnet, cRequest);
-      // const receipt = await tonweb.sendRawTransaction(tx);
-      // if (receipt && receipt.result) {
-      //   return receipt.transaction.txID;
-      // }
+
+      const keypair = keyPairFromSecretKey(Buffer.from(request.privateKey));
+
+      const wallet = tonweb.wallet.create({
+        publicKey: keypair.publicKey,
+        wc: 0,
+      });
+
+      const seqno = (await wallet.methods.seqno().call()) || 0;
+
+      // await wallet.createInitExternalMessage(keypair.publicKey);
+      // await wallet.createTransferMessage(keypair.secretKey, request.from, TonWeb.utils.toNano(request.value), seqno);
+
+      // const deploy = wallet.deploy(keypair.secretKey); // deploy method
+
+      // const deployFee = await deploy.estimateFee(); // get estimate fee of deploy
+
+      // const deploySended = await deploy.send(); // deploy wallet contract to blockchain
+
+      // const deployQuery = await deploy.getQuery(); // get deploy query Cell
+
+      const transfer = wallet.methods.transfer({
+        secretKey: keypair.secretKey,
+        toAddress: request.to,
+        amount: TonWeb.utils.toNano(request.value),
+        seqno,
+        payload: 'send transaction',
+        sendMode: 3,
+      });
+
+      const transferSended = await transfer.send();
+
+      console.log('transferSended', transferSended);
+      if (transferSended) {
+        return transferSended;
+      }
 
       throw new Error('can not send the transaction of ton');
     } catch (e) {
       console.error(e);
       throw new Error('can not send the transaction of ton');
+    }
+  }
+
+  static async estimateGasFee(isMainnet: boolean, request: SendTransaction): Promise<any> {
+    if (!request.privateKey || request.privateKey === '') {
+      throw new Error('can not get the private key of ton');
+    }
+
+    try {
+      const tonweb = this.getTonClient(isMainnet);
+
+      const keypair = keyPairFromSecretKey(Buffer.from(request.privateKey));
+
+      const wallet = tonweb.wallet.create({
+        publicKey: keypair.publicKey,
+      });
+
+      const seqno = (await wallet.methods.seqno().call()) || 0;
+
+      const fee = await wallet.methods
+        .transfer({
+          secretKey: keypair.secretKey,
+          toAddress: request.to,
+          amount: TonWeb.utils.toNano(request.value),
+          seqno,
+          payload: 'estimate gas fee',
+        })
+        .estimateFee();
+
+      return TonWeb.utils.fromNano(fee.source_fees.gas_fee.toString());
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not estimate gas fee of ton');
     }
   }
 }

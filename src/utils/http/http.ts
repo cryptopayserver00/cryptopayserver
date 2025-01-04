@@ -80,6 +80,7 @@ export class Http {
   static checkout_chain_address = this.httpPath + '/checkout_chain_address';
   static find_fee_rate = this.httpPath + '/find_fee_rate';
   static send_transaction = this.httpPath + '/send_transaction';
+  static find_gas_fee = this.httpPath + '/find_gas_fee';
 
   // ethereum
   static find_nonce = this.httpPath + '/find_nonce';

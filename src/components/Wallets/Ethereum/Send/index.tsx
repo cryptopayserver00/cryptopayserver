@@ -357,7 +357,7 @@ const EthereumSend = () => {
 
     if (displaySign) {
       if (coin === 'ETH') {
-        if (!networkFee || !amount || parseFloat(networkFee) * 1.5 + parseFloat(amount) > parseFloat(balance['ETH'])) {
+        if (!networkFee || !amount || parseFloat(networkFee) * 2 + parseFloat(amount) > parseFloat(balance['ETH'])) {
           setSnackSeverity('error');
           setSnackMessage('Insufficient balance or input error');
           setSnackOpen(true);
