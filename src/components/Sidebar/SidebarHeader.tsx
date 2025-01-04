@@ -51,59 +51,63 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
   const [stores, setStores] = useState<StoreProps[]>([]);
 
   const getStore = async () => {
-    if (getUserId() === 0) {
-      return;
-    }
+    try {
+      if (getUserId() === 0) {
+        return;
+      }
 
-    const store_result: any = await axios.get(Http.find_store, {
-      params: {
-        user_id: getUserId(),
-      },
-    });
-
-    if (store_result.result && store_result.data.length > 0) {
-      let store_list: Array<StoreProps> = [];
-
-      store_result.data.map((item: any) => {
-        store_list.push({
-          id: item.id,
-          name: item.name,
-          currency: item.currency,
-          price_source: item.price_source,
-        });
+      const store_result: any = await axios.get(Http.find_store, {
+        params: {
+          user_id: getUserId(),
+        },
       });
-      setStores(store_list);
-    } else {
-      // setSnackSeverity('error');
-      // setSnackMessage("Can't find the store, please to create a new one.");
-      // setSnackOpen(true);
 
-      setTimeout(() => {
-        window.location.href = '/stores/create';
-      }, 2000);
+      if (store_result.result && store_result.data.length > 0) {
+        let store_list: Array<StoreProps> = [];
+
+        store_result.data.map((item: any) => {
+          store_list.push({
+            id: item.id,
+            name: item.name,
+            currency: item.currency,
+            price_source: item.price_source,
+          });
+        });
+        setStores(store_list);
+      } else {
+        setTimeout(() => {
+          window.location.href = '/stores/create';
+        }, 2000);
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
   const onClickStore = async (id: number) => {
-    const store_result: any = await axios.get(Http.find_store_by_id, {
-      params: {
-        id: id,
-      },
-    });
+    try {
+      const store_result: any = await axios.get(Http.find_store_by_id, {
+        params: {
+          id: id,
+        },
+      });
 
-    if (store_result.result && store_result.data.length === 1) {
-      setStoreId(store_result.data[0].id);
-      setStoreName(store_result.data[0].name);
-      setStoreCurrency(store_result.data[0].currency);
-      setStorePriceSource(store_result.data[0].price_source);
+      if (store_result.result && store_result.data.length === 1) {
+        setStoreId(store_result.data[0].id);
+        setStoreName(store_result.data[0].name);
+        setStoreCurrency(store_result.data[0].currency);
+        setStorePriceSource(store_result.data[0].price_source);
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    } else {
-      setSnackSeverity('error');
-      setSnackMessage("Can't find the store, please try again later.");
-      setSnackOpen(true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage("Can't find the store, please try again later.");
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 

@@ -316,15 +316,6 @@ export default function PayoutDataGrid(props: GridType) {
   };
 
   const init = async (status: (typeof PAYOUT_STATUS)[keyof typeof PAYOUT_STATUS]) => {
-    // switch (status) {
-    //   case PAYOUT_STATUS.AwaitingApproval:
-    //     setActionWidth(200);
-    //   case PAYOUT_STATUS.AwaitingPayment:
-    //     setActionWidth(600);
-    //   case (PAYOUT_STATUS.InProgress, PAYOUT_STATUS.Completed, PAYOUT_STATUS.Cancelled):
-    //     setActionWidth(100);
-    // }
-
     try {
       const response: any = await axios.get(Http.find_payout, {
         params: {
