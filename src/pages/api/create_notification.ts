@@ -11,15 +11,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const connection = await connectDatabase();
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
+        const network = req.body.network;
 
         const label = req.body.label;
         const message = req.body.message;
+        const url = req.body.url;
         const isSeen = 2;
         const date = new Date().getTime();
 
         const createQuery =
-          'INSERT INTO notifications (user_id, store_id, label, message, is_seen, date, status) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        const createValues = [userId, storeId, label, message, isSeen, date, 1];
+          'INSERT INTO notifications (user_id, store_id, network, label, message, url, is_seen, created_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        const createValues = [userId, storeId, network, label, message, url, isSeen, date, 1];
         const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
         const id = ResultSetHeader.insertId;
         if (id === 0) {

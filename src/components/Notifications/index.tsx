@@ -60,7 +60,7 @@ type RowType = {
 
 function NotificationsTab() {
   const { getStoreId } = useStorePresistStore((state) => state);
-  const { getUserId } = useUserPresistStore((state) => state);
+  const { getUserId, getNetwork } = useUserPresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
   const [rows, setRows] = useState<RowType[]>([]);
@@ -70,6 +70,7 @@ function NotificationsTab() {
       const response: any = await axios.get(Http.find_notification, {
         params: {
           store_id: getStoreId(),
+          network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
 
@@ -103,6 +104,7 @@ function NotificationsTab() {
       const response: any = await axios.put(Http.update_notification, {
         store_id: getStoreId(),
         user_id: getUserId(),
+        network: getNetwork() === 'mainnet' ? 1 : 2,
         id: id,
         is_seen: isSeen === 1 ? 2 : 1,
       });

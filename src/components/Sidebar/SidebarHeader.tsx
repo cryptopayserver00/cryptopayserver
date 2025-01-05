@@ -3,6 +3,7 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import { Typography } from './Typography';
 import {
   Alert,
+  Badge,
   Box,
   Button,
   FormControl,
@@ -44,11 +45,12 @@ interface StoreProps {
 
 export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest }) => {
   const { getStoreId } = useStorePresistStore((state) => state);
-  const { getUserId } = useUserPresistStore((state) => state);
+  const { getUserId, getNetwork } = useUserPresistStore((state) => state);
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state);
   const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource } = useStorePresistStore((state) => state);
 
   const [stores, setStores] = useState<StoreProps[]>([]);
+  const [notificationCount, setNotificationCount] = useState<number>(0);
 
   const getStore = async () => {
     try {
@@ -84,6 +86,26 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
     }
   };
 
+  const getNotification = async () => {
+    try {
+      const response: any = await axios.get(Http.find_notification, {
+        params: {
+          store_id: getStoreId(),
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+          is_seen: 2,
+        },
+      });
+
+      if (response.result && response.data.length > 0) {
+        setNotificationCount(response.data.length);
+      } else {
+        setNotificationCount(0);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const onClickStore = async (id: number) => {
     try {
       const store_result: any = await axios.get(Http.find_store_by_id, {
@@ -113,6 +135,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
 
   useEffect(() => {
     getStore();
+    getNotification();
   }, []);
 
   return (
@@ -132,13 +155,17 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
           </Stack>
         </Button>
 
-        <IconButton
-          onClick={() => {
-            window.location.href = '/notifications';
-          }}
-        >
-          <NotificationsNoneIcon />
-        </IconButton>
+        <Box p={1}>
+          <IconButton
+            onClick={() => {
+              window.location.href = '/notifications';
+            }}
+          >
+            <Badge badgeContent={notificationCount} color="primary">
+              <NotificationsNoneIcon color="action" />
+            </Badge>
+          </IconButton>
+        </Box>
       </Stack>
 
       {stores && stores.length > 0 && (

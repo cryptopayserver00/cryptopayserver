@@ -10,10 +10,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       case 'GET':
         const connection = await connectDatabase();
         const storeId = req.query.store_id;
+        const isSeen = req.query.is_seen;
+        const network = req.query.network;
 
-        const query = 'SELECT * FROM notifications where store_id = ? and status = ?';
-        const values = [storeId, 1];
-        const [rows] = await connection.query(query, values);
+        let findQuery = 'SELECT * FROM notifications where ';
+        let updateValues = [];
+
+        if (isSeen) {
+          findQuery += 'is_seen = ? and';
+          updateValues.push(isSeen);
+        }
+
+        findQuery += ' store_id = ? and network = ? and status = ?';
+        updateValues.push(storeId, network, 1);
+        const [rows] = await connection.query(findQuery, updateValues);
         return res.status(200).json({ message: '', result: true, data: rows });
       case 'POST':
         break;
