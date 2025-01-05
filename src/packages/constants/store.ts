@@ -52,6 +52,11 @@ export const CURRENCY = [
 
 export const PRICE_RESOURCE = ['Kraken', 'CoinGecko'];
 
+export const PAID_STATUS = {
+  PAID: 'PAID',
+  UNPAID: 'UNPAID',
+};
+
 export const ORDER_STATUS = {
   AllStatus: 'All Status',
   Settled: 'Settled',
@@ -65,6 +70,8 @@ export const INVOICE_SOURCE_TYPE = {
   PaymentRequest: 'Payment Request',
   PullPayment: 'PullPayment',
   Payout: 'Payout',
+  Sales: 'Sales',
+  Wallets: 'Wallets',
 };
 
 export const PAYOUT_SOURCE_TYPE = {
@@ -100,6 +107,16 @@ export const ORDER_TIME = {
   Last3Days: 'Last 3 days',
   Last7Days: 'Last 7 days',
   CustomRange: 'Custom Range',
+};
+
+export const REPORT_STATUS = {
+  All: 'All',
+  Invoice: 'Invoice',
+  PaymentRequest: 'Payment Request',
+  PullPayment: 'PullPayment',
+  Payout: 'Payout',
+  Sales: 'Sales',
+  Wallets: 'Wallets',
 };
 
 export const COINGECKO_IDS: { [key in COINS]: string } = {
@@ -145,6 +162,8 @@ export const COINGECKO_IDS: { [key in COINS]: string } = {
   [COINS.WBTC]: 'wrapped-bitcoin',
   [COINS.WETH]: 'wrapped-ether',
   [COINS.WSOL]: 'wrapped-solana',
+  [COINS.SAND]: 'sand',
+  [COINS.CRO]: 'cro',
 };
 
 type Language = {
