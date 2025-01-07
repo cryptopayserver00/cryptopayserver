@@ -18,11 +18,12 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWal
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import { COINGECKO_IDS } from 'packages/constants';
+import { COINGECKO_IDS, PAYOUT_STATUS } from 'packages/constants';
 import { COINS } from 'packages/constants/blockchain';
 import { BigMul } from 'utils/number';
 import TransactionDataGrid from 'components/DataList/TransactionDataGrid';
 import InvoiceDataGrid from 'components/DataList/InvoiceDataGrid';
+import PayoutDataGrid from 'components/DataList/PayoutDataGrid';
 
 const Dashboard = () => {
   const [walletBalanceAlignment, setWalletBalanceAlignment] = useState<'USD' | 'USDT' | 'USDC'>('USD');
@@ -261,6 +262,27 @@ const Dashboard = () => {
 
                 <Box mt={3}>
                   <InvoiceDataGrid source="dashboard" />
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card variant="outlined">
+              <CardContent>
+                <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                  <Typography variant="h5">Recent Payouts</Typography>
+                  <Button
+                    onClick={() => {
+                      window.location.href = '/payments/payouts';
+                    }}
+                  >
+                    View All
+                  </Button>
+                </Stack>
+
+                <Box mt={3}>
+                  <PayoutDataGrid status={PAYOUT_STATUS.AwaitingPayment} />
                 </Box>
               </CardContent>
             </Card>

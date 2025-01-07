@@ -1,7 +1,7 @@
 // import cron from 'node-cron';
 // import axios from 'axios';
 
-// const baseUrl = 'http://127.0.0.1:8888/api';
+// const baseUrl = 'http://127.0.0.1:8888/api/schedule';
 
 // cron.schedule('*/60 * * * * *', async () => {
 //   try {

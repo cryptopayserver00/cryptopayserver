@@ -370,7 +370,9 @@ export default function PayoutDataGrid(props: GridType) {
         }}
         pageSizeOptions={[10]}
         onRowClick={(e: any) => {
-          window.location.href = e.row.url;
+          if (e.row.url) {
+            window.location.href = e.row.url;
+          }
         }}
         disableColumnMenu
       />

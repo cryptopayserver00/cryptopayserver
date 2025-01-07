@@ -55,7 +55,7 @@ const SolanaSend = () => {
 
   const getSolana = async () => {
     try {
-      const find_payment_resp: any = await axios.get(Http.find_payment_by_chain_id, {
+      const find_payment_resp: any = await axios.get(Http.find_asset_balance, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.SOLANA,
