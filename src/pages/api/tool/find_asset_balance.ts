@@ -17,8 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const network = req.query.network;
 
         const query =
-          'SELECT current_used_address_id FROM payment_settings where user_id = ? and store_id = ? and chain_id = ? and network = ?';
-        const values = [userId, storeId, chainId, network];
+          'SELECT current_used_address_id FROM payment_settings where user_id = ? and store_id = ? and chain_id = ? and network = ? and status = ?';
+        const values = [userId, storeId, chainId, network, 1];
         const [rows] = await connection.query(query, values);
         if (Array.isArray(rows) && rows.length === 1) {
           const row = rows[0] as mysql.RowDataPacket;

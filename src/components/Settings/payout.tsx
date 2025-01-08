@@ -238,22 +238,32 @@ function StorePayoutTable(props: TableType) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell component="th" scope="row">
-                {row.paymentMethod}
-              </TableCell>
-              <TableCell align="right">
-                <Button
-                  onClick={() => {
-                    onClickConfigure(row);
-                  }}
-                >
-                  Configure
-                </Button>
+          {rows && rows.length > 0 ? (
+            <>
+              {rows.map((row) => (
+                <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell component="th" scope="row">
+                    {row.paymentMethod}
+                  </TableCell>
+                  <TableCell align="right">
+                    <Button
+                      onClick={() => {
+                        onClickConfigure(row);
+                      }}
+                    >
+                      Configure
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={100} align="center">
+                No rows
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>

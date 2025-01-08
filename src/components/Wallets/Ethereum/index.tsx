@@ -21,6 +21,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import Image from 'next/image';
 import Link from 'next/link';
 import { CHAINS } from 'packages/constants/blockchain';
 import { EthereumTransactionDetail } from 'packages/web3/types';
@@ -29,6 +30,7 @@ import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/eth';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { WeiToGwei } from 'utils/number';
+import EthereumSVG from 'assets/chain/ethereum.svg';
 
 type walletType = {
   id: number;
@@ -181,9 +183,12 @@ const Ethereum = () => {
     <Box>
       <Container>
         <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} pt={5}>
-          <Box>
-            <Typography variant="h6">Ethereum Wallet</Typography>
-          </Box>
+          <Stack direction={'row'} alignItems={'center'}>
+            <Image src={EthereumSVG} alt="" width={50} height={50} />
+            <Typography variant="h6" pl={1}>
+              Ethereum Wallet
+            </Typography>
+          </Stack>
           <Stack direction={'row'} alignItems={'center'} gap={2}>
             <Box>
               <Button
@@ -397,21 +402,34 @@ function TransactionsTab({ rows }: { rows: EthereumTransactionDetail[] }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, index) => (
-            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell component="th" scope="row">
-                <Link href={GetBlockchainTxUrl(getNetwork() === 'mainnet' ? true : false, row.hash)} target={'_blank'}>
-                  {row.hash}
-                </Link>
+          {rows && rows.length > 0 ? (
+            <>
+              {rows.map((row, index) => (
+                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell component="th" scope="row">
+                    <Link
+                      href={GetBlockchainTxUrl(getNetwork() === 'mainnet' ? true : false, row.hash)}
+                      target={'_blank'}
+                    >
+                      {row.hash}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{row.amount}</TableCell>
+                  <TableCell>{row.asset}</TableCell>
+                  <TableCell>{row.contractAddress}</TableCell>
+                  <TableCell>{row.type}</TableCell>
+                  <TableCell>{new Date((row.blockTimestamp as number) * 1000).toLocaleString()}</TableCell>
+                  <TableCell>{row.status}</TableCell>
+                </TableRow>
+              ))}
+            </>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={100} align="center">
+                No rows
               </TableCell>
-              <TableCell>{row.amount}</TableCell>
-              <TableCell>{row.asset}</TableCell>
-              <TableCell>{row.contractAddress}</TableCell>
-              <TableCell>{row.type}</TableCell>
-              <TableCell>{new Date((row.blockTimestamp as number) * 1000).toLocaleString()}</TableCell>
-              <TableCell>{row.status}</TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>

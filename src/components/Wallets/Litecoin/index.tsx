@@ -28,6 +28,8 @@ import { Http } from 'utils/http/http';
 import { GetBlockchainAddressUrl } from 'utils/chain/ltc';
 import { TransactionDetail } from 'packages/web3/types';
 import Link from 'next/link';
+import LitecoinSVG from 'assets/chain/litecoin.svg';
+import Image from 'next/image';
 
 type walletType = {
   id: number;
@@ -184,9 +186,12 @@ const Litecoin = () => {
     <Box>
       <Container>
         <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} pt={5}>
-          <Box>
-            <Typography variant="h6">Litecoin Wallet</Typography>
-          </Box>
+          <Stack direction={'row'} alignItems={'center'}>
+            <Image src={LitecoinSVG} alt="" width={50} height={50} />
+            <Typography variant="h6" pl={1}>
+              Litecoin Wallet
+            </Typography>
+          </Stack>
           <Stack direction={'row'} alignItems={'center'} gap={2}>
             <Box>
               <Button
@@ -573,22 +578,32 @@ function TransactionsTab({ rows }: { rows: TransactionDetail[] }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, index) => (
-            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell component="th" scope="row">
-                <Link href={row.url} target={'_blank'}>
-                  {row.hash}
-                </Link>
+          {rows && rows.length > 0 ? (
+            <>
+              {rows.map((row, index) => (
+                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell component="th" scope="row">
+                    <Link href={row.url} target={'_blank'}>
+                      {row.hash}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{row.value} sat</TableCell>
+                  <TableCell>{row.asset}</TableCell>
+                  <TableCell>{row.fee} sat</TableCell>
+                  <TableCell>{row.type}</TableCell>
+                  <TableCell>{row.blockNumber}</TableCell>
+                  <TableCell>{new Date((row.blockTimestamp as number) * 1000).toLocaleString()}</TableCell>
+                  <TableCell>{row.status}</TableCell>
+                </TableRow>
+              ))}
+            </>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={100} align="center">
+                No rows
               </TableCell>
-              <TableCell>{row.value} sat</TableCell>
-              <TableCell>{row.asset}</TableCell>
-              <TableCell>{row.fee} sat</TableCell>
-              <TableCell>{row.type}</TableCell>
-              <TableCell>{row.blockNumber}</TableCell>
-              <TableCell>{new Date((row.blockTimestamp as number) * 1000).toLocaleString()}</TableCell>
-              <TableCell>{row.status}</TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>

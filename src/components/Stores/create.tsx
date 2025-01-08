@@ -26,17 +26,34 @@ const CreateStore = () => {
 
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
   const { getUserId } = useUserPresistStore((state) => state);
-  const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource, setIsStore } = useStorePresistStore((state) => state);
+  const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource, setIsStore } = useStorePresistStore(
+    (state) => state,
+  );
+
+  const checkName = (): boolean => {
+    if (name && name !== '') {
+      return true;
+    }
+
+    return false;
+  };
 
   const onCreateStore = async () => {
+    if (!checkName()) {
+      setSnackSeverity('error');
+      setSnackMessage('Incorrect name');
+      setSnackOpen(true);
+      return;
+    }
+
     try {
       if (name !== '' && currency !== '' && priceSource !== '') {
-        // create store
         const create_store_resp: any = await axios.post(Http.create_store, {
           user_id: getUserId(),
           name: name,
           currency: currency,
           price_source: priceSource,
+          website: window.location.origin,
         });
         if (create_store_resp.result) {
           setSnackSeverity('success');
@@ -47,7 +64,7 @@ const CreateStore = () => {
           setStoreName(create_store_resp.data[0].name);
           setStoreCurrency(create_store_resp.data[0].currency);
           setStorePriceSource(create_store_resp.data[0].price_source);
-          setIsStore(true)
+          setIsStore(true);
 
           setTimeout(() => {
             window.location.href = '/dashboard';

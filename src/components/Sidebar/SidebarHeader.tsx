@@ -183,6 +183,14 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
                   {item.name}
                 </MenuItem>
               ))}
+              <hr />
+              <MenuItem
+                onClick={() => {
+                  window.location.href = '/stores/create';
+                }}
+              >
+                Create Store
+              </MenuItem>
             </Select>
           </FormControl>
         </Box>

@@ -258,42 +258,48 @@ const PaymentRequestsDetails = () => {
                   <Typography variant={'h6'}>Payment History</Typography>
 
                   <Box mt={2}>
-                    {paymentRequestRows && paymentRequestRows.length > 0 ? (
-                      <TableContainer component={Paper}>
-                        <Table aria-label="simple table">
-                          <TableHead>
+                    <TableContainer component={Paper}>
+                      <Table aria-label="simple table">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Invoice Id</TableCell>
+                            <TableCell>Amount</TableCell>
+                            <TableCell>Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {paymentRequestRows && paymentRequestRows.length > 0 ? (
+                            <>
+                              {paymentRequestRows.map((row, index) => (
+                                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                  <TableCell component="th" scope="row">
+                                    <Button
+                                      onClick={() => {
+                                        window.location.href = '/invoices/' + row.orderId;
+                                      }}
+                                    >
+                                      {row.orderId}
+                                    </Button>
+                                  </TableCell>
+                                  <TableCell>
+                                    {row.amount} {row.currency}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Typography fontWeight={'bold'}>{row.orderStatus}</Typography>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </>
+                          ) : (
                             <TableRow>
-                              <TableCell>Invoice Id</TableCell>
-                              <TableCell>Amount</TableCell>
-                              <TableCell>Status</TableCell>
+                              <TableCell colSpan={100} align="center">
+                                No rows
+                              </TableCell>
                             </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {paymentRequestRows.map((row, index) => (
-                              <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                <TableCell component="th" scope="row">
-                                  <Button
-                                    onClick={() => {
-                                      window.location.href = '/invoices/' + row.orderId;
-                                    }}
-                                  >
-                                    {row.orderId}
-                                  </Button>
-                                </TableCell>
-                                <TableCell>
-                                  {row.amount} {row.currency}
-                                </TableCell>
-                                <TableCell>
-                                  <Typography fontWeight={'bold'}>{row.orderStatus}</Typography>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    ) : (
-                      <Typography mt={2}>No payments have been made yet.</Typography>
-                    )}
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
                   </Box>
                 </CardContent>
               </Card>

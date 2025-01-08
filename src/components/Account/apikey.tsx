@@ -268,33 +268,44 @@ function AccountApiKeyTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell component="th" scope="row">
-                {row.label}
-              </TableCell>
-              <TableCell>{row.key}</TableCell>
-              <TableCell>
-                {row.permissions && row.permissions.map((item, index) => <Typography key={index}>{item}</Typography>)}
-              </TableCell>
-              <TableCell align="right">
-                <Button
-                  onClick={() => {
-                    onClickDelete(row.id);
-                  }}
-                >
-                  Delete
-                </Button>
-                {/* <Button
+          {rows && rows.length > 0 ? (
+            <>
+              {rows.map((row) => (
+                <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell component="th" scope="row">
+                    {row.label}
+                  </TableCell>
+                  <TableCell>{row.key}</TableCell>
+                  <TableCell>
+                    {row.permissions &&
+                      row.permissions.map((item, index) => <Typography key={index}>{item}</Typography>)}
+                  </TableCell>
+                  <TableCell align="right">
+                    <Button
+                      onClick={() => {
+                        onClickDelete(row.id);
+                      }}
+                    >
+                      Delete
+                    </Button>
+                    {/* <Button
                   onClick={() => {
                     onClickShowQR(row.id);
                   }}
                 >
                   Show QR
                 </Button> */}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={100} align="center">
+                No rows
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>

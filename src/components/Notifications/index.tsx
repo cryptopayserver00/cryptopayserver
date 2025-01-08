@@ -132,30 +132,40 @@ function NotificationsTab() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell>{row.message}</TableCell>
-              <TableCell component="th" scope="row">
-                {row.date}
-              </TableCell>
-              <TableCell align="right">
-                <Button
-                  onClick={() => {
-                    window.location.href = row.url;
-                  }}
-                >
-                  Details
-                </Button>
-                <Button
-                  onClick={() => {
-                    onClickSeen(row.id, row.isSeen);
-                  }}
-                >
-                  {row.isSeen === 1 ? 'Mark as unseen' : 'Mark as seen'}
-                </Button>
+          {rows && rows.length > 0 ? (
+            <>
+              {rows.map((row) => (
+                <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell>{row.message}</TableCell>
+                  <TableCell component="th" scope="row">
+                    {row.date}
+                  </TableCell>
+                  <TableCell align="right">
+                    <Button
+                      onClick={() => {
+                        window.location.href = row.url;
+                      }}
+                    >
+                      Details
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        onClickSeen(row.id, row.isSeen);
+                      }}
+                    >
+                      {row.isSeen === 1 ? 'Mark as unseen' : 'Mark as seen'}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={100} align="center">
+                No rows
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>

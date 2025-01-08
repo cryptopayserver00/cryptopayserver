@@ -58,20 +58,30 @@ function StoreRoles() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell component="th" scope="row">
-                {row.role}
-              </TableCell>
-              <TableCell>{row.scope}</TableCell>
-              <TableCell>{row.permissions}</TableCell>
-              <TableCell>{row.inUse} YES OR NO</TableCell>
-              <TableCell align="right">
-                <Button>A</Button>
-                <Button>B</Button>
+          {rows && rows.length > 0 ? (
+            <>
+              {rows.map((row) => (
+                <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell component="th" scope="row">
+                    {row.role}
+                  </TableCell>
+                  <TableCell>{row.scope}</TableCell>
+                  <TableCell>{row.permissions}</TableCell>
+                  <TableCell>{row.inUse} YES OR NO</TableCell>
+                  <TableCell align="right">
+                    <Button>A</Button>
+                    <Button>B</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={100} align="center">
+                No rows
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>

@@ -28,8 +28,6 @@ import Link from 'next/link';
 import { CURRENCY } from 'packages/constants';
 
 const General = () => {
-  const { getStoreId } = useStorePresistStore((state) => state);
-  const { getUserId } = useUserPresistStore((state) => state);
   const [storeName, setStoreName] = useState<string>('');
   const [storeWebsite, setStoreWebsite] = useState<string>('');
   const [brandColor, setBrandColor] = useState<string>('');
@@ -42,6 +40,8 @@ const General = () => {
   const [invoicePaidLessThanPrecent, setInvoicePaidLessThanPrecent] = useState<number>(0);
   const [minimumExpiraionTimeForRefund, setMinimumExpiraionTimeForRefund] = useState<number>(0);
 
+  const { getStoreId } = useStorePresistStore((state) => state);
+  const { getUserId } = useUserPresistStore((state) => state);
   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
 
   const VisuallyHiddenInput = styled('input')({

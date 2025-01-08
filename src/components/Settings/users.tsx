@@ -22,7 +22,8 @@ const Users = () => {
       <Box>
         <Typography variant="h6">Store Users</Typography>
         <Typography mt={2}>
-          Give other registered CryptoPay Server users access to your store. See the <Link href={"/settings"}>roles</Link> for granted permissions.
+          Give other registered CryptoPay Server users access to your store. See the{' '}
+          <Link href={'/settings'}>roles</Link> for granted permissions.
         </Typography>
         <Stack direction={'row'} alignItems={'center'} gap={3} mt={4}>
           <TextField fullWidth hiddenLabel defaultValue="" size="small" />
@@ -71,18 +72,28 @@ function StoreUserTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell component="th" scope="row">
-                {row.email}
-              </TableCell>
-              <TableCell>{row.role}</TableCell>
-              <TableCell align="right">
-                <Button>Change Role</Button>
-                <Button>Remove</Button>
+          {rows && rows.length > 0 ? (
+            <>
+              {rows.map((row) => (
+                <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell component="th" scope="row">
+                    {row.email}
+                  </TableCell>
+                  <TableCell>{row.role}</TableCell>
+                  <TableCell align="right">
+                    <Button>Change Role</Button>
+                    <Button>Remove</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={100} align="center">
+                No rows
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>

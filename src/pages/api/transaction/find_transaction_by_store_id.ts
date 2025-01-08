@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: true, data: txRows });
         }
 
-        return res.status(500).json({ message: 'something wrong', result: false, data: null });
+        return res.status(200).json({ message: '', result: true, data: [] });
       case 'POST':
         break;
       default:

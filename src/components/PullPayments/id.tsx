@@ -320,47 +320,53 @@ const PullPaymentsDetails = () => {
                 <CardContent>
                   <Typography variant="h5">Claims</Typography>
                   <Box mt={4}>
-                    {payoutRows && payoutRows.length > 0 ? (
-                      <TableContainer component={Paper}>
-                        <Table aria-label="simple table">
-                          <TableHead>
+                    <TableContainer component={Paper}>
+                      <Table aria-label="simple table">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Destination</TableCell>
+                            <TableCell>Chain</TableCell>
+                            <TableCell>Amount requested</TableCell>
+                            <TableCell>Crypto</TableCell>
+                            <TableCell>Crypto Amount</TableCell>
+                            <TableCell>Transaction</TableCell>
+                            <TableCell>Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {payoutRows && payoutRows.length > 0 ? (
+                            <>
+                              {payoutRows.map((row, index) => (
+                                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                  <TableCell>{row.address}</TableCell>
+                                  <TableCell>{row.chainName}</TableCell>
+                                  <TableCell>
+                                    <Stack direction={'row'} alignItems={'center'} width={150}>
+                                      <Typography>{row.amount}</Typography>
+                                      <Typography ml={1}>{row.currency}</Typography>
+                                    </Stack>
+                                  </TableCell>
+                                  <TableCell>{row.crypto}</TableCell>
+                                  <TableCell>
+                                    <Typography width={150}>{row.cryptoAmount}</Typography>
+                                  </TableCell>
+                                  <TableCell>{row.tx}</TableCell>
+                                  <TableCell>
+                                    <Typography width={150}>{row.status}</Typography>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </>
+                          ) : (
                             <TableRow>
-                              <TableCell>Destination</TableCell>
-                              <TableCell>Chain</TableCell>
-                              <TableCell>Amount requested</TableCell>
-                              <TableCell>Crypto</TableCell>
-                              <TableCell>Crypto Amount</TableCell>
-                              <TableCell>Transaction</TableCell>
-                              <TableCell>Status</TableCell>
+                              <TableCell colSpan={100} align="center">
+                                No rows
+                              </TableCell>
                             </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {payoutRows.map((row, index) => (
-                              <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                <TableCell>{row.address}</TableCell>
-                                <TableCell>{row.chainName}</TableCell>
-                                <TableCell>
-                                  <Stack direction={'row'} alignItems={'center'} width={150}>
-                                    <Typography>{row.amount}</Typography>
-                                    <Typography ml={1}>{row.currency}</Typography>
-                                  </Stack>
-                                </TableCell>
-                                <TableCell>{row.crypto}</TableCell>
-                                <TableCell>
-                                  <Typography width={150}>{row.cryptoAmount}</Typography>
-                                </TableCell>
-                                <TableCell>{row.tx}</TableCell>
-                                <TableCell>
-                                  <Typography width={150}>{row.status}</Typography>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    ) : (
-                      <Typography mt={2}>No claims have been made yet.</Typography>
-                    )}
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
                   </Box>
                 </CardContent>
               </Card>

@@ -28,6 +28,8 @@ import { useEffect, useState } from 'react';
 import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/tron';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
+import TronSVG from 'assets/chain/tron.svg';
+import Image from 'next/image';
 
 type walletType = {
   id: number;
@@ -174,9 +176,12 @@ const Tron = () => {
     <Box>
       <Container>
         <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} pt={5}>
-          <Box>
-            <Typography variant="h6">Tron Wallet</Typography>
-          </Box>
+          <Stack direction={'row'} alignItems={'center'}>
+            <Image src={TronSVG} alt="" width={50} height={50} />
+            <Typography variant="h6" pl={1}>
+              Tron Wallet
+            </Typography>
+          </Stack>
           <Stack direction={'row'} alignItems={'center'} gap={2}>
             <Box>
               <Button
@@ -390,21 +395,34 @@ function TransactionsTab({ rows }: { rows: EthereumTransactionDetail[] }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, index) => (
-            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell component="th" scope="row">
-                <Link href={GetBlockchainTxUrl(getNetwork() === 'mainnet' ? true : false, row.hash)} target={'_blank'}>
-                  {row.hash}
-                </Link>
+          {rows && rows.length > 0 ? (
+            <>
+              {rows.map((row, index) => (
+                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell component="th" scope="row">
+                    <Link
+                      href={GetBlockchainTxUrl(getNetwork() === 'mainnet' ? true : false, row.hash)}
+                      target={'_blank'}
+                    >
+                      {row.hash}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{row.amount}</TableCell>
+                  <TableCell>{row.asset}</TableCell>
+                  <TableCell>{row.contractAddress}</TableCell>
+                  <TableCell>{row.type}</TableCell>
+                  <TableCell>{new Date(row.blockTimestamp as number).toLocaleString()}</TableCell>
+                  <TableCell>{row.status}</TableCell>
+                </TableRow>
+              ))}
+            </>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={100} align="center">
+                No rows
               </TableCell>
-              <TableCell>{row.amount}</TableCell>
-              <TableCell>{row.asset}</TableCell>
-              <TableCell>{row.contractAddress}</TableCell>
-              <TableCell>{row.type}</TableCell>
-              <TableCell>{new Date(row.blockTimestamp as number).toLocaleString()}</TableCell>
-              <TableCell>{row.status}</TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>

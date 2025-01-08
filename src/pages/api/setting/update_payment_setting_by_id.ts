@@ -21,7 +21,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
         const currentUsedAddressId = req.body.current_used_address_id;
 
         const query =
-          'UPDATE payment_settings set payment_expire = ?, confirm_block = ?, show_recommended_fee = ?, current_used_address_id = ? where id = ? and user_id = ? and store_id = ? and chain_id = ? and network = ?';
+          'UPDATE payment_settings set payment_expire = ?, confirm_block = ?, show_recommended_fee = ?, current_used_address_id = ? where id = ? and user_id = ? and store_id = ? and chain_id = ? and network = ? and status = ?';
         const values = [
           paymentExpire,
           confirmBlock,
@@ -32,6 +32,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
           storeId,
           chainId,
           network,
+          1
         ];
         await connection.query(query, values);
         return res.status(200).json({ message: '', result: true, data: null });

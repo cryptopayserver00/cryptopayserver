@@ -54,14 +54,24 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
-              <TableRow key={row.date} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell component="th" scope="row">
-                  {row.date}
+            {rows && rows.length > 0 ? (
+              <>
+                {rows.map((row) => (
+                  <TableRow key={row.date} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                    <TableCell component="th" scope="row">
+                      {row.date}
+                    </TableCell>
+                    <TableCell align="left">{row.message}</TableCell>
+                  </TableRow>
+                ))}
+              </>
+            ) : (
+              <TableRow>
+                <TableCell colSpan={100} align="center">
+                  No rows
                 </TableCell>
-                <TableCell align="left">{row.message}</TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
