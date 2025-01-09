@@ -42,6 +42,9 @@ const Shopify = () => {
         setAdminApiAccessToken(response.data[0].admin_api_access_token);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -93,6 +96,9 @@ const Shopify = () => {
         }
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

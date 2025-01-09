@@ -36,6 +36,9 @@ const BitcoinReceive = () => {
         setBitcoin(response.data.address);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

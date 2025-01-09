@@ -106,6 +106,9 @@ const LitecoinSend = () => {
         setBalance(response.data.balance.LTC);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -129,6 +132,9 @@ const LitecoinSend = () => {
         setFeeRate(response.data.fastest);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -152,6 +158,9 @@ const LitecoinSend = () => {
       });
       return response.result;
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
       return false;
     }
@@ -223,6 +232,9 @@ const LitecoinSend = () => {
         setIsDisableAmount(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -270,6 +282,9 @@ const LitecoinSend = () => {
         setPage(3);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

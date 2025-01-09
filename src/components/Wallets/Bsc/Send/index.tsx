@@ -102,6 +102,9 @@ const BscSend = () => {
         await getBscNonce(response.data.address);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -124,6 +127,9 @@ const BscSend = () => {
       }
       return false;
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
       return false;
     }
@@ -146,6 +152,9 @@ const BscSend = () => {
         setGasPrice(WeiToGwei(response.data.normal));
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -164,6 +173,9 @@ const BscSend = () => {
           setNonce(response.data);
         }
       } catch (e) {
+        setSnackSeverity('error');
+        setSnackMessage('The network error occurred. Please try again later.');
+        setSnackOpen(true);
         console.error(e);
       }
     }
@@ -188,6 +200,9 @@ const BscSend = () => {
       });
       return response.result;
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
       return false;
     }
@@ -307,6 +322,9 @@ const BscSend = () => {
         setIsDisableAmount(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -351,6 +369,9 @@ const BscSend = () => {
         setPage(3);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

@@ -78,6 +78,9 @@ const General = () => {
         setMinimumExpiraionTimeForRefund(response.data[0].minimum_expiraion_time_for_refund);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -111,9 +114,12 @@ const General = () => {
       } else {
         setSnackSeverity('error');
         setSnackMessage('The update failed, please try again later.');
-        setSnackOpen(false);
+        setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -132,9 +138,12 @@ const General = () => {
       } else {
         setSnackSeverity('error');
         setSnackMessage('The update failed, please try again later.');
-        setSnackOpen(false);
+        setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -153,9 +162,12 @@ const General = () => {
       } else {
         setSnackSeverity('error');
         setSnackMessage('The update failed, please try again later.');
-        setSnackOpen(false);
+        setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

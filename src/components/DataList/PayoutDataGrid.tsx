@@ -192,6 +192,9 @@ export default function PayoutDataGrid(props: GridType) {
         setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -216,6 +219,9 @@ export default function PayoutDataGrid(props: GridType) {
         setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -288,6 +294,9 @@ export default function PayoutDataGrid(props: GridType) {
         setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -311,6 +320,9 @@ export default function PayoutDataGrid(props: GridType) {
         setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -347,6 +359,9 @@ export default function PayoutDataGrid(props: GridType) {
         setRows([]);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

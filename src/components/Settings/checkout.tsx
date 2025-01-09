@@ -49,6 +49,9 @@ const Checkout = () => {
         setShowHeader(response.data[0].show_header === 1 ? true : false);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -86,9 +89,12 @@ const Checkout = () => {
       } else {
         setSnackSeverity('error');
         setSnackMessage('The update failed, please try again later.');
-        setSnackOpen(false);
+        setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

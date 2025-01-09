@@ -44,6 +44,9 @@ const Rates = () => {
         setPriceSource(response.data[0].price_source);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -69,9 +72,12 @@ const Rates = () => {
       } else {
         setSnackSeverity('error');
         setSnackMessage('The update failed, please try again later.');
-        setSnackOpen(false);
+        setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

@@ -81,6 +81,9 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         }, 2000);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -101,6 +104,9 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         setNotificationCount(0);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -128,6 +134,9 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

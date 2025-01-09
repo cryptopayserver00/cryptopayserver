@@ -88,6 +88,7 @@ export class SOLANA {
       }
       return false;
     } catch (e) {
+      console.error(e);
       return false;
     }
   }
@@ -610,6 +611,7 @@ export class SOLANA {
 
       throw new Error('can not send the transaction of solana');
     } catch (e) {
+      console.error(e);
       throw new Error('can not send the transaction of solana');
     }
   }

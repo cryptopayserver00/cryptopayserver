@@ -126,6 +126,9 @@ const EthereumSend = () => {
         await getEthereumNonce(response.data.address);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -148,6 +151,9 @@ const EthereumSend = () => {
       }
       return false;
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
       return false;
     }
@@ -170,6 +176,9 @@ const EthereumSend = () => {
         setMaxFee(WeiToGwei(response.data.normal));
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -191,6 +200,9 @@ const EthereumSend = () => {
         setMaxPriortyFee(WeiToGwei(response.data.normal));
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -209,6 +221,9 @@ const EthereumSend = () => {
           setNonce(response.data);
         }
       } catch (e) {
+        setSnackSeverity('error');
+        setSnackMessage('The network error occurred. Please try again later.');
+        setSnackOpen(true);
         console.error(e);
       }
     }
@@ -242,6 +257,9 @@ const EthereumSend = () => {
         setIsDisableAmount(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -265,6 +283,9 @@ const EthereumSend = () => {
       });
       return response.result;
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
       return false;
     }
@@ -417,6 +438,9 @@ const EthereumSend = () => {
         setPage(3);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

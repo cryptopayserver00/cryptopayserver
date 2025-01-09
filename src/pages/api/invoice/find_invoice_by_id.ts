@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDatabase } from 'packages/db/mysql';
-import { ResponseData, CorsMiddleware, CorsMethod } from '.';
+import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

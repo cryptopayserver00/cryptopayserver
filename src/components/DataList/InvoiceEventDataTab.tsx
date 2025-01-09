@@ -1,4 +1,5 @@
 import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { useSnackPresistStore } from 'lib/store';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
@@ -13,6 +14,8 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
   const { orderId } = params;
 
   const [rows, setRows] = useState<RowType[]>([]);
+
+  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
   const getEvent = async () => {
     if (orderId && orderId > 0) {
@@ -34,6 +37,9 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
           setRows(rt);
         }
       } catch (e) {
+        setSnackSeverity('error');
+        setSnackMessage('The network error occurred. Please try again later.');
+        setSnackOpen(true);
         console.error(e);
       }
     }

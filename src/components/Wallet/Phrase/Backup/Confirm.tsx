@@ -39,6 +39,9 @@ const PhraseBackupConfirm = () => {
         }, 2000);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -72,6 +75,9 @@ const PhraseBackupConfirm = () => {
         }
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

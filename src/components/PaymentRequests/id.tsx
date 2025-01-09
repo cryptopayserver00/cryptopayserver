@@ -99,6 +99,9 @@ const PaymentRequestsDetails = () => {
         setPaymentRequestRows([]);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -137,6 +140,9 @@ const PaymentRequestsDetails = () => {
         );
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -175,6 +181,9 @@ const PaymentRequestsDetails = () => {
         }, 1000);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -338,6 +347,8 @@ const SelectChainAndCrypto = (props: SelectType) => {
   const [rate, setRate] = useState<number>(0);
   const [cryptoAmount, setCryptoAmount] = useState<string>('');
 
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state);
+
   const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
@@ -366,6 +377,9 @@ const SelectChainAndCrypto = (props: SelectType) => {
       const totalPrice = parseFloat(BigDiv((props.amount as number).toString(), rate)).toFixed(4);
       setCryptoAmount(totalPrice);
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

@@ -122,6 +122,7 @@ export class LTC {
       bitcoin.address.toOutputScript(address, this.getNetwork(isMainnet));
       return true;
     } catch (e) {
+      console.error(e);
       return false;
     }
   }
@@ -135,6 +136,7 @@ export class LTC {
       }
       return false;
     } catch (e) {
+      console.error(e);
       return false;
     }
   }

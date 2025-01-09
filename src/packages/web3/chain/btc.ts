@@ -229,6 +229,7 @@ export class BTC {
       bitcoin.address.toOutputScript(address, this.getNetwork(isMainnet));
       return true;
     } catch (e) {
+      console.error(e);
       return false;
     }
   }
@@ -242,6 +243,7 @@ export class BTC {
       }
       return false;
     } catch (e) {
+      console.error(e);
       return false;
     }
   }

@@ -117,6 +117,9 @@ const PullPaymentsDetails = () => {
         setPayoutRows([]);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -151,6 +154,9 @@ const PullPaymentsDetails = () => {
         await getClaimsHistory(response.data[0].store_id, response.data[0].network, response.data[0].pull_payment_id);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -203,6 +209,9 @@ const PullPaymentsDetails = () => {
         setPage(1);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

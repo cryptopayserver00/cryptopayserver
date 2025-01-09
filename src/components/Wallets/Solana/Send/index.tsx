@@ -68,6 +68,9 @@ const SolanaSend = () => {
         setBalance(response.data.balance);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -91,6 +94,9 @@ const SolanaSend = () => {
       });
       return response.result;
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
       return false;
     }
@@ -150,6 +156,9 @@ const SolanaSend = () => {
         setIsDisableAmount(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -196,6 +205,9 @@ const SolanaSend = () => {
         setPage(3);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

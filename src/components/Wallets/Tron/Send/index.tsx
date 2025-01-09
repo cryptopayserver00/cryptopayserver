@@ -72,6 +72,9 @@ const TronSend = () => {
         setBalance(response.data.balance);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -104,6 +107,9 @@ const TronSend = () => {
         setIsDisableAmount(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -127,6 +133,9 @@ const TronSend = () => {
       });
       return response.result;
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
       return false;
     }
@@ -205,6 +214,9 @@ const TronSend = () => {
         setPage(3);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

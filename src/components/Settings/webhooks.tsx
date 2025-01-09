@@ -79,6 +79,9 @@ const Webhooks = () => {
         return ws;
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -144,6 +147,9 @@ const Webhooks = () => {
         }
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -343,7 +349,6 @@ function WebhookDataGrid(props: GridType) {
       setSnackSeverity('error');
       setSnackMessage('Testing failed!');
       setSnackOpen(true);
-
       console.error(e);
     }
   };
@@ -387,6 +392,9 @@ function WebhookDataGrid(props: GridType) {
         setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

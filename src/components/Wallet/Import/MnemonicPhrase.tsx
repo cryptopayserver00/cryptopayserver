@@ -80,10 +80,10 @@ const ImportMnemonicPhrase = () => {
         setSnackOpen(true);
       }
     } catch (e) {
-      console.error(e);
       setSnackSeverity('error');
       setSnackMessage('No suuport the wallet');
       setSnackOpen(true);
+      console.error(e);
     }
   };
 

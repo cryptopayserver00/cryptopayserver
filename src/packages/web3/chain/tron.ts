@@ -90,6 +90,7 @@ export class TRON {
       }
       return false;
     } catch (e) {
+      console.error(e);
       return false;
     }
   }

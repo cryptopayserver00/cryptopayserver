@@ -71,6 +71,9 @@ const PaymentInvoices = () => {
       const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(4);
       setCryptoAmount(totalPrice);
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -190,6 +193,9 @@ const PaymentInvoices = () => {
         }, 2000);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -225,7 +231,6 @@ const PaymentInvoices = () => {
                     <TextField
                       fullWidth
                       hiddenLabel
-                      defaultValue=""
                       size="small"
                       type="number"
                       onChange={(e: any) => {
@@ -325,7 +330,6 @@ const PaymentInvoices = () => {
                   <TextField
                     fullWidth
                     hiddenLabel
-                    defaultValue=""
                     size="small"
                     value={orderId}
                     onChange={(e: any) => {
@@ -341,7 +345,6 @@ const PaymentInvoices = () => {
                   <TextField
                     fullWidth
                     hiddenLabel
-                    defaultValue=""
                     size="small"
                     value={description}
                     onChange={(e: any) => {

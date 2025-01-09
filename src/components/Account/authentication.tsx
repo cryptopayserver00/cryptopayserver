@@ -60,6 +60,9 @@ const Authentication = () => {
         setQrCode(link);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -87,6 +90,9 @@ const Authentication = () => {
         setSnackOpen(true);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -111,6 +117,9 @@ const Authentication = () => {
           setSnackOpen(true);
         }
       } catch (e) {
+        setSnackSeverity('error');
+        setSnackMessage('The network error occurred. Please try again later.');
+        setSnackOpen(true);
         console.error(e);
       }
     } else {
@@ -179,7 +188,7 @@ const Authentication = () => {
                 <Button
                   variant={'contained'}
                   onClick={() => {
-                    onClickResetApp()
+                    onClickResetApp();
                   }}
                 >
                   Click
@@ -199,7 +208,7 @@ const Authentication = () => {
                 <Button
                   variant={'contained'}
                   onClick={() => {
-                    onClickResetApp()
+                    onClickResetApp();
                   }}
                 >
                   Click

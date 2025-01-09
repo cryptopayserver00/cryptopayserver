@@ -93,6 +93,7 @@ export class ETH {
       }
       return false;
     } catch (e) {
+      console.error(e);
       return false;
     }
   }
@@ -456,7 +457,6 @@ export class ETH {
       throw new Error('can not get maxPriorityFeePerGas of eth');
     } catch (e) {
       console.error(e);
-
       throw new Error('can not get maxPriorityFeePerGas of eth');
     }
   }

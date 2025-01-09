@@ -46,11 +46,10 @@ const BlockScan = () => {
         setSnackOpen(true);
       }
     } catch (e) {
-      console.error(e);
-
       setSnackSeverity('error');
       setSnackMessage('Verification failed, please try again');
       setSnackOpen(true);
+      console.error(e);
     }
   };
 
@@ -68,6 +67,9 @@ const BlockScan = () => {
     try {
       await axios.get(url);
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
 
@@ -99,6 +101,9 @@ const BlockScan = () => {
         setWallet(ws);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };

@@ -88,6 +88,9 @@ const Tron = () => {
         setWallet(ws);
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -113,6 +116,9 @@ const Tron = () => {
         );
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
@@ -133,6 +139,9 @@ const Tron = () => {
   //       });
   //     }
   //   } catch (e) {
+  // setSnackSeverity('error');
+  // setSnackMessage('The network error occurred. Please try again later.');
+  // setSnackOpen(true);
   //     console.error(e);
   //   }
   // };
@@ -158,6 +167,9 @@ const Tron = () => {
         await init();
       }
     } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
       console.error(e);
     }
   };
