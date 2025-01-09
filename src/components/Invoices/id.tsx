@@ -91,46 +91,46 @@ const InvoiceDetails = () => {
 
   const init = async (id: any) => {
     try {
-      const invoice_resp: any = await axios.get(Http.find_invoice_by_id, {
+      const response: any = await axios.get(Http.find_invoice_by_id, {
         params: {
           id: id,
         },
       });
 
-      if (invoice_resp.result && invoice_resp.data.length === 1) {
+      if (response.result && response.data.length === 1) {
         setOrder({
-          orderId: invoice_resp.data[0].order_id,
-          amount: invoice_resp.data[0].amount,
-          buyerEmail: invoice_resp.data[0].buyer_email,
-          crypto: invoice_resp.data[0].crypto,
-          currency: invoice_resp.data[0].currency,
-          description: invoice_resp.data[0].description,
-          destinationAddress: invoice_resp.data[0].destination_address,
-          metadata: invoice_resp.data[0].metadata,
-          notificationEmail: invoice_resp.data[0].notification_email,
-          notificationUrl: invoice_resp.data[0].notification_url,
-          orderStatus: invoice_resp.data[0].order_status,
-          paid: invoice_resp.data[0].paid,
-          paymentMethod: invoice_resp.data[0].payment_method,
-          createdDate: invoice_resp.data[0].created_date,
-          expirationDate: invoice_resp.data[0].expiration_date,
-          rate: invoice_resp.data[0].rate,
-          totalPrice: invoice_resp.data[0].crypto_amount,
-          amountDue: invoice_resp.data[0].crypto_amount,
-          fromAddress: invoice_resp.data[0].from_address,
-          toAddress: invoice_resp.data[0].to_address,
-          hash: invoice_resp.data[0].hash,
-          blockTimestamp: invoice_resp.data[0].block_timestamp,
-          network: invoice_resp.data[0].network,
-          chainId: invoice_resp.data[0].chain_id,
+          orderId: response.data[0].order_id,
+          amount: response.data[0].amount,
+          buyerEmail: response.data[0].buyer_email,
+          crypto: response.data[0].crypto,
+          currency: response.data[0].currency,
+          description: response.data[0].description,
+          destinationAddress: response.data[0].destination_address,
+          metadata: response.data[0].metadata,
+          notificationEmail: response.data[0].notification_email,
+          notificationUrl: response.data[0].notification_url,
+          orderStatus: response.data[0].order_status,
+          paid: response.data[0].paid,
+          paymentMethod: response.data[0].payment_method,
+          createdDate: response.data[0].created_date,
+          expirationDate: response.data[0].expiration_date,
+          rate: response.data[0].rate,
+          totalPrice: response.data[0].crypto_amount,
+          amountDue: response.data[0].crypto_amount,
+          fromAddress: response.data[0].from_address,
+          toAddress: response.data[0].to_address,
+          hash: response.data[0].hash,
+          blockTimestamp: response.data[0].block_timestamp,
+          network: response.data[0].network,
+          chainId: response.data[0].chain_id,
         });
 
         const qrVal =
-          FindChainNamesByChains(invoice_resp.data[0].chain_id) +
+          FindChainNamesByChains(response.data[0].chain_id) +
           ':' +
-          invoice_resp.data[0].destination_address +
+          response.data[0].destination_address +
           '?amount=' +
-          invoice_resp.data[0].crypto_amount +
+          response.data[0].crypto_amount +
           '&pj=' +
           location.href;
         setQrCodeVal(qrVal);

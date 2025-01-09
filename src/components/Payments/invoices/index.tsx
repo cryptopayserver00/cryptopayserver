@@ -59,14 +59,14 @@ const PaymentInvoices = () => {
       }
 
       const ids = COINGECKO_IDS[crypto];
-      const rate_response: any = await axios.get(Http.find_crypto_price, {
+      const response: any = await axios.get(Http.find_crypto_price, {
         params: {
           ids: ids,
           currency: currency,
         },
       });
 
-      const rate = rate_response.data[ids][currency.toLowerCase()];
+      const rate = response.data[ids][currency.toLowerCase()];
       setRate(rate);
       const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(4);
       setCryptoAmount(totalPrice);
@@ -164,7 +164,7 @@ const PaymentInvoices = () => {
     const ln_notification_email = notificationEmail;
 
     try {
-      const create_invoice_resp: any = await axios.post(Http.create_invoice, {
+      const response: any = await axios.post(Http.create_invoice, {
         user_id: getUserId(),
         store_id: getStoreId(),
         chain_id: FindChainIdsByChainNames(network),
@@ -181,12 +181,12 @@ const PaymentInvoices = () => {
         notification_email: ln_notification_email,
       });
 
-      if (create_invoice_resp.result && create_invoice_resp.data.order_id) {
+      if (response.result && response.data.order_id) {
         setSnackSeverity('success');
         setSnackMessage('Successful creation!');
         setSnackOpen(true);
         setTimeout(() => {
-          window.location.href = '/payments/invoices/' + create_invoice_resp.data.order_id;
+          window.location.href = '/payments/invoices/' + response.data.order_id;
         }, 2000);
       }
     } catch (e) {

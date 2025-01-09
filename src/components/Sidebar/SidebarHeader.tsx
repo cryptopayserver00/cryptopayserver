@@ -36,7 +36,7 @@ const StyledSidebarHeader = styled.div`
   }
 `;
 
-interface StoreProps {
+interface StoreType {
   id: number;
   name: string;
   currency: string;
@@ -49,7 +49,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state);
   const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource } = useStorePresistStore((state) => state);
 
-  const [stores, setStores] = useState<StoreProps[]>([]);
+  const [stores, setStores] = useState<StoreType[]>([]);
   const [notificationCount, setNotificationCount] = useState<number>(0);
 
   const getStore = async () => {
@@ -58,24 +58,23 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         return;
       }
 
-      const store_result: any = await axios.get(Http.find_store, {
+      const response: any = await axios.get(Http.find_store, {
         params: {
           user_id: getUserId(),
         },
       });
 
-      if (store_result.result && store_result.data.length > 0) {
-        let store_list: Array<StoreProps> = [];
-
-        store_result.data.map((item: any) => {
-          store_list.push({
+      if (response.result && response.data.length > 0) {
+        let st: StoreType[] = [];
+        response.data.forEach((item: any) => {
+          st.push({
             id: item.id,
             name: item.name,
             currency: item.currency,
             price_source: item.price_source,
           });
         });
-        setStores(store_list);
+        setStores(st);
       } else {
         setTimeout(() => {
           window.location.href = '/stores/create';
@@ -108,17 +107,17 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
 
   const onClickStore = async (id: number) => {
     try {
-      const store_result: any = await axios.get(Http.find_store_by_id, {
+      const response: any = await axios.get(Http.find_store_by_id, {
         params: {
           id: id,
         },
       });
 
-      if (store_result.result && store_result.data.length === 1) {
-        setStoreId(store_result.data[0].id);
-        setStoreName(store_result.data[0].name);
-        setStoreCurrency(store_result.data[0].currency);
-        setStorePriceSource(store_result.data[0].price_source);
+      if (response.result && response.data.length === 1) {
+        setStoreId(response.data[0].id);
+        setStoreName(response.data[0].name);
+        setStoreCurrency(response.data[0].currency);
+        setStorePriceSource(response.data[0].price_source);
 
         setTimeout(() => {
           window.location.reload();

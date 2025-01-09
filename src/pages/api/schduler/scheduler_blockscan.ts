@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const invoiceValues = [ORDER_STATUS.Processing, 1];
         const [invoiceRows] = await connection.query(invoiceQuery, invoiceValues);
         if (Array.isArray(invoiceRows) && invoiceRows.length > 0) {
-          invoiceRows.map(async (item: any) => {
+          invoiceRows.forEach(async (item: any) => {
             const txQuery =
               'SELECT * FROM node_own_transactions where address = ? AND transact_type = ? AND token = ? AND amount = ? AND block_timestamp > ? AND status = ?';
             const txValues = [

@@ -111,16 +111,16 @@ export default function TransactionDataGrid(props: GridType) {
 
   const init = async () => {
     try {
-      const tx_resp: any = await axios.get(Http.find_transaction_by_store_id, {
+      const response: any = await axios.get(Http.find_transaction_by_store_id, {
         params: {
           store_id: getStoreId(),
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
-      if (tx_resp.result) {
-        if (tx_resp.data.length > 0) {
+      if (response.result) {
+        if (response.data.length > 0) {
           let rt: RowType[] = [];
-          tx_resp.data.forEach(async (item: any, index: number) => {
+          response.data.forEach(async (item: any, index: number) => {
             rt.push({
               id: item.id,
               chainId: item.chain_id,

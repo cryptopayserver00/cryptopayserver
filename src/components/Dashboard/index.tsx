@@ -90,7 +90,7 @@ const Dashboard = () => {
 
         let totalPrice: number = 0;
         if (rate_response && rate_response.result) {
-          Object.entries(coinMaps).map((item) => {
+          Object.entries(coinMaps).forEach((item) => {
             const price = rate_response.data[COINGECKO_IDS[item[0] as COINS]]['usd'];
             item[1].price = price;
 

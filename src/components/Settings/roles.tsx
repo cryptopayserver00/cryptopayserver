@@ -67,10 +67,10 @@ function StoreRoles() {
                   </TableCell>
                   <TableCell>{row.scope}</TableCell>
                   <TableCell>{row.permissions}</TableCell>
-                  <TableCell>{row.inUse} YES OR NO</TableCell>
+                  <TableCell>{row.inUse ? 'YES' : 'NO'}</TableCell>
                   <TableCell align="right">
-                    <Button>A</Button>
-                    <Button>B</Button>
+                    <Button onClick={() => {}}>A</Button>
+                    <Button onClick={() => {}}>B</Button>
                   </TableCell>
                 </TableRow>
               ))}

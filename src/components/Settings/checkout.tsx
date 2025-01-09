@@ -26,27 +26,27 @@ const Checkout = () => {
 
   const init = async () => {
     try {
-      const find_store_resp: any = await axios.get(Http.find_checkout_setting_by_id, {
+      const response: any = await axios.get(Http.find_checkout_setting_by_id, {
         params: {
           store_id: getStoreId(),
           user_id: getUserId(),
         },
       });
 
-      if (find_store_resp.result && find_store_resp.data.length === 1) {
-        setShowPaymentConfetti(find_store_resp.data[0].show_payment_confetti === 1 ? true : false);
-        setShowSound(find_store_resp.data[0].show_sound === 1 ? true : false);
-        setShowPayInWalletButton(find_store_resp.data[0].show_pay_in_wallet_button === 1 ? true : false);
-        setCustomHtmlTitle(find_store_resp.data[0].custom_html_title);
-        setLanguage(find_store_resp.data[0].language);
-        setShowDetectLanguage(find_store_resp.data[0].show_detect_language === 1 ? true : false);
-        setSupportUrl(find_store_resp.data[0].support_url);
-        setShowPaymentMethod(find_store_resp.data[0].show_payment_method === 1 ? true : false);
-        setShowRedirectUrl(find_store_resp.data[0].show_redirect_url === 1 ? true : false);
-        setShowPublicReceiptPage(find_store_resp.data[0].show_public_receipt_page === 1 ? true : false);
-        setShowPaymentList(find_store_resp.data[0].show_payment_list === 1 ? true : false);
-        setShowQrcodeReceipt(find_store_resp.data[0].show_qrcode_receipt === 1 ? true : false);
-        setShowHeader(find_store_resp.data[0].show_header === 1 ? true : false);
+      if (response.result && response.data.length === 1) {
+        setShowPaymentConfetti(response.data[0].show_payment_confetti === 1 ? true : false);
+        setShowSound(response.data[0].show_sound === 1 ? true : false);
+        setShowPayInWalletButton(response.data[0].show_pay_in_wallet_button === 1 ? true : false);
+        setCustomHtmlTitle(response.data[0].custom_html_title);
+        setLanguage(response.data[0].language);
+        setShowDetectLanguage(response.data[0].show_detect_language === 1 ? true : false);
+        setSupportUrl(response.data[0].support_url);
+        setShowPaymentMethod(response.data[0].show_payment_method === 1 ? true : false);
+        setShowRedirectUrl(response.data[0].show_redirect_url === 1 ? true : false);
+        setShowPublicReceiptPage(response.data[0].show_public_receipt_page === 1 ? true : false);
+        setShowPaymentList(response.data[0].show_payment_list === 1 ? true : false);
+        setShowQrcodeReceipt(response.data[0].show_qrcode_receipt === 1 ? true : false);
+        setShowHeader(response.data[0].show_header === 1 ? true : false);
       }
     } catch (e) {
       console.error(e);
@@ -59,7 +59,7 @@ const Checkout = () => {
 
   const onClickSave = async () => {
     try {
-      const update_store_resp: any = await axios.put(Http.update_checkout_setting_by_id, {
+      const response: any = await axios.put(Http.update_checkout_setting_by_id, {
         user_id: getUserId(),
         store_id: getStoreId(),
         show_payment_confetti: showPaymentConfetti ? 1 : 2,
@@ -77,7 +77,7 @@ const Checkout = () => {
         show_header: showHeader ? 1 : 2,
       });
 
-      if (update_store_resp.result) {
+      if (response.result) {
         setSnackSeverity('success');
         setSnackMessage('Save successful!');
         setSnackOpen(true);
@@ -176,7 +176,7 @@ const Checkout = () => {
               setShowPayInWalletButton(!showPayInWalletButton);
             }}
           />
-          <Typography ml={1}>Show "Pay in wallet" button</Typography>
+          <Typography ml={1}>Show &quot;Pay in wallet&quot; button</Typography>
         </Stack>
         <Stack direction={'row'} alignItems={'center'} mt={1}>
           <Switch
@@ -187,7 +187,7 @@ const Checkout = () => {
           />
           <Box ml={1}>
             <Typography>Auto-detect language on checkout</Typography>
-            <Typography mt={1}>Detects the language of the customer's browser.</Typography>
+            <Typography mt={1}>Detects the language of the customer&apos;s browser.</Typography>
           </Box>
         </Stack>
 
@@ -242,9 +242,9 @@ const Checkout = () => {
               />
             </Box>
             <Typography mt={1} fontSize={14}>
-              For support requests related to partially paid invoices. A "Contact Us" button with this link will be
-              shown on the invoice expired page. Can contain the placeholders [OrderId] and [InvoiceId]. Can be any
-              valid URI, such as a website, email, and Nostr.
+              For support requests related to partially paid invoices. A &apos;Contact Us&apos; button with this link
+              will be shown on the invoice expired page. Can contain the placeholders [OrderId] and [InvoiceId]. Can be
+              any valid URI, such as a website, email, and Nostr.
             </Typography>
           </Box>
 

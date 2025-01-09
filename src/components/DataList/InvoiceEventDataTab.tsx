@@ -17,14 +17,14 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
   const getEvent = async () => {
     if (orderId && orderId > 0) {
       try {
-        const event_resp: any = await axios.get(Http.find_invoice_event_by_order_id, {
+        const response: any = await axios.get(Http.find_invoice_event_by_order_id, {
           params: {
             order_id: orderId,
           },
         });
-        if (event_resp.result && event_resp.data.length > 0) {
+        if (response.result && response.data.length > 0) {
           let rt: RowType[] = [];
-          event_resp.data.forEach(async (item: any, index: number) => {
+          response.data.forEach(async (item: any, index: number) => {
             rt.push({
               id: index + 1,
               date: new Date(item.created_date).toLocaleString(),

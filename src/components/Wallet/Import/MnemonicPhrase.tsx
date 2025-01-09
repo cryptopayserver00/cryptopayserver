@@ -42,13 +42,13 @@ const ImportMnemonicPhrase = () => {
     }
 
     try {
-      const find_wallet_resp: any = await axios.get(Http.find_wallet, {
+      const response: any = await axios.get(Http.find_wallet, {
         params: {
           store_id: getStoreId(),
         },
       });
 
-      if (find_wallet_resp.result && find_wallet_resp.data.length > 0) {
+      if (response.result && response.data.length > 0) {
         setSnackSeverity('error');
         setSnackMessage('This store already has a wallet');
         setSnackOpen(true);

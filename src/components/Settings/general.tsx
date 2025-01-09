@@ -58,24 +58,24 @@ const General = () => {
 
   const init = async () => {
     try {
-      const find_store_resp: any = await axios.get(Http.find_store_by_id, {
+      const response: any = await axios.get(Http.find_store_by_id, {
         params: {
           id: getStoreId(),
         },
       });
 
-      if (find_store_resp.result && find_store_resp.data.length === 1) {
-        setStoreName(find_store_resp.data[0].name);
-        setStoreWebsite(find_store_resp.data[0].website);
-        setCurrency(find_store_resp.data[0].currency);
-        setBrandColor(find_store_resp.data[0].brand_color);
-        setLogoUrl(find_store_resp.data[0].logo_url);
-        setCustomCssUrl(find_store_resp.data[0].custom_css_url);
-        setAllowAnyoneCreateInvoice(find_store_resp.data[0].allow_anyone_create_invoice === 1 ? true : false);
-        setAddAdditionalFeeToInvoice(find_store_resp.data[0].add_additional_fee_to_invoice);
-        setInvoiceExpiresIfNotPaidFullAmount(find_store_resp.data[0].invoice_expires_if_not_paid_full_amount);
-        setInvoicePaidLessThanPrecent(find_store_resp.data[0].invoice_paid_less_than_precent);
-        setMinimumExpiraionTimeForRefund(find_store_resp.data[0].minimum_expiraion_time_for_refund);
+      if (response.result && response.data.length === 1) {
+        setStoreName(response.data[0].name);
+        setStoreWebsite(response.data[0].website);
+        setCurrency(response.data[0].currency);
+        setBrandColor(response.data[0].brand_color);
+        setLogoUrl(response.data[0].logo_url);
+        setCustomCssUrl(response.data[0].custom_css_url);
+        setAllowAnyoneCreateInvoice(response.data[0].allow_anyone_create_invoice === 1 ? true : false);
+        setAddAdditionalFeeToInvoice(response.data[0].add_additional_fee_to_invoice);
+        setInvoiceExpiresIfNotPaidFullAmount(response.data[0].invoice_expires_if_not_paid_full_amount);
+        setInvoicePaidLessThanPrecent(response.data[0].invoice_paid_less_than_precent);
+        setMinimumExpiraionTimeForRefund(response.data[0].minimum_expiraion_time_for_refund);
       }
     } catch (e) {
       console.error(e);
@@ -88,7 +88,7 @@ const General = () => {
 
   const onClickSaveStore = async () => {
     try {
-      const update_store_resp: any = await axios.put(Http.update_store_by_id, {
+      const response: any = await axios.put(Http.update_store_by_id, {
         user_id: getUserId(),
         store_id: getStoreId(),
         brand_color: brandColor ? brandColor : '',
@@ -102,7 +102,7 @@ const General = () => {
         minimum_expiraion_time_for_refund: minimumExpiraionTimeForRefund,
       });
 
-      if (update_store_resp.result) {
+      if (response.result) {
         setSnackSeverity('success');
         setSnackMessage('Save successful!');
         setSnackOpen(true);
@@ -120,12 +120,12 @@ const General = () => {
 
   const onClickArchiveStore = async () => {
     try {
-      const store_resp: any = await axios.put(Http.archive_store_by_id, {
+      const response: any = await axios.put(Http.archive_store_by_id, {
         user_id: getUserId(),
         store_id: getStoreId(),
       });
 
-      if (store_resp.result) {
+      if (response.result) {
         setSnackSeverity('success');
         setSnackMessage('Archive successful!');
         setSnackOpen(true);
@@ -141,12 +141,12 @@ const General = () => {
 
   const onClickDeleteStore = async () => {
     try {
-      const store_resp: any = await axios.put(Http.delete_store_by_id, {
+      const response: any = await axios.put(Http.delete_store_by_id, {
         user_id: getUserId(),
         store_id: getStoreId(),
       });
 
-      if (store_resp.result) {
+      if (response.result) {
         setSnackSeverity('success');
         setSnackMessage('Delete successful!');
         setSnackOpen(true);

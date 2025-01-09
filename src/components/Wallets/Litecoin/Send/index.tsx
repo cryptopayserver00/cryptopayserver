@@ -93,7 +93,7 @@ const LitecoinSend = () => {
 
   const getLitecoin = async () => {
     try {
-      const find_payment_resp: any = await axios.get(Http.find_asset_balance, {
+      const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.LITECOIN,
@@ -101,9 +101,9 @@ const LitecoinSend = () => {
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
-      if (find_payment_resp.result) {
-        setFromAddress(find_payment_resp.data.address);
-        setBalance(find_payment_resp.data.balance.LTC);
+      if (response.result) {
+        setFromAddress(response.data.address);
+        setBalance(response.data.balance.LTC);
       }
     } catch (e) {
       console.error(e);
@@ -112,21 +112,21 @@ const LitecoinSend = () => {
 
   const getLitecoinFeeRate = async () => {
     try {
-      const find_fee_resp: any = await axios.get(Http.find_fee_rate, {
+      const response: any = await axios.get(Http.find_fee_rate, {
         params: {
           chain_id: CHAINS.LITECOIN,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
-      if (find_fee_resp.result) {
+      if (response.result) {
         setFeeObj({
-          fastest: find_fee_resp.data.fastest,
-          halfHour: find_fee_resp.data.halfHour,
-          hour: find_fee_resp.data.hour,
-          economy: find_fee_resp.data.economy,
-          minimum: find_fee_resp.data.minimum,
+          fastest: response.data.fastest,
+          halfHour: response.data.halfHour,
+          hour: response.data.hour,
+          economy: response.data.economy,
+          minimum: response.data.minimum,
         });
-        setFeeRate(find_fee_resp.data.fastest);
+        setFeeRate(response.data.fastest);
       }
     } catch (e) {
       console.error(e);
@@ -143,14 +143,14 @@ const LitecoinSend = () => {
     }
 
     try {
-      const checkout_resp: any = await axios.get(Http.checkout_chain_address, {
+      const response: any = await axios.get(Http.checkout_chain_address, {
         params: {
           chain_id: CHAINS.LITECOIN,
           address: destinationAddress,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
-      return checkout_resp.result;
+      return response.result;
     } catch (e) {
       console.error(e);
       return false;
@@ -198,25 +198,25 @@ const LitecoinSend = () => {
 
   const getPayoutInfo = async (id: any) => {
     try {
-      const find_payout_resp: any = await axios.get(Http.find_payout_by_id, {
+      const response: any = await axios.get(Http.find_payout_by_id, {
         params: {
           id: id,
         },
       });
 
-      if (find_payout_resp.result && find_payout_resp.data.length === 1) {
-        setDestinationAddress(find_payout_resp.data[0].address);
+      if (response.result && response.data.length === 1) {
+        setDestinationAddress(response.data[0].address);
 
-        const ids = COINGECKO_IDS[find_payout_resp.data[0].crypto as COINS];
+        const ids = COINGECKO_IDS[response.data[0].crypto as COINS];
         const rate_response: any = await axios.get(Http.find_crypto_price, {
           params: {
             ids: ids,
-            currency: find_payout_resp.data[0].currency,
+            currency: response.data[0].currency,
           },
         });
 
-        const rate = rate_response.data[ids][find_payout_resp.data[0].currency.toLowerCase()];
-        const totalPrice = parseFloat(BigDiv((find_payout_resp.data[0].amount as number).toString(), rate)).toFixed(4);
+        const rate = rate_response.data[ids][response.data[0].currency.toLowerCase()];
+        const totalPrice = parseFloat(BigDiv((response.data[0].amount as number).toString(), rate)).toFixed(4);
         setAmount(totalPrice);
 
         setIsDisableDestinationAddress(true);
@@ -229,7 +229,7 @@ const LitecoinSend = () => {
 
   const onClickSignAndPay = async () => {
     try {
-      const send_transaction_resp: any = await axios.post(Http.send_transaction, {
+      const response: any = await axios.post(Http.send_transaction, {
         chain_id: CHAINS.LITECOIN,
         from_address: fromAddress,
         to_address: destinationAddress,
@@ -241,14 +241,14 @@ const LitecoinSend = () => {
         coin: COINS.LTC,
       });
 
-      if (send_transaction_resp.result) {
+      if (response.result) {
         // update payout order
         if (payoutId) {
           const update_payout_resp: any = await axios.put(Http.update_payout_by_id, {
             user_id: getUserId(),
             store_id: getStoreId(),
             id: payoutId,
-            tx: send_transaction_resp.data.hash,
+            tx: response.data.hash,
             crypto_amount: amount,
             payout_status: PAYOUT_STATUS.Completed,
           });
@@ -265,7 +265,7 @@ const LitecoinSend = () => {
         setSnackMessage('Successful creation!');
         setSnackOpen(true);
 
-        setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', send_transaction_resp.data.hash));
+        setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', response.data.hash));
 
         setPage(3);
       }

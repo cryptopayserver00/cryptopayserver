@@ -205,7 +205,7 @@ function AccountApiKeyTable() {
 
       if (response.result && response.data.length > 0) {
         let rt: RowType[] = [];
-        response.data.forEach(async (item: any) => {
+        response.data.forEach((item: any) => {
           let ps: string[] = [];
           const ids = item.permissions.split(',');
           ids &&
@@ -236,13 +236,13 @@ function AccountApiKeyTable() {
 
   const onClickDelete = async (id: number) => {
     try {
-      const delete_resp: any = await axios.put(Http.delete_apikeys_setting_by_id, {
+      const response: any = await axios.put(Http.delete_apikeys_setting_by_id, {
         id: id,
         user_id: getUserId(),
         store_id: getStoreId(),
       });
 
-      if (delete_resp.result) {
+      if (response.result) {
         setSnackSeverity('success');
         setSnackMessage('Delete successful!');
         setSnackOpen(true);
@@ -278,6 +278,7 @@ function AccountApiKeyTable() {
                   <TableCell>{row.key}</TableCell>
                   <TableCell>
                     {row.permissions &&
+                      row.permissions.length > 0 &&
                       row.permissions.map((item, index) => <Typography key={index}>{item}</Typography>)}
                   </TableCell>
                   <TableCell align="right">

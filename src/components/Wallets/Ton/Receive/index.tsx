@@ -17,7 +17,7 @@ const TonReceive = () => {
 
   const getTon = async () => {
     try {
-      const find_payment_resp: any = await axios.get(Http.find_asset_balance, {
+      const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.TON,
@@ -26,8 +26,8 @@ const TonReceive = () => {
         },
       });
 
-      if (find_payment_resp.result) {
-        setTon(find_payment_resp.data.address);
+      if (response.result) {
+        setTon(response.data.address);
       }
     } catch (e) {
       console.error(e);

@@ -30,13 +30,13 @@ const BlockScan = () => {
     }
 
     try {
-      const save_wallet_resp: any = await axios.post(Http.create_wallet_to_block_scan, {
+      const response: any = await axios.post(Http.create_wallet_to_block_scan, {
         user_id: getUserId(),
         wallet_id: getWalletId(),
         network: getNetwork() === 'mainnet' ? 1 : 2,
       });
 
-      if (save_wallet_resp.result) {
+      if (response.result) {
         setSnackSeverity('success');
         setSnackMessage('Verification success, all addresses have been added to the queue');
         setSnackOpen(true);
@@ -77,7 +77,7 @@ const BlockScan = () => {
 
   const getWalletAddress = async () => {
     try {
-      const find_address_resp: any = await axios.get(Http.find_wallet_address_by_network, {
+      const response: any = await axios.get(Http.find_wallet_address_by_network, {
         params: {
           user_id: getUserId(),
           wallet_id: getWalletId(),
@@ -85,9 +85,9 @@ const BlockScan = () => {
         },
       });
 
-      if (find_address_resp.result && find_address_resp.data.length > 0) {
+      if (response.result && response.data.length > 0) {
         let ws: walletType[] = [];
-        find_address_resp.data.forEach(async (item: any) => {
+        response.data.forEach(async (item: any) => {
           ws.push({
             id: item.id,
             address: item.address,

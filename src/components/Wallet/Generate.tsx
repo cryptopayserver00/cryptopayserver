@@ -15,20 +15,20 @@ const GenerateWallet = () => {
 
   const onClickMnemonicPhrase = async () => {
     try {
-      const find_wallet_resp: any = await axios.get(Http.find_wallet, {
+      const response: any = await axios.get(Http.find_wallet, {
         params: {
-          store_id: getStoreId()
+          store_id: getStoreId(),
         },
       });
-      if (find_wallet_resp.result && find_wallet_resp.data.length > 0) {
+      if (response.result && response.data.length > 0) {
         setSnackSeverity('error');
         setSnackMessage('This store already has a wallet');
         setSnackOpen(true);
 
         setTimeout(() => {
-          window.location.href = "/dashboard"
-        }, 2000)
-        return
+          window.location.href = '/dashboard';
+        }, 2000);
+        return;
       }
 
       const create_wallet_resp: any = await axios.post(Http.create_wallet, {

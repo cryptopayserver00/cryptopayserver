@@ -151,7 +151,7 @@ const PaymentRequestsDetails = () => {
 
   const onClickCoin = async (item: COIN, cryptoAmount: string, rate: number) => {
     try {
-      const create_invoice_resp: any = await axios.post(Http.create_invoice_from_external, {
+      const response: any = await axios.post(Http.create_invoice_from_external, {
         user_id: paymentRequestData?.userId,
         store_id: paymentRequestData?.storeId,
         chain_id: item.chainId,
@@ -165,13 +165,13 @@ const PaymentRequestsDetails = () => {
         email: paymentRequestData?.email,
       });
 
-      if (create_invoice_resp.result && create_invoice_resp.data.order_id) {
+      if (response.result && response.data.order_id) {
         setSnackSeverity('success');
         setSnackMessage('Successful creation!');
         setSnackOpen(true);
 
         setTimeout(() => {
-          window.location.href = '/invoices/' + create_invoice_resp.data.order_id;
+          window.location.href = '/invoices/' + response.data.order_id;
         }, 1000);
       }
     } catch (e) {
@@ -354,14 +354,14 @@ const SelectChainAndCrypto = (props: SelectType) => {
       }
 
       const ids = COINGECKO_IDS[selectCoinItem?.name];
-      const rate_response: any = await axios.get(Http.find_crypto_price, {
+      const response: any = await axios.get(Http.find_crypto_price, {
         params: {
           ids: ids,
           currency: props.currency,
         },
       });
 
-      const rate = rate_response.data[ids][props.currency.toLowerCase()];
+      const rate = response.data[ids][props.currency.toLowerCase()];
       setRate(rate);
       const totalPrice = parseFloat(BigDiv((props.amount as number).toString(), rate)).toFixed(4);
       setCryptoAmount(totalPrice);

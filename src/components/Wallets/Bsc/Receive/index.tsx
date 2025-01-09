@@ -17,7 +17,7 @@ const BscReceive = () => {
 
   const getBsc = async () => {
     try {
-      const find_payment_resp: any = await axios.get(Http.find_asset_balance, {
+      const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.BSC,
@@ -26,8 +26,8 @@ const BscReceive = () => {
         },
       });
 
-      if (find_payment_resp.result) {
-        setBsc(find_payment_resp.data.address);
+      if (response.result) {
+        setBsc(response.data.address);
       }
     } catch (e) {
       console.error(e);

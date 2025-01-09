@@ -174,7 +174,7 @@ export class LTC {
 
       if (response && response.data && response.data.length > 0) {
         let balance = '0';
-        response.data.map((utxo: any) => {
+        response.data.forEach((utxo: any) => {
           if (utxo.status.confirmed) {
             balance = BigAdd(balance, parseInt(utxo.value).toString());
           }
@@ -256,7 +256,7 @@ export class LTC {
       const response = await this.axiosInstance.get(url);
       if (response.data.length > 0) {
         let txs: TransactionDetail[] = [];
-        response.data.map((item: any) => {
+        response.data.forEach((item: any) => {
           let status = TRANSACTIONSTATUS.PENDING;
           if (item.status.confirmed) {
             status = TRANSACTIONSTATUS.SUCCESS;
@@ -264,7 +264,7 @@ export class LTC {
 
           let txType = TRANSACTIONTYPE.SEND;
           let value = 0;
-          item.vin.map((vinItem: any) => {
+          item.vin.forEach((vinItem: any) => {
             if (
               vinItem.prevout.scriptpubkey_address &&
               address.toLowerCase() === vinItem.prevout.scriptpubkey_address.toLowerCase()
@@ -276,7 +276,7 @@ export class LTC {
             }
           });
 
-          item.vout.map((voutItem: any) => {
+          item.vout.forEach((voutItem: any) => {
             if (txType === TRANSACTIONTYPE.SEND) {
               if (
                 voutItem.scriptpubkey_address &&
@@ -340,7 +340,7 @@ export class LTC {
         let value = 0;
 
         if (address) {
-          response.data.vin.map((vinItem: any) => {
+          response.data.vin.forEach((vinItem: any) => {
             if (
               vinItem.prevout.scriptpubkey_address &&
               address.toLowerCase() === vinItem.prevout.scriptpubkey_address.toLowerCase()
@@ -354,7 +354,7 @@ export class LTC {
             txType = TRANSACTIONTYPE.RECEIVED;
           }
 
-          response.data.vout.map((voutItem: any) => {
+          response.data.vout.forEach((voutItem: any) => {
             if (
               voutItem.scriptpubkey_address &&
               address.toLowerCase() === voutItem.scriptpubkey_address.toLowerCase()

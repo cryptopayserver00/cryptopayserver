@@ -91,16 +91,16 @@ export default function InvoiceDataGrid(props: GridType) {
 
   const init = async () => {
     try {
-      const invoice_resp: any = await axios.get(Http.find_invoice_by_store_id, {
+      const response: any = await axios.get(Http.find_invoice_by_store_id, {
         params: {
           store_id: getStoreId(),
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
-      if (invoice_resp.result) {
-        if (invoice_resp.data.length > 0) {
+      if (response.result) {
+        if (response.data.length > 0) {
           let rt: RowType[] = [];
-          invoice_resp.data.forEach(async (item: any, index: number) => {
+          response.data.forEach(async (item: any, index: number) => {
             rt.push({
               id: index + 1,
               orderId: item.order_id,

@@ -48,22 +48,22 @@ const CreateStore = () => {
 
     try {
       if (name !== '' && currency !== '' && priceSource !== '') {
-        const create_store_resp: any = await axios.post(Http.create_store, {
+        const response: any = await axios.post(Http.create_store, {
           user_id: getUserId(),
           name: name,
           currency: currency,
           price_source: priceSource,
           website: window.location.origin,
         });
-        if (create_store_resp.result) {
+        if (response.result) {
           setSnackSeverity('success');
           setSnackMessage('Successful creation!');
           setSnackOpen(true);
 
-          setStoreId(create_store_resp.data[0].id);
-          setStoreName(create_store_resp.data[0].name);
-          setStoreCurrency(create_store_resp.data[0].currency);
-          setStorePriceSource(create_store_resp.data[0].price_source);
+          setStoreId(response.data[0].id);
+          setStoreName(response.data[0].name);
+          setStoreCurrency(response.data[0].currency);
+          setStorePriceSource(response.data[0].price_source);
           setIsStore(true);
 
           setTimeout(() => {

@@ -64,7 +64,7 @@ const Ton = () => {
 
   const getTonWalletAddress = async () => {
     try {
-      const find_address_resp: any = await axios.get(Http.find_wallet_address_by_chain_and_network, {
+      const response: any = await axios.get(Http.find_wallet_address_by_chain_and_network, {
         params: {
           user_id: getUserId(),
           wallet_id: getWalletId(),
@@ -73,9 +73,9 @@ const Ton = () => {
         },
       });
 
-      if (find_address_resp.result && find_address_resp.data.length > 0) {
+      if (response.result && response.data.length > 0) {
         let ws: walletType[] = [];
-        find_address_resp.data.forEach(async (item: any) => {
+        response.data.forEach(async (item: any) => {
           ws.push({
             id: item.id,
             address: item.address,
@@ -93,7 +93,7 @@ const Ton = () => {
 
   const getTonPaymentSetting = async () => {
     try {
-      const find_setting_resp: any = await axios.get(Http.find_payment_setting_by_chain_id, {
+      const response: any = await axios.get(Http.find_payment_setting_by_chain_id, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.TON,
@@ -102,13 +102,13 @@ const Ton = () => {
         },
       });
 
-      if (find_setting_resp.result && find_setting_resp.data.length === 1) {
-        setSettingId(find_setting_resp.data[0].id);
-        setPaymentExpire(find_setting_resp.data[0].payment_expire);
-        setConfirmBlock(find_setting_resp.data[0].confirm_block);
-        setShowRecommendedFee(find_setting_resp.data[0].show_recommended_fee === 1 ? true : false);
+      if (response.result && response.data.length === 1) {
+        setSettingId(response.data[0].id);
+        setPaymentExpire(response.data[0].payment_expire);
+        setConfirmBlock(response.data[0].confirm_block);
+        setShowRecommendedFee(response.data[0].show_recommended_fee === 1 ? true : false);
         setCurrentUsedAddressId(
-          find_setting_resp.data[0].current_used_address_id ? find_setting_resp.data[0].current_used_address_id : 0,
+          response.data[0].current_used_address_id ? response.data[0].current_used_address_id : 0,
         );
       }
     } catch (e) {
@@ -118,7 +118,7 @@ const Ton = () => {
 
   const updatePaymentSetting = async () => {
     try {
-      const resp: any = await axios.put(Http.update_payment_setting_by_id, {
+      const response: any = await axios.put(Http.update_payment_setting_by_id, {
         id: settingId,
         user_id: getUserId(),
         chain_id: CHAINS.TON,
@@ -129,7 +129,7 @@ const Ton = () => {
         show_recommended_fee: showRecommendedFee ? 1 : 2,
         current_used_address_id: currentUsedAddressId,
       });
-      if (resp.result) {
+      if (response.result) {
         setSnackSeverity('success');
         setSnackMessage('Successful update!');
         setSnackOpen(true);

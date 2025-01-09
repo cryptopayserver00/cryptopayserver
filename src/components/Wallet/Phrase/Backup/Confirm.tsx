@@ -24,12 +24,12 @@ const PhraseBackupConfirm = () => {
 
   const updateWalletBackup = async () => {
     try {
-      const resp: any = await axios.put(Http.update_backup_by_wallet_id, {
+      const response: any = await axios.put(Http.update_backup_by_wallet_id, {
         user_id: getUserId(),
         wallet_id: getWalletId(),
         store_id: getStoreId(),
       });
-      if (resp.result) {
+      if (response.result) {
         setSnackSeverity('success');
         setSnackMessage('Mnemonic phrase confirm success');
         setSnackOpen(true);
@@ -46,14 +46,14 @@ const PhraseBackupConfirm = () => {
   const fetchWalletData = async () => {
     try {
       if (getIsWallet()) {
-        const resp: any = await axios.get(Http.find_wallet_by_id, {
+        const response: any = await axios.get(Http.find_wallet_by_id, {
           params: {
             id: getWalletId(),
           },
         });
 
-        if (resp.result && resp.data.length === 1) {
-          const phraseArray = resp.data[0].mnemonic.split(' ');
+        if (response.result && response.data.length === 1) {
+          const phraseArray = response.data[0].mnemonic.split(' ');
           setPhrase(phraseArray);
 
           const randomIndices = GetUniqueRandomIndices(phraseArray.length, 3).map((index) => index + 1);

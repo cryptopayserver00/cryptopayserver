@@ -17,7 +17,7 @@ const SolanaReceive = () => {
 
   const getSolana = async () => {
     try {
-      const find_payment_resp: any = await axios.get(Http.find_asset_balance, {
+      const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.SOLANA,
@@ -26,8 +26,8 @@ const SolanaReceive = () => {
         },
       });
 
-      if (find_payment_resp.result) {
-        setSolana(find_payment_resp.data.address);
+      if (response.result) {
+        setSolana(response.data.address);
       }
     } catch (e) {
       console.error(e);

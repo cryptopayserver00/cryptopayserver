@@ -17,7 +17,7 @@ const EthereumReceive = () => {
 
   const getEthereum = async () => {
     try {
-      const find_payment_resp: any = await axios.get(Http.find_asset_balance, {
+      const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.ETHEREUM,
@@ -26,8 +26,8 @@ const EthereumReceive = () => {
         },
       });
 
-      if (find_payment_resp.result) {
-        setEthereum(find_payment_resp.data.address);
+      if (response.result) {
+        setEthereum(response.data.address);
       }
     } catch (e) {
       console.error(e);

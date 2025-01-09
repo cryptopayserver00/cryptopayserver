@@ -15,12 +15,12 @@ const Register = () => {
   const onRegister = async () => {
     try {
       if (email !== '' && password !== '' && confirmPassword !== '' && password === confirmPassword) {
-        const find_user_resp: any = await axios.get(Http.find_user_by_email, {
+        const response: any = await axios.get(Http.find_user_by_email, {
           params: {
             email: email,
           },
         });
-        if (find_user_resp.result && find_user_resp.data.length > 0) {
+        if (response.result && response.data.length > 0) {
           setSnackSeverity('error');
           setSnackMessage('User already exists!');
           setSnackOpen(true);

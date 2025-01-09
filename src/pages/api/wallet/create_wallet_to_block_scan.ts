@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const blockscanWalletTypes: BlockScanWalletType[] = [];
 
         if (Array.isArray(rows) && rows.length > 0) {
-          rows.map((item: any) => {
+          rows.forEach((item: any) => {
             blockscanWalletTypes.push({
               address: item.address,
               chain_id: WEB3.getChainIds(item.network === 1 ? true : false, item.chain_id),

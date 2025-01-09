@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         wallet.account &&
           wallet.account.length > 0 &&
-          wallet.account.map(async (item) => {
+          wallet.account.forEach(async (item) => {
             const createWalletQuery =
               'INSERT INTO addresses (user_id, wallet_id, address, chain_id, private_key, note, network, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
             const createWalletValues = [

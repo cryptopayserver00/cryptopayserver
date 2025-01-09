@@ -25,14 +25,14 @@ const PhraseBackup = () => {
   const init = async () => {
     try {
       if (getIsWallet()) {
-        const resp: any = await axios.get(Http.find_wallet_by_id, {
+        const response: any = await axios.get(Http.find_wallet_by_id, {
           params: {
             id: getWalletId(),
           },
         });
 
-        if (resp.result && resp.data.length === 1) {
-          setPhrase(resp.data[0].mnemonic.split(' '));
+        if (response.result && response.data.length === 1) {
+          setPhrase(response.data[0].mnemonic.split(' '));
         } else {
           setSnackSeverity('error');
           setSnackMessage("Can't find the wallet, please try again later.");

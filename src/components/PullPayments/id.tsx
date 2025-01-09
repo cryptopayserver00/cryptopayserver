@@ -165,7 +165,7 @@ const PullPaymentsDetails = () => {
 
   const onClickCoin = async (item: COIN, address: string, amount: number) => {
     try {
-      const checkout_resp: any = await axios.get(Http.checkout_chain_address, {
+      const response: any = await axios.get(Http.checkout_chain_address, {
         params: {
           chain_id: item.chainId,
           address: address,
@@ -173,7 +173,7 @@ const PullPaymentsDetails = () => {
         },
       });
 
-      if (!checkout_resp.result) {
+      if (!response.result) {
         setSnackSeverity('error');
         setSnackMessage('The input address is invalid, please try it again!');
         setSnackOpen(true);

@@ -43,21 +43,21 @@ const SetPassword = () => {
       const comPwd = confirmPassword.trim();
       if (pwd.length > 8 && pwd === comPwd) {
         // create password and wallet
-        const resp: any = await axios.put(Http.update_pwd_by_wallet_id, {
+        const response: any = await axios.put(Http.update_pwd_by_wallet_id, {
           user_id: getUserId(),
           wallet_id: getWalletId(),
           store_id: getStoreId(),
           password: pwd,
         });
-        if (resp.result) {
+        if (response.result) {
           setSnackSeverity('success');
           setSnackMessage('Successful update!');
           setSnackOpen(true);
 
           setTimeout(() => {
-            if (resp.data.is_backup === 1) {
+            if (response.data.is_backup === 1) {
               window.location.href = '/dashboard';
-            } else if (resp.data.is_backup === 2) {
+            } else if (response.data.is_backup === 2) {
               window.location.href = '/wallet/phrase/intro';
             } else {
               setSnackMessage('Input is wrong');

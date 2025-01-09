@@ -54,16 +54,16 @@ const Webhooks = () => {
 
   const init = async () => {
     try {
-      const find_webhook_resp: any = await axios.get(Http.find_webhook_setting, {
+      const response: any = await axios.get(Http.find_webhook_setting, {
         params: {
           store_id: getStoreId(),
           user_id: getUserId(),
         },
       });
 
-      if (find_webhook_resp.result && find_webhook_resp.data.length > 0) {
-        let ws: Array<WebhookType> = [];
-        find_webhook_resp.data.forEach((item: any) => {
+      if (response.result && response.data.length > 0) {
+        let ws: WebhookType[] = [];
+        response.data.forEach((item: any) => {
           ws.push({
             id: item.id,
             automaticRedelivery: item.automatic_redelivery,
@@ -90,7 +90,7 @@ const Webhooks = () => {
   const onClickButton = async () => {
     try {
       if (pageStatus === 'CREATE') {
-        const save_webhook_resp: any = await axios.post(Http.create_webhook_setting, {
+        const response: any = await axios.post(Http.create_webhook_setting, {
           store_id: getStoreId(),
           user_id: getUserId(),
           payload_url: payloadUrl ? payloadUrl : '',
@@ -100,7 +100,7 @@ const Webhooks = () => {
           event_type: eventType ? eventType : '',
         });
 
-        if (save_webhook_resp.result) {
+        if (response.result) {
           setSnackSeverity('success');
           setSnackMessage('Save successful!');
           setSnackOpen(true);
@@ -116,7 +116,7 @@ const Webhooks = () => {
           setSnackOpen(true);
         }
       } else if (pageStatus === 'UPDATE') {
-        const save_webhook_resp: any = await axios.put(Http.update_webhook_setting_by_id, {
+        const response: any = await axios.put(Http.update_webhook_setting_by_id, {
           id: modifyId,
           store_id: getStoreId(),
           user_id: getUserId(),
@@ -127,7 +127,7 @@ const Webhooks = () => {
           event_type: eventType ? eventType : '',
         });
 
-        if (save_webhook_resp.result) {
+        if (response.result) {
           setSnackSeverity('success');
           setSnackMessage('Update successful!');
           setSnackOpen(true);
@@ -246,7 +246,7 @@ const Webhooks = () => {
             <Typography mt={1} fontSize={14}>
               The endpoint receiving the payload must validate the payload by checking that the HTTP header
               <span style={{ fontWeight: 'bold' }}> CryptoPay-SIG</span> of the callback matches the HMAC256 of the
-              secret on the payload's body bytes.
+              secret on the payload&apos;s body bytes.
             </Typography>
             <Stack mt={2} direction={'row'} alignItems={'center'}>
               <Switch
@@ -411,7 +411,7 @@ function WebhookDataGrid(props: GridType) {
       align: 'right',
       headerAlign: 'right',
       getActions: (params) => [
-        <Stack direction={'row'} alignItems={'center'}>
+        <Stack direction={'row'} alignItems={'center'} key={params.id}>
           <Button
             onClick={() => {
               onClickTest(params);

@@ -17,7 +17,7 @@ const LitecoinReceive = () => {
 
   const getLitecoin = async () => {
     try {
-      const find_payment_resp: any = await axios.get(Http.find_asset_balance, {
+      const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.LITECOIN,
@@ -26,8 +26,8 @@ const LitecoinReceive = () => {
         },
       });
 
-      if (find_payment_resp.result) {
-        setLitecoin(find_payment_resp.data.address);
+      if (response.result) {
+        setLitecoin(response.data.address);
       }
     } catch (e) {
       console.error(e);

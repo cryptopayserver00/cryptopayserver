@@ -34,14 +34,14 @@ const Rates = () => {
 
   const init = async () => {
     try {
-      const find_store_resp: any = await axios.get(Http.find_store_by_id, {
+      const response: any = await axios.get(Http.find_store_by_id, {
         params: {
           id: getStoreId(),
         },
       });
 
-      if (find_store_resp.result && find_store_resp.data.length === 1) {
-        setPriceSource(find_store_resp.data[0].price_source);
+      if (response.result && response.data.length === 1) {
+        setPriceSource(response.data[0].price_source);
       }
     } catch (e) {
       console.error(e);
@@ -54,13 +54,13 @@ const Rates = () => {
 
   const onClickSave = async () => {
     try {
-      const update_store_resp: any = await axios.put(Http.update_store_by_id, {
+      const response: any = await axios.put(Http.update_store_by_id, {
         user_id: getUserId(),
         store_id: getStoreId(),
         price_source: priceSource ? priceSource : '',
       });
 
-      if (update_store_resp.result) {
+      if (response.result) {
         setSnackSeverity('success');
         setSnackMessage('Save successful!');
         setSnackOpen(true);

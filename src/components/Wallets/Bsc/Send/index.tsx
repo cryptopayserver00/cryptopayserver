@@ -87,7 +87,7 @@ const BscSend = () => {
 
   const getBsc = async () => {
     try {
-      const find_payment_resp: any = await axios.get(Http.find_asset_balance, {
+      const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.BSC,
@@ -95,11 +95,11 @@ const BscSend = () => {
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
-      if (find_payment_resp.result) {
-        setFromAddress(find_payment_resp.data.address);
-        setBalance(find_payment_resp.data.balance);
+      if (response.result) {
+        setFromAddress(response.data.address);
+        setBalance(response.data.balance);
 
-        await getBscNonce(find_payment_resp.data.address);
+        await getBscNonce(response.data.address);
       }
     } catch (e) {
       console.error(e);
@@ -108,7 +108,7 @@ const BscSend = () => {
 
   const getBscGasLimit = async (from: string): Promise<boolean> => {
     try {
-      const find_gas_limit_resp: any = await axios.get(Http.find_gas_limit, {
+      const response: any = await axios.get(Http.find_gas_limit, {
         params: {
           chain_id: CHAINS.BSC,
           network: getNetwork() === 'mainnet' ? 1 : 2,
@@ -118,8 +118,8 @@ const BscSend = () => {
           value: amount,
         },
       });
-      if (find_gas_limit_resp.result) {
-        setGasLimit(find_gas_limit_resp.data);
+      if (response.result) {
+        setGasLimit(response.data);
         return true;
       }
       return false;
@@ -131,19 +131,19 @@ const BscSend = () => {
 
   const getBscFeeRate = async () => {
     try {
-      const find_fee_resp: any = await axios.get(Http.find_fee_rate, {
+      const response: any = await axios.get(Http.find_fee_rate, {
         params: {
           chain_id: CHAINS.BSC,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
-      if (find_fee_resp.result) {
+      if (response.result) {
         setFeeObj({
-          high: find_fee_resp.data.fast,
-          average: find_fee_resp.data.normal,
-          low: find_fee_resp.data.slow,
+          high: response.data.fast,
+          average: response.data.normal,
+          low: response.data.slow,
         });
-        setGasPrice(WeiToGwei(find_fee_resp.data.normal));
+        setGasPrice(WeiToGwei(response.data.normal));
       }
     } catch (e) {
       console.error(e);
@@ -153,15 +153,15 @@ const BscSend = () => {
   const getBscNonce = async (address: string) => {
     if (address && address != '') {
       try {
-        const find_nonce_resp: any = await axios.get(Http.find_nonce, {
+        const response: any = await axios.get(Http.find_nonce, {
           params: {
             chain_id: CHAINS.BSC,
             network: getNetwork() === 'mainnet' ? 1 : 2,
             address: address,
           },
         });
-        if (find_nonce_resp.result) {
-          setNonce(find_nonce_resp.data);
+        if (response.result) {
+          setNonce(response.data);
         }
       } catch (e) {
         console.error(e);
@@ -179,14 +179,14 @@ const BscSend = () => {
     }
 
     try {
-      const checkout_resp: any = await axios.get(Http.checkout_chain_address, {
+      const response: any = await axios.get(Http.checkout_chain_address, {
         params: {
           chain_id: CHAINS.BSC,
           address: destinationAddress,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
-      return checkout_resp.result;
+      return response.result;
     } catch (e) {
       console.error(e);
       return false;
@@ -281,27 +281,27 @@ const BscSend = () => {
 
   const getPayoutInfo = async (id: any) => {
     try {
-      const find_payout_resp: any = await axios.get(Http.find_payout_by_id, {
+      const response: any = await axios.get(Http.find_payout_by_id, {
         params: {
           id: id,
         },
       });
 
-      if (find_payout_resp.result && find_payout_resp.data.length === 1) {
-        setDestinationAddress(find_payout_resp.data[0].address);
+      if (response.result && response.data.length === 1) {
+        setDestinationAddress(response.data[0].address);
 
-        const ids = COINGECKO_IDS[find_payout_resp.data[0].crypto as COINS];
+        const ids = COINGECKO_IDS[response.data[0].crypto as COINS];
         const rate_response: any = await axios.get(Http.find_crypto_price, {
           params: {
             ids: ids,
-            currency: find_payout_resp.data[0].currency,
+            currency: response.data[0].currency,
           },
         });
 
-        const rate = rate_response.data[ids][find_payout_resp.data[0].currency.toLowerCase()];
-        const totalPrice = parseFloat(BigDiv((find_payout_resp.data[0].amount as number).toString(), rate)).toFixed(4);
+        const rate = rate_response.data[ids][response.data[0].currency.toLowerCase()];
+        const totalPrice = parseFloat(BigDiv((response.data[0].amount as number).toString(), rate)).toFixed(4);
         setAmount(totalPrice);
-        setCoin(find_payout_resp.data[0].crypto);
+        setCoin(response.data[0].crypto);
 
         setIsDisableDestinationAddress(true);
         setIsDisableAmount(true);
@@ -313,7 +313,7 @@ const BscSend = () => {
 
   const onClickSignAndPay = async () => {
     try {
-      const send_transaction_resp: any = await axios.post(Http.send_transaction, {
+      const response: any = await axios.post(Http.send_transaction, {
         chain_id: CHAINS.BSC,
         from_address: fromAddress,
         to_address: destinationAddress,
@@ -327,14 +327,14 @@ const BscSend = () => {
         gas_limit: gasLimit,
       });
 
-      if (send_transaction_resp.result) {
+      if (response.result) {
         // update payout order
         if (payoutId) {
           const update_payout_resp: any = await axios.put(Http.update_payout_by_id, {
             user_id: getUserId(),
             store_id: getStoreId(),
             id: payoutId,
-            tx: send_transaction_resp.data.hash,
+            tx: response.data.hash,
             crypto_amount: amount,
             payout_status: PAYOUT_STATUS.Completed,
           });
@@ -347,7 +347,7 @@ const BscSend = () => {
           }
         }
 
-        setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', send_transaction_resp.data.hash));
+        setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', response.data.hash));
         setPage(3);
       }
     } catch (e) {

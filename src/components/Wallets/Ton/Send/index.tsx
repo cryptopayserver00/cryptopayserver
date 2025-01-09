@@ -60,7 +60,7 @@ const TonSend = () => {
 
   const getTon = async () => {
     try {
-      const find_payment_resp: any = await axios.get(Http.find_asset_balance, {
+      const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.TON,
@@ -68,9 +68,9 @@ const TonSend = () => {
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
-      if (find_payment_resp.result) {
-        setFromAddress(find_payment_resp.data.address);
-        setBalance(find_payment_resp.data.balance);
+      if (response.result) {
+        setFromAddress(response.data.address);
+        setBalance(response.data.balance);
       }
     } catch (e) {
       console.error(e);
@@ -79,7 +79,7 @@ const TonSend = () => {
 
   const getGasFee = async () => {
     try {
-      const find_gas_fee_resp: any = await axios.get(Http.find_gas_fee, {
+      const response: any = await axios.get(Http.find_gas_fee, {
         params: {
           user_id: getUserId(),
           chain_id: CHAINS.TON,
@@ -90,8 +90,8 @@ const TonSend = () => {
           value: amount,
         },
       });
-      if (find_gas_fee_resp.result) {
-        setNetworkFee(find_gas_fee_resp.data);
+      if (response.result) {
+        setNetworkFee(response.data);
 
         setDisplaySign(true);
       }
@@ -102,27 +102,27 @@ const TonSend = () => {
 
   const getPayoutInfo = async (id: any) => {
     try {
-      const find_payout_resp: any = await axios.get(Http.find_payout_by_id, {
+      const response: any = await axios.get(Http.find_payout_by_id, {
         params: {
           id: id,
         },
       });
 
-      if (find_payout_resp.result && find_payout_resp.data.length === 1) {
-        setDestinationAddress(find_payout_resp.data[0].address);
+      if (response.result && response.data.length === 1) {
+        setDestinationAddress(response.data[0].address);
 
-        const ids = COINGECKO_IDS[find_payout_resp.data[0].crypto as COINS];
+        const ids = COINGECKO_IDS[response.data[0].crypto as COINS];
         const rate_response: any = await axios.get(Http.find_crypto_price, {
           params: {
             ids: ids,
-            currency: find_payout_resp.data[0].currency,
+            currency: response.data[0].currency,
           },
         });
 
-        const rate = rate_response.data[ids][find_payout_resp.data[0].currency.toLowerCase()];
-        const totalPrice = parseFloat(BigDiv((find_payout_resp.data[0].amount as number).toString(), rate)).toFixed(4);
+        const rate = rate_response.data[ids][response.data[0].currency.toLowerCase()];
+        const totalPrice = parseFloat(BigDiv((response.data[0].amount as number).toString(), rate)).toFixed(4);
         setAmount(totalPrice);
-        setCoin(find_payout_resp.data[0].crypto);
+        setCoin(response.data[0].crypto);
 
         setIsDisableDestinationAddress(true);
         setIsDisableAmount(true);
@@ -142,14 +142,14 @@ const TonSend = () => {
     }
 
     try {
-      const checkout_resp: any = await axios.get(Http.checkout_chain_address, {
+      const response: any = await axios.get(Http.checkout_chain_address, {
         params: {
           chain_id: CHAINS.TON,
           address: destinationAddress,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
-      return checkout_resp.result;
+      return response.result;
     } catch (e) {
       console.error(e);
       return false;
@@ -207,7 +207,7 @@ const TonSend = () => {
 
   const onClickSignAndPay = async () => {
     try {
-      const send_transaction_resp: any = await axios.post(Http.send_transaction, {
+      const response: any = await axios.post(Http.send_transaction, {
         chain_id: CHAINS.TON,
         from_address: fromAddress,
         to_address: destinationAddress,
@@ -218,14 +218,14 @@ const TonSend = () => {
         coin: coin,
       });
 
-      if (send_transaction_resp.result) {
+      if (response.result) {
         // update payout order
         if (payoutId) {
           const update_payout_resp: any = await axios.put(Http.update_payout_by_id, {
             user_id: getUserId(),
             store_id: getStoreId(),
             id: payoutId,
-            tx: send_transaction_resp.data.hash,
+            tx: response.data.hash,
             crypto_amount: amount,
             payout_status: PAYOUT_STATUS.Completed,
           });
@@ -242,7 +242,7 @@ const TonSend = () => {
         setSnackMessage('Successful creation!');
         setSnackOpen(true);
 
-        setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', send_transaction_resp.data.hash));
+        setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', response.data.hash));
 
         setPage(3);
       }

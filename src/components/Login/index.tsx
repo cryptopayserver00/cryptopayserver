@@ -33,19 +33,19 @@ const Login = () => {
   const onLogin = async () => {
     try {
       if (email !== '' && password !== '') {
-        const login_resp: any = await axios.post(Http.login, {
+        const response: any = await axios.post(Http.login, {
           email: email,
           password: password,
         });
-        if (login_resp.result && login_resp.data.length === 1) {
-          setUserId(login_resp.data[0].id);
-          setUserEmail(login_resp.data[0].email);
-          setUsername(login_resp.data[0].username);
+        if (response.result && response.data.length === 1) {
+          setUserId(response.data[0].id);
+          setUserEmail(response.data[0].email);
+          setUsername(response.data[0].username);
           setIsLogin(true);
 
           const store_resp: any = await axios.get(Http.find_store, {
             params: {
-              user_id: login_resp.data[0].id,
+              user_id: response.data[0].id,
             },
           });
 
