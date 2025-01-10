@@ -61,25 +61,8 @@ const Dashboard = () => {
           <Grid item xs={12}>
             <Card variant="outlined">
               <CardContent>
-                {/* <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
-                  <ToggleButtonGroup value={walletBalanceAlignment} exclusive onChange={onChangeCurrency}>
-                    <ToggleButton value="USD" aria-label="left aligned">
-                      USD
-                    </ToggleButton>
-                    <ToggleButton value="USDT" aria-label="centered">
-                      USDT
-                    </ToggleButton>
-                    <ToggleButton value="USDC" aria-label="right aligned">
-                      USDC
-                    </ToggleButton>
-                  </ToggleButtonGroup>
-                </Stack> */}
                 <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} mt={2}>
                   <Box>
-                    {/* <Stack direction={'row'} alignItems={'baseline'}>
-                      <Typography variant="h4">{walletBalance.toFixed(2)}</Typography>
-                      <Typography ml={1}>{walletBalanceAlignment}</Typography>
-                    </Stack> */}
                   </Box>
                   <RadioGroup row value={walletBalanceDayAlignment} onChange={onChangeDay}>
                     <FormControlLabel value="WEEK" control={<Radio />} label="1W" />
