@@ -86,7 +86,7 @@ const Login = () => {
           }
         } else {
           setSnackSeverity('error');
-          setSnackMessage('User not exists!');
+          setSnackMessage('Incorrect username or password!');
           setSnackOpen(true);
         }
       } else {

@@ -50,6 +50,56 @@ export const CURRENCY = [
   'XDR', // 特别提款权
 ];
 
+export const CURRENCY_SYMBOLS = {
+  USD: '$', // 美元
+  AED: 'د.إ', // 阿联酋迪拉姆
+  ARS: '$', // 阿根廷比索
+  AUD: '$', // 澳大利亚元
+  BDT: '৳', // 孟加拉塔卡
+  BHD: '.د.ب', // 巴林第纳尔
+  BMD: '$', // 百慕大元
+  BRL: 'R$', // 巴西雷亚尔
+  CAD: '$', // 加拿大元
+  CHF: 'CHF', // 瑞士法郎
+  CLP: '$', // 智利比索
+  CNY: '¥', // 人民币
+  CZK: 'Kč', // 捷克克朗
+  DKK: 'kr', // 丹麦克朗
+  EUR: '€', // 欧元
+  GBP: '£', // 英镑
+  GEL: '₾', // 格鲁吉亚拉里
+  HKD: '$', // 港元
+  HUF: 'Ft', // 匈牙利福林
+  IDR: 'Rp', // 印尼卢比
+  ILS: '₪', // 以色列新谢克尔
+  INR: '₹', // 印度卢比
+  JPY: '¥', // 日元
+  KRW: '₩', // 韩元
+  KWD: 'د.ك', // 科威特第纳尔
+  LKR: '₨', // 斯里兰卡卢比
+  MMK: 'Ks', // 缅甸元
+  MXN: '$', // 墨西哥比索
+  MYR: 'RM', // 马来西亚林吉特
+  NGN: '₦', // 尼日利亚奈拉
+  NOK: 'kr', // 挪威克朗
+  NZD: '$', // 新西兰元
+  PHP: '₱', // 菲律宾比索
+  PKR: '₨', // 巴基斯坦卢比
+  PLN: 'zł', // 波兰兹罗提
+  RUB: '₽', // 俄罗斯卢布
+  SAR: 'ر.س', // 沙特里亚尔
+  SEK: 'kr', // 瑞典克朗
+  SGD: '$', // 新加坡元
+  THB: '฿', // 泰铢
+  TRY: '₺', // 土耳其里拉
+  TWD: 'NT$', // 新台币
+  UAH: '₴', // 乌克兰赫夫尼亚
+  VEF: 'Bs.S', // 委内瑞拉玻利瓦尔
+  VND: '₫', // 越南盾
+  ZAR: 'R', // 南非兰特
+  XDR: 'XDR', // 特别提款权
+};
+
 export const PRICE_RESOURCE = ['Kraken', 'CoinGecko'];
 
 export const PAID_STATUS = {

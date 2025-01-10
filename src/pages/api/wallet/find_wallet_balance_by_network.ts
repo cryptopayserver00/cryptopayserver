@@ -10,13 +10,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const connection = await connectDatabase();
-        const userId = req.query.user_id;
         const walletId = req.query.wallet_id;
         const network = req.query.network;
 
         const query =
-          'SELECT id, address, chain_id, note FROM addresses where user_id = ? and wallet_id = ? and network = ? and status = ?';
-        const values = [userId, walletId, network, 1];
+          'SELECT id, address, chain_id, note FROM addresses where wallet_id = ? and network = ? and status = ?';
+        const values = [walletId, network, 1];
         const [rows] = await connection.query(query, values);
 
         let newRows: any[] = [];
@@ -31,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 parseInt(network as string) === 1 ? true : false,
                 item.chain_id,
                 item.address,
-              )
+              ),
             };
           });
           newRows = await Promise.all(promises);
