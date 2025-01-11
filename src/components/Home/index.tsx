@@ -61,6 +61,7 @@ import PaymentRequestsDetails from 'components/PaymentRequests/id';
 import PullPaymentsDetails from 'components/PullPayments/id';
 import Link from 'next/link';
 import FreeCoin from 'components/FreeCoin';
+import Welcome from 'components/Welcome';
 
 const Home = () => {
   const router = useRouter();
@@ -75,6 +76,7 @@ const Home = () => {
   const [isWallet, setWallet] = useState<boolean>(false);
 
   const unLoginWhiteList: any = {
+    '/': <Welcome />,
     '/login': <Login />,
     '/register': <Register />,
   };
@@ -116,7 +118,6 @@ const Home = () => {
   };
 
   const dashboardWhiteList: any = {
-    '/': <Dashboard />,
     '/dashboard': <Dashboard />,
     '/settings': <Settings />,
     '/wallets/bitcoin': <Bitcoin />,
@@ -266,9 +267,9 @@ const Home = () => {
       {!isLogin && (
         <Box width={'100%'}>
           {unLoginWhiteList[router.pathname] || null}
-          <Box>
+          {/* <Box>
             <Footer />
-          </Box>
+          </Box> */}
         </Box>
       )}
 
