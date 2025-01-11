@@ -15,38 +15,41 @@ import ViewQuiltRoundedIcon from '@mui/icons-material/ViewQuiltRounded';
 const items = [
   {
     icon: <ViewQuiltRoundedIcon />,
-    title: 'Dashboard',
+    title: 'Essential Apps Built-in',
     description:
-      'This item could provide a snapshot of the most important metrics or data points related to the product.',
-    imageLight: `url("${
-      process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'
-    }/static/images/templates/templates-images/dash-light.png")`,
-    imageDark: `url("${
-      process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'
-    }/static/images/templates/templates-images/dash-dark.png")`,
+      'Create a Point-of-Sale app for your store, easily embed a tipping button on your website, send a payment link to a client across the globe, or launch a crowdfunding campaign to raise funds for your cause',
+    imageLight: `url("/images/dashboard.png")`,
+    imageDark: `url("/images/dashboard.png")`,
   },
   {
     icon: <EdgesensorHighRoundedIcon />,
-    title: 'Mobile integration',
-    description: 'This item could provide information about the mobile app version of the product.',
-    imageLight: `url("${
-      process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'
-    }/static/images/templates/templates-images/mobile-light.png")`,
-    imageDark: `url("${
-      process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'
-    }/static/images/templates/templates-images/mobile-dark.png")`,
+    title: 'Great for Invoicing and accounting',
+    description: 'Get notified when they get paid. Export your invoices in different format for smoother bookkeeping.',
+    imageLight: `url("/images/dashboard.png")`,
+    imageDark: `url("/images/dashboard.png")`,
   },
   {
     icon: <DevicesRoundedIcon />,
-    title: 'Available on all platforms',
+    title: 'Native Wallet Management',
+    description: 'Manage your incoming and outgoing funds with a built-in wallet that has hardware wallet support.',
+    imageLight: `url("/images/dashboard.png")`,
+    imageDark: `url("/images/dashboard.png")`,
+  },
+  {
+    icon: <DevicesRoundedIcon />,
+    title: 'Self-host or use a shared server',
     description:
-      'This item could let users know the product is available on all platforms, such as web, mobile, and desktop.',
-    imageLight: `url("${
-      process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'
-    }/static/images/templates/templates-images/devices-light.png")`,
-    imageDark: `url("${
-      process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'
-    }/static/images/templates/templates-images/devices-dark.png")`,
+      "Use a shared server if you're not tech savvy, or deploy your own instance on cloud servers or hardware devices. By sharing your server you can support friends or your local community.",
+    imageLight: `url("/images/dashboard.png")`,
+    imageDark: `url("/images/dashboard.png")`,
+  },
+  {
+    icon: <DevicesRoundedIcon />,
+    title: 'Automation via the API',
+    description:
+      'Manage your BTCPay Server (e.g. stores, invoices, users), automate your workflows and control access with our API.',
+    imageLight: `url("/images/dashboard.png")`,
+    imageDark: `url("/images/dashboard.png")`,
   },
 ];
 
@@ -153,8 +156,8 @@ export default function Features() {
           Product features
         </Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary', mb: { xs: 2, sm: 4 } }}>
-          Provide a brief overview of the key features of the product. For example, you could list the number of
-          features, their types or benefits, and add-ons.
+          The product offers many useful features for merchants. After easily creating a wallet and setting up a store,
+          they can use various features to facilitate both receiving and making payments.
         </Typography>
       </Box>
       <Box

@@ -23,8 +23,8 @@ const Welcome = (props: { disableCustomTheme?: boolean }) => {
           <LogoCollection />
           <Features />
           <Divider />
-          <Testimonials />
-          <Divider />
+          {/* <Testimonials /> */}
+          {/* <Divider /> */}
           <Highlights />
           <Divider />
           <Pricing />

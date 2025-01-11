@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import { useTheme } from '@mui/system';
 import { Grid } from '@mui/material';
+import Image from 'next/image';
 
 const userTestimonials = [
   {
@@ -71,10 +72,10 @@ const darkLogos = [
   'https://assets-global.website-files.com/61ed56ae9da9fd7e0ef0a967/655f5ca4e548b0deb1041c33_Ankara-black.svg',
 ];
 
-const logoStyle = {
-  width: '64px',
-  opacity: 0.3,
-};
+// const logoStyle = {
+//   width: '64px',
+//   opacity: 0.3,
+// };
 
 export default function Testimonials() {
   const theme = useTheme();
@@ -132,7 +133,7 @@ export default function Testimonials() {
                 }}
               >
                 <CardHeader avatar={testimonial.avatar} title={testimonial.name} subheader={testimonial.occupation} />
-                <img src={logos[index]} alt={`Logo ${index + 1}`} style={logoStyle} />
+                <Image src={logos[index]} alt={`Logo ${index + 1}`} width={64} height={64} style={{ opacity: 0.3 }} />
               </Box>
             </Card>
           </Grid>
