@@ -10,9 +10,10 @@ import MenuItem from '@mui/material/MenuItem';
 import Drawer from '@mui/material/Drawer';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import Sitemark from './SitemarkIcon';
 import ColorModeIconDropdown from './ColorModeIconDropdown';
 import { useState } from 'react';
+import { CustomLogo } from 'components/Logo/CustomLogo';
+import { Stack, Typography } from '@mui/material';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: 'flex',
@@ -49,8 +50,19 @@ export default function AppAppBar() {
       <Container maxWidth="lg">
         <StyledToolbar variant="dense" disableGutters>
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
-            <Sitemark />
-            <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+            <Button
+              onClick={() => {
+                window.location.href = '/';
+              }}
+            >
+              <Stack direction={'row'} alignItems={'center'}>
+                <CustomLogo>C</CustomLogo>
+                <Typography fontWeight={'bold'} color="#0098e5" fontSize={16}>
+                  Crypto Pay
+                </Typography>
+              </Stack>
+            </Button>
+            <Box sx={{ display: { xs: 'none', md: 'flex' } }} gap={1} ml={1}>
               <Button
                 variant="text"
                 color="info"
@@ -120,6 +132,7 @@ export default function AppAppBar() {
               gap: 1,
               alignItems: 'center',
             }}
+            gap={1}
           >
             <Button
               color="primary"

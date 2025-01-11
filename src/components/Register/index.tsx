@@ -1,11 +1,14 @@
 import { Box, Button, Card, CardContent, Container, Stack, TextField, Typography } from '@mui/material';
 import { CustomLogo } from 'components/Logo/CustomLogo';
 import { useSnackPresistStore } from 'lib/store/snack';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
+import { useRouter } from 'next/router';
 
 const Register = () => {
+  const router = useRouter();
+
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
@@ -52,6 +55,13 @@ const Register = () => {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    const enterEmail = router.query.email;
+    if (enterEmail) {
+      setEmail(enterEmail as string);
+    }
+  }, [router.query]);
   return (
     <Box>
       <Container>

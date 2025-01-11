@@ -9,6 +9,8 @@ import Typography from '@mui/material/Typography';
 
 import { visuallyHidden } from '@mui/utils';
 import { styled } from '@mui/material/styles';
+import { useState } from 'react';
+import { IsValidEmail } from 'utils/verify';
 
 const StyledBox = styled('div')(({ theme }) => ({
   alignSelf: 'center',
@@ -16,14 +18,14 @@ const StyledBox = styled('div')(({ theme }) => ({
   height: 400,
   marginTop: theme.spacing(8),
   // borderRadius: (theme.vars || theme).shape.borderRadius,
+  borderRadius: 10,
   outline: '6px solid',
   outlineColor: 'hsla(220, 25%, 80%, 0.2)',
   border: '1px solid',
+  borderColor: 'gray',
   // borderColor: (theme.vars || theme).palette.grey[200],
   boxShadow: '0 0 12px 8px hsla(220, 25%, 80%, 0.2)',
-  backgroundImage: `url(${
-    process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'
-  }/static/screenshots/material-ui/getting-started/templates/dashboard.jpg)`,
+  backgroundImage: `url(./images/dashboard.png)`,
   backgroundSize: 'cover',
   [theme.breakpoints.up('sm')]: {
     marginTop: theme.spacing(10),
@@ -31,15 +33,16 @@ const StyledBox = styled('div')(({ theme }) => ({
   },
   ...theme.applyStyles('dark', {
     boxShadow: '0 0 24px 12px hsla(210, 100%, 25%, 0.2)',
-    backgroundImage: `url(${
-      process.env.TEMPLATE_IMAGE_URL || 'https://mui.com'
-    }/static/screenshots/material-ui/getting-started/templates/dashboard-dark.jpg)`,
+    backgroundImage: `url(./images/dashboard.png)`,
     outlineColor: 'hsla(220, 20%, 42%, 0.1)',
     // borderColor: (theme.vars || theme).palette.grey[700],
+    borderColor: 'gray',
   }),
 }));
 
 export default function Hero() {
+  const [email, setEmail] = useState<string>('');
+
   return (
     <Box
       id="hero"
@@ -72,7 +75,7 @@ export default function Hero() {
               fontSize: 'clamp(3rem, 10vw, 3.5rem)',
             }}
           >
-            Our&nbsp;latest&nbsp;
+            Crypto&nbsp;Pay&nbsp;
             <Typography
               component="span"
               variant="h1"
@@ -84,7 +87,7 @@ export default function Hero() {
                 }),
               })}
             >
-              products
+              server
             </Typography>
           </Typography>
           <Typography
@@ -94,8 +97,7 @@ export default function Hero() {
               width: { sm: '100%', md: '80%' },
             }}
           >
-            Explore our cutting-edge dashboard, delivering high-quality solutions tailored to your needs. Elevate your
-            experience with top-tier features and services.
+            Accept Crypto payments. Free, open-source & self-hosted, Crypto payment processor.
           </Typography>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
@@ -107,13 +109,16 @@ export default function Hero() {
               Email
             </InputLabel>
             <TextField
-              id="email-hero"
               hiddenLabel
               size="small"
               variant="outlined"
               aria-label="Enter your email address"
               placeholder="Your email address"
               fullWidth
+              value={email}
+              onChange={(e: any) => {
+                setEmail(e.target.value);
+              }}
               // slotProps={{
               //   htmlInput: {
               //     autoComplete: 'off',
@@ -121,7 +126,17 @@ export default function Hero() {
               //   },
               // }}
             />
-            <Button variant="contained" color="primary" size="small" sx={{ minWidth: 'fit-content' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              sx={{ minWidth: 'fit-content' }}
+              onClick={() => {
+                if (email && IsValidEmail(email)) {
+                  window.location.href = `/register?email=${email}`;
+                }
+              }}
+            >
               Start now
             </Button>
           </Stack>
@@ -133,7 +148,7 @@ export default function Hero() {
             .
           </Typography>
         </Stack>
-        <StyledBox id="image" />
+        <StyledBox />
       </Container>
     </Box>
   );

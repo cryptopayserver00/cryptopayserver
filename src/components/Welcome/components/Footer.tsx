@@ -64,7 +64,6 @@ export default function Footer() {
             <InputLabel htmlFor="email-newsletter">Email</InputLabel>
             <Stack direction="row" spacing={1} useFlexGap>
               <TextField
-                id="email-newsletter"
                 hiddenLabel
                 size="small"
                 variant="outlined"
