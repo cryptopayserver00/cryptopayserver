@@ -15,35 +15,36 @@ import { Grid } from '@mui/material';
 const items = [
   {
     icon: <SettingsSuggestRoundedIcon />,
-    title: 'Adaptable performance',
-    description: 'Our product effortlessly adjusts to your needs, boosting efficiency and simplifying your tasks.',
+    title: 'Cost',
+    description:
+      'Deploy CryptoPay Server using a VPS, the following types of fees are never charged: Merchant fees, Subscription fees, Transfer fees and Software fees',
   },
   {
     icon: <ConstructionRoundedIcon />,
-    title: 'Built to last',
-    description: 'Experience unmatched durability that goes above and beyond with lasting investment.',
+    title: 'Security',
+    description:
+      'Always keep your private keys private. Using a secure wallet is recommended for new merchants as the only provider (creator) of private keys.',
   },
   {
     icon: <ThumbUpAltRoundedIcon />,
-    title: 'Great user experience',
-    description: 'Integrate our product into your routine with an intuitive and easy-to-use interface.',
+    title: 'Privacy',
+    description: 'CryptoPay Server will never ask a merchant for any personal identification.',
   },
   {
     icon: <AutoFixHighRoundedIcon />,
-    title: 'Innovative functionality',
-    description:
-      'Stay ahead with features that set new standards, addressing your evolving needs better than the rest.',
+    title: 'Censorship-Resistance',
+    description: 'Nobody controls it expect for the user running it. No central of failure.',
   },
   {
     icon: <SupportAgentRoundedIcon />,
-    title: 'Reliable support',
-    description: 'Count on our responsive customer support, offering assistance that goes beyond the purchase.',
+    title: 'Decentralized',
+    description:
+      'To help merchants remove third party dependencies and simply use the Crypto Network freely and security.',
   },
   {
     icon: <QueryStatsRoundedIcon />,
-    title: 'Precision in every detail',
-    description:
-      'Enjoy a meticulously crafted product where small touches make a significant impact on your overall experience.',
+    title: 'E-Commerce Integrations',
+    description: 'We support a lot of plugin platforms to help merchants expand their service scope.',
   },
 ];
 
@@ -77,8 +78,8 @@ export default function Highlights() {
             Highlights
           </Typography>
           <Typography variant="body1" sx={{ color: 'grey.400' }}>
-            Explore why our product stands out: adaptability, durability, user-friendly design, and innovation. Enjoy
-            reliable customer support and precision in every detail.
+            CryptoPay Server is code, not a company. There is no third-party between a merchant and a customer. The
+            merchant is always in full control of their funds. There are no processing or subscription fees.
           </Typography>
         </Box>
         <Grid container spacing={2}>

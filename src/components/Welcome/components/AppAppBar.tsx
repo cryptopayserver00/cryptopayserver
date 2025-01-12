@@ -73,7 +73,7 @@ export default function AppAppBar() {
               >
                 Features
               </Button>
-              <Button
+              {/* <Button
                 variant="text"
                 color="info"
                 size="small"
@@ -82,7 +82,7 @@ export default function AppAppBar() {
                 }}
               >
                 Testimonials
-              </Button>
+              </Button> */}
               <Button
                 variant="text"
                 color="info"
@@ -190,13 +190,13 @@ export default function AppAppBar() {
                 >
                   Features
                 </MenuItem>
-                <MenuItem
+                {/* <MenuItem
                   onClick={() => {
                     window.location.href = '#testimonials';
                   }}
                 >
                   Testimonials
-                </MenuItem>
+                </MenuItem> */}
                 <MenuItem
                   onClick={() => {
                     window.location.href = '#highlights';

@@ -10,14 +10,14 @@ import Typography from '@mui/material/Typography';
 import FacebookIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import TwitterIcon from '@mui/icons-material/X';
-import SitemarkIcon from './SitemarkIcon';
+import { CustomLogo } from 'components/Logo/CustomLogo';
 
 function Copyright() {
   return (
     <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
       {'Copyright © '}
-      <Link color="text.secondary" href="https://mui.com/">
-        Sitemark
+      <Link color="text.secondary" href="#">
+        CryptoPayServer
       </Link>
       &nbsp;
       {new Date().getFullYear()}
@@ -54,7 +54,12 @@ export default function Footer() {
           }}
         >
           <Box sx={{ width: { xs: '100%', sm: '60%' } }}>
-            <SitemarkIcon />
+            <Stack direction={'row'} alignItems={'center'}>
+              <CustomLogo>C</CustomLogo>
+              <Typography fontWeight={'bold'} color="#0098e5" fontSize={16}>
+                Crypto Pay
+              </Typography>
+            </Stack>
             <Typography variant="body2" gutterBottom sx={{ fontWeight: 600, mt: 2 }}>
               Join the newsletter
             </Typography>
@@ -62,7 +67,7 @@ export default function Footer() {
               Subscribe for weekly updates. No spams ever!
             </Typography>
             <InputLabel htmlFor="email-newsletter">Email</InputLabel>
-            <Stack direction="row" spacing={1} useFlexGap>
+            <Stack direction="row" spacing={1} useFlexGap mt={1}>
               <TextField
                 hiddenLabel
                 size="small"
@@ -92,22 +97,35 @@ export default function Footer() {
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            Product
+            Software
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
-            Features
+          <Link
+            color="text.secondary"
+            variant="body2"
+            href="https://cryptopayserver.gitbook.io/cryptopayserver/learn/introduction"
+          >
+            Introduction
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Testimonials
+          <Link
+            color="text.secondary"
+            variant="body2"
+            href="https://cryptopayserver.gitbook.io/cryptopayserver/learn/use-case"
+          >
+            Use Case
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Highlights
+          <Link
+            color="text.secondary"
+            variant="body2"
+            href="https://cryptopayserver.gitbook.io/cryptopayserver/features/apps"
+          >
+            Apps
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Pricing
-          </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            FAQs
+          <Link
+            color="text.secondary"
+            variant="body2"
+            href="https://cryptopayserver.gitbook.io/cryptopayserver/getting-started/quickstart"
+          >
+            Getting Started
           </Link>
         </Box>
         <Box
@@ -118,16 +136,27 @@ export default function Footer() {
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            Company
+            Resources
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
-            About us
+          <Link color="text.secondary" variant="body2" href="https://cryptopayserver.gitbook.io/cryptopayserver">
+            Documentation
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Careers
+          <Link color="text.secondary" variant="body2" href="https://github.com/cryptopayserver00/cryptopayserver">
+            GitHub
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Press
+          <Link
+            color="text.secondary"
+            variant="body2"
+            href="https://cryptopayserver.gitbook.io/cryptopayserver/support-and-community/support"
+          >
+            Support
+          </Link>
+          <Link
+            color="text.secondary"
+            variant="body2"
+            href="https://cryptopayserver.gitbook.io/cryptopayserver/support-and-community/troubleshooting-an-issue-in-cryptopay-server"
+          >
+            FAQ
           </Link>
         </Box>
         <Box
@@ -138,16 +167,19 @@ export default function Footer() {
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            Legal
+            Community
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
-            Terms
+          <Link color="text.secondary" variant="body2" href="https://cryptopayserver.gitbook.io/cryptopayserver">
+            Blog
+          </Link>
+          <Link color="text.secondary" variant="body2" href="https://t.me/cryptopayserver">
+            Chat
           </Link>
           <Link color="text.secondary" variant="body2" href="#">
-            Privacy
+            Contribute
           </Link>
           <Link color="text.secondary" variant="body2" href="#">
-            Contact
+            Donate
           </Link>
         </Box>
       </Box>
@@ -175,28 +207,16 @@ export default function Footer() {
           <IconButton
             color="inherit"
             size="small"
-            href="https://github.com/mui"
+            href="https://github.com/cryptopayserver00/cryptopayserver"
             aria-label="GitHub"
             sx={{ alignSelf: 'center' }}
           >
             <FacebookIcon />
           </IconButton>
-          <IconButton
-            color="inherit"
-            size="small"
-            href="https://x.com/MaterialUI"
-            aria-label="X"
-            sx={{ alignSelf: 'center' }}
-          >
+          <IconButton color="inherit" size="small" href="#" aria-label="X" sx={{ alignSelf: 'center' }}>
             <TwitterIcon />
           </IconButton>
-          <IconButton
-            color="inherit"
-            size="small"
-            href="https://www.linkedin.com/company/mui/"
-            aria-label="LinkedIn"
-            sx={{ alignSelf: 'center' }}
-          >
+          <IconButton color="inherit" size="small" href="#" aria-label="LinkedIn" sx={{ alignSelf: 'center' }}>
             <LinkedInIcon />
           </IconButton>
         </Stack>

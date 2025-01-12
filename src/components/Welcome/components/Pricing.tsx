@@ -15,8 +15,18 @@ import { Grid } from '@mui/material';
 const tiers = [
   {
     title: 'Free',
+    subheader: 'Recommended',
     price: '0',
-    description: ['10 users included', '2 GB of storage', 'Help center access', 'Email support'],
+    description: [
+      'Full CryptoPay development platform',
+      'All mainnets & testnets',
+      'Testnet only gas sponsorship',
+      'Discord support',
+      'Node APIs',
+      'Webhooks',
+      'Trace APIs',
+      'Transaction APIs',
+    ],
     buttonText: 'Sign up for free',
     buttonVariant: 'outlined',
     buttonColor: 'primary',
@@ -24,14 +34,16 @@ const tiers = [
   {
     title: 'Professional',
     subheader: 'Recommended',
-    price: '15',
+    price: '0',
     description: [
-      '20 users included',
-      '10 GB of storage',
-      'Help center access',
-      'Priority email support',
-      'Dedicated team',
-      'Best deals',
+      'Full CryptoPay development platform',
+      'All mainnets & testnets',
+      'Testnet only gas sponsorship',
+      'Discord support',
+      'Node APIs',
+      'Webhooks',
+      'Trace APIs',
+      'Transaction APIs',
     ],
     buttonText: 'Start now',
     buttonVariant: 'contained',
@@ -39,8 +51,17 @@ const tiers = [
   },
   {
     title: 'Enterprise',
-    price: '30',
-    description: ['50 users included', '30 GB of storage', 'Help center access', 'Phone & email support'],
+    price: '0',
+    description: [
+      'Full CryptoPay development platform',
+      'All mainnets & testnets',
+      'Testnet only gas sponsorship',
+      'Discord support',
+      'Node APIs',
+      'Webhooks',
+      'Trace APIs',
+      'Transaction APIs',
+    ],
     buttonText: 'Contact us',
     buttonVariant: 'outlined',
     buttonColor: 'primary',
@@ -71,8 +92,9 @@ export default function Pricing() {
           Pricing
         </Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-          Quickly build an effective pricing table for your potential customers with this layout. <br />
-          It&apos;s built with default Material UI components with little customization.
+          Plans built for every team.
+          <br />
+          Select services and pricing suitable for your business scope.
         </Typography>
       </Box>
       <Grid container spacing={3} sx={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}>
@@ -158,6 +180,9 @@ export default function Pricing() {
                   fullWidth
                   variant={tier.buttonVariant as 'outlined' | 'contained'}
                   color={tier.buttonColor as 'primary' | 'secondary'}
+                  onClick={() => {
+                    window.location.href = '/register';
+                  }}
                 >
                   {tier.buttonText}
                 </Button>
