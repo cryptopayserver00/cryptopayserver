@@ -155,6 +155,7 @@ const InvoiceDetails = () => {
     }, 10 * 1000);
 
     return () => clearInterval(activeInit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const countDownTime = () => {
@@ -182,6 +183,7 @@ const InvoiceDetails = () => {
     }, 1000);
 
     return () => clearInterval(activeCountDownTime);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.expirationDate]);
 
   return (

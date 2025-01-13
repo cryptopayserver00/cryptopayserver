@@ -69,6 +69,7 @@ const Authentication = () => {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onClickResetApp = async () => {

@@ -123,6 +123,7 @@ const PaymentInvoiceDetails = () => {
 
   useEffect(() => {
     id && init(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const onClickArchive = async () => {

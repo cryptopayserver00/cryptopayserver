@@ -47,6 +47,7 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
 
   useEffect(() => {
     getEvent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   return (

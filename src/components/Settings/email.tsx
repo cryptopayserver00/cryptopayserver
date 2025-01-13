@@ -226,6 +226,7 @@ const Emails = () => {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -411,7 +412,7 @@ const Emails = () => {
               </FormControl>
             </Box>
             <Box mt={2}>
-              <Typography>Sender's Email Address</Typography>
+              <Typography>Sender&apos;s Email Address</Typography>
               <FormControl fullWidth variant="outlined">
                 <OutlinedInput
                   size={'small'}

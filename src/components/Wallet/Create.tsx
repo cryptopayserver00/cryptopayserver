@@ -16,9 +16,9 @@ const CreateWallet = () => {
     <Box>
       <Container>
         <Stack alignItems={'center'} mt={20}>
-          <Typography variant="h4">Let's get started</Typography>
+          <Typography variant="h4">Let&apos;s get started</Typography>
           <Box mt={8}>
-            <Typography variant="h5">I don't have a wallet</Typography>
+            <Typography variant="h5">I don&apos;t have a wallet</Typography>
             <div onClick={onClickGenerate} style={{ marginTop: 26 }}>
               <Card sx={{ width: 750, padding: 2 }}>
                 <CardContent>

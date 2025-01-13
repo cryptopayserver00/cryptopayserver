@@ -84,6 +84,7 @@ const PhraseBackupConfirm = () => {
 
   useEffect(() => {
     fetchWalletData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleButtonClick = (index: number, selectItem: string) => {
@@ -106,6 +107,7 @@ const PhraseBackupConfirm = () => {
         updateWalletBackup();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectWord]);
 
   return (

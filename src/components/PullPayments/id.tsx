@@ -163,6 +163,7 @@ const PullPaymentsDetails = () => {
 
   useEffect(() => {
     id && init(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const onClickShowQR = async () => {
@@ -485,6 +486,7 @@ const SelectChainAndCrypto = (props: SelectType) => {
   useEffect(() => {
     const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
     setBlcokchain(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.network]);
 
   return (

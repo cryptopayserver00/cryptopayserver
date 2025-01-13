@@ -144,6 +144,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
   useEffect(() => {
     getStore();
     getNotification();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

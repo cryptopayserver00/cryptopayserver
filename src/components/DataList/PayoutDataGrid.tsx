@@ -368,6 +368,7 @@ export default function PayoutDataGrid(props: GridType) {
 
   useEffect(() => {
     props.status && init(props.status);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.status]);
 
   return (

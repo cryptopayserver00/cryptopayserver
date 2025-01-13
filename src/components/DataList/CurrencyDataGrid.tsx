@@ -215,6 +215,7 @@ export default function CurrencyDataGrid(props: GridType) {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onClickRow = async (e: RowType) => {

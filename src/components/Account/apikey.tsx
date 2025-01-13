@@ -238,6 +238,7 @@ function AccountApiKeyTable() {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onClickDelete = async (id: number) => {

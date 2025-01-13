@@ -149,6 +149,7 @@ const PaymentRequestsDetails = () => {
 
   useEffect(() => {
     id && init(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const onClickPayInvoice = () => {
@@ -356,6 +357,8 @@ const SelectChainAndCrypto = (props: SelectType) => {
   useEffect(() => {
     const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
     setBlcokchain(value);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.network]);
 
   const updateRate = async () => {
@@ -388,6 +391,7 @@ const SelectChainAndCrypto = (props: SelectType) => {
     if (selectCoinItem?.name && props.amount && props.currency && props.amount > 0) {
       updateRate();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectCoinItem?.name, props.amount, props.currency]);
 
   return (

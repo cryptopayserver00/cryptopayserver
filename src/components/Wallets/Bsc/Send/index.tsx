@@ -393,6 +393,7 @@ const BscSend = () => {
 
   useEffect(() => {
     init(payoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payoutId]);
 
   return (

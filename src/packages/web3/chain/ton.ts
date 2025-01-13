@@ -312,7 +312,7 @@ export class TON {
       // const deployQuery = await deploy.getQuery(); // get deploy query Cell
 
       const transfer = wallet.methods.transfer({
-        secretKey: keypair.secretKey,
+        secretKey: new Uint8Array(keypair.secretKey),
         toAddress: request.to,
         amount: TonWeb.utils.toNano(request.value),
         seqno,
@@ -352,7 +352,7 @@ export class TON {
 
       const fee = await wallet.methods
         .transfer({
-          secretKey: keypair.secretKey,
+          secretKey: new Uint8Array(keypair.secretKey),
           toAddress: request.to,
           amount: TonWeb.utils.toNano(request.value),
           seqno,

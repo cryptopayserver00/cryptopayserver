@@ -66,6 +66,7 @@ const MainAccount = () => {
   };
 
   const init = async () => {
+    console.log(111);
     try {
       if (!getUserEmail()) return;
 
@@ -90,6 +91,7 @@ const MainAccount = () => {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const VisuallyHiddenInput = styled('input')({

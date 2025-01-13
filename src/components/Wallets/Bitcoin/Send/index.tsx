@@ -250,6 +250,7 @@ const BitcoinSend = () => {
 
   useEffect(() => {
     init(payoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payoutId]);
 
   const onClickSignAndPay = async () => {

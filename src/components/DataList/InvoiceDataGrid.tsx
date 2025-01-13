@@ -132,6 +132,7 @@ export default function InvoiceDataGrid(props: GridType) {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

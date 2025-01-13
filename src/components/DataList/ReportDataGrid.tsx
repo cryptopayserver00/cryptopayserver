@@ -149,6 +149,7 @@ export default function ReportDataGrid(props: GridType) {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate, status]);
 
   return (

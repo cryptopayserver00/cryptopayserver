@@ -190,7 +190,7 @@ export class SOLANA {
 
       if (response.value && response.value.length > 0) {
         for (const item of response.value) {
-          const accountInfo = AccountLayout.decode(item.account.data);
+          const accountInfo = AccountLayout.decode(new Uint8Array(item.account.data));
 
           const amount = accountInfo.amount.toString();
 

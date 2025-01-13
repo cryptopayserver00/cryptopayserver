@@ -100,6 +100,7 @@ function NotificationsTab() {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onClickSeen = async (id: number, isSeen: number) => {

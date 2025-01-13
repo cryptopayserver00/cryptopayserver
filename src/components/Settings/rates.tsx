@@ -53,6 +53,7 @@ const Rates = () => {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onClickSave = async () => {

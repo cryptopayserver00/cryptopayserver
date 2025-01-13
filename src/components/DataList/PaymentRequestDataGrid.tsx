@@ -67,27 +67,22 @@ export default function PaymentRequestDataGrid(props: GridType) {
       cellClassName: 'actions',
       getActions: ({ row }) => {
         return [
-          <Button
-            onClick={() => {
-              onClickView(row);
-            }}
-          >
-            View
-          </Button>,
-          <Button
-            onClick={() => {
-              onClickArchive(row);
-            }}
-          >
-            Archive
-          </Button>,
-          //   <GridActionsCellItem
-          //     icon={<CancelIcon />}
-          //     label="Cancel"
-          //     className="textPrimary"
-          //     onClick={handleCancelClick(id)}
-          //     color="inherit"
-          //   />,
+          <Box key={row.id}>
+            <Button
+              onClick={() => {
+                onClickView(row);
+              }}
+            >
+              View
+            </Button>
+            <Button
+              onClick={() => {
+                onClickArchive(row);
+              }}
+            >
+              Archive
+            </Button>
+          </Box>,
         ];
       },
 
@@ -147,6 +142,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

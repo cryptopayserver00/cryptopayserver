@@ -83,12 +83,14 @@ const PaymentInvoices = () => {
 
     const coins = FindTokensByMainnetAndName(getNetwork() === 'mainnet', network as CHAINNAMES);
     setCryptoList(coins);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [network]);
 
   useEffect(() => {
     if (crypto && amount && currency && amount > 0) {
       updateRate();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [crypto, amount, currency]);
 
   const checkAmount = (amount: number): boolean => {

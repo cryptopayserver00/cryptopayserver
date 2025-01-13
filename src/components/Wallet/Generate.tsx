@@ -59,8 +59,6 @@ const GenerateWallet = () => {
     setSnackOpen(true);
   };
 
-  useEffect(() => {}, []);
-
   return (
     <Box>
       <Container>

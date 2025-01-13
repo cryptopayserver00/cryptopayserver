@@ -17,7 +17,7 @@ const Forms = () => {
         </Stack>
 
         <Typography mt={5}>
-          CryptoPay Server's Forms Builder enables you to request specific information from your customer.
+          CryptoPay Server&apos;s Forms Builder enables you to request specific information from your customer.
         </Typography>
 
         <Typography mt={5}>There are no forms yet.</Typography>

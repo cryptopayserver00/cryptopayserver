@@ -62,6 +62,7 @@ const Notification = () => {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleChangeNotification(itemId: number) {
