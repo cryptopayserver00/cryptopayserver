@@ -13,7 +13,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
-import BalanceBars from './Balance';
+import Balance from './Balance';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
@@ -63,8 +63,7 @@ const Dashboard = () => {
             <Card variant="outlined">
               <CardContent>
                 <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} mt={2}>
-                  <Box>
-                  </Box>
+                  <Box></Box>
                   <RadioGroup row value={walletBalanceDayAlignment} onChange={onChangeDay}>
                     <FormControlLabel value="WEEK" control={<Radio />} label="1W" />
                     <FormControlLabel value="MONTH" control={<Radio />} label="1M" />
@@ -73,7 +72,7 @@ const Dashboard = () => {
                 </Stack>
 
                 <Box mt={2}>
-                  <BalanceBars />
+                  <Balance />
                 </Box>
               </CardContent>
             </Card>
