@@ -66,7 +66,6 @@ const MainAccount = () => {
   };
 
   const init = async () => {
-    console.log(111);
     try {
       if (!getUserEmail()) return;
 

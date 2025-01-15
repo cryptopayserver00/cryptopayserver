@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const pullPaymentStatus = req.query.pull_payment_status;
 
         const query =
-          'SELECT pull_payments.*, COUNT(payouts.external_payment_id) AS refunded FROM pull_payments LEFT JOIN payouts ON pull_payments.pull_payment_id = payouts.external_payment_id AND payouts.source_type = ? AND payouts.payout_status = ? AND payouts.status = ? WHERE pull_payments.pull_payment_status = ? AND pull_payments.store_id = ? AND pull_payments.network = ? AND pull_payments.status = ? GROUP BY pull_payments.id DESC;';
+          'SELECT pull_payments.*, COUNT(payouts.external_payment_id) AS refunded FROM pull_payments LEFT JOIN payouts ON pull_payments.pull_payment_id = payouts.external_payment_id AND payouts.source_type = ? AND payouts.payout_status = ? AND payouts.status = ? WHERE pull_payments.pull_payment_status = ? AND pull_payments.store_id = ? AND pull_payments.network = ? AND pull_payments.status = ? GROUP BY pull_payments.id ORDER BY pull_payments.id DESC';
         const values = [
           PAYOUT_SOURCE_TYPE.PullPayment,
           PAYOUT_STATUS.Completed,

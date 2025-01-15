@@ -30,8 +30,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const orderId = GenerateOrderIDByTime();
 
         const paymentSettingsQuery =
-          'SELECT current_used_address_id, payment_expire FROM payment_settings where user_id = ? and store_id = ? and chain_id = ? and status = ?';
-        const paymentSettingsValues = [userId, storeId, chainId, 1];
+          'SELECT current_used_address_id, payment_expire FROM payment_settings where user_id = ? and store_id = ? and chain_id = ? and network = ? and status = ?';
+        const paymentSettingsValues = [userId, storeId, chainId, network, 1];
         const [paymentSettingsRows] = await connection.query(paymentSettingsQuery, paymentSettingsValues);
         if (Array.isArray(paymentSettingsRows) && paymentSettingsRows.length === 1) {
           const paymentSettingRow = paymentSettingsRows[0] as mysql.RowDataPacket;
