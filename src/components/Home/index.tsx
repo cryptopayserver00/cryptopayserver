@@ -63,6 +63,14 @@ import Link from 'next/link';
 import FreeCoin from 'components/FreeCoin';
 import Welcome from 'components/Welcome';
 
+type RouteType = {
+  path: string;
+  name: string;
+  title: string;
+  component: any;
+  enableSidebar: boolean;
+};
+
 const Home = () => {
   const router = useRouter();
 
@@ -74,6 +82,31 @@ const Home = () => {
   const [isLogin, setLogin] = useState<boolean>(false);
   const [isStore, setStore] = useState<boolean>(false);
   const [isWallet, setWallet] = useState<boolean>(false);
+  const [currentRoute, setCurrentRoute] = useState<RouteType>();
+
+  const routes: RouteType[] = [
+    {
+      path: '/',
+      name: 'Home',
+      title: 'Home',
+      component: <Welcome />,
+      enableSidebar: false,
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      title: 'Login',
+      component: <Login />,
+      enableSidebar: false,
+    },
+    {
+      path: '/register',
+      name: 'Register',
+      title: 'Register',
+      component: <Register />,
+      enableSidebar: false,
+    },
+  ];
 
   const unLoginWhiteList: any = {
     '/': <Welcome />,
@@ -117,7 +150,11 @@ const Home = () => {
     '/freecoin': <FreeCoin />,
   };
 
-  const dashboardWhiteList: any = {
+  const pageList: any = {
+    '/': <Welcome />,
+    '/login': <Login />,
+    '/register': <Register />,
+
     '/dashboard': <Dashboard />,
     '/settings': <Settings />,
     '/wallets/bitcoin': <Bitcoin />,
@@ -174,52 +211,126 @@ const Home = () => {
     '/freecoin': <FreeCoin />,
   };
 
+  // useEffect(() => {
+  //   const checkState = async () => {
+  //     const loginStatus = getIsLogin();
+  //     const storeStatus = getIsStore();
+  //     const walletStatus = getIsWallet();
+
+  //     setLogin(loginStatus);
+  //     setStore(storeStatus);
+  //     setWallet(walletStatus);
+
+  //     if (!loginStatus) {
+  //       if (unLoginWhiteList[router.pathname]) {
+  //         return;
+  //       } else {
+  //         window.location.href = '/login';
+  //       }
+  //     } else if (!storeStatus) {
+  //       if (storeCreationWhiteList[router.pathname]) {
+  //         return;
+  //       } else {
+  //         window.location.href = '/stores/create';
+  //       }
+  //     } else if (!walletStatus) {
+  //       if (walletCreationWhiteList[router.pathname]) {
+  //         return;
+  //       } else {
+  //         window.location.href = '/wallet/create';
+  //       }
+  //     } else {
+  //       if (router.pathname === '/') {
+  //         window.location.href = '/dashboard';
+  //       } else if (!dashboardWhiteList[router.pathname]) {
+  //         window.location.href = '/';
+  //       }
+  //     }
+  //   };
+
+  //   checkState();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [router.pathname, getIsLogin, getIsStore, getIsWallet]);
+
   useEffect(() => {
-    const checkState = async () => {
-      const loginStatus = getIsLogin();
-      const storeStatus = getIsStore();
-      const walletStatus = getIsWallet();
-
-      setLogin(loginStatus);
-      setStore(storeStatus);
-      setWallet(walletStatus);
-
-      if (!loginStatus) {
-        if (unLoginWhiteList[router.pathname]) {
-          return;
-        } else {
-          window.location.href = '/login';
-        }
-      } else if (!storeStatus) {
-        if (storeCreationWhiteList[router.pathname]) {
-          return;
-        } else {
-          window.location.href = '/stores/create';
-        }
-      } else if (!walletStatus) {
-        if (walletCreationWhiteList[router.pathname]) {
-          return;
-        } else {
-          window.location.href = '/wallet/create';
-        }
-      } else {
-        if (router.pathname === '/') {
-          window.location.href = '/dashboard';
-        } else if (!dashboardWhiteList[router.pathname]) {
-          window.location.href = '/';
-        }
-      }
-    };
-
-    checkState();
+    setCurrentRoute(routes.find((item) => item.path === router.pathname));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.pathname, getIsLogin, getIsStore, getIsWallet]);
+  }, [router.pathname, routes]);
 
   return (
     <Box height={'100%'}>
-      <MetaTags title="Home" />
+      <MetaTags title={currentRoute?.title} />
 
-      {isLogin && (
+      {currentRoute?.enableSidebar ? (
+        <Stack direction={'row'} height={'100%'}>
+          {getShowSidebar() ? <HomeSidebar /> : null}
+
+          <Box width={'100%'}>
+            <Box m={2}>
+              <IconButton
+                onClick={() => {
+                  setShowSidebar(!getShowSidebar());
+                }}
+              >
+                <ControlCameraIcon />
+              </IconButton>
+            </Box>
+
+            <Box>
+              {getNetwork() === 'testnet' && (
+                <Box>
+                  <Alert severity="warning">
+                    <AlertTitle>Warning</AlertTitle>
+                    <Typography>
+                      This is a test network, and the currency has no real value. If you need free coins, you can get
+                      them&nbsp;
+                      <Link href={'/freecoin'} target="_blank">
+                        here.
+                      </Link>
+                    </Typography>
+                  </Alert>
+                </Box>
+              )}
+
+              {pageList[router.pathname] || null}
+              <Box>
+                <Footer />
+              </Box>
+            </Box>
+          </Box>
+        </Stack>
+      ) : (
+        <Box>
+          {getNetwork() === 'testnet' && (
+            <Box>
+              <Alert severity="warning">
+                <AlertTitle>Warning</AlertTitle>
+                <Typography>
+                  This is a test network, and the currency has no real value. If you need free coins, you can get
+                  them&nbsp;
+                  <Link href={'/freecoin'} target="_blank">
+                    here.
+                  </Link>
+                </Typography>
+              </Alert>
+            </Box>
+          )}
+
+          {pageList[router.pathname] || null}
+          <Box>
+            <Footer />
+          </Box>
+        </Box>
+      )}
+
+      {/* <Box width={'100%'}>
+        {unLoginWhiteList[router.pathname] || null}
+        <Box>
+          <Footer />
+        </Box>
+      </Box> */}
+
+      {/* {isLogin && (
         <Stack direction={'row'} height={'100%'}>
           {storeCreationWhiteList[router.pathname] ||
           walletCreationWhiteList[router.pathname] ||
@@ -268,11 +379,11 @@ const Home = () => {
       {!isLogin && (
         <Box width={'100%'}>
           {unLoginWhiteList[router.pathname] || null}
-          {/* <Box>
+          <Box>
             <Footer />
-          </Box> */}
+          </Box>
         </Box>
-      )}
+      )} */}
 
       <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'right' }} open={snackOpen}>
         <Alert

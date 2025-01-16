@@ -72,6 +72,7 @@ const PullPaymentsDetails = () => {
   const { id } = router.query;
 
   const [page, setPage] = useState<number>(1);
+  const [websiteUrl, setWebsiteUrl] = useState<string>('');
 
   const [pullPaymentData, setPullPaymentData] = useState<pullPaymentType>();
   const [payoutRows, setPayoutRows] = useState<PayoutType[]>([]);
@@ -125,6 +126,8 @@ const PullPaymentsDetails = () => {
   };
 
   const init = async (id: any) => {
+    setWebsiteUrl(window.location.href);
+
     try {
       if (!id) return;
 
@@ -258,7 +261,7 @@ const PullPaymentsDetails = () => {
                       <Button
                         variant={'outlined'}
                         onClick={async () => {
-                          await navigator.clipboard.writeText(window.location.href);
+                          await navigator.clipboard.writeText(websiteUrl);
 
                           setSnackMessage('Successfully copy');
                           setSnackSeverity('success');
@@ -423,7 +426,7 @@ const PullPaymentsDetails = () => {
         <DialogContent>
           <Box mt={2} textAlign={'center'}>
             <QRCodeSVG
-              value={window.location.href}
+              value={websiteUrl}
               width={250}
               height={250}
               imageSettings={{
@@ -438,10 +441,10 @@ const PullPaymentsDetails = () => {
           <Box mt={4}>
             <Typography>PULL PAYMENT QR</Typography>
             <Stack direction={'row'} alignItems={'center'}>
-              <Typography mr={1}>{OmitMiddleString(window.location.href, 20)}</Typography>
+              <Typography mr={1}>{OmitMiddleString(websiteUrl, 20)}</Typography>
               <IconButton
                 onClick={async () => {
-                  await navigator.clipboard.writeText(window.location.href);
+                  await navigator.clipboard.writeText(websiteUrl);
 
                   setSnackMessage('Successfully copy');
                   setSnackSeverity('success');

@@ -40,7 +40,7 @@ const initialUserState: UserPerisistState = {
   isLogin: false,
   userTheme: 'auto',
   userHideSensitiveInfo: false,
-  showSidebar: true,
+  showSidebar: false,
   network: 'mainnet',
 };
 

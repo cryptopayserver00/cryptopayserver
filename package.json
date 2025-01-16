@@ -6,6 +6,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev-base": "next dev -p 8888",
     "dev": "concurrently \"next dev -p 8888\" \"node task.js\"",
     "build": "next build",
     "start": "concurrently \"next start -p 8888\" \"node task.js\"",

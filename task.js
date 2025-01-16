@@ -1,8 +1,10 @@
 import cron from 'node-cron';
 import axios from 'axios';
-import { IS_DEVELOPMENT } from 'packages/constants';
 
-const baseUrl = IS_DEVELOPMENT ? 'http://127.0.0.1:8888/api/schedule' : 'https://cryptopayserver.xyz/api/schedule';
+const baseUrl =
+  process.env.NEXT_PUBLIC_ENVIRONMENT === 'development'
+    ? 'http://127.0.0.1:8888/api/schedule'
+    : 'https://cryptopayserver.xyz/api/schedule';
 
 cron.schedule('*/60 * * * * *', async () => {
   try {
