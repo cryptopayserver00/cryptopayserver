@@ -28,7 +28,7 @@ interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const StyledSidebarHeader = styled.div`
-  padding: 0 20px;
+  padding: 0 10px;
 
   > div {
     width: 100%;
@@ -76,11 +76,6 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         });
         setStores(st);
       }
-      // } else {
-      //   setTimeout(() => {
-      //     window.location.href = '/stores/create';
-      //   }, 2000);
-      // }
     } catch (e) {
       setSnackSeverity('error');
       setSnackMessage('The network error occurred. Please try again later.');
@@ -159,7 +154,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         >
           <Stack direction={'row'} alignItems={'center'}>
             <CustomLogo>C</CustomLogo>
-            <Typography fontWeight={'bold'} color="#0098e5" fontSize={10}>
+            <Typography fontWeight={'bold'} color="#0098e5" fontSize={'large'}>
               Crypto Pay
             </Typography>
           </Stack>

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, menuClasses, MenuItem, MenuItemStyles, Sidebar, SubMenu } from 'react-pro-sidebar';
 import { SidebarFooter } from './SidebarFooter';
 import { SidebarHeader } from './SidebarHeader';
@@ -30,7 +30,7 @@ import LitecoinSVG from 'assets/chain/litecoin.svg';
 import SolanaSVG from 'assets/chain/solana.svg';
 import TonSVG from 'assets/chain/ton.svg';
 import TronSVG from 'assets/chain/tron.svg';
-import { useUserPresistStore } from 'lib/store';
+import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
 
 type Theme = 'light' | 'dark';
 
@@ -81,15 +81,20 @@ const hexToRgba = (hex: string, alpha: number) => {
 };
 
 const HomeSidebar = () => {
+  const router = useRouter();
+
   const [collapsed, setCollapsed] = useState(false);
   const [toggled, setToggled] = useState(false);
   const [broken, setBroken] = useState(false);
   const [hasImage, setHasImage] = useState(false);
   const [theme, setTheme] = useState<Theme>('light');
 
-  const router = useRouter();
+  const [isStore, setStore] = useState<boolean>(false);
+  const [isWallet, setWallet] = useState<boolean>(false);
 
   const { getShowSidebar } = useUserPresistStore((state) => state);
+  const { getIsWallet } = useWalletPresistStore((state) => state);
+  const { getIsStore } = useStorePresistStore((state) => state);
 
   const menuItemStyles: MenuItemStyles = {
     root: {
@@ -131,6 +136,15 @@ const HomeSidebar = () => {
     }),
   };
 
+  useEffect(() => {
+    const storeStatus = getIsStore();
+    const walletStatus = getIsWallet();
+
+    setStore(storeStatus);
+    setWallet(walletStatus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <Sidebar
       collapsed={!getShowSidebar()}
@@ -165,210 +179,206 @@ const HomeSidebar = () => {
             >
               Dashboard
             </MenuItem>
-            <MenuItem
-              icon={<Settings />}
-              active={router.pathname === '/settings' ? true : false}
-              component={<Link href={'/settings'} />}
-            >
-              Settings
-            </MenuItem>
+            {isStore && isWallet && (
+              <MenuItem
+                icon={<Settings />}
+                active={router.pathname === '/settings' ? true : false}
+                component={<Link href={'/settings'} />}
+              >
+                Settings
+              </MenuItem>
+            )}
           </Menu>
 
-          <div style={{ padding: '0 24px', marginBottom: '8px', marginTop: '32px' }}>
-            <Typography
-              variant="body2"
-              fontWeight={600}
-              style={{ opacity: collapsed ? 0 : 0.7, letterSpacing: '0.5px' }}
-            >
-              WALLETS
-            </Typography>
-          </div>
+          {isStore && isWallet && (
+            <>
+              <Box style={{ padding: '0 24px', marginBottom: '8px', marginTop: '32px' }}>
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  style={{ opacity: collapsed ? 0 : 0.7, letterSpacing: '0.5px' }}
+                >
+                  WALLETS
+                </Typography>
+              </Box>
 
-          <Menu menuItemStyles={menuItemStyles}>
-            <MenuItem
-              icon={<Image src={BitcoinSVG} alt="" width={25} height={25} />}
-              active={router.pathname === '/wallets/bitcoin' ? true : false}
-              component={<Link href={'/wallets/bitcoin'} />}
-            >
-              Bitcoin
-            </MenuItem>
-            <MenuItem
-              icon={<Image src={BitcoinSVG} alt="" width={25} height={25} />}
-              active={router.pathname === '/wallets/bitcoin/lightning' ? true : false}
-              component={<Link href={'/wallets/bitcoin/lightning'} />}
-            >
-              Lightning
-            </MenuItem>
-            <MenuItem
-              icon={<Image src={EthereumSVG} alt="" width={25} height={25} />}
-              active={router.pathname === '/wallets/ethereum' ? true : false}
-              component={<Link href={'/wallets/ethereum'} />}
-            >
-              Ethereum
-            </MenuItem>
-            <MenuItem
-              icon={<Image src={SolanaSVG} alt="" width={25} height={25} />}
-              active={router.pathname === '/wallets/solana' ? true : false}
-              component={<Link href={'/wallets/solana'} />}
-            >
-              Solana
-            </MenuItem>
-            <MenuItem
-              icon={<Image src={BscSVG} alt="" width={25} height={25} />}
-              active={router.pathname === '/wallets/bsc' ? true : false}
-              component={<Link href={'/wallets/bsc'} />}
-            >
-              Binance Smart Chain
-            </MenuItem>
-            <MenuItem
-              icon={<Image src={LitecoinSVG} alt="" width={25} height={25} />}
-              active={router.pathname === '/wallets/litecoin' ? true : false}
-              component={<Link href={'/wallets/litecoin'} />}
-            >
-              Litecoin
-            </MenuItem>
-            <MenuItem
-              icon={<Image src={TonSVG} alt="" width={25} height={25} />}
-              active={router.pathname === '/wallets/ton' ? true : false}
-              component={<Link href={'/wallets/ton'} />}
-            >
-              Ton
-            </MenuItem>
-            <MenuItem
-              icon={<Image src={TronSVG} alt="" width={25} height={25} />}
-              active={router.pathname === '/wallets/tron' ? true : false}
-              component={<Link href={'/wallets/tron'} />}
-            >
-              Tron
-            </MenuItem>
-            <MenuItem
-              icon={<Adjust />}
-              active={router.pathname === '/wallets/blockscan' ? true : false}
-              component={<Link href={'/wallets/blockscan'} />}
-            >
-              BlockScan
-            </MenuItem>
-          </Menu>
+              <Menu menuItemStyles={menuItemStyles}>
+                <MenuItem
+                  icon={<Image src={BitcoinSVG} alt="" width={25} height={25} />}
+                  active={router.pathname === '/wallets/bitcoin' ? true : false}
+                  component={<Link href={'/wallets/bitcoin'} />}
+                >
+                  Bitcoin
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={BitcoinSVG} alt="" width={25} height={25} />}
+                  active={router.pathname === '/wallets/bitcoin/lightning' ? true : false}
+                  component={<Link href={'/wallets/bitcoin/lightning'} />}
+                >
+                  Lightning
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={EthereumSVG} alt="" width={25} height={25} />}
+                  active={router.pathname === '/wallets/ethereum' ? true : false}
+                  component={<Link href={'/wallets/ethereum'} />}
+                >
+                  Ethereum
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={SolanaSVG} alt="" width={25} height={25} />}
+                  active={router.pathname === '/wallets/solana' ? true : false}
+                  component={<Link href={'/wallets/solana'} />}
+                >
+                  Solana
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={BscSVG} alt="" width={25} height={25} />}
+                  active={router.pathname === '/wallets/bsc' ? true : false}
+                  component={<Link href={'/wallets/bsc'} />}
+                >
+                  Binance Smart Chain
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={LitecoinSVG} alt="" width={25} height={25} />}
+                  active={router.pathname === '/wallets/litecoin' ? true : false}
+                  component={<Link href={'/wallets/litecoin'} />}
+                >
+                  Litecoin
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={TonSVG} alt="" width={25} height={25} />}
+                  active={router.pathname === '/wallets/ton' ? true : false}
+                  component={<Link href={'/wallets/ton'} />}
+                >
+                  Ton
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={TronSVG} alt="" width={25} height={25} />}
+                  active={router.pathname === '/wallets/tron' ? true : false}
+                  component={<Link href={'/wallets/tron'} />}
+                >
+                  Tron
+                </MenuItem>
+                <MenuItem
+                  icon={<Adjust />}
+                  active={router.pathname === '/wallets/blockscan' ? true : false}
+                  component={<Link href={'/wallets/blockscan'} />}
+                >
+                  BlockScan
+                </MenuItem>
+              </Menu>
 
-          <div style={{ padding: '0 24px', marginBottom: '8px', marginTop: '32px' }}>
-            <Typography
-              variant="body2"
-              fontWeight={600}
-              style={{ opacity: collapsed ? 0 : 0.7, letterSpacing: '0.5px' }}
-            >
-              PAYMENTS
-            </Typography>
-          </div>
+              <Box style={{ padding: '0 24px', marginBottom: '8px', marginTop: '32px' }}>
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  style={{ opacity: collapsed ? 0 : 0.7, letterSpacing: '0.5px' }}
+                >
+                  PAYMENTS
+                </Typography>
+              </Box>
 
-          <Menu menuItemStyles={menuItemStyles}>
-            <SubMenu
-              label="PAYMENTS"
-              icon={<Payment />}
-              active={router.pathname.includes('/payments') ? true : false}
-              defaultOpen={router.pathname.includes('/payments') ? true : false}
-              // suffix={
-              //   <Badge variant="danger" shape="circle">
-              //     6
-              //   </Badge>
-              // }
-            >
-              <MenuItem
-                icon={<Description />}
-                active={router.pathname === '/payments/transactions' ? true : false}
-                component={<Link href={'/payments/transactions'} />}
-              >
-                Transactions
-              </MenuItem>
-              <MenuItem
-                icon={<Description />}
-                active={router.pathname === '/payments/invoices' ? true : false}
-                component={<Link href={'/payments/invoices'} />}
-              >
-                Invoices
-              </MenuItem>
-              <MenuItem
-                icon={<Assessment />}
-                active={router.pathname === '/payments/reporting' ? true : false}
-                component={<Link href={'/payments/reporting'} />}
-              >
-                Reporting
-              </MenuItem>
-              <MenuItem
-                icon={<CallReceived />}
-                active={router.pathname === '/payments/requests' ? true : false}
-                component={<Link href={'/payments/requests'} />}
-              >
-                Requests
-              </MenuItem>
-              <MenuItem
-                icon={<CallMade />}
-                active={router.pathname === '/payments/pullpayments' ? true : false}
-                component={<Link href={'/payments/pullpayments'} />}
-              >
-                Pull Payments
-              </MenuItem>
-              <MenuItem
-                icon={<Receipt />}
-                active={router.pathname === '/payments/payouts' ? true : false}
-                component={<Link href={'/payments/payouts'} />}
-              >
-                Payouts
-              </MenuItem>
-            </SubMenu>
-          </Menu>
+              <Menu menuItemStyles={menuItemStyles}>
+                <SubMenu
+                  label="PAYMENTS"
+                  icon={<Payment />}
+                  active={router.pathname.includes('/payments') ? true : false}
+                  defaultOpen={router.pathname.includes('/payments') ? true : false}
+                >
+                  <MenuItem
+                    icon={<Description />}
+                    active={router.pathname === '/payments/transactions' ? true : false}
+                    component={<Link href={'/payments/transactions'} />}
+                  >
+                    Transactions
+                  </MenuItem>
+                  <MenuItem
+                    icon={<Description />}
+                    active={router.pathname === '/payments/invoices' ? true : false}
+                    component={<Link href={'/payments/invoices'} />}
+                  >
+                    Invoices
+                  </MenuItem>
+                  <MenuItem
+                    icon={<Assessment />}
+                    active={router.pathname === '/payments/reporting' ? true : false}
+                    component={<Link href={'/payments/reporting'} />}
+                  >
+                    Reporting
+                  </MenuItem>
+                  <MenuItem
+                    icon={<CallReceived />}
+                    active={router.pathname === '/payments/requests' ? true : false}
+                    component={<Link href={'/payments/requests'} />}
+                  >
+                    Requests
+                  </MenuItem>
+                  <MenuItem
+                    icon={<CallMade />}
+                    active={router.pathname === '/payments/pullpayments' ? true : false}
+                    component={<Link href={'/payments/pullpayments'} />}
+                  >
+                    Pull Payments
+                  </MenuItem>
+                  <MenuItem
+                    icon={<Receipt />}
+                    active={router.pathname === '/payments/payouts' ? true : false}
+                    component={<Link href={'/payments/payouts'} />}
+                  >
+                    Payouts
+                  </MenuItem>
+                </SubMenu>
+              </Menu>
 
-          <div style={{ padding: '0 24px', marginBottom: '8px', marginTop: '32px' }}>
-            <Typography
-              variant="body2"
-              fontWeight={600}
-              style={{ opacity: collapsed ? 0 : 0.7, letterSpacing: '0.5px' }}
-            >
-              PLUGINS
-            </Typography>
-          </div>
+              <Box style={{ padding: '0 24px', marginBottom: '8px', marginTop: '32px' }}>
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  style={{ opacity: collapsed ? 0 : 0.7, letterSpacing: '0.5px' }}
+                >
+                  PLUGINS
+                </Typography>
+              </Box>
 
-          <Menu menuItemStyles={menuItemStyles}>
-            <SubMenu
-              label="PLUGINS"
-              icon={<Extension />}
-              active={router.pathname.includes('/plugins') ? true : false}
-              defaultOpen={router.pathname.includes('/plugins') ? true : false}
-              // suffix={
-              //   <Badge variant="danger" shape="circle">
-              //     6
-              //   </Badge>
-              // }
-            >
-              <MenuItem
-                icon={<ShoppingBag />}
-                active={router.pathname === '/plugins/shopify' ? true : false}
-                component={<Link href={'/plugins/shopify'} />}
-              >
-                Shopify
-              </MenuItem>
-              <MenuItem
-                icon={<PointOfSale />}
-                active={router.pathname === '/plugins/pointofsale' ? true : false}
-                component={<Link href={'/plugins/pointofsale'} />}
-              >
-                Point of Sale
-              </MenuItem>
-              <MenuItem
-                icon={<RadioButtonChecked />}
-                active={router.pathname === '/plugins/paybutton' ? true : false}
-                component={<Link href={'/plugins/paybutton'} />}
-              >
-                Pay Button
-              </MenuItem>
-              <MenuItem
-                icon={<Groups />}
-                active={router.pathname === '/plugins/crowdfund' ? true : false}
-                component={<Link href={'/plugins/crowdfund'} />}
-              >
-                Crowdfund
-              </MenuItem>
-            </SubMenu>
-          </Menu>
+              <Menu menuItemStyles={menuItemStyles}>
+                <SubMenu
+                  label="PLUGINS"
+                  icon={<Extension />}
+                  active={router.pathname.includes('/plugins') ? true : false}
+                  defaultOpen={router.pathname.includes('/plugins') ? true : false}
+                >
+                  <MenuItem
+                    icon={<ShoppingBag />}
+                    active={router.pathname === '/plugins/shopify' ? true : false}
+                    component={<Link href={'/plugins/shopify'} />}
+                  >
+                    Shopify
+                  </MenuItem>
+                  <MenuItem
+                    icon={<PointOfSale />}
+                    active={router.pathname === '/plugins/pointofsale' ? true : false}
+                    component={<Link href={'/plugins/pointofsale'} />}
+                  >
+                    Point of Sale
+                  </MenuItem>
+                  <MenuItem
+                    icon={<RadioButtonChecked />}
+                    active={router.pathname === '/plugins/paybutton' ? true : false}
+                    component={<Link href={'/plugins/paybutton'} />}
+                  >
+                    Pay Button
+                  </MenuItem>
+                  <MenuItem
+                    icon={<Groups />}
+                    active={router.pathname === '/plugins/crowdfund' ? true : false}
+                    component={<Link href={'/plugins/crowdfund'} />}
+                  >
+                    Crowdfund
+                  </MenuItem>
+                </SubMenu>
+              </Menu>
+            </>
+          )}
         </Box>
         <SidebarFooter collapsed={collapsed} />
       </Stack>

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useRouter } from 'next/router';
+import { useUserPresistStore } from 'lib/store';
 
 const Register = () => {
   const router = useRouter();
@@ -13,6 +14,7 @@ const Register = () => {
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
 
+  const { getIsLogin } = useUserPresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
   const onRegister = async () => {
@@ -61,7 +63,16 @@ const Register = () => {
     if (enterEmail) {
       setEmail(enterEmail as string);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query]);
+
+  useEffect(() => {
+    if (getIsLogin()) {
+      window.location.href = '/dashboard';
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <Box>
       <Container>

@@ -9,8 +9,9 @@ import Typography from '@mui/material/Typography';
 
 import { visuallyHidden } from '@mui/utils';
 import { styled } from '@mui/material/styles';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IsValidEmail } from 'utils/verify';
+import { useUserPresistStore } from 'lib/store';
 
 const StyledBox = styled('div')(({ theme }) => ({
   alignSelf: 'center',
@@ -42,6 +43,16 @@ const StyledBox = styled('div')(({ theme }) => ({
 
 export default function Hero() {
   const [email, setEmail] = useState<string>('');
+
+  const [isLogin, setLogin] = useState<boolean>(false);
+
+  const { getIsLogin } = useUserPresistStore((state) => state);
+
+  useEffect(() => {
+    const loginStatus = getIsLogin();
+    setLogin(loginStatus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box
@@ -99,54 +110,72 @@ export default function Hero() {
           >
             Accept Crypto payments. Free, open-source & self-hosted, Crypto payment processor.
           </Typography>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={1}
-            useFlexGap
-            sx={{ pt: 2, width: { xs: '100%', sm: '350px' } }}
-          >
-            <InputLabel htmlFor="email-hero" sx={visuallyHidden}>
-              Email
-            </InputLabel>
-            <TextField
-              hiddenLabel
-              size="small"
-              variant="outlined"
-              aria-label="Enter your email address"
-              placeholder="Your email address"
-              fullWidth
-              value={email}
-              onChange={(e: any) => {
-                setEmail(e.target.value);
-              }}
-              // slotProps={{
-              //   htmlInput: {
-              //     autoComplete: 'off',
-              //     'aria-label': 'Enter your email address',
-              //   },
-              // }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              sx={{ minWidth: 'fit-content' }}
-              onClick={() => {
-                if (email && IsValidEmail(email)) {
-                  window.location.href = `/register?email=${email}`;
-                }
-              }}
-            >
-              Start now
-            </Button>
-          </Stack>
-          <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-            By clicking &quot;Start now&quot; you agree to our&nbsp;
-            <Link href="#" color="primary">
-              Terms & Conditions
-            </Link>
-            .
-          </Typography>
+
+          <Box mt={2}>
+            {isLogin ? (
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ minWidth: 'fit-content' }}
+                onClick={() => {
+                  window.location.href = `/dashboard`;
+                }}
+              >
+                Go to dashboard
+              </Button>
+            ) : (
+              <>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  useFlexGap
+                  sx={{ pt: 2, width: { xs: '100%', sm: '350px' } }}
+                >
+                  <InputLabel htmlFor="email-hero" sx={visuallyHidden}>
+                    Email
+                  </InputLabel>
+                  <TextField
+                    hiddenLabel
+                    size="small"
+                    variant="outlined"
+                    aria-label="Enter your email address"
+                    placeholder="Your email address"
+                    fullWidth
+                    value={email}
+                    onChange={(e: any) => {
+                      setEmail(e.target.value);
+                    }}
+                    // slotProps={{
+                    //   htmlInput: {
+                    //     autoComplete: 'off',
+                    //     'aria-label': 'Enter your email address',
+                    //   },
+                    // }}
+                  />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    sx={{ minWidth: 'fit-content' }}
+                    onClick={() => {
+                      if (email && IsValidEmail(email)) {
+                        window.location.href = `/register?email=${email}`;
+                      }
+                    }}
+                  >
+                    Start now
+                  </Button>
+                </Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+                  By clicking &quot;Start now&quot; you agree to our&nbsp;
+                  <Link href="#" color="primary">
+                    Terms & Conditions
+                  </Link>
+                  .
+                </Typography>
+              </>
+            )}
+          </Box>
         </Stack>
         <StyledBox />
       </Container>

@@ -4,7 +4,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Link from 'next/link';
 const Footer = () => {
   return (
-    <Box mt={20}>
+    <Box mt={20} pb={2}>
       <Container maxWidth={'md'}>
         <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
           <Grid container color={'#8f979e'} gap={2}>

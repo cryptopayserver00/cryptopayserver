@@ -24,7 +24,7 @@ const Login = () => {
   const [password, setPassword] = useState<string>('');
 
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
-  const { setUserId, setUserEmail, setUsername, setIsLogin } = useUserPresistStore((state) => state);
+  const { getIsLogin, setUserId, setUserEmail, setUsername, setIsLogin } = useUserPresistStore((state) => state);
   const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource, setIsStore } = useStorePresistStore(
     (state) => state,
   );
@@ -102,10 +102,10 @@ const Login = () => {
     }
   };
 
-  const init = async () => {};
-
   useEffect(() => {
-    init();
+    if (getIsLogin()) {
+      window.location.href = '/dashboard';
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -11,9 +11,10 @@ import Drawer from '@mui/material/Drawer';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ColorModeIconDropdown from './ColorModeIconDropdown';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CustomLogo } from 'components/Logo/CustomLogo';
 import { Stack, Typography } from '@mui/material';
+import { useUserPresistStore } from 'lib/store';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: 'flex',
@@ -32,9 +33,19 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 export default function AppAppBar() {
   const [open, setOpen] = useState(false);
 
+  const [isLogin, setLogin] = useState<boolean>(false);
+
+  const { getIsLogin } = useUserPresistStore((state) => state);
+
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
   };
+
+  useEffect(() => {
+    const loginStatus = getIsLogin();
+    setLogin(loginStatus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <AppBar
@@ -126,36 +137,59 @@ export default function AppAppBar() {
               </Button>
             </Box>
           </Box>
-          <Box
-            sx={{
-              display: { xs: 'none', md: 'flex' },
-              gap: 1,
-              alignItems: 'center',
-            }}
-            gap={1}
-          >
-            <Button
-              color="primary"
-              variant="text"
-              size="small"
-              onClick={() => {
-                window.location.href = '/login';
+          {isLogin ? (
+            <Box
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                gap: 1,
+                alignItems: 'center',
               }}
+              gap={1}
             >
-              Sign in
-            </Button>
-            <Button
-              color="primary"
-              variant="contained"
-              size="small"
-              onClick={() => {
-                window.location.href = '/register';
+              <Button
+                color="primary"
+                variant="contained"
+                size="small"
+                onClick={() => {
+                  window.location.href = '/dashboard';
+                }}
+              >
+                Dashboard
+              </Button>
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                gap: 1,
+                alignItems: 'center',
               }}
+              gap={1}
             >
-              Sign up
-            </Button>
-            <ColorModeIconDropdown />
-          </Box>
+              <Button
+                color="primary"
+                variant="text"
+                size="small"
+                onClick={() => {
+                  window.location.href = '/login';
+                }}
+              >
+                Sign in
+              </Button>
+              <Button
+                color="primary"
+                variant="contained"
+                size="small"
+                onClick={() => {
+                  window.location.href = '/register';
+                }}
+              >
+                Sign up
+              </Button>
+              <ColorModeIconDropdown />
+            </Box>
+          )}
+
           <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 1 }}>
             <ColorModeIconDropdown size="medium" />
             <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
@@ -226,30 +260,48 @@ export default function AppAppBar() {
                   Blog
                 </MenuItem>
                 <Divider sx={{ my: 3 }} />
-                <MenuItem>
-                  <Button
-                    color="primary"
-                    variant="contained"
-                    fullWidth
-                    onClick={() => {
-                      window.location.href = '/register';
-                    }}
-                  >
-                    Sign up
-                  </Button>
-                </MenuItem>
-                <MenuItem>
-                  <Button
-                    color="primary"
-                    variant="outlined"
-                    fullWidth
-                    onClick={() => {
-                      window.location.href = '/login';
-                    }}
-                  >
-                    Sign in
-                  </Button>
-                </MenuItem>
+
+                {isLogin ? (
+                  <MenuItem>
+                    <Button
+                      color="primary"
+                      variant="contained"
+                      fullWidth
+                      onClick={() => {
+                        window.location.href = '/dashboard';
+                      }}
+                    >
+                      Dashboard
+                    </Button>
+                  </MenuItem>
+                ) : (
+                  <>
+                    <MenuItem>
+                      <Button
+                        color="primary"
+                        variant="contained"
+                        fullWidth
+                        onClick={() => {
+                          window.location.href = '/register';
+                        }}
+                      >
+                        Sign up
+                      </Button>
+                    </MenuItem>
+                    <MenuItem>
+                      <Button
+                        color="primary"
+                        variant="outlined"
+                        fullWidth
+                        onClick={() => {
+                          window.location.href = '/login';
+                        }}
+                      >
+                        Sign in
+                      </Button>
+                    </MenuItem>
+                  </>
+                )}
               </Box>
             </Drawer>
           </Box>
