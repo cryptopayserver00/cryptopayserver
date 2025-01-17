@@ -76,7 +76,7 @@ const Home = () => {
                   <Alert severity="warning">
                     <AlertTitle>Warning</AlertTitle>
                     <Typography>
-                      You don't have a store yet. Please click&nbsp;
+                      You don&apos;t have a store yet. Please click&nbsp;
                       <Link href={'/stores/create'}>here</Link>
                       &nbsp;to create a new one.
                     </Typography>
@@ -89,7 +89,7 @@ const Home = () => {
                   <Alert severity="warning">
                     <AlertTitle>Warning</AlertTitle>
                     <Typography>
-                      You don't have a wallet yet. Please click&nbsp;
+                      You don&apos;t have a wallet yet. Please click&nbsp;
                       <Link href={'/wallet/create'}>here</Link>
                       &nbsp;to create a new one.
                     </Typography>
