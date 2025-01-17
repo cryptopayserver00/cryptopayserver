@@ -75,11 +75,12 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
           });
         });
         setStores(st);
-      } else {
-        setTimeout(() => {
-          window.location.href = '/stores/create';
-        }, 2000);
       }
+      // } else {
+      //   setTimeout(() => {
+      //     window.location.href = '/stores/create';
+      //   }, 2000);
+      // }
     } catch (e) {
       setSnackSeverity('error');
       setSnackMessage('The network error occurred. Please try again later.');

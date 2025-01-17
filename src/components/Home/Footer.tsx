@@ -4,10 +4,10 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Link from 'next/link';
 const Footer = () => {
   return (
-    <>
-      <Box pt={20} pb={5}>
-        <Container maxWidth={'md'}>
-          <Grid container justifyContent={'center'} color={'#8f979e'} gap={4}>
+    <Box mt={20}>
+      <Container maxWidth={'md'}>
+        <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+          <Grid container color={'#8f979e'} gap={2}>
             <Grid item>
               <Link href={'https://github.com/cryptopayserver00/cryptopayserver'} target="_blank">
                 <Stack direction={'row'} alignItems={'center'}>
@@ -57,12 +57,13 @@ const Footer = () => {
               </Link>
             </Grid>
           </Grid>
-          <Box color={'#8f979e'} mt={2}>
-            <Typography textAlign={'center'}>© CryptoPay Server v1.0.0</Typography>
-          </Box>
-        </Container>
-      </Box>
-    </>
+          <Stack color={'#8f979e'} fontSize={14} direction={'row'} alignItems={'center'} width={250}>
+            <Typography>© CryptoPay Server</Typography>
+            <Typography pl={1}>v0.0.1</Typography>
+          </Stack>
+        </Stack>
+      </Container>
+    </Box>
   );
 };
 
