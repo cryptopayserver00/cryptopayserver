@@ -218,12 +218,12 @@ function StorePayoutTable(props: TableType) {
           },
         });
 
-        if (response.result && response.data.length === 1) {
-          props.setConfigureChain(response.data[0].chain_id);
-          props.setShowApprovePayoutProcess(response.data[0].show_approve_payout_process === 1 ? true : false);
-          props.setInterval(response.data[0].interval);
-          props.setFeeBlockTarget(response.data[0].fee_block_target);
-          props.setThreshold(response.data[0].threshold);
+        if (response.result) {
+          props.setConfigureChain(response.data.chain_id);
+          props.setShowApprovePayoutProcess(response.data.show_approve_payout_process === 1 ? true : false);
+          props.setInterval(response.data.interval);
+          props.setFeeBlockTarget(response.data.fee_block_target);
+          props.setThreshold(response.data.threshold);
 
           props.setIsConfigure(true);
         }

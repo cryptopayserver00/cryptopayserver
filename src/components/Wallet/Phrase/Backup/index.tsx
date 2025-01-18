@@ -31,8 +31,8 @@ const PhraseBackup = () => {
           },
         });
 
-        if (response.result && response.data.length === 1) {
-          setPhrase(response.data[0].mnemonic.split(' '));
+        if (response.result) {
+          setPhrase(response.data.mnemonic.split(' '));
         } else {
           setSnackSeverity('error');
           setSnackMessage("Can't find the wallet, please try again later.");

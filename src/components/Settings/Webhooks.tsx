@@ -17,8 +17,8 @@ import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import CryptoJS from 'crypto-js';
+import WebhookDataGrid from 'components/DataList/WebhookDataGrid';
 
 type WebhookType = {
   id: number;
@@ -46,50 +46,10 @@ const Webhooks = () => {
   const [showAutomaticRedelivery, setShowAutomaticRedelivery] = useState<boolean>(false);
   const [showEnabled, setShowEnabled] = useState<boolean>(false);
   const [eventType, setEventType] = useState<number>(1);
-  const [webhooks, setWebhooks] = useState<WebhookType[]>([]);
 
   const { getStoreId } = useStorePresistStore((state) => state);
   const { getUserId } = useUserPresistStore((state) => state);
   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
-
-  const init = async () => {
-    try {
-      const response: any = await axios.get(Http.find_webhook_setting, {
-        params: {
-          store_id: getStoreId(),
-          user_id: getUserId(),
-        },
-      });
-
-      if (response.result && response.data.length > 0) {
-        let ws: WebhookType[] = [];
-        response.data.forEach((item: any) => {
-          ws.push({
-            id: item.id,
-            automaticRedelivery: item.automatic_redelivery,
-            enabled: item.enabled,
-            eventType: item.event_type,
-            payloadUrl: item.payload_url,
-            secret: item.secret,
-            status: item.status,
-          });
-        });
-        setWebhooks(ws);
-
-        return ws;
-      }
-    } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
-    }
-  };
-
-  useEffect(() => {
-    init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const onClickButton = async () => {
     try {
@@ -111,7 +71,7 @@ const Webhooks = () => {
 
           clearInput();
 
-          await init();
+          // await init();
 
           setIsWebhook(false);
         } else {
@@ -138,7 +98,7 @@ const Webhooks = () => {
 
           clearInput();
 
-          await init();
+          // await init();
 
           setIsWebhook(false);
         } else {
@@ -190,22 +150,17 @@ const Webhooks = () => {
             Webhooks allow CryptoPay Server to send HTTP events related to your store to another server.
           </Typography>
           <Box mt={2}>
-            {webhooks && webhooks.length > 0 ? (
-              <WebhookDataGrid
-                webhooks={webhooks}
-                setPageStatus={setPageStatus}
-                setIsWebhook={setIsWebhook}
-                setEventType={setEventType}
-                setPayloadUrl={setPayloadUrl}
-                setSecret={setSecret}
-                setShowAutomaticRedelivery={setShowAutomaticRedelivery}
-                setShowEnabled={setShowEnabled}
-                setModifyId={setModifyId}
-                init={init}
-              />
-            ) : (
-              <Typography fontSize={14}>There are no webhooks yet.</Typography>
-            )}
+            <WebhookDataGrid
+              source="none"
+              setPageStatus={setPageStatus}
+              setIsWebhook={setIsWebhook}
+              setEventType={setEventType}
+              setPayloadUrl={setPayloadUrl}
+              setSecret={setSecret}
+              setShowAutomaticRedelivery={setShowAutomaticRedelivery}
+              setShowEnabled={setShowEnabled}
+              setModifyId={setModifyId}
+            />
           </Box>
         </Box>
       ) : (
@@ -311,164 +266,3 @@ const Webhooks = () => {
 };
 
 export default Webhooks;
-
-type GridType = {
-  webhooks: WebhookType[];
-  setIsWebhook: (value: boolean) => void;
-  setPageStatus: (vakue: 'CREATE' | 'UPDATE') => void;
-  setPayloadUrl: (value: string) => void;
-  setSecret: (value: string) => void;
-  setShowAutomaticRedelivery: (value: boolean) => void;
-  setShowEnabled: (value: boolean) => void;
-  setEventType: (value: number) => void;
-  setModifyId: (value: number) => void;
-  init: () => Promise<any>;
-};
-
-function WebhookDataGrid(props: GridType) {
-  const [rows, setRows] = useState<WebhookType[]>(props.webhooks);
-  const [open, setOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState<WebhookType>();
-
-  const { getStoreId } = useStorePresistStore((state) => state);
-  const { getUserId } = useUserPresistStore((state) => state);
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
-
-  const onClickRow = async (e: WebhookType) => {
-    setSelectedValue(e);
-    setOpen(true);
-  };
-
-  const onClickTest = async (params: any) => {
-    try {
-      await axios.get(params.row.payloadUrl);
-
-      setSnackSeverity('success');
-      setSnackMessage('Testing successful!');
-      setSnackOpen(true);
-    } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('Testing failed!');
-      setSnackOpen(true);
-      console.error(e);
-    }
-  };
-
-  const onClickModify = async (params: any) => {
-    if (params.row) {
-      props.setModifyId(params.row.id);
-      props.setEventType(params.row.eventType);
-      props.setPayloadUrl(params.row.payloadUrl);
-      props.setSecret(params.row.secret);
-      props.setShowAutomaticRedelivery(params.row.automaticRedelivery === 1 ? true : false);
-      props.setShowEnabled(params.row.enabled === 1 ? true : false);
-      props.setPageStatus('UPDATE');
-      props.setIsWebhook(true);
-    }
-  };
-
-  const onClickDelete = async (params: any) => {
-    try {
-      const response: any = await axios.put(Http.delete_webhook_setting_by_id, {
-        id: params.row.id,
-        store_id: getStoreId(),
-        user_id: getUserId(),
-      });
-
-      if (response.result) {
-        setSnackSeverity('success');
-        setSnackMessage('Delete successful!');
-        setSnackOpen(true);
-
-        const ws = await props.init();
-
-        if (ws && ws.length > 0) {
-          setRows(ws);
-        } else {
-          window.location.reload();
-        }
-      } else {
-        setSnackSeverity('error');
-        setSnackMessage('Delete failed!');
-        setSnackOpen(true);
-      }
-    } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
-    }
-  };
-
-  const columns: GridColDef<(typeof rows)[number]>[] = [
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 200,
-      valueGetter: (value, row) => (value === 1 ? 'TRUE' : 'FALSE'),
-    },
-    {
-      field: 'payloadUrl',
-      headerName: 'Url',
-      width: 200,
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      type: 'actions',
-      width: 600,
-      align: 'right',
-      headerAlign: 'right',
-      getActions: (params) => [
-        <Stack direction={'row'} alignItems={'center'} key={params.id}>
-          <Button
-            onClick={() => {
-              onClickTest(params);
-            }}
-          >
-            Test
-          </Button>
-          <Button
-            onClick={() => {
-              onClickModify(params);
-            }}
-          >
-            Modify
-          </Button>
-          <Button
-            onClick={() => {
-              onClickDelete(params);
-            }}
-          >
-            Delete
-          </Button>
-        </Stack>,
-      ],
-    },
-  ];
-
-  return (
-    <Box>
-      <DataGrid
-        autoHeight
-        rows={rows}
-        columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 10,
-            },
-          },
-        }}
-        pageSizeOptions={[10]}
-        onRowClick={(e: any) => {
-          onClickRow(e.row);
-        }}
-        // checkboxSelection
-        // disableRowSelectionOnClick
-        hideFooter={false}
-        disableColumnMenu
-      />
-    </Box>
-  );
-}

@@ -74,21 +74,27 @@ function NotificationsTab() {
         },
       });
 
-      if (response.result && response.data.length > 0) {
-        let rt: RowType[] = [];
-        response.data.forEach(async (item: any, index: number) => {
-          rt.push({
-            id: item.id,
-            label: item.label,
-            message: item.message,
-            isSeen: item.is_seen,
-            date: new Date(item.created_date).toLocaleString(),
-            url: item.url,
+      if (response.result) {
+        if (response.data.length > 0) {
+          let rt: RowType[] = [];
+          response.data.forEach(async (item: any, index: number) => {
+            rt.push({
+              id: item.id,
+              label: item.label,
+              message: item.message,
+              isSeen: item.is_seen,
+              date: new Date(item.created_date).toLocaleString(),
+              url: item.url,
+            });
           });
-        });
-        setRows(rt);
+          setRows(rt);
+        } else {
+          setRows([]);
+        }
       } else {
-        setRows([]);
+        setSnackSeverity('error');
+        setSnackMessage('Can not find the data on site!');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');

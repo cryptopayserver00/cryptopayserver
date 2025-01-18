@@ -25,7 +25,7 @@ const Register = () => {
             email: email,
           },
         });
-        if (response.result && response.data.length > 0) {
+        if (response.result) {
           setSnackSeverity('error');
           setSnackMessage('User already exists!');
           setSnackOpen(true);

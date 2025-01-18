@@ -1,12 +1,10 @@
-import { Button, Typography } from '@mui/material';
+import { Button } from '@mui/material';
 import Box from '@mui/material/Box';
-import { DataGrid, GridActionsCellItem, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { CHAINNAMES } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import { FindChainNamesByChains } from 'utils/web3';
 
 type RowType = {
   id: number;
@@ -67,22 +65,20 @@ export default function PaymentRequestDataGrid(props: GridType) {
       cellClassName: 'actions',
       getActions: ({ row }) => {
         return [
-          <Box key={row.id}>
-            <Button
-              onClick={() => {
-                onClickView(row);
-              }}
-            >
-              View
-            </Button>
-            <Button
-              onClick={() => {
-                onClickArchive(row);
-              }}
-            >
-              Archive
-            </Button>
-          </Box>,
+          <Button
+            onClick={() => {
+              onClickView(row);
+            }}
+          >
+            View
+          </Button>,
+          <Button
+            onClick={() => {
+              onClickArchive(row);
+            }}
+          >
+            Archive
+          </Button>,
         ];
       },
 
@@ -126,6 +122,8 @@ export default function PaymentRequestDataGrid(props: GridType) {
             });
           });
           setRows(rt);
+        } else {
+          setRows([]);
         }
       } else {
         setSnackSeverity('error');

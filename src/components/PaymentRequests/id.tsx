@@ -77,26 +77,32 @@ const PaymentRequestsDetails = () => {
         },
       });
 
-      if (response.result && response.data.length > 0) {
-        let rt: InvoiceType[] = [];
-        let paid = 0;
-        response.data.forEach((item: any) => {
-          rt.push({
-            orderId: item.order_id,
-            amount: item.amount,
-            currency: item.currency,
-            orderStatus: item.order_status,
+      if (response.result) {
+        if (response.data.length > 0) {
+          let rt: InvoiceType[] = [];
+          let paid = 0;
+          response.data.forEach((item: any) => {
+            rt.push({
+              orderId: item.order_id,
+              amount: item.amount,
+              currency: item.currency,
+              orderStatus: item.order_status,
+            });
+
+            if (item.order_status === ORDER_STATUS.Settled) {
+              paid += parseFloat(item.amount);
+            }
           });
-
-          if (item.order_status === ORDER_STATUS.Settled) {
-            paid += parseFloat(item.amount);
-          }
-        });
-        setPaymentRequestRows(rt);
-
-        setPaidAmount(paid);
+          setPaymentRequestRows(rt);
+          setPaidAmount(paid);
+        } else {
+          setPaymentRequestRows([]);
+          setPaidAmount(0);
+        }
       } else {
-        setPaymentRequestRows([]);
+        setSnackSeverity('error');
+        setSnackMessage('Can not find the data on site!');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -116,28 +122,24 @@ const PaymentRequestsDetails = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
+      if (response.result) {
         setPaymentRequestData({
-          userId: response.data[0].user_id,
-          storeId: response.data[0].store_id,
-          paymentRequestId: response.data[0].payment_request_id,
-          network: response.data[0].network,
-          title: response.data[0].title,
-          amount: response.data[0].amount,
-          currency: response.data[0].currency,
-          memo: response.data[0].memo,
-          expirationDate: response.data[0].expiration_date,
-          paymentRequestStatus: response.data[0].payment_request_status,
-          requesCustomerData: response.data[0].reques_customer_data,
-          showAllowCustomAmount: response.data[0].show_allow_customAmount === 1 ? true : false,
-          email: response.data[0].email,
+          userId: response.data.user_id,
+          storeId: response.data.store_id,
+          paymentRequestId: response.data.payment_request_id,
+          network: response.data.network,
+          title: response.data.title,
+          amount: response.data.amount,
+          currency: response.data.currency,
+          memo: response.data.memo,
+          expirationDate: response.data.expiration_date,
+          paymentRequestStatus: response.data.payment_request_status,
+          requesCustomerData: response.data.reques_customer_data,
+          showAllowCustomAmount: response.data.show_allow_customAmount === 1 ? true : false,
+          email: response.data.email,
         });
 
-        await getPaymentHistory(
-          response.data[0].store_id,
-          response.data[0].network,
-          response.data[0].payment_request_id,
-        );
+        await getPaymentHistory(response.data.store_id, response.data.network, response.data.payment_request_id);
       }
     } catch (e) {
       setSnackSeverity('error');

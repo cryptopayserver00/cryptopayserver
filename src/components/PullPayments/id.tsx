@@ -92,30 +92,36 @@ const PullPaymentsDetails = () => {
         },
       });
 
-      if (response.result && response.data.length > 0) {
-        let rt: PayoutType[] = [];
-        let paid = 0;
-        response.data.forEach((item: any) => {
-          rt.push({
-            chainName: FindChainNamesByChains(item.chain_id as CHAINS),
-            address: item.address,
-            amount: item.amount,
-            cryptoAmount: item.crypto_amount,
-            crypto: item.crypto,
-            currency: item.currency,
-            tx: item.tx,
-            status: item.payout_status,
+      if (response.result) {
+        if (response.data.length > 0) {
+          let rt: PayoutType[] = [];
+          let paid = 0;
+          response.data.forEach((item: any) => {
+            rt.push({
+              chainName: FindChainNamesByChains(item.chain_id as CHAINS),
+              address: item.address,
+              amount: item.amount,
+              cryptoAmount: item.crypto_amount,
+              crypto: item.crypto,
+              currency: item.currency,
+              tx: item.tx,
+              status: item.payout_status,
+            });
+
+            if (item.payout_status === PAYOUT_STATUS.Completed) {
+              paid += parseFloat(item.amount);
+            }
           });
-
-          if (item.payout_status === PAYOUT_STATUS.Completed) {
-            paid += parseFloat(item.amount);
-          }
-        });
-        setPayoutRows(rt);
-
-        setAlreadyClaim(paid);
+          setPayoutRows(rt);
+          setAlreadyClaim(paid);
+        } else {
+          setPayoutRows([]);
+          setAlreadyClaim(0);
+        }
       } else {
-        setPayoutRows([]);
+        setSnackSeverity('error');
+        setSnackMessage('Can not find the data on site!');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -137,24 +143,24 @@ const PullPaymentsDetails = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
+      if (response.result) {
         setPullPaymentData({
-          userId: response.data[0].user_id,
-          storeId: response.data[0].store_id,
-          network: response.data[0].network,
-          pullPaymentId: response.data[0].pull_payment_id,
-          name: response.data[0].title,
-          amount: response.data[0].amount,
-          currency: response.data[0].currency,
-          description: response.data[0].description,
-          showAutoApproveClaim: response.data[0].show_auto_approve_claim === 1 ? true : false,
-          createdDate: new Date(response.data[0].created_date).toLocaleString(),
-          updateDate: new Date(response.data[0].created_date).toLocaleString(),
-          expirationDate: new Date(response.data[0].expiration_date).toLocaleString(),
-          pullPaymentStatus: response.data[0].pull_payment_status,
+          userId: response.data.user_id,
+          storeId: response.data.store_id,
+          network: response.data.network,
+          pullPaymentId: response.data.pull_payment_id,
+          name: response.data.title,
+          amount: response.data.amount,
+          currency: response.data.currency,
+          description: response.data.description,
+          showAutoApproveClaim: response.data.show_auto_approve_claim === 1 ? true : false,
+          createdDate: new Date(response.data.created_date).toLocaleString(),
+          updateDate: new Date(response.data.created_date).toLocaleString(),
+          expirationDate: new Date(response.data.expiration_date).toLocaleString(),
+          pullPaymentStatus: response.data.pull_payment_status,
         });
 
-        await getClaimsHistory(response.data[0].store_id, response.data[0].network, response.data[0].pull_payment_id);
+        await getClaimsHistory(response.data.store_id, response.data.network, response.data.pull_payment_id);
       }
     } catch (e) {
       setSnackSeverity('error');

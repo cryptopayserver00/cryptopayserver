@@ -64,18 +64,18 @@ const General = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
-        setStoreName(response.data[0].name);
-        setStoreWebsite(response.data[0].website);
-        setCurrency(response.data[0].currency);
-        setBrandColor(response.data[0].brand_color);
-        setLogoUrl(response.data[0].logo_url);
-        setCustomCssUrl(response.data[0].custom_css_url);
-        setAllowAnyoneCreateInvoice(response.data[0].allow_anyone_create_invoice === 1 ? true : false);
-        setAddAdditionalFeeToInvoice(response.data[0].add_additional_fee_to_invoice);
-        setInvoiceExpiresIfNotPaidFullAmount(response.data[0].invoice_expires_if_not_paid_full_amount);
-        setInvoicePaidLessThanPrecent(response.data[0].invoice_paid_less_than_precent);
-        setMinimumExpiraionTimeForRefund(response.data[0].minimum_expiraion_time_for_refund);
+      if (response.result) {
+        setStoreName(response.data.name);
+        setStoreWebsite(response.data.website);
+        setCurrency(response.data.currency);
+        setBrandColor(response.data.brand_color);
+        setLogoUrl(response.data.logo_url);
+        setCustomCssUrl(response.data.custom_css_url);
+        setAllowAnyoneCreateInvoice(response.data.allow_anyone_create_invoice === 1 ? true : false);
+        setAddAdditionalFeeToInvoice(response.data.add_additional_fee_to_invoice);
+        setInvoiceExpiresIfNotPaidFullAmount(response.data.invoice_expires_if_not_paid_full_amount);
+        setInvoicePaidLessThanPrecent(response.data.invoice_paid_less_than_precent);
+        setMinimumExpiraionTimeForRefund(response.data.minimum_expiraion_time_for_refund);
       }
     } catch (e) {
       setSnackSeverity('error');

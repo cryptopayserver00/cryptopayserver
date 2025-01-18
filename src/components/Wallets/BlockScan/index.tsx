@@ -87,18 +87,26 @@ const BlockScan = () => {
         },
       });
 
-      if (response.result && response.data.length > 0) {
-        let ws: walletType[] = [];
-        response.data.forEach(async (item: any) => {
-          ws.push({
-            id: item.id,
-            address: item.address,
-            type: item.chain_id === CHAINS.BITCOIN ? 'BITCOIN ' + item.note : item.note,
-            network: item.network,
-            chainId: item.chain_id,
+      if (response.result) {
+        if (response.data.length > 0) {
+          let ws: walletType[] = [];
+          response.data.forEach(async (item: any) => {
+            ws.push({
+              id: item.id,
+              address: item.address,
+              type: item.chain_id === CHAINS.BITCOIN ? 'BITCOIN ' + item.note : item.note,
+              network: item.network,
+              chainId: item.chain_id,
+            });
           });
-        });
-        setWallet(ws);
+          setWallet(ws);
+        } else {
+          setWallet([]);
+        }
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Can not find the data on site!');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -129,7 +137,7 @@ const BlockScan = () => {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   return (
     <Box>
       <Container>

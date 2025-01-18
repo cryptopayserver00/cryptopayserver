@@ -37,15 +37,15 @@ const Login = () => {
           email: email,
           password: password,
         });
-        if (response.result && response.data.length === 1) {
-          setUserId(response.data[0].id);
-          setUserEmail(response.data[0].email);
-          setUsername(response.data[0].username);
+        if (response.result) {
+          setUserId(response.data.id);
+          setUserEmail(response.data.email);
+          setUsername(response.data.username);
           setIsLogin(true);
 
           const store_resp: any = await axios.get(Http.find_store, {
             params: {
-              user_id: response.data[0].id,
+              user_id: response.data.id,
             },
           });
 
@@ -64,18 +64,11 @@ const Login = () => {
                 },
               });
               if (wallet_resp.result) {
-                if (wallet_resp.data.length > 0) {
-                  setWalletId(wallet_resp.data[0].id);
-                  setIsWallet(true);
-                  window.location.href = '/dashboard';
-                } else {
-                  window.location.href = '/wallet/create';
-                }
-              } else {
-                setSnackSeverity('error');
-                setSnackMessage('Can not find the wallet on site!');
-                setSnackOpen(true);
+                setWalletId(wallet_resp.data.id);
+                setIsWallet(true);
               }
+
+              window.location.href = '/dashboard';
             } else {
               window.location.href = '/stores/create';
             }

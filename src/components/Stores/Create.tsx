@@ -24,56 +24,43 @@ const CreateStore = () => {
   const [currency, setCurrency] = useState<string>(CURRENCY[0]);
   const [priceSource, setPriceSource] = useState<string>(PRICE_RESOURCE[0]);
 
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
   const { getUserId } = useUserPresistStore((state) => state);
   const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource, setIsStore } = useStorePresistStore(
     (state) => state,
   );
-
-  const checkName = (): boolean => {
-    if (name && name !== '') {
-      return true;
-    }
-
-    return false;
-  };
+  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
   const onCreateStore = async () => {
-    if (!checkName()) {
-      setSnackSeverity('error');
-      setSnackMessage('Incorrect name');
-      setSnackOpen(true);
-      return;
-    }
-
     try {
-      if (name !== '' && currency !== '' && priceSource !== '') {
-        const response: any = await axios.post(Http.create_store, {
-          user_id: getUserId(),
-          name: name,
-          currency: currency,
-          price_source: priceSource,
-          website: window.location.origin,
-        });
-        if (response.result) {
-          setSnackSeverity('success');
-          setSnackMessage('Successful creation!');
-          setSnackOpen(true);
-
-          setStoreId(response.data[0].id);
-          setStoreName(response.data[0].name);
-          setStoreCurrency(response.data[0].currency);
-          setStorePriceSource(response.data[0].price_source);
-          setIsStore(true);
-
-          setTimeout(() => {
-            window.location.href = '/dashboard';
-          }, 2000);
-        }
-      } else {
+      if (name === '' || currency === '' || priceSource === '') {
         setSnackSeverity('error');
         setSnackMessage('The input content is incorrect, please check!');
         setSnackOpen(true);
+        return;
+      }
+
+      const response: any = await axios.post(Http.create_store, {
+        user_id: getUserId(),
+        name: name,
+        currency: currency,
+        price_source: priceSource,
+        website: window.location.origin,
+      });
+
+      if (response.result) {
+        setStoreId(response.data.id);
+        setStoreName(response.data.name);
+        setStoreCurrency(response.data.currency);
+        setStorePriceSource(response.data.price_source);
+        setIsStore(true);
+
+        setSnackSeverity('success');
+        setSnackMessage('Successful creation!');
+        setSnackOpen(true);
+
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 2000);
       }
     } catch (e) {
       setSnackSeverity('error');

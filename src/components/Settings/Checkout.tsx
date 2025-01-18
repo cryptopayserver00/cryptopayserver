@@ -33,20 +33,20 @@ const Checkout = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
-        setShowPaymentConfetti(response.data[0].show_payment_confetti === 1 ? true : false);
-        setShowSound(response.data[0].show_sound === 1 ? true : false);
-        setShowPayInWalletButton(response.data[0].show_pay_in_wallet_button === 1 ? true : false);
-        setCustomHtmlTitle(response.data[0].custom_html_title);
-        setLanguage(response.data[0].language);
-        setShowDetectLanguage(response.data[0].show_detect_language === 1 ? true : false);
-        setSupportUrl(response.data[0].support_url);
-        setShowPaymentMethod(response.data[0].show_payment_method === 1 ? true : false);
-        setShowRedirectUrl(response.data[0].show_redirect_url === 1 ? true : false);
-        setShowPublicReceiptPage(response.data[0].show_public_receipt_page === 1 ? true : false);
-        setShowPaymentList(response.data[0].show_payment_list === 1 ? true : false);
-        setShowQrcodeReceipt(response.data[0].show_qrcode_receipt === 1 ? true : false);
-        setShowHeader(response.data[0].show_header === 1 ? true : false);
+      if (response.result) {
+        setShowPaymentConfetti(response.data.show_payment_confetti === 1 ? true : false);
+        setShowSound(response.data.show_sound === 1 ? true : false);
+        setShowPayInWalletButton(response.data.show_pay_in_wallet_button === 1 ? true : false);
+        setCustomHtmlTitle(response.data.custom_html_title);
+        setLanguage(response.data.language);
+        setShowDetectLanguage(response.data.show_detect_language === 1 ? true : false);
+        setSupportUrl(response.data.support_url);
+        setShowPaymentMethod(response.data.show_payment_method === 1 ? true : false);
+        setShowRedirectUrl(response.data.show_redirect_url === 1 ? true : false);
+        setShowPublicReceiptPage(response.data.show_public_receipt_page === 1 ? true : false);
+        setShowPaymentList(response.data.show_payment_list === 1 ? true : false);
+        setShowQrcodeReceipt(response.data.show_qrcode_receipt === 1 ? true : false);
+        setShowHeader(response.data.show_header === 1 ? true : false);
       }
     } catch (e) {
       setSnackSeverity('error');

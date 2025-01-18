@@ -75,10 +75,10 @@ const MainAccount = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
-        setName(response.data[0].username);
-        setEmail(response.data[0].email);
-        setProfileUrl(response.data[0].profile_picture_url);
+      if (response.result) {
+        setName(response.data.username);
+        setEmail(response.data.email);
+        setProfileUrl(response.data.profile_picture_url);
       }
     } catch (e) {
       setSnackSeverity('error');

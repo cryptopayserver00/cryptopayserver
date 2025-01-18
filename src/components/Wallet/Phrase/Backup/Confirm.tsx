@@ -55,8 +55,8 @@ const PhraseBackupConfirm = () => {
           },
         });
 
-        if (response.result && response.data.length === 1) {
-          const phraseArray = response.data[0].mnemonic.split(' ');
+        if (response.result) {
+          const phraseArray = response.data.mnemonic.split(' ');
           setPhrase(phraseArray);
 
           const randomIndices = GetUniqueRandomIndices(phraseArray.length, 3).map((index) => index + 1);

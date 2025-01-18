@@ -116,6 +116,8 @@ export default function InvoiceDataGrid(props: GridType) {
             });
           });
           setRows(rt);
+        } else {
+          setRows([]);
         }
       } else {
         setSnackSeverity('error');

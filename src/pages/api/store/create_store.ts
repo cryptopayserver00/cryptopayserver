@@ -3,6 +3,7 @@ import { CHAINS } from 'packages/constants/blockchain';
 import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { NOTIFICATION, NOTIFICATIONS } from 'packages/constants';
+import mysql from 'mysql2/promise';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -55,7 +56,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const findQuery = 'SELECT * FROM stores where id = ? and status = ?';
         const findValues = [storeId, 1];
         const [rows] = await connection.query(findQuery, findValues);
-        return res.status(200).json({ message: '', result: true, data: rows });
+        if (Array.isArray(rows) && rows.length === 1) {
+          const row = rows[0] as mysql.RowDataPacket;
+          return res.status(200).json({
+            message: '',
+            result: true,
+            data: {
+              id: row.id,
+              name: row.name,
+              currency: row.currency,
+              price_source: row.price_source,
+            },
+          });
+        }
+
+        return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+
       default:
         throw 'no support the method of api';
     }

@@ -41,15 +41,10 @@ const Authentication = () => {
         },
       });
 
-      if (
-        response.result &&
-        response.data.length === 1 &&
-        response.data[0].authenticator &&
-        response.data[0].authenticator !== ''
-      ) {
-        setText(response.data[0].authenticator);
+      if (response.result && response.data.authenticator && response.data.authenticator !== '') {
+        setText(response.data.authenticator);
         const link = `otpauth://totp/CryptoPayServer:${getUserEmail()}?secret=${
-          response.data[0].authenticator
+          response.data.authenticator
         }&issuer=CryptoPayServer&digits=6`;
         setQrCode(link);
         setPage(2);

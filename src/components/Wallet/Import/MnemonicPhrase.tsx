@@ -48,11 +48,7 @@ const ImportMnemonicPhrase = () => {
         },
       });
 
-      if (response.result && response.data.length > 0) {
-        setSnackSeverity('error');
-        setSnackMessage('This store already has a wallet');
-        setSnackOpen(true);
-
+      if (response.result) {
         setTimeout(() => {
           window.location.href = '/dashboard';
         }, 2000);

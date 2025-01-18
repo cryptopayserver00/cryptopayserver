@@ -184,14 +184,14 @@ const Emails = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
-        setId(response.data[0].id);
-        setLogin(response.data[0].login);
-        setPassword(response.data[0].password);
-        setPort(response.data[0].port);
-        setSenderEmailAddress(response.data[0].sender_email);
-        setShowTls(response.data[0].show_tls === 1 ? true : false);
-        setSmtpServer(response.data[0].smtp_server);
+      if (response.result) {
+        setId(response.data.id);
+        setLogin(response.data.login);
+        setPassword(response.data.password);
+        setPort(response.data.port);
+        setSenderEmailAddress(response.data.sender_email);
+        setShowTls(response.data.show_tls === 1 ? true : false);
+        setSmtpServer(response.data.smtp_server);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -208,13 +208,13 @@ const Emails = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
-        setRuleId(response.data[0].id);
-        setTigger(response.data[0].tigger);
-        setRecipients(response.data[0].recipients);
-        setShowSendToBuyer(response.data[0].show_send_to_buyer === 1 ? true : false);
-        setSubject(response.data[0].subject);
-        setBody(response.data[0].body);
+      if (response.result) {
+        setRuleId(response.data.id);
+        setTigger(response.data.tigger);
+        setRecipients(response.data.recipients);
+        setShowSendToBuyer(response.data.show_send_to_buyer === 1 ? true : false);
+        setSubject(response.data.subject);
+        setBody(response.data.body);
       }
     } catch (e) {
       setSnackSeverity('error');

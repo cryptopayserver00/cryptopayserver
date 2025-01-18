@@ -64,17 +64,25 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         },
       });
 
-      if (response.result && response.data.length > 0) {
-        let st: StoreType[] = [];
-        response.data.forEach((item: any) => {
-          st.push({
-            id: item.id,
-            name: item.name,
-            currency: item.currency,
-            price_source: item.price_source,
+      if (response.result) {
+        if (response.data.length > 0) {
+          let st: StoreType[] = [];
+          response.data.forEach((item: any) => {
+            st.push({
+              id: item.id,
+              name: item.name,
+              currency: item.currency,
+              price_source: item.price_source,
+            });
           });
-        });
-        setStores(st);
+          setStores(st);
+        } else {
+          setStores([]);
+        }
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Can not find the data on site!');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -94,10 +102,16 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         },
       });
 
-      if (response.result && response.data.length > 0) {
-        setNotificationCount(response.data.length);
+      if (response.result) {
+        if (response.data.length > 0) {
+          setNotificationCount(response.data.length);
+        } else {
+          setNotificationCount(0);
+        }
       } else {
-        setNotificationCount(0);
+        setSnackSeverity('error');
+        setSnackMessage('Can not find the data on site!');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -115,11 +129,11 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         },
       });
 
-      if (response.result && response.data.length === 1) {
-        setStoreId(response.data[0].id);
-        setStoreName(response.data[0].name);
-        setStoreCurrency(response.data[0].currency);
-        setStorePriceSource(response.data[0].price_source);
+      if (response.result) {
+        setStoreId(response.data.id);
+        setStoreName(response.data.name);
+        setStoreCurrency(response.data.currency);
+        setStorePriceSource(response.data.price_source);
 
         setTimeout(() => {
           window.location.reload();

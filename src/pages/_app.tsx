@@ -15,7 +15,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
     try {
       const response: any = await axios.get(Http.test_db_conn);
       if (response.result) {
-        console.log('Test DB connection successfully');
+        // console.log('Test DB connection successfully');
       }
     } catch (e) {
       console.error(e);

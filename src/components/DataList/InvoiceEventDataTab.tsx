@@ -25,16 +25,24 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
             order_id: orderId,
           },
         });
-        if (response.result && response.data.length > 0) {
-          let rt: RowType[] = [];
-          response.data.forEach(async (item: any, index: number) => {
-            rt.push({
-              id: index + 1,
-              date: new Date(item.created_date).toLocaleString(),
-              message: item.message,
+        if (response.result) {
+          if (response.data.length > 0) {
+            let rt: RowType[] = [];
+            response.data.forEach(async (item: any, index: number) => {
+              rt.push({
+                id: index + 1,
+                date: new Date(item.created_date).toLocaleString(),
+                message: item.message,
+              });
             });
-          });
-          setRows(rt);
+            setRows(rt);
+          } else {
+            setRows([]);
+          }
+        } else {
+          setSnackSeverity('error');
+          setSnackMessage('Can not find the data on site!');
+          setSnackOpen(true);
         }
       } catch (e) {
         setSnackSeverity('error');
@@ -64,7 +72,7 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
             {rows && rows.length > 0 ? (
               <>
                 {rows.map((row) => (
-                  <TableRow key={row.date} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                     <TableCell component="th" scope="row">
                       {row.date}
                     </TableCell>

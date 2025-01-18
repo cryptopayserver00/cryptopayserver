@@ -136,10 +136,12 @@ export default function TransactionDataGrid(props: GridType) {
             });
           });
           setRows(rt);
+        } else {
+          setRows([]);
         }
       } else {
         setSnackSeverity('error');
-        setSnackMessage('Can not find the tx on site!');
+        setSnackMessage('Can not find the data on site!');
         setSnackOpen(true);
       }
     } catch (e) {

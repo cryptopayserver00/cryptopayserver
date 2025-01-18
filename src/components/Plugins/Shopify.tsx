@@ -35,11 +35,11 @@ const Shopify = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
-        setId(response.data[0].id);
-        setShopName(response.data[0].shop_name);
-        setApiKey(response.data[0].api_key);
-        setAdminApiAccessToken(response.data[0].admin_api_access_token);
+      if (response.result) {
+        setId(response.data.id);
+        setShopName(response.data.shop_name);
+        setApiKey(response.data.api_key);
+        setAdminApiAccessToken(response.data.admin_api_access_token);
       }
     } catch (e) {
       setSnackSeverity('error');

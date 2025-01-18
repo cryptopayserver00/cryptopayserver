@@ -206,27 +206,33 @@ function AccountApiKeyTable() {
         },
       });
 
-      if (response.result && response.data.length > 0) {
-        let rt: RowType[] = [];
-        response.data.forEach((item: any) => {
-          let ps: string[] = [];
-          const ids = item.permissions.split(',');
-          ids &&
-            ids.length > 0 &&
-            ids.forEach((i: any) => {
-              ps.push(APIKEYPERMISSIONS[parseInt(i) + 1].tag);
-            });
+      if (response.result) {
+        if (response.data.length > 0) {
+          let rt: RowType[] = [];
+          response.data.forEach((item: any) => {
+            let ps: string[] = [];
+            const ids = item.permissions.split(',');
+            ids &&
+              ids.length > 0 &&
+              ids.forEach((i: any) => {
+                ps.push(APIKEYPERMISSIONS[parseInt(i) + 1].tag);
+              });
 
-          rt.push({
-            id: item.id,
-            label: item.label,
-            key: item.api_key,
-            permissions: ps,
+            rt.push({
+              id: item.id,
+              label: item.label,
+              key: item.api_key,
+              permissions: ps,
+            });
           });
-        });
-        setRows(rt);
+          setRows(rt);
+        } else {
+          setRows([]);
+        }
       } else {
-        setRows([]);
+        setSnackSeverity('error');
+        setSnackMessage('Can not find the data on site!');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');

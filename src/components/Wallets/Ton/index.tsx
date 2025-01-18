@@ -73,18 +73,26 @@ const Ton = () => {
         },
       });
 
-      if (response.result && response.data.length > 0) {
-        let ws: walletType[] = [];
-        response.data.forEach(async (item: any) => {
-          ws.push({
-            id: item.id,
-            address: item.address,
-            type: item.note,
-            balance: item.balance,
-            transactions: item.transactions,
+      if (response.result) {
+        if (response.data.length > 0) {
+          let ws: walletType[] = [];
+          response.data.forEach(async (item: any) => {
+            ws.push({
+              id: item.id,
+              address: item.address,
+              type: item.note,
+              balance: item.balance,
+              transactions: item.transactions,
+            });
           });
-        });
-        setWallet(ws);
+          setWallet(ws);
+        } else {
+          setWallet([]);
+        }
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Can not find the data on site!');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -105,14 +113,12 @@ const Ton = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
-        setSettingId(response.data[0].id);
-        setPaymentExpire(response.data[0].payment_expire);
-        setConfirmBlock(response.data[0].confirm_block);
-        setShowRecommendedFee(response.data[0].show_recommended_fee === 1 ? true : false);
-        setCurrentUsedAddressId(
-          response.data[0].current_used_address_id ? response.data[0].current_used_address_id : 0,
-        );
+      if (response.result) {
+        setSettingId(response.data.id);
+        setPaymentExpire(response.data.payment_expire);
+        setConfirmBlock(response.data.confirm_block);
+        setShowRecommendedFee(response.data.show_recommended_fee === 1 ? true : false);
+        setCurrentUsedAddressId(response.data.current_used_address_id ? response.data.current_used_address_id : 0);
       }
     } catch (e) {
       setSnackSeverity('error');

@@ -40,8 +40,8 @@ const Rates = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
-        setPriceSource(response.data[0].price_source);
+      if (response.result) {
+        setPriceSource(response.data.price_source);
       }
     } catch (e) {
       setSnackSeverity('error');

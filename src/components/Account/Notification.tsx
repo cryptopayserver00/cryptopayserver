@@ -23,10 +23,10 @@ const Notification = () => {
         },
       });
 
-      if (response.result && response.data.length > 0) {
+      if (response.result) {
         let notification_list: NOTIFICATION[] = [];
 
-        const notificationIdsArray = response.data[0].notifications.split(',').map((id: any) => Number(id.trim()));
+        const notificationIdsArray = response.data.notifications.split(',').map((id: any) => Number(id.trim()));
 
         NOTIFICATIONS.forEach((item: NOTIFICATION) => {
           let status = false;

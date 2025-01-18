@@ -93,76 +93,70 @@ export default function PayoutDataGrid(props: GridType) {
           case PAYOUT_STATUS.AwaitingApproval:
             setActionWidth(200);
             return [
-              <Box key={row.id}>
-                <Button
-                  onClick={() => {
-                    onClickApprove(row);
-                  }}
-                >
-                  Approve
-                </Button>
-                <Button
-                  onClick={() => {
-                    onClickCancel(row);
-                  }}
-                >
-                  Cancel
-                </Button>
-              </Box>,
+              <Button
+                onClick={() => {
+                  onClickApprove(row);
+                }}
+              >
+                Approve
+              </Button>,
+              <Button
+                onClick={() => {
+                  onClickCancel(row);
+                }}
+              >
+                Cancel
+              </Button>,
             ];
           case PAYOUT_STATUS.AwaitingPayment:
             setActionWidth(600);
             return [
-              <Box key={row.id}>
-                <Button
-                  onClick={() => {
-                    onClickReject(row);
-                  }}
-                >
-                  Reject payout transaction
-                </Button>
-                <Button
-                  onClick={() => {
-                    onClickSend(row);
-                  }}
-                >
-                  Send
-                </Button>
-                <Button
-                  onClick={() => {
-                    onClickCancel(row);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    onClickMarkPaid(row);
-                  }}
-                >
-                  Mark as already paid
-                </Button>
-              </Box>,
+              <Button
+                onClick={() => {
+                  onClickReject(row);
+                }}
+              >
+                Reject payout transaction
+              </Button>,
+              <Button
+                onClick={() => {
+                  onClickSend(row);
+                }}
+              >
+                Send
+              </Button>,
+              <Button
+                onClick={() => {
+                  onClickCancel(row);
+                }}
+              >
+                Cancel
+              </Button>,
+              <Button
+                onClick={() => {
+                  onClickMarkPaid(row);
+                }}
+              >
+                Mark as already paid
+              </Button>,
             ];
           case PAYOUT_STATUS.InProgress:
             setActionWidth(300);
             return [
-              <Box key={row.id}>
-                <Button
-                  onClick={() => {
-                    onClickCancel(row);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    onClickMarkPaid(row);
-                  }}
-                >
-                  Mark as already paid
-                </Button>
-              </Box>,
+              <Button
+                onClick={() => {
+                  onClickCancel(row);
+                }}
+              >
+                Cancel
+              </Button>,
+              <Button
+                onClick={() => {
+                  onClickMarkPaid(row);
+                }}
+              >
+                Mark as already paid
+              </Button>,
             ];
           default:
             setActionWidth(200);
@@ -336,27 +330,33 @@ export default function PayoutDataGrid(props: GridType) {
           payout_status: status,
         },
       });
-      if (response.result && response.data.length > 0) {
-        let rt: RowType[] = [];
-        response.data.forEach(async (item: any, index: number) => {
-          rt.push({
-            id: item.id,
-            payoutId: item.payout_id,
-            chainId: item.chain_id,
-            address: item.address,
-            createdDate: new Date(item.created_date).toLocaleString(),
-            refunded: item.amount + ' ' + item.currency,
-            crypto: item.crypto,
-            sourceType: item.source_type,
-            externalPaymentId: item.external_payment_id,
-            chainName: FindChainNamesByChains(item.chain_id),
-            transaction: item.tx,
-            url: '',
+      if (response.result) {
+        if (response.data.length > 0) {
+          let rt: RowType[] = [];
+          response.data.forEach(async (item: any, index: number) => {
+            rt.push({
+              id: item.id,
+              payoutId: item.payout_id,
+              chainId: item.chain_id,
+              address: item.address,
+              createdDate: new Date(item.created_date).toLocaleString(),
+              refunded: item.amount + ' ' + item.currency,
+              crypto: item.crypto,
+              sourceType: item.source_type,
+              externalPaymentId: item.external_payment_id,
+              chainName: FindChainNamesByChains(item.chain_id),
+              transaction: item.tx,
+              url: '',
+            });
           });
-        });
-        setRows(rt);
+          setRows(rt);
+        } else {
+          setRows([]);
+        }
       } else {
-        setRows([]);
+        setSnackSeverity('error');
+        setSnackMessage('Can not find the data on site!');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');

@@ -87,21 +87,21 @@ const TronSend = () => {
         },
       });
 
-      if (response.result && response.data.length === 1) {
-        setDestinationAddress(response.data[0].address);
+      if (response.result) {
+        setDestinationAddress(response.data.address);
 
-        const ids = COINGECKO_IDS[response.data[0].crypto as COINS];
+        const ids = COINGECKO_IDS[response.data.crypto as COINS];
         const rate_response: any = await axios.get(Http.find_crypto_price, {
           params: {
             ids: ids,
-            currency: response.data[0].currency,
+            currency: response.data.currency,
           },
         });
 
-        const rate = rate_response.data[ids][response.data[0].currency.toLowerCase()];
-        const totalPrice = parseFloat(BigDiv((response.data[0].amount as number).toString(), rate)).toFixed(4);
+        const rate = rate_response.data[ids][response.data.currency.toLowerCase()];
+        const totalPrice = parseFloat(BigDiv((response.data.amount as number).toString(), rate)).toFixed(4);
         setAmount(totalPrice);
-        setCoin(response.data[0].crypto);
+        setCoin(response.data.crypto);
 
         setIsDisableDestinationAddress(true);
         setIsDisableAmount(true);
