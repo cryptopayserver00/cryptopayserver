@@ -10,7 +10,7 @@ import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from
 const GenerateWallet = () => {
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
   const { getUserId } = useUserPresistStore((state) => state);
-  const { getStoreId } = useStorePresistStore((state) => state);
+  const { getIsStore, getStoreId } = useStorePresistStore((state) => state);
   const { setWalletId, setIsWallet } = useWalletPresistStore((state) => state);
 
   const onClickMnemonicPhrase = async () => {
@@ -54,6 +54,13 @@ const GenerateWallet = () => {
     setSnackSeverity('warning');
     setSnackOpen(true);
   };
+
+  useEffect(() => {
+    if (!getIsStore()) {
+      window.location.href = '/stores/create';
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box>

@@ -2,18 +2,26 @@ import { Box, Card, CardContent, Container, Icon, Stack, Tab, Tabs, Typography }
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { useSnackPresistStore } from 'lib/store';
-import { useState } from 'react';
+import { useSnackPresistStore, useStorePresistStore } from 'lib/store';
+import { useEffect, useState } from 'react';
 import ImportMnemonicPhrase from './MnemonicPhrase';
 import ImportPrivateKey from './PrivateKey';
 
 const ImportMnemonicPhraseOrPrivateKey = () => {
+  const { getIsStore } = useStorePresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
   const [value, setValue] = useState(0);
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+
+  useEffect(() => {
+    if (!getIsStore()) {
+      window.location.href = '/stores/create';
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box>

@@ -16,7 +16,7 @@ const PhraseBackupConfirm = () => {
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
   const { getIsWallet, getWalletId } = useWalletPresistStore((state) => state);
   const { getUserId } = useUserPresistStore((state) => state);
-  const { getStoreId } = useStorePresistStore((state) => state);
+  const { getIsStore, getStoreId } = useStorePresistStore((state) => state);
 
   const [selectMems, setSelectMems] = useState<SelectMems[]>([]);
   const [phrase, setPhrase] = useState<string[]>([]);
@@ -83,6 +83,9 @@ const PhraseBackupConfirm = () => {
   };
 
   useEffect(() => {
+    if (!getIsStore()) {
+      window.location.href = '/stores/create';
+    }
     fetchWalletData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

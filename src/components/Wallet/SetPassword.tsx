@@ -22,7 +22,7 @@ const SetPassword = () => {
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
   const { getUserId } = useUserPresistStore((state) => state);
   const { getWalletId } = useWalletPresistStore((state) => state);
-  const { getStoreId } = useStorePresistStore((state) => state);
+  const { getIsStore, getStoreId } = useStorePresistStore((state) => state);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -79,6 +79,13 @@ const SetPassword = () => {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    if (!getIsStore()) {
+      window.location.href = '/stores/create';
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box>

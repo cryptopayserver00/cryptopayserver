@@ -10,7 +10,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 
@@ -19,7 +19,7 @@ const ImportMnemonicPhrase = () => {
   const [phrase, setPhrase] = useState<string[]>([]);
 
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
-  const { getStoreId } = useStorePresistStore((state) => state);
+  const { getStoreId, getIsStore } = useStorePresistStore((state) => state);
   const { setWalletId, setIsWallet } = useWalletPresistStore((state) => state);
   const { getUserId } = useUserPresistStore((state) => state);
 
@@ -82,6 +82,13 @@ const ImportMnemonicPhrase = () => {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    if (!getIsStore()) {
+      window.location.href = '/stores/create';
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box>

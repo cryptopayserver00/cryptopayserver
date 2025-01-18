@@ -2,8 +2,12 @@ import { Box, Card, CardContent, Container, Icon, Stack, Typography } from '@mui
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import { useEffect } from 'react';
+import { useStorePresistStore } from 'lib/store';
 
 const CreateWallet = () => {
+  const { getIsStore } = useStorePresistStore((state) => state);
+
   const onClickImport = () => {
     window.location.href = '/wallet/import';
   };
@@ -11,6 +15,13 @@ const CreateWallet = () => {
   const onClickGenerate = () => {
     window.location.href = '/wallet/generate';
   };
+
+  useEffect(() => {
+    if (!getIsStore()) {
+      window.location.href = '/stores/create';
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box>

@@ -2,8 +2,10 @@ import { Box, Button, Card, CardContent, Container, Icon, Stack, Typography } fr
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useEffect } from 'react';
 import { useSnackPresistStore } from 'lib/store/snack';
+import { useStorePresistStore } from 'lib/store';
 
 const PhraseIntro = () => {
+  const { getIsStore } = useStorePresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
   const onClickBackup = () => {
@@ -13,6 +15,13 @@ const PhraseIntro = () => {
   const onClickBackupLater = () => {
     window.location.href = '/dashboard';
   };
+
+  useEffect(() => {
+    if (!getIsStore()) {
+      window.location.href = '/stores/create';
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box>

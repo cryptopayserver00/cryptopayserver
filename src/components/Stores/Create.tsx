@@ -11,6 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import { CustomLogo } from 'components/Logo/CustomLogo';
+import { useWalletPresistStore } from 'lib/store';
 import { useSnackPresistStore } from 'lib/store/snack';
 import { useStorePresistStore } from 'lib/store/store';
 import { useUserPresistStore } from 'lib/store/user';
@@ -26,6 +27,9 @@ const CreateStore = () => {
 
   const { getUserId } = useUserPresistStore((state) => state);
   const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource, setIsStore } = useStorePresistStore(
+    (state) => state,
+  );
+  const { resetWallet } = useWalletPresistStore(
     (state) => state,
   );
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
@@ -53,6 +57,8 @@ const CreateStore = () => {
         setStoreCurrency(response.data.currency);
         setStorePriceSource(response.data.price_source);
         setIsStore(true);
+
+        resetWallet()
 
         setSnackSeverity('success');
         setSnackMessage('Successful creation!');

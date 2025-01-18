@@ -57,7 +57,6 @@ const Login = () => {
               setStorePriceSource(store_resp.data[0].price_source);
               setIsStore(true);
 
-              // search wallet
               const wallet_resp: any = await axios.get(Http.find_wallet, {
                 params: {
                   store_id: store_resp.data[0].id,

@@ -1,17 +1,18 @@
 import { Box, Button, Card, CardContent, Chip, Container, Icon, Skeleton, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useSnackPresistStore } from 'lib/store/snack';
-import { useWalletPresistStore } from 'lib/store';
+import { useStorePresistStore, useWalletPresistStore } from 'lib/store';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 const PhraseBackup = () => {
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
-  const { getIsWallet, getWalletId } = useWalletPresistStore((state) => state);
   const [isDisable, setIsDisable] = useState<boolean>(true);
   const [isView, setIsView] = useState<boolean>(false);
-
   const [phrase, setPhrase] = useState<string[]>([]);
+
+  const { getIsStore } = useStorePresistStore((state) => state);
+  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
+  const { getIsWallet, getWalletId } = useWalletPresistStore((state) => state);
 
   const onClickReConfirm = () => {
     window.location.href = '/wallet/phrase/backup/confirm';
@@ -48,6 +49,9 @@ const PhraseBackup = () => {
   };
 
   useEffect(() => {
+    if (!getIsStore()) {
+      window.location.href = '/stores/create';
+    }
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

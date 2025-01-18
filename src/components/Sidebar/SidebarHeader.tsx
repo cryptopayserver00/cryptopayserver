@@ -22,6 +22,7 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useUserPresistStore } from 'lib/store/user';
 import { useSnackPresistStore } from 'lib/store/snack';
+import { useWalletPresistStore } from 'lib/store';
 
 interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -44,10 +45,12 @@ interface StoreType {
 }
 
 export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest }) => {
-  const { getStoreId } = useStorePresistStore((state) => state);
   const { getUserId, getNetwork } = useUserPresistStore((state) => state);
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state);
-  const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource } = useStorePresistStore((state) => state);
+  const { getStoreId, setStoreId, setStoreName, setStoreCurrency, setStorePriceSource } = useStorePresistStore(
+    (state) => state,
+  );
+  const { resetWallet, setWalletId, setIsWallet } = useWalletPresistStore((state) => state);
 
   const [stores, setStores] = useState<StoreType[]>([]);
   const [notificationCount, setNotificationCount] = useState<number>(0);
@@ -134,6 +137,19 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         setStoreName(response.data.name);
         setStoreCurrency(response.data.currency);
         setStorePriceSource(response.data.price_source);
+
+        resetWallet();
+
+        const wallet_resp: any = await axios.get(Http.find_wallet, {
+          params: {
+            store_id: response.data.id,
+          },
+        });
+
+        if (wallet_resp.result) {
+          setWalletId(wallet_resp.data.id);
+          setIsWallet(true);
+        }
 
         setTimeout(() => {
           window.location.reload();

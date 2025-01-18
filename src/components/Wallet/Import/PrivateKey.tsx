@@ -11,10 +11,11 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore } from 'lib/store';
-import { useState } from 'react';
+import { useSnackPresistStore, useStorePresistStore } from 'lib/store';
+import { useEffect, useState } from 'react';
 
 const ImportPrivateKey = () => {
+  const { getIsStore } = useStorePresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
   const onClickBatchImport = () => {
@@ -24,6 +25,13 @@ const ImportPrivateKey = () => {
   };
 
   const handleButtonClick = () => {};
+
+  useEffect(() => {
+    if (!getIsStore()) {
+      window.location.href = '/stores/create';
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box>
