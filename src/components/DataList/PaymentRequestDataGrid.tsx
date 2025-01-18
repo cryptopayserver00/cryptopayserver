@@ -37,6 +37,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
   };
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
+    { field: 'id', headerName: 'ID', width: 50 },
     {
       field: 'title',
       headerName: 'title',
@@ -65,34 +66,24 @@ export default function PaymentRequestDataGrid(props: GridType) {
       cellClassName: 'actions',
       getActions: ({ row }) => {
         return [
-          <Button
-            onClick={() => {
-              onClickView(row);
-            }}
-          >
-            View
-          </Button>,
-          <Button
-            onClick={() => {
-              onClickArchive(row);
-            }}
-          >
-            Archive
-          </Button>,
+          <Box key={row.id}>
+            <Button
+              onClick={() => {
+                onClickView(row);
+              }}
+            >
+              View
+            </Button>
+            <Button
+              onClick={() => {
+                onClickArchive(row);
+              }}
+            >
+              Archive
+            </Button>
+          </Box>,
         ];
       },
-
-      // return [
-      //   <GridActionsCellItem
-      //     icon={<EditIcon />}
-      //     label="Edit"
-      //     className="textPrimary"
-      //     onClick={handleEditClick(id)}
-      //     color="inherit"
-      //   />,
-      //   <GridActionsCellItem icon={<DeleteIcon />} label="Delete" onClick={handleDeleteClick(id)} color="inherit" />,
-      // ];
-      //   },
     },
   ];
 

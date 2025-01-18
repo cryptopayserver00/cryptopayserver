@@ -8,6 +8,7 @@ import { Http } from 'utils/http/http';
 
 type RowType = {
   id: number;
+  webhookId: number;
   automaticRedelivery: number;
   enabled: number;
   eventType: number;
@@ -61,7 +62,7 @@ export default function WebhookDataGrid(props: GridType) {
 
   const onClickModify = async (params: any) => {
     if (params.row) {
-      props.setModifyId(params.row.id);
+      props.setModifyId(params.row.webhookId);
       props.setEventType(params.row.eventType);
       props.setPayloadUrl(params.row.payloadUrl);
       props.setSecret(params.row.secret);
@@ -75,7 +76,7 @@ export default function WebhookDataGrid(props: GridType) {
   const onClickDelete = async (params: any) => {
     try {
       const response: any = await axios.put(Http.delete_webhook_setting_by_id, {
-        id: params.row.id,
+        id: params.row.webhookId,
         store_id: getStoreId(),
         user_id: getUserId(),
       });
@@ -106,6 +107,7 @@ export default function WebhookDataGrid(props: GridType) {
   };
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
+    { field: 'id', headerName: 'ID', width: 50 },
     {
       field: 'status',
       headerName: 'Status',
@@ -126,27 +128,29 @@ export default function WebhookDataGrid(props: GridType) {
       headerAlign: 'right',
       getActions: ({ row }) => {
         return [
-          <Button
-            onClick={() => {
-              onClickTest(row);
-            }}
-          >
-            Test
-          </Button>,
-          <Button
-            onClick={() => {
-              onClickModify(row);
-            }}
-          >
-            Modify
-          </Button>,
-          <Button
-            onClick={() => {
-              onClickDelete(row);
-            }}
-          >
-            Delete
-          </Button>,
+          <>
+            <Button
+              onClick={() => {
+                onClickTest(row);
+              }}
+            >
+              Test
+            </Button>
+            <Button
+              onClick={() => {
+                onClickModify(row);
+              }}
+            >
+              Modify
+            </Button>
+            <Button
+              onClick={() => {
+                onClickDelete(row);
+              }}
+            >
+              Delete
+            </Button>
+          </>,
         ];
       },
     },
@@ -164,9 +168,10 @@ export default function WebhookDataGrid(props: GridType) {
       if (response.result) {
         if (response.data.length > 0) {
           let rt: RowType[] = [];
-          response.data.forEach((item: any) => {
+          response.data.forEach((item: any, index: number) => {
             rt.push({
-              id: item.id,
+              id: index + 1,
+              webhookId: item.id,
               automaticRedelivery: item.automatic_redelivery,
               enabled: item.enabled,
               eventType: item.event_type,

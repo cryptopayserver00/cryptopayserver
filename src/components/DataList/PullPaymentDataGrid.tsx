@@ -31,6 +31,7 @@ export default function PullPaymentDataGrid(props: GridType) {
   const [rows, setRows] = useState<RowType[]>([]);
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
+    { field: 'id', headerName: 'ID', width: 50 },
     {
       field: 'createdDate',
       headerName: 'Start',
@@ -70,69 +71,75 @@ export default function PullPaymentDataGrid(props: GridType) {
           case PULL_PAYMENT_STATUS.Active:
             setActionWidth(300);
             return [
-              <Button
-                onClick={() => {
-                  window.location.href = '/pull-payments/' + row.pullPaymentId;
-                }}
-              >
-                View
-              </Button>,
-              <Button
-                onClick={() => {
-                  window.location.href = '/payments/payouts';
-                }}
-              >
-                Payouts
-              </Button>,
-              <Button
-                onClick={() => {
-                  onClickArchive(row.pullPaymentId);
-                }}
-              >
-                Archive
-              </Button>,
+              <>
+                <Button
+                  onClick={() => {
+                    window.location.href = '/pull-payments/' + row.pullPaymentId;
+                  }}
+                >
+                  View
+                </Button>
+                <Button
+                  onClick={() => {
+                    window.location.href = '/payments/payouts';
+                  }}
+                >
+                  Payouts
+                </Button>
+                <Button
+                  onClick={() => {
+                    onClickArchive(row.pullPaymentId);
+                  }}
+                >
+                  Archive
+                </Button>
+              </>,
             ];
           case PULL_PAYMENT_STATUS.Expired:
             setActionWidth(200);
             return [
-              <Button
-                onClick={() => {
-                  window.location.href = '/pull-payments/' + row.pullPaymentId;
-                }}
-              >
-                View
-              </Button>,
-              <Button
-                onClick={() => {
-                  onClickArchive(row.pullPaymentId);
-                }}
-              >
-                Archive
-              </Button>,
+              <>
+                <Button
+                  onClick={() => {
+                    window.location.href = '/pull-payments/' + row.pullPaymentId;
+                  }}
+                >
+                  View
+                </Button>
+                <Button
+                  onClick={() => {
+                    onClickArchive(row.pullPaymentId);
+                  }}
+                >
+                  Archive
+                </Button>
+              </>,
             ];
           case PULL_PAYMENT_STATUS.Archived:
             setActionWidth(200);
             return [
-              <Button
-                onClick={() => {
-                  window.location.href = '/pull-payments/' + row.pullPaymentId;
-                }}
-              >
-                View
-              </Button>,
-              <Button
-                onClick={() => {
-                  window.location.href = '/payments/payouts';
-                }}
-              >
-                Payouts
-              </Button>,
+              <>
+                <Button
+                  onClick={() => {
+                    window.location.href = '/pull-payments/' + row.pullPaymentId;
+                  }}
+                >
+                  View
+                </Button>
+                <Button
+                  onClick={() => {
+                    window.location.href = '/payments/payouts';
+                  }}
+                >
+                  Payouts
+                </Button>
+              </>,
             ];
           case PULL_PAYMENT_STATUS.Future:
             setActionWidth(200);
-            return [];
+            return [<></>];
           default:
-            return [];
+            return [<></>];
         }
       },
     },
@@ -180,7 +187,7 @@ export default function PullPaymentDataGrid(props: GridType) {
           let rt: RowType[] = [];
           response.data.forEach(async (item: any, index: number) => {
             rt.push({
-              id: item.id,
+              id: index + 1,
               pullPaymentId: item.pull_payment_id,
               name: item.name,
               createdDate: new Date(item.created_date).toLocaleString(),

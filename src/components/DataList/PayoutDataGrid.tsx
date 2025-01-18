@@ -39,6 +39,7 @@ export default function PayoutDataGrid(props: GridType) {
   const [rows, setRows] = useState<RowType[]>([]);
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
+    { field: 'id', headerName: 'ID', width: 50 },
     {
       field: 'createdDate',
       headerName: 'Start',
@@ -93,74 +94,80 @@ export default function PayoutDataGrid(props: GridType) {
           case PAYOUT_STATUS.AwaitingApproval:
             setActionWidth(200);
             return [
-              <Button
-                onClick={() => {
-                  onClickApprove(row);
-                }}
-              >
-                Approve
-              </Button>,
-              <Button
-                onClick={() => {
-                  onClickCancel(row);
-                }}
-              >
-                Cancel
-              </Button>,
+              <>
+                <Button
+                  onClick={() => {
+                    onClickApprove(row);
+                  }}
+                >
+                  Approve
+                </Button>
+                <Button
+                  onClick={() => {
+                    onClickCancel(row);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </>,
             ];
           case PAYOUT_STATUS.AwaitingPayment:
             setActionWidth(600);
             return [
-              <Button
-                onClick={() => {
-                  onClickReject(row);
-                }}
-              >
-                Reject payout transaction
-              </Button>,
-              <Button
-                onClick={() => {
-                  onClickSend(row);
-                }}
-              >
-                Send
-              </Button>,
-              <Button
-                onClick={() => {
-                  onClickCancel(row);
-                }}
-              >
-                Cancel
-              </Button>,
-              <Button
-                onClick={() => {
-                  onClickMarkPaid(row);
-                }}
-              >
-                Mark as already paid
-              </Button>,
+              <>
+                <Button
+                  onClick={() => {
+                    onClickReject(row);
+                  }}
+                >
+                  Reject payout transaction
+                </Button>
+                <Button
+                  onClick={() => {
+                    onClickSend(row);
+                  }}
+                >
+                  Send
+                </Button>
+                <Button
+                  onClick={() => {
+                    onClickCancel(row);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    onClickMarkPaid(row);
+                  }}
+                >
+                  Mark as already paid
+                </Button>
+              </>,
             ];
           case PAYOUT_STATUS.InProgress:
             setActionWidth(300);
             return [
-              <Button
-                onClick={() => {
-                  onClickCancel(row);
-                }}
-              >
-                Cancel
-              </Button>,
-              <Button
-                onClick={() => {
-                  onClickMarkPaid(row);
-                }}
-              >
-                Mark as already paid
-              </Button>,
+              <>
+                <Button
+                  onClick={() => {
+                    onClickCancel(row);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    onClickMarkPaid(row);
+                  }}
+                >
+                  Mark as already paid
+                </Button>
+              </>,
             ];
           default:
             setActionWidth(200);
-            return [];
+            return [<></>];
         }
       },
     },
@@ -335,7 +342,7 @@ export default function PayoutDataGrid(props: GridType) {
           let rt: RowType[] = [];
           response.data.forEach(async (item: any, index: number) => {
             rt.push({
-              id: item.id,
+              id: index + 1,
               payoutId: item.payout_id,
               chainId: item.chain_id,
               address: item.address,
