@@ -51,12 +51,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 parseInt(chainId as string),
                 item.address,
               ),
-              // transactions: await WEB3.getTransactions(
-              //   parseInt(network as string) === 1 ? true : false,
-              //   parseInt(chainId as string),
-              //   item.address,
-              // ),
-              transactions: [],
+              transactions: await WEB3.getTransactions(
+                parseInt(network as string) === 1 ? true : false,
+                parseInt(chainId as string),
+                item.address,
+              ),
+              // transactions: [],
             };
           });
           newRows = await Promise.all(promises);
