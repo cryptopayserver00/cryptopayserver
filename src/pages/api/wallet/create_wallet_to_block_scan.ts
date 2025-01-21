@@ -3,6 +3,7 @@ import { connectDatabase } from 'packages/db/mysql';
 import { WEB3 } from 'packages/web3';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { BLOCKSCAN, BlockScanWalletType } from 'packages/web3/block_scan';
+import { CHAINS } from 'packages/constants/blockchain';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -24,10 +25,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (Array.isArray(rows) && rows.length > 0) {
           rows.forEach((item: any) => {
-            blockscanWalletTypes.push({
-              address: item.address,
-              chain_id: WEB3.getChainIds(item.network === 1 ? true : false, item.chain_id),
-            });
+            if (item.chain_id === CHAINS.ETHEREUM) {
+              blockscanWalletTypes.push({
+                address: item.address,
+                chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.ETHEREUM),
+              });
+              blockscanWalletTypes.push({
+                address: item.address,
+                chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.BSC),
+              });
+              blockscanWalletTypes.push({
+                address: item.address,
+                chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.ARBITRUM),
+              });
+              blockscanWalletTypes.push({
+                address: item.address,
+                chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.AVALANCHE),
+              });
+              blockscanWalletTypes.push({
+                address: item.address,
+                chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.POLYGON),
+              });
+              blockscanWalletTypes.push({
+                address: item.address,
+                chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.BASE),
+              });
+              blockscanWalletTypes.push({
+                address: item.address,
+                chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.OPTIMISM),
+              });
+            } else {
+              blockscanWalletTypes.push({
+                address: item.address,
+                chain_id: WEB3.getChainIds(item.network === 1 ? true : false, item.chain_id),
+              });
+            }
           });
 
           const result = await BLOCKSCAN.bulkStoreUserWallet(blockscanWalletTypes);
