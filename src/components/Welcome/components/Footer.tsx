@@ -7,9 +7,9 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import FacebookIcon from '@mui/icons-material/GitHub';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import TwitterIcon from '@mui/icons-material/X';
+import GithubIcon from '@mui/icons-material/GitHub';
+import TelegramIcon from '@mui/icons-material/Telegram';
+import RssFeedIcon from '@mui/icons-material/RssFeed';
 import { CustomLogo } from 'components/Logo/CustomLogo';
 
 function Copyright() {
@@ -211,13 +211,19 @@ export default function Footer() {
             aria-label="GitHub"
             sx={{ alignSelf: 'center' }}
           >
-            <FacebookIcon />
+            <GithubIcon />
           </IconButton>
-          <IconButton color="inherit" size="small" href="#" aria-label="X" sx={{ alignSelf: 'center' }}>
-            <TwitterIcon />
+          <IconButton
+            color="inherit"
+            size="small"
+            href="https://t.me/cryptopayserver"
+            aria-label="Telegram"
+            sx={{ alignSelf: 'center' }}
+          >
+            <TelegramIcon />
           </IconButton>
-          <IconButton color="inherit" size="small" href="#" aria-label="LinkedIn" sx={{ alignSelf: 'center' }}>
-            <LinkedInIcon />
+          <IconButton color="inherit" size="small" href="#" aria-label="RssFeed" sx={{ alignSelf: 'center' }}>
+            <RssFeedIcon />
           </IconButton>
         </Stack>
       </Box>

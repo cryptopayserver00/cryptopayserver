@@ -99,12 +99,18 @@ const PhraseBackupConfirm = () => {
 
   useEffect(() => {
     if (Object.keys(selectWord).length === 3) {
+
+      console.log(111)
+
       let matchTime = 0;
       Object.keys(selectWord).forEach((key) => {
         if (phrase[parseInt(key) - 1] === selectWord[parseInt(key)]) {
           matchTime += 1;
         }
       });
+
+      console.log(111)
+
 
       if (matchTime === 3) {
         updateWalletBackup();

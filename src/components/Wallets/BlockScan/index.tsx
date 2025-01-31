@@ -55,22 +55,14 @@ const BlockScan = () => {
 
   const checkNetworkStatus = async () => {
     await getNetworkInfo();
-
-    setSnackSeverity('success');
-    setSnackMessage('Successful check!');
-    setSnackOpen(true);
   };
 
   const checkRequestTime = async (url: string): Promise<number> => {
     const start = performance.now();
-
     try {
       await axios.get(url);
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+      return 0;
     }
 
     const end = performance.now();
@@ -119,10 +111,17 @@ const BlockScan = () => {
   const getNetworkInfo = async () => {
     const value = BLOCKCHAINNAMES.filter((item) => (getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet));
     value.forEach(async (item) => {
-      if (item.rpc) {
-        const time = await checkRequestTime(item.rpc[0]);
-        item.time = parseInt(time.toString());
-      }
+      // if (item.rpc) {
+      //   const time = await checkRequestTime(item.rpc[0]);
+      //   if (time === 0) {
+      //     setSnackSeverity('error');
+      //     setSnackMessage('The network error occurred. Please try again later.');
+      //     setSnackOpen(true);
+      //     return;
+      //   }
+      //   item.time = parseInt(time.toString());
+      // }
+      item.time = 0;
     });
 
     setBlcokchain(value);

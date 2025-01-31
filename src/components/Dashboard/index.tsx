@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
   Card,
@@ -6,6 +8,7 @@ import {
   Container,
   FormControlLabel,
   Grid,
+  Link,
   Radio,
   RadioGroup,
   Stack,
@@ -31,6 +34,8 @@ const Dashboard = () => {
   const [walletBalanceDayAlignment, setWalletBalanceDayAlignment] = useState<'WEEK' | 'MONTH' | 'YEAR'>('WEEK');
   const [walletBalance, setWalletBalance] = useState<number>(0.0);
   const [walletCoinMaps, setWalletCoinMaps] = useState<{ [key in string]: { number: number; price: number } }>({});
+  const [enablePasswordWarn, setEnablePasswordWarn] = useState<boolean>(false);
+  const [enableBackupWarn, setEnableBackupWarn] = useState<boolean>(false);
 
   const onChangeCurrency = (e: any) => {
     setWalletBalanceAlignment(e.target.value);
@@ -45,7 +50,29 @@ const Dashboard = () => {
   const { getWalletId } = useWalletPresistStore((state) => state);
   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
 
-  const init = async () => {};
+  const init = async () => {
+    try {
+      const response: any = await axios.get(Http.find_wallet_by_id, {
+        params: {
+          id: getWalletId(),
+        },
+      });
+
+      if (response.result && !response.data.password) {
+        setEnablePasswordWarn(true);
+      } else {
+        setEnablePasswordWarn(false);
+      }
+
+      if (response.result && response.data.is_backup === 2) {
+        setEnableBackupWarn(true);
+      } else {
+        setEnableBackupWarn(false);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     init();
@@ -54,6 +81,32 @@ const Dashboard = () => {
 
   return (
     <Box>
+      {enablePasswordWarn && (
+        <Box mt={1}>
+          <Alert severity="warning">
+            <AlertTitle>Warning</AlertTitle>
+            <Typography>
+              You don&apos;t have to setup the wallet password. Please click&nbsp;
+              <Link href={'/wallet/setPassword'}>here</Link>
+              &nbsp;to setup.
+            </Typography>
+          </Alert>
+        </Box>
+      )}
+
+      {enableBackupWarn && (
+        <Box mt={1}>
+          <Alert severity="warning">
+            <AlertTitle>Warning</AlertTitle>
+            <Typography>
+              You don&apos;t have to backup your wallet mnemonic phrase. Please click&nbsp;
+              <Link href={'/wallet/phrase/intro'}>here</Link>
+              &nbsp;to recording.
+            </Typography>
+          </Alert>
+        </Box>
+      )}
+
       <Container>
         <Typography variant="h5" pt={5}>
           {getStoreName()}

@@ -9,7 +9,9 @@ import {
   Drawer,
   Icon,
   IconButton,
+  MenuItem,
   Popover,
+  Select,
   Stack,
   SwipeableDrawer,
   Switch,
@@ -92,7 +94,7 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ children, collapse
   };
 
   const handleChangeNetwork = (e: any) => {
-    setNetwork(e.target.checked ? 'mainnet' : 'testnet');
+    setNetwork(e.target.value);
     window.location.reload();
   };
 
@@ -142,14 +144,19 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ children, collapse
         </Stack>
         <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} mt={2}>
           <Typography>Network</Typography>
-          <Stack direction={'row'} alignItems={'center'}>
-            <Typography>{getNetwork().toUpperCase()}</Typography>
-            <Switch
-              {...switchlabel}
-              checked={getNetwork() === 'mainnet' ? true : false}
-              onChange={handleChangeNetwork}
-            />
-          </Stack>
+          <Select
+            inputProps={{ 'aria-label': 'Without label' }}
+            value={getNetwork()}
+            size={'small'}
+            onChange={handleChangeNetwork}
+          >
+            <MenuItem value={'mainnet'} key={1}>
+              mainnet
+            </MenuItem>
+            <MenuItem value={'testnet'} key={2}>
+              testnet
+            </MenuItem>
+          </Select>
         </Stack>
       </Box>
       <Divider />
