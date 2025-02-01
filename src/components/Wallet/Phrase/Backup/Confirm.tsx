@@ -97,11 +97,8 @@ const PhraseBackupConfirm = () => {
     }));
   };
 
-  useEffect(() => {
+  const onClickSelectWord = async (selectWord: Record<number, string>) => {
     if (Object.keys(selectWord).length === 3) {
-
-      console.log(111)
-
       let matchTime = 0;
       Object.keys(selectWord).forEach((key) => {
         if (phrase[parseInt(key) - 1] === selectWord[parseInt(key)]) {
@@ -109,13 +106,21 @@ const PhraseBackupConfirm = () => {
         }
       });
 
-      console.log(111)
-
-
       if (matchTime === 3) {
-        updateWalletBackup();
+        await updateWalletBackup();
+      } else {
+        setSelectWord({});
+
+        setSnackSeverity('warning');
+        setSnackMessage('Matching errors, please try again');
+        setSnackOpen(true);
       }
     }
+  };
+
+  useEffect(() => {
+    onClickSelectWord(selectWord);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectWord]);
 

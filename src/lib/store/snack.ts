@@ -34,7 +34,7 @@ export const useSnackPresistStore = create(
         if (value) {
           setTimeout(() => {
             set(() => ({ snackOpen: !value }));
-          }, 5000);
+          }, 3000);
         }
       },
       getSnackOpen: () => get().snackOpen,

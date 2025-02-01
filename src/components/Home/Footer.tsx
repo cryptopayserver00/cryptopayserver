@@ -1,6 +1,5 @@
 import { Box, Button, Container, Grid, Icon, Stack, Typography } from '@mui/material';
 import { Twitter, GitHub, Telegram, Favorite, Article, HelpOutline } from '@mui/icons-material';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import Link from 'next/link';
 const Footer = () => {
   return (

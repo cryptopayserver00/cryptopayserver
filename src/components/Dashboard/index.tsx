@@ -82,7 +82,7 @@ const Dashboard = () => {
   return (
     <Box>
       {enablePasswordWarn && (
-        <Box mt={1}>
+        <Box mb={1}>
           <Alert severity="warning">
             <AlertTitle>Warning</AlertTitle>
             <Typography>
@@ -95,7 +95,7 @@ const Dashboard = () => {
       )}
 
       {enableBackupWarn && (
-        <Box mt={1}>
+        <Box mb={1}>
           <Alert severity="warning">
             <AlertTitle>Warning</AlertTitle>
             <Typography>
@@ -108,9 +108,7 @@ const Dashboard = () => {
       )}
 
       <Container>
-        <Typography variant="h5" pt={5}>
-          {getStoreName()}
-        </Typography>
+        <Typography variant="h5">{getStoreName()}</Typography>
         <Grid container spacing={2} mt={2}>
           <Grid item xs={12}>
             <Card variant="outlined">

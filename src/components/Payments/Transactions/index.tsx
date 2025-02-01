@@ -1,12 +1,26 @@
 import { ReportGmailerrorred } from '@mui/icons-material';
-import { Box, Container, FormControl, IconButton, OutlinedInput, Select, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Container,
+  FormControl,
+  IconButton,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
 import TransactionDataGrid from '../../DataList/TransactionDataGrid';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
+import { CHAINNAMES } from 'packages/constants/blockchain';
 
 const PaymentTransactions = () => {
+  const ALL_CHAINS = 'All Chains' as const;
+
   const [search, setSearch] = useState<string>('');
+  const [txChain, setTxChain] = useState<CHAINNAMES | typeof ALL_CHAINS>(ALL_CHAINS);
 
   return (
     <Box>
@@ -38,22 +52,22 @@ const PaymentTransactions = () => {
                 }}
               />
             </FormControl>
-            <FormControl sx={{ minWidth: 120 }}>
+            <FormControl>
               <Select
                 size={'small'}
                 inputProps={{ 'aria-label': 'Without label' }}
-                //   value={orderTime}
-                //   defaultValue={orderTime}
-                //   onChange={(e) => {
-                //     setOrderTime(e.target.value);
-                //   }}
+                value={txChain}
+                onChange={(e: any) => {
+                  setTxChain((e.target.value as CHAINNAMES) || ALL_CHAINS);
+                }}
               >
-                {/* {ORDER_TIME &&
-                    Object.entries(ORDER_TIME).map((item, index) => (
-                      <MenuItem value={item[1]} key={index}>
-                        {item[1]}
-                      </MenuItem>
-                    ))} */}
+                <MenuItem value={'All Chains'}>All Chains</MenuItem>
+                {CHAINNAMES &&
+                  Object.entries(CHAINNAMES).map((item, index) => (
+                    <MenuItem value={item[1]} key={index}>
+                      {item[1]}
+                    </MenuItem>
+                  ))}
               </Select>
             </FormControl>
           </Stack>

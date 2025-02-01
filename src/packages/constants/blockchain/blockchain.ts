@@ -552,7 +552,11 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://solana.com',
     isMainnet: true,
     coins: SOLANA_COINS,
-    rpc: ['https://api.mainnet-beta.solana.com', 'https://rpc.ankr.com/solana'],
+    rpc: [
+      // 'https://api.mainnet-beta.solana.com',
+      // 'https://rpc.ankr.com/solana',
+      'https://quiet-evocative-sanctuary.solana-mainnet.quiknode.pro/9546a31f74b22b085dc30ae790d10b23014825af',
+    ],
     icon: require('assets/chain/solana.svg'),
   },
   {

@@ -72,7 +72,7 @@ const Home = () => {
 
             <Box>
               {!isStore && (
-                <Box mt={1}>
+                <Box mb={1}>
                   <Alert severity="warning">
                     <AlertTitle>Warning</AlertTitle>
                     <Typography>
@@ -85,7 +85,7 @@ const Home = () => {
               )}
 
               {!isWallet && (
-                <Box mt={1}>
+                <Box mb={1}>
                   <Alert severity="warning">
                     <AlertTitle>Warning</AlertTitle>
                     <Typography>
@@ -98,7 +98,7 @@ const Home = () => {
               )}
 
               {isWallet && network === 'testnet' && (
-                <Box mt={1}>
+                <Box mb={1}>
                   <Alert severity="warning">
                     <AlertTitle>Warning</AlertTitle>
                     <Typography>
