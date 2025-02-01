@@ -27,6 +27,13 @@ import BitcoinSVG from 'assets/chain/bitcoin.svg';
 import EthereumSVG from 'assets/chain/ethereum.svg';
 import BscSVG from 'assets/chain/bsc.svg';
 import LitecoinSVG from 'assets/chain/litecoin.svg';
+import XrpSVG from 'assets/chain/xrp.svg';
+import BitcoinCashSVG from 'assets/chain/bitcoincash.svg';
+import ArbitrumSVG from 'assets/chain/arbitrum.svg';
+import AvalancheSVG from 'assets/chain/avalanche.svg';
+import PolygonSVG from 'assets/chain/polygon.svg';
+import BaseSVG from 'assets/chain/base.svg';
+import OptimismSVG from 'assets/chain/optimism.svg';
 import SolanaSVG from 'assets/chain/solana.svg';
 import TonSVG from 'assets/chain/ton.svg';
 import TronSVG from 'assets/chain/tron.svg';
@@ -204,61 +211,111 @@ const HomeSidebar = () => {
 
               <Menu menuItemStyles={menuItemStyles}>
                 <MenuItem
-                  icon={<Image src={BitcoinSVG} alt="" width={25} height={25} />}
+                  icon={<Image src={BitcoinSVG} alt="icon" width={25} height={25} />}
                   active={router.pathname === '/wallets/bitcoin' ? true : false}
                   component={<Link href={'/wallets/bitcoin'} />}
                 >
                   Bitcoin
                 </MenuItem>
                 <MenuItem
-                  icon={<Image src={BitcoinSVG} alt="" width={25} height={25} />}
+                  icon={<Image src={BitcoinSVG} alt="icon" width={25} height={25} />}
                   active={router.pathname === '/wallets/bitcoin/lightning' ? true : false}
                   component={<Link href={'/wallets/bitcoin/lightning'} />}
                 >
                   Lightning
                 </MenuItem>
                 <MenuItem
-                  icon={<Image src={EthereumSVG} alt="" width={25} height={25} />}
-                  active={router.pathname === '/wallets/ethereum' ? true : false}
-                  component={<Link href={'/wallets/ethereum'} />}
-                >
-                  Ethereum
-                </MenuItem>
-                <MenuItem
-                  icon={<Image src={SolanaSVG} alt="" width={25} height={25} />}
-                  active={router.pathname === '/wallets/solana' ? true : false}
-                  component={<Link href={'/wallets/solana'} />}
-                >
-                  Solana
-                </MenuItem>
-                <MenuItem
-                  icon={<Image src={BscSVG} alt="" width={25} height={25} />}
-                  active={router.pathname === '/wallets/bsc' ? true : false}
-                  component={<Link href={'/wallets/bsc'} />}
-                >
-                  Binance Smart Chain
-                </MenuItem>
-                <MenuItem
-                  icon={<Image src={LitecoinSVG} alt="" width={25} height={25} />}
+                  icon={<Image src={LitecoinSVG} alt="icon" width={25} height={25} />}
                   active={router.pathname === '/wallets/litecoin' ? true : false}
                   component={<Link href={'/wallets/litecoin'} />}
                 >
                   Litecoin
                 </MenuItem>
                 <MenuItem
-                  icon={<Image src={TonSVG} alt="" width={25} height={25} />}
-                  active={router.pathname === '/wallets/ton' ? true : false}
-                  component={<Link href={'/wallets/ton'} />}
+                  icon={<Image src={XrpSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/xrp' ? true : false}
+                  component={<Link href={'/wallets/xrp'} />}
                 >
-                  Ton
+                  Xrp
                 </MenuItem>
                 <MenuItem
-                  icon={<Image src={TronSVG} alt="" width={25} height={25} />}
+                  icon={<Image src={BitcoinCashSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/bitcoincash' ? true : false}
+                  component={<Link href={'/wallets/bitcoincash'} />}
+                >
+                  Bitcoin Cash
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={EthereumSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/ethereum' ? true : false}
+                  component={<Link href={'/wallets/ethereum'} />}
+                >
+                  Ethereum
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={TronSVG} alt="icon" width={25} height={25} />}
                   active={router.pathname === '/wallets/tron' ? true : false}
                   component={<Link href={'/wallets/tron'} />}
                 >
                   Tron
                 </MenuItem>
+                <MenuItem
+                  icon={<Image src={SolanaSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/solana' ? true : false}
+                  component={<Link href={'/wallets/solana'} />}
+                >
+                  Solana
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={BscSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/bsc' ? true : false}
+                  component={<Link href={'/wallets/bsc'} />}
+                >
+                  Binance Smart Chain
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={ArbitrumSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/arbitrum' ? true : false}
+                  component={<Link href={'/wallets/arbitrum'} />}
+                >
+                  Arbitrum
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={AvalancheSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/avalanche' ? true : false}
+                  component={<Link href={'/wallets/avalanche'} />}
+                >
+                  Avalanche
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={PolygonSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/polygon' ? true : false}
+                  component={<Link href={'/wallets/polygon'} />}
+                >
+                  Polygon
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={BaseSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/base' ? true : false}
+                  component={<Link href={'/wallets/base'} />}
+                >
+                  Base
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={OptimismSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/optimism' ? true : false}
+                  component={<Link href={'/wallets/optimism'} />}
+                >
+                  Optimism
+                </MenuItem>
+                <MenuItem
+                  icon={<Image src={TonSVG} alt="icon" width={25} height={25} />}
+                  active={router.pathname === '/wallets/ton' ? true : false}
+                  component={<Link href={'/wallets/ton'} />}
+                >
+                  Ton
+                </MenuItem>
+
                 <MenuItem
                   icon={<Adjust />}
                   active={router.pathname === '/wallets/blockscan' ? true : false}

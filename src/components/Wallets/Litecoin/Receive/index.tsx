@@ -5,7 +5,7 @@ import { ContentCopy } from '@mui/icons-material';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { GetImgSrcByCrypto } from 'utils/qrcode';
 
 const LitecoinReceive = () => {
@@ -62,7 +62,7 @@ const LitecoinReceive = () => {
               width={250}
               height={250}
               imageSettings={{
-                src: GetImgSrcByCrypto('LTC'),
+                src: GetImgSrcByCrypto(COINS.LTC),
                 width: 35,
                 height: 35,
                 excavate: false,

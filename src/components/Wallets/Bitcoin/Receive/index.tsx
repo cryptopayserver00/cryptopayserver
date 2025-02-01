@@ -5,7 +5,7 @@ import { ContentCopy } from '@mui/icons-material';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { GetImgSrcByCrypto } from 'utils/qrcode';
 
 const BitcoinReceive = () => {
@@ -82,7 +82,7 @@ const BitcoinReceive = () => {
                   width={250}
                   height={250}
                   imageSettings={{
-                    src: GetImgSrcByCrypto('BTC'),
+                    src: GetImgSrcByCrypto(COINS.BTC),
                     width: 35,
                     height: 35,
                     excavate: false,

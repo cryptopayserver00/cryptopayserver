@@ -53,6 +53,27 @@ import PullPaymentsDetails from 'components/PullPayments/id';
 import FreeCoin from 'components/FreeCoin';
 import Welcome from 'components/Welcome';
 import React from 'react';
+import XRP from 'components/Wallets/Xrp';
+import XrpSend from 'components/Wallets/Xrp/Send';
+import XrpReceive from 'components/Wallets/Xrp/Receive';
+import BitcoinCash from 'components/Wallets/BitcoinCash';
+import BitcoinCashSend from 'components/Wallets/BitcoinCash/Send';
+import BitcoinCashReceive from 'components/Wallets/BitcoinCash/Receive';
+import Arbitrum from 'components/Wallets/Arbitrum';
+import ArbitrumSend from 'components/Wallets/Arbitrum/Send';
+import ArbitrumReceive from 'components/Wallets/Arbitrum/Receive';
+import Avalanche from 'components/Wallets/Avalanche';
+import AvalancheSend from 'components/Wallets/Avalanche/Send';
+import AvalancheReceive from 'components/Wallets/Avalanche/Receive';
+import Polygon from 'components/Wallets/Polygon';
+import PolygonSend from 'components/Wallets/Polygon/Send';
+import PolygonReceive from 'components/Wallets/Polygon/Receive';
+import Base from 'components/Wallets/Base';
+import BaseSend from 'components/Wallets/Base/Send';
+import BaseReceive from 'components/Wallets/Base/Receive';
+import Optimism from 'components/Wallets/Optimism';
+import OptimismSend from 'components/Wallets/Optimism/Send';
+import OptimismReceive from 'components/Wallets/Optimism/Receive';
 
 export type RouteType = {
   path: string;
@@ -304,6 +325,195 @@ export const routes: RouteType[] = [
     name: 'TonReceive',
     title: 'TonReceive',
     component: <TonReceive />,
+    enableSidebar: false,
+    needLogin: false,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/xrp',
+    name: 'Xrp',
+    title: 'Xrp',
+    component: <XRP />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/xrp/send',
+    name: 'XrpSend',
+    title: 'XrpSend',
+    component: <XrpSend />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/xrp/receive',
+    name: 'XrpReceive',
+    title: 'XrpReceive',
+    component: <XrpReceive />,
+    enableSidebar: false,
+    needLogin: false,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/bitcoincash',
+    name: 'BitcoinCash',
+    title: 'BitcoinCash',
+    component: <BitcoinCash />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/bitcoincash/send',
+    name: 'BitcoinCashSend',
+    title: 'BitcoinCashSend',
+    component: <BitcoinCashSend />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/bitcoincash/receive',
+    name: 'BitcoinCashReceive',
+    title: 'BitcoinCashReceive',
+    component: <BitcoinCashReceive />,
+    enableSidebar: false,
+    needLogin: false,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/arbitrum',
+    name: 'Arbitrum',
+    title: 'Arbitrum',
+    component: <Arbitrum />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/arbitrum/send',
+    name: 'ArbitrumSend',
+    title: 'ArbitrumSend',
+    component: <ArbitrumSend />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/arbitrum/receive',
+    name: 'ArbitrumReceive',
+    title: 'ArbitrumReceive',
+    component: <ArbitrumReceive />,
+    enableSidebar: false,
+    needLogin: false,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/avalanche',
+    name: 'Avalanche',
+    title: 'Avalanche',
+    component: <Avalanche />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/avalanche/send',
+    name: 'AvalancheSend',
+    title: 'AvalancheSend',
+    component: <AvalancheSend />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/avalanche/receive',
+    name: 'AvalancheReceive',
+    title: 'AvalancheReceive',
+    component: <AvalancheReceive />,
+    enableSidebar: false,
+    needLogin: false,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/polygon',
+    name: 'Polygon',
+    title: 'Polygon',
+    component: <Polygon />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/polygon/send',
+    name: 'PolygonSend',
+    title: 'PolygonSend',
+    component: <PolygonSend />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/polygon/receive',
+    name: 'PolygonReceive',
+    title: 'PolygonReceive',
+    component: <PolygonReceive />,
+    enableSidebar: false,
+    needLogin: false,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/base',
+    name: 'Base',
+    title: 'Base',
+    component: <Base />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/base/send',
+    name: 'BaseSend',
+    title: 'BaseSend',
+    component: <BaseSend />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/base/receive',
+    name: 'BaseReceive',
+    title: 'BaseReceive',
+    component: <BaseReceive />,
+    enableSidebar: false,
+    needLogin: false,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/optimism',
+    name: 'Optimism',
+    title: 'Optimism',
+    component: <Optimism />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/optimism/send',
+    name: 'OptimismSend',
+    title: 'OptimismSend',
+    component: <OptimismSend />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/optimism/receive',
+    name: 'OptimismReceive',
+    title: 'OptimismReceive',
+    component: <OptimismReceive />,
     enableSidebar: false,
     needLogin: false,
     enableInnerFooter: true,

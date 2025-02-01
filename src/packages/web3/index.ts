@@ -8,7 +8,6 @@ import { BSC } from './chain/bsc';
 import { LTC } from './chain/ltc';
 import { TRON } from './chain/tron';
 import { TON } from './chain/ton';
-import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
 import { XRP } from './chain/xrp';
 import { BITCOINCASH } from './chain/bitcoincash';
 import { ARB } from './chain/arb';
@@ -61,6 +60,11 @@ export class WEB3 {
         return BTC.createAccountByPrivateKey(isMainnet, privateKey);
       case CHAINS.ETHEREUM:
       case CHAINS.BSC:
+      case CHAINS.ARBITRUM:
+      case CHAINS.AVALANCHE:
+      case CHAINS.POLYGON:
+      case CHAINS.BASE:
+      case CHAINS.OPTIMISM:
         return Array<ChainAccountType>(ETH.createAccountByPrivateKey(isMainnet, privateKey));
       case CHAINS.SOLANA:
         return Array<ChainAccountType>(SOLANA.createAccountByPrivateKey(isMainnet, privateKey));
@@ -81,6 +85,11 @@ export class WEB3 {
         return BTC.checkAddress(isMainnet, address);
       case CHAINS.ETHEREUM:
       case CHAINS.BSC:
+      case CHAINS.ARBITRUM:
+      case CHAINS.AVALANCHE:
+      case CHAINS.POLYGON:
+      case CHAINS.BASE:
+      case CHAINS.OPTIMISM:
         return ETH.checkAddress(address);
       case CHAINS.SOLANA:
         return SOLANA.checkAddress(address);

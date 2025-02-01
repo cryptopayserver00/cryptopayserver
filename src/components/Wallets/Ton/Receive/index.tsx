@@ -5,7 +5,7 @@ import { ContentCopy } from '@mui/icons-material';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { GetImgSrcByCrypto } from 'utils/qrcode';
 
 const TonReceive = () => {
@@ -61,7 +61,7 @@ const TonReceive = () => {
               width={250}
               height={250}
               imageSettings={{
-                src: GetImgSrcByCrypto('TON'),
+                src: GetImgSrcByCrypto(COINS.TON),
                 width: 30,
                 height: 40,
                 excavate: false,

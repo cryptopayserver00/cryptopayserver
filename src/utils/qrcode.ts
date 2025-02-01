@@ -5,7 +5,7 @@ export function GenerateQrCode(content: string) {
   return QRCode.toDataURL(content);
 }
 
-export function GetImgSrcByCrypto(crypto: string): string {
+export function GetImgSrcByCrypto(crypto: COINS): string {
   const baseUrl = window.location.origin;
 
   switch (crypto) {

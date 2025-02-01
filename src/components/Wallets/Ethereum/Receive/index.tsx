@@ -5,7 +5,7 @@ import { ContentCopy } from '@mui/icons-material';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { GetImgSrcByCrypto } from 'utils/qrcode';
 
 const EthereumReceive = () => {
@@ -61,7 +61,7 @@ const EthereumReceive = () => {
               width={250}
               height={250}
               imageSettings={{
-                src: GetImgSrcByCrypto('ETH'),
+                src: GetImgSrcByCrypto(COINS.ETH),
                 width: 30,
                 height: 40,
                 excavate: false,

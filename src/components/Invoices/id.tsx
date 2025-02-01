@@ -25,6 +25,7 @@ import { ORDER_STATUS } from 'packages/constants';
 import { GetImgSrcByCrypto } from 'utils/qrcode';
 import Link from 'next/link';
 import { FindChainNamesByChains, GetBlockchainAddressUrlByChainIds, GetBlockchainTxUrlByChainIds } from 'utils/web3';
+import { COINS } from 'packages/constants/blockchain';
 
 type OrderType = {
   orderId: number;
@@ -329,7 +330,7 @@ const InvoiceDetails = () => {
                 width={250}
                 height={250}
                 imageSettings={{
-                  src: GetImgSrcByCrypto(order.crypto),
+                  src: GetImgSrcByCrypto(order.crypto as COINS),
                   width: 35,
                   height: 35,
                   excavate: false,

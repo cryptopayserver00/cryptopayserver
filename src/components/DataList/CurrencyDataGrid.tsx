@@ -48,7 +48,7 @@ export default function CurrencyDataGrid(props: GridType) {
       headerAlign: 'left',
       renderCell: ({ row }) => (
         <Stack direction={'row'} alignItems={'center'} height={'100%'}>
-          <Image src={GetImgSrcByCrypto(row.coin).toString()} alt="logo" width={20} height={20} />
+          <Image src={GetImgSrcByCrypto(row.coin as COINS).toString()} alt="logo" width={20} height={20} />
           <Typography pl={2} fontWeight={'bold'}>
             {row.coin}
           </Typography>
