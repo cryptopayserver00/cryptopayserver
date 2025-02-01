@@ -37,6 +37,9 @@ const GenerateWallet = () => {
         setSnackSeverity('success');
         setSnackMessage('Successful creation!');
         setSnackOpen(true);
+
+        await walletToBlockScan(create_wallet_resp.data.wallet_id);
+
         setTimeout(() => {
           window.location.href = '/wallet/setPassword';
         }, 2000);
@@ -44,6 +47,27 @@ const GenerateWallet = () => {
     } catch (e) {
       setSnackSeverity('error');
       setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const walletToBlockScan = async (walletId: string) => {
+    try {
+      const response: any = await axios.post(Http.create_wallet_to_block_scan, {
+        user_id: getUserId(),
+        wallet_id: walletId,
+      });
+
+      if (response.result) {
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Some addresses cannot join the Sweeping Quest, please try again');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('Some addresses cannot join the Sweeping Quest, please try again');
       setSnackOpen(true);
       console.error(e);
     }

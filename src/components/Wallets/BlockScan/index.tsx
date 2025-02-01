@@ -25,15 +25,10 @@ const BlockScan = () => {
   const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>([]);
 
   const checkScanStatus = async () => {
-    if (!wallet || wallet.length <= 0) {
-      return;
-    }
-
     try {
       const response: any = await axios.post(Http.create_wallet_to_block_scan, {
         user_id: getUserId(),
         wallet_id: getWalletId(),
-        network: getNetwork() === 'mainnet' ? 1 : 2,
       });
 
       if (response.result) {
@@ -42,12 +37,12 @@ const BlockScan = () => {
         setSnackOpen(true);
       } else {
         setSnackSeverity('error');
-        setSnackMessage('Verification failed, please try again');
+        setSnackMessage('Some addresses cannot join the Sweeping Quest, please try again');
         setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');
-      setSnackMessage('Verification failed, please try again');
+      setSnackMessage('Some addresses cannot join the Sweeping Quest, please try again');
       setSnackOpen(true);
       console.error(e);
     }
@@ -130,6 +125,7 @@ const BlockScan = () => {
   const init = async () => {
     await getWalletAddress();
     await getNetworkInfo();
+    await checkScanStatus();
   };
 
   useEffect(() => {

@@ -9,6 +9,13 @@ import { LTC } from './chain/ltc';
 import { TRON } from './chain/tron';
 import { TON } from './chain/ton';
 import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
+import { XRP } from './chain/xrp';
+import { BITCOINCASH } from './chain/bitcoincash';
+import { ARB } from './chain/arb';
+import { AVALANCHE } from './chain/avalanche';
+import { POL } from './chain/pol';
+import { BASE } from './chain/base';
+import { OP } from './chain/op';
 
 export class WEB3 {
   // support: Import and generate wallet
@@ -120,16 +127,30 @@ export class WEB3 {
     switch (chain) {
       case CHAINS.BITCOIN:
         return BTC.getChainIds(isMainnet);
+      case CHAINS.LITECOIN:
+        return LTC.getChainIds(isMainnet);
+      case CHAINS.XRP:
+        return XRP.getChainIds(isMainnet);
+      case CHAINS.BITCOINCASH:
+        return BITCOINCASH.getChainIds(isMainnet);
       case CHAINS.ETHEREUM:
         return ETH.getChainIds(isMainnet);
+      case CHAINS.TRON:
+        return TRON.getChainIds(isMainnet);
       case CHAINS.SOLANA:
         return SOLANA.getChainIds(isMainnet);
       case CHAINS.BSC:
         return BSC.getChainIds(isMainnet);
-      case CHAINS.LITECOIN:
-        return LTC.getChainIds(isMainnet);
-      case CHAINS.TRON:
-        return TRON.getChainIds(isMainnet);
+      case CHAINS.ARBITRUM:
+        return ARB.getChainIds(isMainnet);
+      case CHAINS.AVALANCHE:
+        return AVALANCHE.getChainIds(isMainnet);
+      case CHAINS.POLYGON:
+        return POL.getChainIds(isMainnet);
+      case CHAINS.BASE:
+        return BASE.getChainIds(isMainnet);
+      case CHAINS.OPTIMISM:
+        return OP.getChainIds(isMainnet);
       case CHAINS.TON:
         return TON.getChainIds(isMainnet);
       default:

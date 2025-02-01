@@ -9,7 +9,7 @@ const Forms = () => {
           <Button
             variant={'contained'}
             onClick={() => {
-              alert('no suuport right now!');
+              alert('no support right now!');
             }}
           >
             Create Form

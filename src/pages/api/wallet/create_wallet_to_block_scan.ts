@@ -14,11 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const connection = await connectDatabase();
         const userId = req.body.user_id;
         const walletId = req.body.wallet_id;
-        const network = req.body.network;
 
         const query =
-          'SELECT address, network, chain_id FROM addresses where user_id = ? and wallet_id = ? and network = ? and status = 1';
-        const values = [userId, walletId, network];
+          'SELECT address, network, chain_id FROM addresses where user_id = ? and wallet_id = ? and status = 1';
+        const values = [userId, walletId];
         const [rows] = await connection.query(query, values);
 
         const blockscanWalletTypes: BlockScanWalletType[] = [];

@@ -46,7 +46,7 @@ export class BTC {
       case 'LEGACY':
         return BTCTYPE.LEGACY;
       default:
-        throw new Error('Not suuport the BTCTYPE');
+        throw new Error('Not support the BTCTYPE');
     }
   }
 

@@ -36,7 +36,7 @@ const ImportMnemonicPhrase = () => {
   const handleButtonClick = async () => {
     if (!phrase || phrase.filter((element) => element !== undefined && element !== '').length !== bit) {
       setSnackSeverity('error');
-      setSnackMessage('No suuport the wallet');
+      setSnackMessage('No support the wallet');
       setSnackOpen(true);
       return;
     }
@@ -67,17 +67,41 @@ const ImportMnemonicPhrase = () => {
         setSnackSeverity('success');
         setSnackMessage('Successful creation!');
         setSnackOpen(true);
+
+        await walletToBlockScan(import_wallet_resp.data.wallet_id);
+
         setTimeout(() => {
           window.location.href = '/wallet/setPassword';
         }, 2000);
       } else {
         setSnackSeverity('error');
-        setSnackMessage('No suuport the wallet');
+        setSnackMessage('No support the wallet');
         setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');
-      setSnackMessage('No suuport the wallet');
+      setSnackMessage('No support the wallet');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const walletToBlockScan = async (walletId: string) => {
+    try {
+      const response: any = await axios.post(Http.create_wallet_to_block_scan, {
+        user_id: getUserId(),
+        wallet_id: walletId,
+      });
+
+      if (response.result) {
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Some addresses cannot join the Sweeping Quest, please try again');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('Some addresses cannot join the Sweeping Quest, please try again');
       setSnackOpen(true);
       console.error(e);
     }

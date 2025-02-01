@@ -64,7 +64,7 @@ const Dashboard = () => {
         setEnablePasswordWarn(false);
       }
 
-      if (response.result && response.data.is_backup === 2) {
+      if (response.result && response.data.is_backup === 1) {
         setEnableBackupWarn(true);
       } else {
         setEnableBackupWarn(false);
