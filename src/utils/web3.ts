@@ -116,7 +116,7 @@ export function FindChainNamesByChains(chains: CHAINS): CHAINNAMES {
   }
 }
 
-export function GetBlockchainTxUrlByChainIds(isMainnet: boolean, chain: CHAINS, hash: string) {
+export function GetBlockchainTxUrlByChainIds(isMainnet: boolean, chain: CHAINS, hash: string): string {
   switch (chain) {
     case CHAINS.BITCOIN:
       return GetBTCBlockchainTxUrl(isMainnet, hash);
@@ -135,7 +135,7 @@ export function GetBlockchainTxUrlByChainIds(isMainnet: boolean, chain: CHAINS, 
   }
 }
 
-export function GetBlockchainAddressUrlByChainIds(isMainnet: boolean, chain: CHAINS, address: string) {
+export function GetBlockchainAddressUrlByChainIds(isMainnet: boolean, chain: CHAINS, address: string): string {
   switch (chain) {
     case CHAINS.BITCOIN:
       return GetBTCBlockchainAddressUrl(isMainnet, address);
@@ -152,4 +152,24 @@ export function GetBlockchainAddressUrlByChainIds(isMainnet: boolean, chain: CHA
     default:
       return '';
   }
+}
+
+export function GetAllMainnetChainIds(): CHAINIDS[] {
+  return [
+    CHAINIDS.BITCOIN,
+    CHAINIDS.LITECOIN,
+    CHAINIDS.XRP,
+    CHAINIDS.BITCOINCASH,
+    CHAINIDS.ETHEREUM,
+    CHAINIDS.TRON,
+    CHAINIDS.SOLANA,
+    CHAINIDS.BSC,
+    CHAINIDS.ARBITRUM_ONE,
+    CHAINIDS.ARBITRUM_NOVA,
+    CHAINIDS.AVALANCHE,
+    CHAINIDS.POLYGON,
+    CHAINIDS.BASE,
+    CHAINIDS.OPTIMISM,
+    CHAINIDS.TON,
+  ];
 }
