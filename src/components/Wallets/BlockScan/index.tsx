@@ -105,19 +105,19 @@ const BlockScan = () => {
 
   const getNetworkInfo = async () => {
     const value = BLOCKCHAINNAMES.filter((item) => (getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet));
-    value.forEach(async (item) => {
-      // if (item.rpc) {
-      //   const time = await checkRequestTime(item.rpc[0]);
-      //   if (time === 0) {
-      //     setSnackSeverity('error');
-      //     setSnackMessage('The network error occurred. Please try again later.');
-      //     setSnackOpen(true);
-      //     return;
-      //   }
-      //   item.time = parseInt(time.toString());
-      // }
-      item.time = 0;
-    });
+    // value.forEach(async (item) => {
+    // if (item.rpc) {
+    //   const time = await checkRequestTime(item.rpc[0]);
+    //   if (time === 0) {
+    //     setSnackSeverity('error');
+    //     setSnackMessage('The network error occurred. Please try again later.');
+    //     setSnackOpen(true);
+    //     return;
+    //   }
+    //   item.time = parseInt(time.toString());
+    // }
+    // item.time = 0;
+    // });
 
     setBlcokchain(value);
   };
@@ -193,18 +193,18 @@ const BlockScan = () => {
                           <Button
                             variant={'contained'}
                             onClick={() => {
-                              window.location.href = item.explorerUrl as string;
-                            }}
-                          >
-                            Explorer
-                          </Button>
-                          <Button
-                            variant={'contained'}
-                            onClick={() => {
                               window.location.href = item.websiteUrl as string;
                             }}
                           >
                             Website
+                          </Button>
+                          <Button
+                            variant={'contained'}
+                            onClick={() => {
+                              window.location.href = item.explorerUrl as string;
+                            }}
+                          >
+                            Explorer
                           </Button>
                         </Stack>
 
@@ -234,15 +234,23 @@ const BlockScan = () => {
                             )}
                           </Stack>
                         ))}
-                        <Typography fontSize={16} fontWeight={'bold'} mt={4}>
-                          RPC:
-                        </Typography>
-                        <Typography mt={1}>{item.rpc && item.rpc[0]}</Typography>
+                        {item.rpc && item.rpc.length > 0 && (
+                          <Box>
+                            <Typography fontSize={16} fontWeight={'bold'} mt={4}>
+                              RPC:
+                            </Typography>
+                            {item.rpc.map((item, index) => (
+                              <Typography mt={1} key={index}>
+                                {item}
+                              </Typography>
+                            ))}
+                          </Box>
+                        )}
                       </Box>
                     </Stack>
-                    <Typography color={'green'} width={70}>
+                    {/* <Typography color={'green'} width={70}>
                       {item.time} ms
-                    </Typography>
+                    </Typography> */}
                   </Stack>
                 </CardContent>
               </Card>

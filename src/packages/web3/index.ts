@@ -58,6 +58,12 @@ export class WEB3 {
     switch (chain) {
       case CHAINS.BITCOIN:
         return BTC.createAccountByPrivateKey(isMainnet, privateKey);
+      case CHAINS.LITECOIN:
+        return Array<ChainAccountType>(LTC.createAccountByPrivateKey(isMainnet, privateKey));
+      case CHAINS.XRP:
+        return [];
+      case CHAINS.BITCOINCASH:
+        return [];
       case CHAINS.ETHEREUM:
       case CHAINS.BSC:
       case CHAINS.ARBITRUM:
@@ -66,12 +72,10 @@ export class WEB3 {
       case CHAINS.BASE:
       case CHAINS.OPTIMISM:
         return Array<ChainAccountType>(ETH.createAccountByPrivateKey(isMainnet, privateKey));
-      case CHAINS.SOLANA:
-        return Array<ChainAccountType>(SOLANA.createAccountByPrivateKey(isMainnet, privateKey));
-      case CHAINS.LITECOIN:
-        return Array<ChainAccountType>(LTC.createAccountByPrivateKey(isMainnet, privateKey));
       case CHAINS.TRON:
         return Array<ChainAccountType>(TRON.createAccountByPrivateKey(isMainnet, privateKey));
+      case CHAINS.SOLANA:
+        return Array<ChainAccountType>(SOLANA.createAccountByPrivateKey(isMainnet, privateKey));
       case CHAINS.TON:
         return Array<ChainAccountType>(await TON.createAccountByPrivateKey(isMainnet, privateKey));
       default:
@@ -83,6 +87,12 @@ export class WEB3 {
     switch (chain) {
       case CHAINS.BITCOIN:
         return BTC.checkAddress(isMainnet, address);
+      case CHAINS.LITECOIN:
+        return LTC.checkAddress(isMainnet, address);
+      case CHAINS.XRP:
+        return false;
+      case CHAINS.BITCOINCASH:
+        return false;
       case CHAINS.ETHEREUM:
       case CHAINS.BSC:
       case CHAINS.ARBITRUM:
@@ -91,12 +101,10 @@ export class WEB3 {
       case CHAINS.BASE:
       case CHAINS.OPTIMISM:
         return ETH.checkAddress(address);
-      case CHAINS.SOLANA:
-        return SOLANA.checkAddress(address);
-      case CHAINS.LITECOIN:
-        return LTC.checkAddress(isMainnet, address);
       case CHAINS.TRON:
         return TRON.checkAddress(address);
+      case CHAINS.SOLANA:
+        return SOLANA.checkAddress(address);
       case CHAINS.TON:
         return TON.checkAddress(isMainnet, address);
       default:
@@ -108,14 +116,14 @@ export class WEB3 {
     switch (chain) {
       case CHAINS.BITCOIN:
         return BTC.getCurrentFeeRate(isMainnet);
+      case CHAINS.LITECOIN:
+        return LTC.getCurrentFeeRate(isMainnet);
       case CHAINS.ETHEREUM:
         return ETH.getGasPrice(isMainnet);
       case CHAINS.SOLANA:
         return null;
       case CHAINS.BSC:
         return BSC.getGasPrice(isMainnet);
-      case CHAINS.LITECOIN:
-        return LTC.getCurrentFeeRate(isMainnet);
       case CHAINS.TON:
         return null;
       default:
@@ -171,16 +179,30 @@ export class WEB3 {
     switch (chain) {
       case CHAINS.BITCOIN:
         return await BTC.getAssetBalance(isMainnet, address);
+      case CHAINS.LITECOIN:
+        return await LTC.getAssetBalance(isMainnet, address);
+      case CHAINS.XRP:
+        return {} as AssetBalance;
+      case CHAINS.BITCOINCASH:
+        return {} as AssetBalance;
       case CHAINS.ETHEREUM:
         return await ETH.getAssetBalance(isMainnet, address);
+      case CHAINS.TRON:
+        return await TRON.getAssetBalance(isMainnet, address);
       case CHAINS.SOLANA:
         return await SOLANA.getAssetBalance(isMainnet, address);
       case CHAINS.BSC:
         return await BSC.getAssetBalance(isMainnet, address);
-      case CHAINS.LITECOIN:
-        return await LTC.getAssetBalance(isMainnet, address);
-      case CHAINS.TRON:
-        return await TRON.getAssetBalance(isMainnet, address);
+      case CHAINS.ARBITRUM:
+        return {} as AssetBalance;
+      case CHAINS.AVALANCHE:
+        return {} as AssetBalance;
+      case CHAINS.POLYGON:
+        return {} as AssetBalance;
+      case CHAINS.BASE:
+        return {} as AssetBalance;
+      case CHAINS.OPTIMISM:
+        return {} as AssetBalance;
       case CHAINS.TON:
         return await TON.getAssetBalance(isMainnet, address);
       default:
@@ -230,16 +252,30 @@ export class WEB3 {
     switch (chain) {
       case CHAINS.BITCOIN:
         return await BTC.getTransactionDetail(isMainnet, hash);
+      case CHAINS.LITECOIN:
+        return await LTC.getTransactionDetail(isMainnet, hash);
+      case CHAINS.XRP:
+        return {} as TransactionDetail;
+      case CHAINS.BITCOINCASH:
+        return {} as TransactionDetail;
       case CHAINS.ETHEREUM:
         return await ETH.getTransactionDetail(isMainnet, hash);
+      case CHAINS.TRON:
+        return await TRON.getTransactionDetail(isMainnet, hash);
       case CHAINS.SOLANA:
         return await SOLANA.getTransactionDetail(isMainnet, hash);
       case CHAINS.BSC:
         return await BSC.getTransactionDetail(isMainnet, hash);
-      case CHAINS.LITECOIN:
-        return await LTC.getTransactionDetail(isMainnet, hash);
-      case CHAINS.TRON:
-        return await TRON.getTransactionDetail(isMainnet, hash);
+      case CHAINS.ARBITRUM:
+        return {} as TransactionDetail;
+      case CHAINS.AVALANCHE:
+        return {} as TransactionDetail;
+      case CHAINS.POLYGON:
+        return {} as TransactionDetail;
+      case CHAINS.BASE:
+        return {} as TransactionDetail;
+      case CHAINS.OPTIMISM:
+        return {} as TransactionDetail;
       case CHAINS.TON:
         return await TON.getTransactionDetail(isMainnet, hash);
       default:
@@ -251,16 +287,30 @@ export class WEB3 {
     switch (chain) {
       case CHAINS.BITCOIN:
         return await BTC.getTransactions(isMainnet, address);
+      case CHAINS.LITECOIN:
+        return await LTC.getTransactions(isMainnet, address);
+      case CHAINS.XRP:
+        return [];
+      case CHAINS.BITCOINCASH:
+        return [];
       case CHAINS.ETHEREUM:
         return await ETH.getTransactions(isMainnet, address, token?.symbol);
+      case CHAINS.TRON:
+        return await TRON.getTransactions(isMainnet, address, token?.symbol);
       case CHAINS.SOLANA:
         return await SOLANA.getTransactions(isMainnet, address);
       case CHAINS.BSC:
         return await BSC.getTransactions(isMainnet, address, token?.symbol);
-      case CHAINS.LITECOIN:
-        return await LTC.getTransactions(isMainnet, address);
-      case CHAINS.TRON:
-        return await TRON.getTransactions(isMainnet, address, token?.symbol);
+      case CHAINS.ARBITRUM:
+        return [];
+      case CHAINS.AVALANCHE:
+        return [];
+      case CHAINS.POLYGON:
+        return [];
+      case CHAINS.BASE:
+        return [];
+      case CHAINS.OPTIMISM:
+        return [];
       case CHAINS.TON:
         return await TON.getTransactions(isMainnet, address, token?.symbol);
       default:
@@ -272,16 +322,30 @@ export class WEB3 {
     switch (req.coin.chainId) {
       case CHAINS.BITCOIN:
         return await BTC.sendTransaction(isMainnet, req);
+      case CHAINS.LITECOIN:
+        return await LTC.sendTransaction(isMainnet, req);
+      case CHAINS.XRP:
+        return '';
+      case CHAINS.BITCOINCASH:
+        return '';
       case CHAINS.ETHEREUM:
         return await ETH.sendTransaction(isMainnet, req);
+      case CHAINS.TRON:
+        return await TRON.sendTransaction(isMainnet, req);
       case CHAINS.SOLANA:
         return await SOLANA.sendTransaction(isMainnet, req);
       case CHAINS.BSC:
         return await BSC.sendTransaction(isMainnet, req);
-      case CHAINS.LITECOIN:
-        return await LTC.sendTransaction(isMainnet, req);
-      case CHAINS.TRON:
-        return await TRON.sendTransaction(isMainnet, req);
+      case CHAINS.ARBITRUM:
+        return '';
+      case CHAINS.AVALANCHE:
+        return '';
+      case CHAINS.POLYGON:
+        return '';
+      case CHAINS.BASE:
+        return '';
+      case CHAINS.OPTIMISM:
+        return '';
       case CHAINS.TON:
         return await TON.sendTransaction(isMainnet, req);
       default:

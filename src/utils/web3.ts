@@ -4,9 +4,25 @@ import {
   GetBlockchainTxUrl as GetBTCBlockchainTxUrl,
 } from './chain/btc';
 import {
+  GetBlockchainAddressUrl as GetLtcBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetLtcBlockchainTxUrl,
+} from './chain/ltc';
+import {
+  GetBlockchainAddressUrl as GetXrpBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetXrpBlockchainTxUrl,
+} from './chain/xrp';
+import {
+  GetBlockchainAddressUrl as GetBchBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetBchBlockchainTxUrl,
+} from './chain/bch';
+import {
   GetBlockchainAddressUrl as GetETHBlockchainAddressUrl,
   GetBlockchainTxUrl as GetETHBlockchainTxUrl,
 } from './chain/eth';
+import {
+  GetBlockchainAddressUrl as GetTronBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetTronBlockchainTxUrl,
+} from './chain/tron';
 import {
   GetBlockchainAddressUrl as GetSolanaBlockchainAddressUrl,
   GetBlockchainTxUrl as GetSolanaBlockchainTxUrl,
@@ -16,13 +32,29 @@ import {
   GetBlockchainTxUrl as GetBscBlockchainTxUrl,
 } from './chain/bsc';
 import {
-  GetBlockchainAddressUrl as GetLtcBlockchainAddressUrl,
-  GetBlockchainTxUrl as GetLtcBlockchainTxUrl,
-} from './chain/ltc';
+  GetBlockchainAddressUrl as GetArbBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetArbBlockchainTxUrl,
+} from './chain/arb';
 import {
-  GetBlockchainAddressUrl as GetTronBlockchainAddressUrl,
-  GetBlockchainTxUrl as GetTronBlockchainTxUrl,
-} from './chain/tron';
+  GetBlockchainAddressUrl as GetAvaxBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetAvaxBlockchainTxUrl,
+} from './chain/avax';
+import {
+  GetBlockchainAddressUrl as GetPolBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetPolBlockchainTxUrl,
+} from './chain/pol';
+import {
+  GetBlockchainAddressUrl as GetBaseBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetBaseBlockchainTxUrl,
+} from './chain/base';
+import {
+  GetBlockchainAddressUrl as GetOpBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetOpBlockchainTxUrl,
+} from './chain/op';
+import {
+  GetBlockchainAddressUrl as GetTonBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetTonBlockchainTxUrl,
+} from './chain/ton';
 
 export function FindTokenByChainIdsAndContractAddress(chainIds: CHAINIDS, contractAddress: string): COIN {
   const coins = BLOCKCHAINNAMES.find((item) => item.chainId === chainIds)?.coins;
@@ -120,16 +152,32 @@ export function GetBlockchainTxUrlByChainIds(isMainnet: boolean, chain: CHAINS, 
   switch (chain) {
     case CHAINS.BITCOIN:
       return GetBTCBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.LITECOIN:
+      return GetLtcBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.XRP:
+      return GetXrpBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.BITCOINCASH:
+      return GetBchBlockchainTxUrl(isMainnet, hash);
     case CHAINS.ETHEREUM:
       return GetETHBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.TRON:
+      return GetTronBlockchainTxUrl(isMainnet, hash);
     case CHAINS.SOLANA:
       return GetSolanaBlockchainTxUrl(isMainnet, hash);
     case CHAINS.BSC:
       return GetBscBlockchainTxUrl(isMainnet, hash);
-    case CHAINS.LITECOIN:
-      return GetLtcBlockchainTxUrl(isMainnet, hash);
-    case CHAINS.TRON:
-      return GetTronBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.ARBITRUM:
+      return GetArbBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.AVALANCHE:
+      return GetAvaxBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.POLYGON:
+      return GetPolBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.BASE:
+      return GetBaseBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.OPTIMISM:
+      return GetOpBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.TON:
+      return GetTonBlockchainTxUrl(isMainnet, hash);
     default:
       return '';
   }
@@ -139,16 +187,32 @@ export function GetBlockchainAddressUrlByChainIds(isMainnet: boolean, chain: CHA
   switch (chain) {
     case CHAINS.BITCOIN:
       return GetBTCBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.LITECOIN:
+      return GetLtcBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.XRP:
+      return GetXrpBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.BITCOINCASH:
+      return GetBchBlockchainAddressUrl(isMainnet, address);
     case CHAINS.ETHEREUM:
       return GetETHBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.TRON:
+      return GetTronBlockchainAddressUrl(isMainnet, address);
     case CHAINS.SOLANA:
       return GetSolanaBlockchainAddressUrl(isMainnet, address);
     case CHAINS.BSC:
       return GetBscBlockchainAddressUrl(isMainnet, address);
-    case CHAINS.LITECOIN:
-      return GetLtcBlockchainAddressUrl(isMainnet, address);
-    case CHAINS.TRON:
-      return GetTronBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.ARBITRUM:
+      return GetArbBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.AVALANCHE:
+      return GetAvaxBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.POLYGON:
+      return GetPolBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.BASE:
+      return GetBaseBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.OPTIMISM:
+      return GetOpBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.TON:
+      return GetTonBlockchainAddressUrl(isMainnet, address);
     default:
       return '';
   }
