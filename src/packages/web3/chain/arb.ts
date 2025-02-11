@@ -99,6 +99,23 @@ export class ARB {
 
   static async getAssetBalance(isMainnet: boolean, address: string): Promise<AssetBalance> {
     try {
+      let items = {} as AssetBalance;
+      items.ETH = await this.getETHBalance(isMainnet, address);
+
+      const coins = BLOCKCHAINNAMES.find((item) => item.chainId === this.getChainIds(isMainnet))?.coins;
+      if (coins && coins.length > 0) {
+        const tokens = coins.filter((item) => !item.isMainCoin);
+
+        const promises = tokens.map(async (token) => {
+          if (token.contractAddress && token.contractAddress !== '') {
+            const balance = await this.getERC20Balance(isMainnet, address, token.contractAddress);
+            items[token.symbol] = balance;
+          }
+        });
+
+        await Promise.all(promises);
+      }
+      return items;
     } catch (e) {
       console.error(e);
       throw new Error('can not get the asset balance of arb');
@@ -224,6 +241,76 @@ export class ARB {
     }
   }
 
+  static async estimateGas(isMainnet: boolean, txParams: TransactionRequest): Promise<number> {
+    try {
+      const response = await RPC.callRPC(this.getChainIds(isMainnet), TRANSACTIONFUNCS.EstimateGas, [
+        {
+          from: txParams.from,
+          to: txParams.to,
+          value: txParams.value,
+        },
+      ]);
+
+      if (!response || response === null) {
+        throw new Error('can not estimate gas of arb');
+      }
+
+      const gasLimit = new Big(parseInt(response.result, 16));
+      if (gasLimit && gasLimit.gt(0)) {
+        return gasLimit.toNumber();
+      }
+
+      throw new Error('can not estimate gas of arb');
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not estimate gas of arb');
+    }
+  }
+
+  static async getGasPrice(isMainnet: boolean): Promise<ETHGasPrice> {
+    try {
+      const response = await RPC.callRPC(this.getChainIds(isMainnet), TRANSACTIONFUNCS.GETGASPRICE, []);
+      if (!response || response === null) {
+        throw new Error('can not get the gasPrice');
+      }
+
+      const gasPrice = new Big(parseInt(response.result, 16));
+
+      if (gasPrice && gasPrice.gt(0)) {
+        return {
+          slow: gasPrice.toString(),
+          normal: gasPrice.mul(150).div(100).toString(),
+          fast: gasPrice.mul(2).toString(),
+        };
+      }
+
+      throw new Error('can not get gasPrice of arb');
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not get gasPrice of arb');
+    }
+  }
+
+  static async getGasLimit(
+    isMainnet: boolean,
+    contractAddress: string,
+    from: string,
+    to: string,
+    value: string,
+  ): Promise<number> {
+    if (contractAddress && contractAddress !== '') {
+      return 96000;
+    }
+
+    const txParams: TransactionRequest = {
+      from: from,
+      to: to,
+      value: ethers.toQuantity(1),
+    };
+
+    return await this.estimateGas(isMainnet, txParams);
+  }
+
   static async createTransaction(
     isMainnet: boolean,
     request: CreateEthereumTransaction,
@@ -235,15 +322,19 @@ export class ARB {
     }
   }
 
-  static async createETHTransaction(
-    isMainnet: boolean,
-    request: CreateEthereumTransaction,
-  ): Promise<CreateEthereumTransaction> {}
-
   static async createERC20Transaction(
     isMainnet: boolean,
     request: CreateEthereumTransaction,
-  ): Promise<CreateEthereumTransaction> {}
+  ): Promise<CreateEthereumTransaction> {
+    throw new Error('can not create the transaction of arb');
+  }
+
+  static async createETHTransaction(
+    isMainnet: boolean,
+    request: CreateEthereumTransaction,
+  ): Promise<CreateEthereumTransaction> {
+    throw new Error('can not create the transaction of arb');
+  }
 
   static async getNonce(isMainnet: boolean, address: string): Promise<number> {
     try {
@@ -261,7 +352,13 @@ export class ARB {
     }
   }
 
-  static async sendTransaction(isMainnet: boolean, request: SendTransaction): Promise<string> {}
+  static async sendTransaction(isMainnet: boolean, request: SendTransaction): Promise<string> {
+    if (!request.privateKey || request.privateKey === '') {
+      throw new Error('can not get the private key of arb');
+    }
+
+    throw new Error('can not send the transaction of arb');
+  }
 
   static async personalSign(privateKey: string, message: string): Promise<string> {
     const wallet = new ethers.Wallet(privateKey);

@@ -116,6 +116,10 @@ const Solana = () => {
         setSettingId(response.data.id);
         setPaymentExpire(response.data.payment_expire);
         setCurrentUsedAddressId(response.data.current_used_address_id ? response.data.current_used_address_id : 0);
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('The network error occurred. Please try again later.');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');

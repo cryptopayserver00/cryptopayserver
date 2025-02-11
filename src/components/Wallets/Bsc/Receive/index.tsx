@@ -50,7 +50,7 @@ const BscReceive = () => {
     <Box mt={4}>
       <Container maxWidth="sm">
         <Typography variant="h4" mt={4} textAlign={'center'}>
-          Receive BNB
+          Receive Binance Smart Contract
         </Typography>
 
         <Box mt={4} textAlign={'center'}>

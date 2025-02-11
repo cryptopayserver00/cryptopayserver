@@ -119,6 +119,10 @@ const Ton = () => {
         setConfirmBlock(response.data.confirm_block);
         setShowRecommendedFee(response.data.show_recommended_fee === 1 ? true : false);
         setCurrentUsedAddressId(response.data.current_used_address_id ? response.data.current_used_address_id : 0);
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('The network error occurred. Please try again later.');
+        setSnackOpen(true);
       }
     } catch (e) {
       setSnackSeverity('error');

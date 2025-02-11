@@ -120,10 +120,12 @@ export class WEB3 {
         return LTC.getCurrentFeeRate(isMainnet);
       case CHAINS.ETHEREUM:
         return ETH.getGasPrice(isMainnet);
-      case CHAINS.SOLANA:
-        return null;
       case CHAINS.BSC:
         return BSC.getGasPrice(isMainnet);
+      case CHAINS.ARBITRUM:
+        return ARB.getGasPrice(isMainnet);
+      case CHAINS.SOLANA:
+        return null;
       case CHAINS.TON:
         return null;
       default:
@@ -194,7 +196,7 @@ export class WEB3 {
       case CHAINS.BSC:
         return await BSC.getAssetBalance(isMainnet, address);
       case CHAINS.ARBITRUM:
-        return {} as AssetBalance;
+        return await ARB.getAssetBalance(isMainnet, address);
       case CHAINS.AVALANCHE:
         return {} as AssetBalance;
       case CHAINS.POLYGON:
@@ -216,6 +218,8 @@ export class WEB3 {
         return await ETH.getNonce(isMainnet, address);
       case CHAINS.BSC:
         return await BSC.getNonce(isMainnet, address);
+      case CHAINS.ARBITRUM:
+        return await ARB.getNonce(isMainnet, address);
       default:
         return 0;
     }
@@ -234,6 +238,8 @@ export class WEB3 {
         return await ETH.getGasLimit(isMainnet, contractAddress, from, to, value);
       case CHAINS.BSC:
         return await BSC.getGasLimit(isMainnet, contractAddress, from, to, value);
+      case CHAINS.ARBITRUM:
+        return await ARB.getGasLimit(isMainnet, contractAddress, from, to, value);
       default:
         return 0;
     }
@@ -267,7 +273,7 @@ export class WEB3 {
       case CHAINS.BSC:
         return await BSC.getTransactionDetail(isMainnet, hash);
       case CHAINS.ARBITRUM:
-        return {} as TransactionDetail;
+        return await ARB.getTransactionDetail(isMainnet, hash);
       case CHAINS.AVALANCHE:
         return {} as TransactionDetail;
       case CHAINS.POLYGON:
@@ -302,7 +308,7 @@ export class WEB3 {
       case CHAINS.BSC:
         return await BSC.getTransactions(isMainnet, address, token?.symbol);
       case CHAINS.ARBITRUM:
-        return [];
+        return await ARB.getTransactions(isMainnet, address, token?.symbol);
       case CHAINS.AVALANCHE:
         return [];
       case CHAINS.POLYGON:
@@ -337,7 +343,7 @@ export class WEB3 {
       case CHAINS.BSC:
         return await BSC.sendTransaction(isMainnet, req);
       case CHAINS.ARBITRUM:
-        return '';
+        return await ARB.sendTransaction(isMainnet, req);
       case CHAINS.AVALANCHE:
         return '';
       case CHAINS.POLYGON:

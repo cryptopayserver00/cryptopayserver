@@ -608,6 +608,26 @@ export const ARBITRUM_SEPOLIA_COINS: COIN[] = [
     displayDecimals: 8,
     icon: require('assets/coin/eth.svg'),
   },
+  {
+    chainId: CHAINS.ARBITRUM,
+    name: COINS.USDT,
+    isMainCoin: false,
+    symbol: COINS.USDT,
+    decimals: 6,
+    displayDecimals: 2,
+    contractAddress: '0xB66bCDAcEa9c008f5Fa78Aa3E06E081d60c4C045',
+    icon: require('assets/coin/usdt.svg'),
+  },
+  {
+    chainId: CHAINS.ARBITRUM,
+    name: COINS.DAI,
+    isMainCoin: false,
+    symbol: COINS.DAI,
+    decimals: 18,
+    displayDecimals: 8,
+    contractAddress: '0x07d77913Bc824eDa81Fe18EE9eeC0Cdf81cEa790',
+    icon: require('assets/coin/usdt.svg'),
+  },
 ];
 
 export const AVALANCHE_COINS: COIN[] = [
