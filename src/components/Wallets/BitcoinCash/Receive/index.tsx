@@ -62,8 +62,8 @@ const BitcoinCashReceive = () => {
               height={250}
               imageSettings={{
                 src: GetImgSrcByCrypto(COINS.BCH),
-                width: 30,
-                height: 40,
+                width: 45,
+                height: 45,
                 excavate: false,
               }}
             />

@@ -124,6 +124,8 @@ export class WEB3 {
         return BSC.getGasPrice(isMainnet);
       case CHAINS.ARBITRUM:
         return ARB.getGasPrice(isMainnet);
+      case CHAINS.OPTIMISM:
+        return OP.getGasPrice(isMainnet);
       case CHAINS.SOLANA:
         return null;
       case CHAINS.TON:
@@ -204,7 +206,7 @@ export class WEB3 {
       case CHAINS.BASE:
         return {} as AssetBalance;
       case CHAINS.OPTIMISM:
-        return {} as AssetBalance;
+        return await OP.getAssetBalance(isMainnet, address);
       case CHAINS.TON:
         return await TON.getAssetBalance(isMainnet, address);
       default:
@@ -220,6 +222,8 @@ export class WEB3 {
         return await BSC.getNonce(isMainnet, address);
       case CHAINS.ARBITRUM:
         return await ARB.getNonce(isMainnet, address);
+      case CHAINS.OPTIMISM:
+        return await OP.getNonce(isMainnet, address);
       default:
         return 0;
     }
@@ -240,6 +244,8 @@ export class WEB3 {
         return await BSC.getGasLimit(isMainnet, contractAddress, from, to, value);
       case CHAINS.ARBITRUM:
         return await ARB.getGasLimit(isMainnet, contractAddress, from, to, value);
+      case CHAINS.OPTIMISM:
+        return await OP.getGasLimit(isMainnet, contractAddress, from, to, value);
       default:
         return 0;
     }
@@ -251,6 +257,8 @@ export class WEB3 {
         return await ETH.getMaxPriorityFeePerGas(isMainnet);
       case CHAINS.ARBITRUM:
         return await ARB.getMaxPriorityFeePerGas(isMainnet);
+      case CHAINS.OPTIMISM:
+        return await OP.getMaxPriorityFeePerGas(isMainnet);
       default:
         return 0;
     }
@@ -283,7 +291,7 @@ export class WEB3 {
       case CHAINS.BASE:
         return {} as TransactionDetail;
       case CHAINS.OPTIMISM:
-        return {} as TransactionDetail;
+        return await OP.getTransactionDetail(isMainnet, hash);
       case CHAINS.TON:
         return await TON.getTransactionDetail(isMainnet, hash);
       default:
@@ -318,7 +326,7 @@ export class WEB3 {
       case CHAINS.BASE:
         return [];
       case CHAINS.OPTIMISM:
-        return [];
+        return await OP.getTransactions(isMainnet, address, token?.symbol);
       case CHAINS.TON:
         return await TON.getTransactions(isMainnet, address, token?.symbol);
       default:
@@ -353,7 +361,7 @@ export class WEB3 {
       case CHAINS.BASE:
         return '';
       case CHAINS.OPTIMISM:
-        return '';
+        return await OP.sendTransaction(isMainnet, req);
       case CHAINS.TON:
         return await TON.sendTransaction(isMainnet, req);
       default:

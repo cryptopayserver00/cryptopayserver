@@ -62,8 +62,8 @@ const SolanaReceive = () => {
               height={250}
               imageSettings={{
                 src: GetImgSrcByCrypto(COINS.SOL),
-                width: 30,
-                height: 30,
+                width: 45,
+                height: 45,
                 excavate: false,
               }}
             />
