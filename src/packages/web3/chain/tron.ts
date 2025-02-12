@@ -129,7 +129,7 @@ export class TRON {
     amount?: string,
   ): Promise<string> {
     let qrcodeText = `tron:${address}`;
-    const decimal = contractAddress ? await this.getTRC20Decimals(isMainnet, contractAddress) : 6;
+    const decimal = contractAddress ? await this.getTokenDecimals(isMainnet, contractAddress) : 6;
 
     amount = amount || '0';
     const value = ethers.parseUnits(amount, decimal).toString();
@@ -154,7 +154,7 @@ export class TRON {
 
         const promises = tokens.map(async (token) => {
           if (token.contractAddress && token.contractAddress !== '') {
-            const balance = await this.getTRC20Balance(isMainnet, address, token.contractAddress);
+            const balance = await this.getTokenBalance(isMainnet, address, token.contractAddress);
             items[token.symbol] = balance;
           }
         });
@@ -179,21 +179,21 @@ export class TRON {
     }
   }
 
-  static async getTRC20Balance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
+  static async getTokenBalance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
     try {
       const tronWeb = await this.getTronClient(isMainnet);
       tronWeb.setAddress(contractAddress);
       const contract = tronWeb.contract(TRC20Abi, contractAddress);
       const result = await contract.balanceOf(address).call();
-      const tokenDecimals = await this.getTRC20Decimals(isMainnet, contractAddress);
+      const tokenDecimals = await this.getTokenDecimals(isMainnet, contractAddress);
       return ethers.formatUnits(result, tokenDecimals);
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the trc20 balance of tron');
+      throw new Error('can not get the token balance of tron');
     }
   }
 
-  static async getTRC20Decimals(isMainnet: boolean, contractAddress: string): Promise<number> {
+  static async getTokenDecimals(isMainnet: boolean, contractAddress: string): Promise<number> {
     const decimals = FindDecimalsByChainIdsAndContractAddress(this.getChainIds(isMainnet), contractAddress);
     if (decimals && decimals > 0) {
       return decimals;
@@ -236,10 +236,10 @@ export class TRON {
         isContract = true;
         const data = transaction.raw_data.contract[0].parameter.value.data;
         const contractAddress = transaction.raw_data.contract[0].parameter.value.contract_address;
-        const decodeData = await this.decodeTransferTRC20(data);
+        const decodeData = await this.decodeTokenTransfer(data);
         const { address, value } = decodeData;
 
-        const decimals = await this.getTRC20Decimals(isMainnet, contractAddress);
+        const decimals = await this.getTokenDecimals(isMainnet, contractAddress);
 
         to = address;
 
@@ -289,7 +289,7 @@ export class TRON {
     }
   }
 
-  static decodeTransferTRC20(txData: string): any {
+  static decodeTokenTransfer(txData: string): any {
     if (txData.slice(0, 8) !== 'a9059cbb') {
       return null;
     }
@@ -317,13 +317,13 @@ export class TRON {
 
   static async createTransaction(isMainnet: boolean, request: CreateTronTransaction): Promise<SignedTransaction> {
     if (request.contractAddress) {
-      return await this.createTRC20Transaction(isMainnet, request);
+      return await this.createTokenTransaction(isMainnet, request);
     } else {
       return await this.createTRXTransaction(isMainnet, request);
     }
   }
 
-  static async createTRC20Transaction(isMainnet: boolean, request: CreateTronTransaction): Promise<SignedTransaction> {
+  static async createTokenTransaction(isMainnet: boolean, request: CreateTronTransaction): Promise<SignedTransaction> {
     try {
       if (!request.contractAddress || request.contractAddress === '') {
         throw new Error('can not get the contractAddress of tron');
@@ -332,7 +332,7 @@ export class TRON {
       const tronWeb = await this.getTronClient(isMainnet);
       tronWeb.setPrivateKey(request.privateKey as string);
 
-      const decimals = await this.getTRC20Decimals(isMainnet, request.contractAddress);
+      const decimals = await this.getTokenDecimals(isMainnet, request.contractAddress);
       const value = ethers.parseUnits(request.value, decimals);
 
       const abi = 'transfer(address,uint256)';
@@ -355,7 +355,7 @@ export class TRON {
       return await tronWeb.trx.sign(transaction.transaction);
     } catch (e) {
       console.error(e);
-      throw new Error('can not create the trc20 transactions of tron');
+      throw new Error('can not create the token transactions of tron');
     }
   }
 

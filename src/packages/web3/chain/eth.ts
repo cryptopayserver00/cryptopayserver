@@ -132,7 +132,7 @@ export class ETH {
     amount?: string,
   ): Promise<string> {
     let qrcodeText = `ethereum:${address}`;
-    const decimal = contractAddress ? await this.getERC20Decimals(isMainnet, contractAddress) : 18;
+    const decimal = contractAddress ? await this.getTokenDecimals(isMainnet, contractAddress) : 18;
 
     amount = amount || '0';
     const value = ethers.parseUnits(amount, decimal).toString();
@@ -157,7 +157,7 @@ export class ETH {
 
         const promises = tokens.map(async (token) => {
           if (token.contractAddress && token.contractAddress !== '') {
-            const balance = await this.getERC20Balance(isMainnet, address, token.contractAddress);
+            const balance = await this.getTokenBalance(isMainnet, address, token.contractAddress);
             items[token.symbol] = balance;
           }
         });
@@ -182,21 +182,21 @@ export class ETH {
     }
   }
 
-  static async getERC20Balance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
+  static async getTokenBalance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
     try {
       const provider = await this.getProvider(isMainnet);
       const contract = new Contract(contractAddress, ERC20Abi, provider);
       const result = await contract.balanceOf(address);
-      const tokenDecimals = await this.getERC20Decimals(isMainnet, contractAddress);
+      const tokenDecimals = await this.getTokenDecimals(isMainnet, contractAddress);
 
       return ethers.formatUnits(result, tokenDecimals);
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the erc20 balance of eth');
+      throw new Error('can not get the token balance of eth');
     }
   }
 
-  static async getERC20Decimals(isMainnet: boolean, contractAddress: string): Promise<number> {
+  static async getTokenDecimals(isMainnet: boolean, contractAddress: string): Promise<number> {
     const decimals = FindDecimalsByChainIdsAndContractAddress(this.getChainIds(isMainnet), contractAddress);
     if (decimals && decimals > 0) {
       return decimals;
@@ -213,7 +213,7 @@ export class ETH {
     }
   }
 
-  // static async decodeERC20Transfer(isMainnet: boolean, hash: string): Promise<ERC20TransactionDetail> {
+  // static async decodeTokenTransfer(isMainnet: boolean, hash: string): Promise<ERC20TransactionDetail> {
   //   try {
   //     const params = [hash];
   //     const response = await RPC.callRPC(this.getChainIds(isMainnet), TRANSACTIONFUNCS.GETTXBYHASH, params);
@@ -222,7 +222,7 @@ export class ETH {
   //     }
 
   //     const input = response.result.input;
-  //     const { to, amount, token } = await this.getERC20TransferToAmountAndTokenByInput(isMainnet, input);
+  //     const { to, amount, token } = await this.getTokenTransferToAmountAndTokenByInput(isMainnet, input);
 
   //     return {
   //       from: response.result.from,
@@ -233,11 +233,11 @@ export class ETH {
   //     };
   //   } catch (e) {
   //     console.error(e);
-  //     throw new Error('can not decode erc20 transfer of eth');
+  //     throw new Error('can not decode token transfer of eth');
   //   }
   // }
 
-  static async getERC20TransferToAmountAndTokenByInput(isMainnet: boolean, input: string): Promise<any> {
+  static async getTokenTransferToAmountAndTokenByInput(isMainnet: boolean, input: string): Promise<any> {
     const iface = new ethers.Interface(ERC20Abi);
     const result = iface.decodeFunctionData('transfer', input);
     const to = result[0];
@@ -339,7 +339,7 @@ export class ETH {
             tokenTo,
             tokenAmount,
             token: COINS,
-          } = await this.getERC20TransferToAmountAndTokenByInput(isMainnet, tx_response.result.input);
+          } = await this.getTokenTransferToAmountAndTokenByInput(isMainnet, tx_response.result.input);
 
           amount = tokenAmount;
           to = tokenTo;
@@ -486,7 +486,7 @@ export class ETH {
     request: CreateEthereumTransaction,
   ): Promise<CreateEthereumTransaction> {
     if (request.contractAddress) {
-      return await this.createERC20Transaction(isMainnet, request);
+      return await this.createTokenTransaction(isMainnet, request);
     } else {
       return await this.createETHTransaction(isMainnet, request);
     }
@@ -523,11 +523,11 @@ export class ETH {
     return request;
   }
 
-  static async createERC20Transaction(
+  static async createTokenTransaction(
     isMainnet: boolean,
     request: CreateEthereumTransaction,
   ): Promise<CreateEthereumTransaction> {
-    const decimals = await this.getERC20Decimals(isMainnet, request.contractAddress as string);
+    const decimals = await this.getTokenDecimals(isMainnet, request.contractAddress as string);
     const value = ethers.parseUnits(request.value, decimals).toString();
     const iface = new ethers.Interface(ERC20Abi);
     const data = iface.encodeFunctionData('transfer', [request.to, value]);

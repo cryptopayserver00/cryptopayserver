@@ -36,6 +36,12 @@ type feeType = {
   low: number;
 };
 
+type maxPriortyFeeType = {
+  fast: number;
+  normal: number;
+  slow: number;
+};
+
 type Coin = {
   [currency: string]: string;
 };
@@ -45,13 +51,17 @@ const ArbitrumSend = () => {
   const { payoutId } = router.query;
 
   const [alignment, setAlignment] = useState<'high' | 'average' | 'low'>('average');
+  const [maxPriortyFeeAlignment, setMaxPriortyFeeAlignment] = useState<'fast' | 'normal' | 'slow'>('normal');
   const [feeObj, setFeeObj] = useState<feeType>();
+  const [maxPriortyFeeObj, setMaxPriortyFeeObj] = useState<maxPriortyFeeType>();
+
   const [page, setPage] = useState<number>(1);
   const [fromAddress, setFromAddress] = useState<string>('');
   const [balance, setBalance] = useState<Coin>({});
   const [destinationAddress, setDestinationAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
-  const [gasPrice, setGasPrice] = useState<number>(0);
+  const [maxFee, setMaxFee] = useState<number>(0);
+  const [maxPriortyFee, setMaxPriortyFee] = useState<number>(0);
   const [gasLimit, setGasLimit] = useState<number>(0);
 
   const [networkFee, setNetworkFee] = useState<string>('');
@@ -72,16 +82,31 @@ const ArbitrumSend = () => {
   const handleChangeFees = (e: any) => {
     switch (e.target.value) {
       case 'high':
-        setGasPrice(WeiToGwei(feeObj?.high as number));
+        setMaxFee(WeiToGwei(feeObj?.high as number));
         break;
       case 'average':
-        setGasPrice(WeiToGwei(feeObj?.average as number));
+        setMaxFee(WeiToGwei(feeObj?.average as number));
         break;
       case 'low':
-        setGasPrice(WeiToGwei(feeObj?.low as number));
+        setMaxFee(WeiToGwei(feeObj?.low as number));
         break;
     }
     setAlignment(e.target.value);
+  };
+
+  const handleChangeMaxPriortyFee = (e: any) => {
+    switch (e.target.value) {
+      case 'fast':
+        setMaxPriortyFee(WeiToGwei(maxPriortyFeeObj?.fast as number));
+        break;
+      case 'normal':
+        setMaxPriortyFee(WeiToGwei(maxPriortyFeeObj?.normal as number));
+        break;
+      case 'slow':
+        setMaxPriortyFee(WeiToGwei(maxPriortyFeeObj?.slow as number));
+        break;
+    }
+    setMaxPriortyFeeAlignment(e.target.value);
   };
 
   const getArb = async () => {
@@ -108,7 +133,7 @@ const ArbitrumSend = () => {
     }
   };
 
-  const getBscGasLimit = async (from: string): Promise<boolean> => {
+  const getArbGasLimit = async (from: string): Promise<boolean> => {
     try {
       const response: any = await axios.get(Http.find_gas_limit, {
         params: {
@@ -148,7 +173,31 @@ const ArbitrumSend = () => {
           average: response.data.normal,
           low: response.data.slow,
         });
-        setGasPrice(WeiToGwei(response.data.normal));
+        setMaxFee(WeiToGwei(response.data.normal));
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const getArbMaxPriortyFee = async () => {
+    try {
+      const response: any = await axios.get(Http.find_max_priorty_fee, {
+        params: {
+          chain_id: CHAINS.ARBITRUM,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      if (response.result) {
+        setMaxPriortyFeeObj({
+          fast: response.data.fast,
+          normal: response.data.normal,
+          slow: response.data.slow,
+        });
+        setMaxPriortyFee(WeiToGwei(response.data.normal));
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -223,8 +272,16 @@ const ArbitrumSend = () => {
     return false;
   };
 
-  const checkGasPrice = (): boolean => {
-    if (gasPrice && gasPrice >= 0) {
+  const checkMaxFee = (): boolean => {
+    if (maxFee && maxFee >= 0) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const checkMaxPriortyFee = (): boolean => {
+    if (maxPriortyFee && maxPriortyFee >= 0) {
       return true;
     }
 
@@ -236,7 +293,7 @@ const ArbitrumSend = () => {
       return true;
     }
 
-    return await getBscGasLimit(fromAddress);
+    return await getArbGasLimit(fromAddress);
   };
 
   const onClickSignTransaction = async () => {
@@ -261,9 +318,16 @@ const ArbitrumSend = () => {
       return;
     }
 
-    if (!checkGasPrice()) {
+    if (!checkMaxFee()) {
       setSnackSeverity('error');
-      setSnackMessage('Incorrect gas price');
+      setSnackMessage('Incorrect max fee');
+      setSnackOpen(true);
+      return;
+    }
+
+    if (!checkMaxPriortyFee()) {
+      setSnackSeverity('error');
+      setSnackMessage('Incorrect max priorty fee');
       setSnackOpen(true);
       return;
     }
@@ -279,7 +343,7 @@ const ArbitrumSend = () => {
 
     if (displaySign) {
       if (coin === 'ETH') {
-        if (!networkFee || !amount || parseFloat(networkFee) * 1.5 + parseFloat(amount) > parseFloat(balance['BNB'])) {
+        if (!networkFee || !amount || parseFloat(networkFee) * 2 + parseFloat(amount) > parseFloat(balance['ETH'])) {
           setSnackSeverity('error');
           setSnackMessage('Insufficient balance or input error');
           setSnackOpen(true);
@@ -340,7 +404,8 @@ const ArbitrumSend = () => {
         value: amount,
         coin: coin,
         nonce: nonce,
-        max_fee: gasPrice,
+        max_fee: maxFee,
+        max_priorty_fee: maxPriortyFee,
         gas_limit: gasLimit,
       });
 
@@ -376,14 +441,15 @@ const ArbitrumSend = () => {
   };
 
   useEffect(() => {
-    if (gasPrice && gasPrice > 0 && gasLimit && gasLimit > 0) {
-      setNetworkFee(parseFloat(BigMul(GweiToEther(gasPrice).toString(), gasLimit.toString())).toFixed(8));
+    if (maxFee && maxFee > 0 && gasLimit && gasLimit > 0) {
+      setNetworkFee(parseFloat(BigMul(GweiToEther(maxFee).toString(), gasLimit.toString())).toFixed(8));
     }
-  }, [gasPrice, gasLimit]);
+  }, [maxFee, gasLimit]);
 
   const init = async (payoutId: any) => {
     await getArb();
     await getArbFeeRate();
+    await getArbMaxPriortyFee();
 
     if (payoutId) {
       await getPayoutInfo(payoutId);
@@ -519,7 +585,7 @@ const ArbitrumSend = () => {
             </Box>
 
             <Box mt={4}>
-              <Typography>GasPrice (Gwei)</Typography>
+              <Typography>MaxFee (Gwei)</Typography>
               <Box mt={1}>
                 <FormControl sx={{ width: '25ch' }} variant="outlined">
                   <OutlinedInput
@@ -529,9 +595,9 @@ const ArbitrumSend = () => {
                     inputProps={{
                       'aria-label': 'weight',
                     }}
-                    value={gasPrice}
+                    value={maxFee}
                     onChange={(e: any) => {
-                      setGasPrice(e.target.value);
+                      setMaxFee(e.target.value);
                     }}
                   />
                 </FormControl>
@@ -551,6 +617,43 @@ const ArbitrumSend = () => {
                   <ToggleButton value="high">High</ToggleButton>
                   <ToggleButton value="average">Average</ToggleButton>
                   <ToggleButton value="low">Low</ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
+            </Stack>
+
+            <Box mt={4}>
+              <Typography>MaxPriortyFee (Gwei)</Typography>
+              <Box mt={1}>
+                <FormControl sx={{ width: '25ch' }} variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    type="number"
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={maxPriortyFee}
+                    onChange={(e: any) => {
+                      setMaxPriortyFee(e.target.value);
+                    }}
+                  />
+                </FormControl>
+              </Box>
+            </Box>
+
+            <Stack mt={4} direction={'row'} alignItems={'center'}>
+              <Typography>Confirm in the next</Typography>
+              <Box ml={2}>
+                <ToggleButtonGroup
+                  color="primary"
+                  value={maxPriortyFeeAlignment}
+                  exclusive
+                  onChange={handleChangeMaxPriortyFee}
+                  aria-label="type"
+                >
+                  <ToggleButton value="fast">Fast</ToggleButton>
+                  <ToggleButton value="normal">Normal</ToggleButton>
+                  <ToggleButton value="slow">Slow</ToggleButton>
                 </ToggleButtonGroup>
               </Box>
             </Stack>
@@ -578,7 +681,7 @@ const ArbitrumSend = () => {
                 </Box>
                 <Box mt={4}>
                   <Typography>
-                    Miner Fee: {networkFee} ETH = GasPrice({gasPrice}) * Gas({gasLimit})
+                    Miner Fee: {networkFee} ETH = MaxFee({maxFee}) * Gas({gasLimit})
                   </Typography>
                 </Box>
               </>
@@ -655,7 +758,7 @@ const ArbitrumSend = () => {
               </Box>
 
               <Box mt={4}>
-                <Typography>Gas Price:</Typography>
+                <Typography>Max Fee:</Typography>
                 <Box mt={1}>
                   <FormControl variant="outlined">
                     <OutlinedInput
@@ -665,7 +768,25 @@ const ArbitrumSend = () => {
                       inputProps={{
                         'aria-label': 'weight',
                       }}
-                      value={gasPrice}
+                      value={maxFee}
+                      disabled
+                    />
+                  </FormControl>
+                </Box>
+              </Box>
+
+              <Box mt={4}>
+                <Typography>Max Priorty Fee:</Typography>
+                <Box mt={1}>
+                  <FormControl variant="outlined">
+                    <OutlinedInput
+                      size={'small'}
+                      endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
+                      aria-describedby="outlined-weight-helper-text"
+                      inputProps={{
+                        'aria-label': 'weight',
+                      }}
+                      value={maxPriortyFee}
                       disabled
                     />
                   </FormControl>

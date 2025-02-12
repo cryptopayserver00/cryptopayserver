@@ -434,7 +434,6 @@ const EthereumSend = () => {
         setSnackOpen(true);
 
         setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', response.data.hash));
-
         setPage(3);
       }
     } catch (e) {

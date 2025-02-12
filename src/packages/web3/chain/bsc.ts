@@ -83,7 +83,7 @@ export class BSC {
     amount?: string,
   ): Promise<string> {
     let qrcodeText = `bsc:${address}`;
-    const decimal = contractAddress ? await this.getBEP20Decimals(isMainnet, contractAddress) : 18;
+    const decimal = contractAddress ? await this.getTokenDecimals(isMainnet, contractAddress) : 18;
 
     amount = amount || '0';
     const value = ethers.parseUnits(amount, decimal).toString();
@@ -108,7 +108,7 @@ export class BSC {
 
         const promises = tokens.map(async (token) => {
           if (token.contractAddress && token.contractAddress !== '') {
-            const balance = await this.getBEP20Balance(isMainnet, address, token.contractAddress);
+            const balance = await this.getTokenBalance(isMainnet, address, token.contractAddress);
             items[token.symbol] = balance;
           }
         });
@@ -133,21 +133,21 @@ export class BSC {
     }
   }
 
-  static async getBEP20Balance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
+  static async getTokenBalance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
     try {
       const provider = await this.getProvider(isMainnet);
       const contract = new Contract(contractAddress, ERC20Abi, provider);
       const result = await contract.balanceOf(address);
-      const tokenDecimals = await this.getBEP20Decimals(isMainnet, contractAddress);
+      const tokenDecimals = await this.getTokenDecimals(isMainnet, contractAddress);
 
       return ethers.formatUnits(result, tokenDecimals);
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the erc20 balance of bsc');
+      throw new Error('can not get the token balance of bsc');
     }
   }
 
-  static async getBEP20Decimals(isMainnet: boolean, contractAddress: string): Promise<number> {
+  static async getTokenDecimals(isMainnet: boolean, contractAddress: string): Promise<number> {
     const decimals = FindDecimalsByChainIdsAndContractAddress(this.getChainIds(isMainnet), contractAddress);
     if (decimals && decimals > 0) {
       return decimals;
@@ -164,7 +164,7 @@ export class BSC {
     }
   }
 
-  static async getBEP20TransferToAmountAndTokenByInput(isMainnet: boolean, input: string): Promise<any> {
+  static async getTokenTransferToAmountAndTokenByInput(isMainnet: boolean, input: string): Promise<any> {
     const iface = new ethers.Interface(ERC20Abi);
     const result = iface.decodeFunctionData('transfer', input);
     const to = result[0];
@@ -251,7 +251,7 @@ export class BSC {
             tokenTo,
             tokenAmount,
             token: COINS,
-          } = await this.getBEP20TransferToAmountAndTokenByInput(isMainnet, tx_response.result.input);
+          } = await this.getTokenTransferToAmountAndTokenByInput(isMainnet, tx_response.result.input);
 
           amount = tokenAmount;
           to = tokenTo;
@@ -374,7 +374,7 @@ export class BSC {
     request: CreateEthereumTransaction,
   ): Promise<CreateEthereumTransaction> {
     if (request.contractAddress) {
-      return await this.createBEP20Transaction(isMainnet, request);
+      return await this.createTokenTransaction(isMainnet, request);
     } else {
       return await this.createBNBTransaction(isMainnet, request);
     }
@@ -407,11 +407,11 @@ export class BSC {
     return request;
   }
 
-  static async createBEP20Transaction(
+  static async createTokenTransaction(
     isMainnet: boolean,
     request: CreateEthereumTransaction,
   ): Promise<CreateEthereumTransaction> {
-    const decimals = await this.getBEP20Decimals(isMainnet, request.contractAddress as string);
+    const decimals = await this.getTokenDecimals(isMainnet, request.contractAddress as string);
     const value = ethers.parseUnits(request.value, decimals).toString();
     const iface = new ethers.Interface(ERC20Abi);
     const data = iface.encodeFunctionData('transfer', [request.to, value]);

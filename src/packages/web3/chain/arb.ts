@@ -7,6 +7,7 @@ import {
   CreateEthereumTransaction,
   EthereumTransactionDetail,
   ETHGasPrice,
+  ETHMaxPriorityFeePerGas,
   SendTransaction,
   TransactionDetail,
   TRANSACTIONFUNCS,
@@ -83,7 +84,7 @@ export class ARB {
     amount?: string,
   ): Promise<string> {
     let qrcodeText = `arbitrum:${address}`;
-    const decimal = contractAddress ? await this.getERC20Decimals(isMainnet, contractAddress) : 18;
+    const decimal = contractAddress ? await this.getTokenDecimals(isMainnet, contractAddress) : 18;
 
     amount = amount || '0';
     const value = ethers.parseUnits(amount, decimal).toString();
@@ -108,7 +109,7 @@ export class ARB {
 
         const promises = tokens.map(async (token) => {
           if (token.contractAddress && token.contractAddress !== '') {
-            const balance = await this.getERC20Balance(isMainnet, address, token.contractAddress);
+            const balance = await this.getTokenBalance(isMainnet, address, token.contractAddress);
             items[token.symbol] = balance;
           }
         });
@@ -133,21 +134,21 @@ export class ARB {
     }
   }
 
-  static async getERC20Balance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
+  static async getTokenBalance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
     try {
       const provider = await this.getProvider(isMainnet);
       const contract = new Contract(contractAddress, ERC20Abi, provider);
       const result = await contract.balanceOf(address);
-      const tokenDecimals = await this.getERC20Decimals(isMainnet, contractAddress);
+      const tokenDecimals = await this.getTokenDecimals(isMainnet, contractAddress);
 
       return ethers.formatUnits(result, tokenDecimals);
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the erc20 balance of arb');
+      throw new Error('can not get the token balance of arb');
     }
   }
 
-  static async getERC20Decimals(isMainnet: boolean, contractAddress: string): Promise<number> {
+  static async getTokenDecimals(isMainnet: boolean, contractAddress: string): Promise<number> {
     const decimals = FindDecimalsByChainIdsAndContractAddress(this.getChainIds(isMainnet), contractAddress);
     if (decimals && decimals > 0) {
       return decimals;
@@ -164,7 +165,7 @@ export class ARB {
     }
   }
 
-  static async getERC20TransferToAmountAndTokenByInput(isMainnet: boolean, input: string): Promise<any> {
+  static async getTokenTransferToAmountAndTokenByInput(isMainnet: boolean, input: string): Promise<any> {
     const iface = new ethers.Interface(ERC20Abi);
     const result = iface.decodeFunctionData('transfer', input);
     const to = result[0];
@@ -291,6 +292,30 @@ export class ARB {
     }
   }
 
+  static async getMaxPriorityFeePerGas(isMainnet: boolean): Promise<ETHMaxPriorityFeePerGas> {
+    try {
+      const response = await RPC.callRPC(this.getChainIds(isMainnet), TRANSACTIONFUNCS.MaxPriorityFeePerGas, []);
+      if (!response || response === null) {
+        throw new Error('can not get maxPriorityFeePerGas of arb');
+      }
+
+      const maxPriorityFeePerGas = new Big(parseInt(response.result, 16));
+
+      if (maxPriorityFeePerGas) {
+        return {
+          slow: maxPriorityFeePerGas.toString(),
+          normal: maxPriorityFeePerGas.mul(150).div(100).toString(),
+          fast: maxPriorityFeePerGas.mul(2).toString(),
+        };
+      }
+
+      throw new Error('can not get maxPriorityFeePerGas of arb');
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not get maxPriorityFeePerGas of arb');
+    }
+  }
+
   static async getGasLimit(
     isMainnet: boolean,
     contractAddress: string,
@@ -316,24 +341,80 @@ export class ARB {
     request: CreateEthereumTransaction,
   ): Promise<CreateEthereumTransaction> {
     if (request.contractAddress) {
-      return await this.createERC20Transaction(isMainnet, request);
+      return await this.createTokenTransaction(isMainnet, request);
     } else {
       return await this.createETHTransaction(isMainnet, request);
     }
   }
 
-  static async createERC20Transaction(
+  static async createTokenTransaction(
     isMainnet: boolean,
     request: CreateEthereumTransaction,
   ): Promise<CreateEthereumTransaction> {
-    throw new Error('can not create the transaction of arb');
+    const decimals = await this.getTokenDecimals(isMainnet, request.contractAddress as string);
+    const value = ethers.parseUnits(request.value, decimals).toString();
+    const iface = new ethers.Interface(ERC20Abi);
+    const data = iface.encodeFunctionData('transfer', [request.to, value]);
+    request.data = data;
+    request.to = request.contractAddress as string;
+
+    if (!request.maxFeePerGas) {
+      const price = await this.getGasPrice(isMainnet);
+      request.maxFeePerGas = price.normal;
+    }
+
+    if (!request.gasLimit) {
+      const limit = await this.getGasLimit(
+        isMainnet,
+        request.contractAddress as string,
+        request.from,
+        request.to,
+        request.value,
+      );
+      request.gasLimit = limit;
+    }
+
+    if (!request.maxPriorityFeePerGas) {
+      const fee = await this.getMaxPriorityFeePerGas(isMainnet);
+      request.maxPriorityFeePerGas = fee.normal;
+    }
+
+    request.value = '0';
+    request.type = 2;
+
+    return request;
   }
 
   static async createETHTransaction(
     isMainnet: boolean,
     request: CreateEthereumTransaction,
   ): Promise<CreateEthereumTransaction> {
-    throw new Error('can not create the transaction of arb');
+    request.value = ethers.parseEther(request.value).toString();
+    request.type = 2;
+    if (request.maxFeePerGas) {
+      request.maxFeePerGas = request.maxFeePerGas;
+    } else {
+      const price = await this.getGasPrice(isMainnet);
+      request.maxFeePerGas = price.normal;
+    }
+
+    if (!request.gasLimit) {
+      const limit = await this.getGasLimit(
+        isMainnet,
+        request.contractAddress as string,
+        request.from,
+        request.to,
+        request.value,
+      );
+      request.gasLimit = limit;
+    }
+
+    if (!request.maxPriorityFeePerGas) {
+      const fee = await this.getMaxPriorityFeePerGas(isMainnet);
+      request.maxPriorityFeePerGas = fee.normal;
+    }
+
+    return request;
   }
 
   static async getNonce(isMainnet: boolean, address: string): Promise<number> {
@@ -357,7 +438,36 @@ export class ARB {
       throw new Error('can not get the private key of arb');
     }
 
-    throw new Error('can not send the transaction of arb');
+    const cRequest: CreateEthereumTransaction = {
+      chainId: this.getChainIds(isMainnet),
+      from: request.from,
+      to: request.to,
+      privateKey: request.privateKey,
+      value: request.value,
+      contractAddress: request.coin.contractAddress,
+      gasLimit: request.gasLimit as number,
+
+      maxFeePerGas: request.gasPrice as string,
+      maxPriorityFeePerGas: request.maxPriorityFeePerGas,
+      nonce: request.nonce,
+    };
+
+    let tx = await this.createTransaction(isMainnet, cRequest);
+    tx.nonce = tx.nonce ? tx.nonce : await this.getNonce(isMainnet, tx.from);
+
+    try {
+      const provider = await this.getProvider(isMainnet);
+      const wallet = new ethers.Wallet(request.privateKey, provider);
+      const response = await wallet.sendTransaction(cRequest);
+      if (response) {
+        return response.hash;
+      }
+
+      throw new Error('can not send the transaction of arb');
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not send the transaction of arb');
+    }
   }
 
   static async personalSign(privateKey: string, message: string): Promise<string> {

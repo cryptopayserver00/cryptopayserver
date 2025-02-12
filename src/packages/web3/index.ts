@@ -249,6 +249,8 @@ export class WEB3 {
     switch (chain) {
       case CHAINS.ETHEREUM:
         return await ETH.getMaxPriorityFeePerGas(isMainnet);
+      case CHAINS.ARBITRUM:
+        return await ARB.getMaxPriorityFeePerGas(isMainnet);
       default:
         return 0;
     }
