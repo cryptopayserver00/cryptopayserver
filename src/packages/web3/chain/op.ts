@@ -130,7 +130,7 @@ export class OP {
       return ethers.formatUnits(balance, 18);
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the bnb balance of op');
+      throw new Error('can not get the eth balance of op');
     }
   }
 

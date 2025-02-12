@@ -130,7 +130,7 @@ export class ARB {
       return ethers.formatUnits(balance, 18);
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the bnb balance of arb');
+      throw new Error('can not get the eth balance of arb');
     }
   }
 
