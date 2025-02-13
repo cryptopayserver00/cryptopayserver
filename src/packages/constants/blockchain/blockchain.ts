@@ -1334,7 +1334,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     rpc: [
       'https://polygon-amoy-bor-rpc.publicnode.com',
       'https://rpc-amoy.polygon.technology',
-      'https://polygon-amoy.drpc.org',
+      // 'https://polygon-amoy.drpc.org',
     ],
     icon: require('assets/chain/polygon.svg'),
   },
@@ -1354,7 +1354,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
       'https://base-pokt.nodies.app',
       // 'https://base.meowrpc.com',
       'https://base-rpc.publicnode.com',
-      'https://base.drpc.org',
+      // 'https://base.drpc.org',
     ],
     icon: require('assets/chain/base.svg'),
   },

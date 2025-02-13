@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             });
           }
         }
-        return res.status(200).json({ message: '', result: true, data: rows });
+        return res.status(200).json({ message: '', result: false, data: rows });
 
       case 'POST':
         break;

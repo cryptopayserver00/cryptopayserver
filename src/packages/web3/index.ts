@@ -128,6 +128,8 @@ export class WEB3 {
         return BASE.getGasPrice(isMainnet);
       case CHAINS.OPTIMISM:
         return OP.getGasPrice(isMainnet);
+      case CHAINS.POLYGON:
+        return POL.getGasPrice(isMainnet);
       case CHAINS.SOLANA:
         return null;
       case CHAINS.TON:
@@ -204,7 +206,7 @@ export class WEB3 {
       case CHAINS.AVALANCHE:
         return {} as AssetBalance;
       case CHAINS.POLYGON:
-        return {} as AssetBalance;
+        return await POL.getAssetBalance(isMainnet, address);
       case CHAINS.BASE:
         return await BASE.getAssetBalance(isMainnet, address);
       case CHAINS.OPTIMISM:
@@ -228,6 +230,8 @@ export class WEB3 {
         return await OP.getNonce(isMainnet, address);
       case CHAINS.BASE:
         return await BASE.getNonce(isMainnet, address);
+      case CHAINS.POLYGON:
+        return await POL.getNonce(isMainnet, address);
       default:
         return 0;
     }
@@ -252,6 +256,8 @@ export class WEB3 {
         return await OP.getGasLimit(isMainnet, contractAddress, from, to, value);
       case CHAINS.BASE:
         return await BASE.getGasLimit(isMainnet, contractAddress, from, to, value);
+      case CHAINS.POLYGON:
+        return await POL.getGasLimit(isMainnet, contractAddress, from, to, value);
       default:
         return 0;
     }
@@ -267,6 +273,8 @@ export class WEB3 {
         return await OP.getMaxPriorityFeePerGas(isMainnet);
       case CHAINS.BASE:
         return await BASE.getMaxPriorityFeePerGas(isMainnet);
+      case CHAINS.POLYGON:
+        return await POL.getMaxPriorityFeePerGas(isMainnet);
       default:
         return 0;
     }
@@ -295,7 +303,7 @@ export class WEB3 {
       case CHAINS.AVALANCHE:
         return {} as TransactionDetail;
       case CHAINS.POLYGON:
-        return {} as TransactionDetail;
+        return await POL.getTransactionDetail(isMainnet, hash);
       case CHAINS.BASE:
         return await BASE.getTransactionDetail(isMainnet, hash);
       case CHAINS.OPTIMISM:
@@ -330,7 +338,7 @@ export class WEB3 {
       case CHAINS.AVALANCHE:
         return [];
       case CHAINS.POLYGON:
-        return [];
+        return await POL.getTransactions(isMainnet, address, token?.symbol);
       case CHAINS.BASE:
         return await BASE.getTransactions(isMainnet, address, token?.symbol);
       case CHAINS.OPTIMISM:
@@ -365,7 +373,7 @@ export class WEB3 {
       case CHAINS.AVALANCHE:
         return '';
       case CHAINS.POLYGON:
-        return '';
+        return await POL.sendTransaction(isMainnet, req);
       case CHAINS.BASE:
         return await BASE.sendTransaction(isMainnet, req);
       case CHAINS.OPTIMISM:
@@ -377,3 +385,4 @@ export class WEB3 {
     }
   }
 }
+/*  */
