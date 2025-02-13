@@ -11,7 +11,7 @@ import { TON } from './chain/ton';
 import { XRP } from './chain/xrp';
 import { BITCOINCASH } from './chain/bitcoincash';
 import { ARB } from './chain/arb';
-import { AVALANCHE } from './chain/avalanche';
+import { AVAX } from './chain/avalanche';
 import { POL } from './chain/pol';
 import { BASE } from './chain/base';
 import { OP } from './chain/op';
@@ -130,6 +130,8 @@ export class WEB3 {
         return OP.getGasPrice(isMainnet);
       case CHAINS.POLYGON:
         return POL.getGasPrice(isMainnet);
+      case CHAINS.AVALANCHE:
+        return AVAX.getGasPrice(isMainnet);
       case CHAINS.SOLANA:
         return null;
       case CHAINS.TON:
@@ -169,7 +171,7 @@ export class WEB3 {
       case CHAINS.ARBITRUM:
         return ARB.getChainIds(isMainnet);
       case CHAINS.AVALANCHE:
-        return AVALANCHE.getChainIds(isMainnet);
+        return AVAX.getChainIds(isMainnet);
       case CHAINS.POLYGON:
         return POL.getChainIds(isMainnet);
       case CHAINS.BASE:
@@ -204,7 +206,7 @@ export class WEB3 {
       case CHAINS.ARBITRUM:
         return await ARB.getAssetBalance(isMainnet, address);
       case CHAINS.AVALANCHE:
-        return {} as AssetBalance;
+        return await AVAX.getAssetBalance(isMainnet, address);
       case CHAINS.POLYGON:
         return await POL.getAssetBalance(isMainnet, address);
       case CHAINS.BASE:
@@ -232,6 +234,8 @@ export class WEB3 {
         return await BASE.getNonce(isMainnet, address);
       case CHAINS.POLYGON:
         return await POL.getNonce(isMainnet, address);
+      case CHAINS.AVALANCHE:
+        return await AVAX.getNonce(isMainnet, address);
       default:
         return 0;
     }
@@ -258,6 +262,8 @@ export class WEB3 {
         return await BASE.getGasLimit(isMainnet, contractAddress, from, to, value);
       case CHAINS.POLYGON:
         return await POL.getGasLimit(isMainnet, contractAddress, from, to, value);
+      case CHAINS.AVALANCHE:
+        return await AVAX.getGasLimit(isMainnet, contractAddress, from, to, value);
       default:
         return 0;
     }
@@ -275,6 +281,8 @@ export class WEB3 {
         return await BASE.getMaxPriorityFeePerGas(isMainnet);
       case CHAINS.POLYGON:
         return await POL.getMaxPriorityFeePerGas(isMainnet);
+      case CHAINS.AVALANCHE:
+        return await AVAX.getMaxPriorityFeePerGas(isMainnet);
       default:
         return 0;
     }
@@ -301,7 +309,7 @@ export class WEB3 {
       case CHAINS.ARBITRUM:
         return await ARB.getTransactionDetail(isMainnet, hash);
       case CHAINS.AVALANCHE:
-        return {} as TransactionDetail;
+        return await AVAX.getTransactionDetail(isMainnet, hash);
       case CHAINS.POLYGON:
         return await POL.getTransactionDetail(isMainnet, hash);
       case CHAINS.BASE:
@@ -336,7 +344,7 @@ export class WEB3 {
       case CHAINS.ARBITRUM:
         return await ARB.getTransactions(isMainnet, address, token?.symbol);
       case CHAINS.AVALANCHE:
-        return [];
+        return await AVAX.getTransactions(isMainnet, address, token?.symbol);
       case CHAINS.POLYGON:
         return await POL.getTransactions(isMainnet, address, token?.symbol);
       case CHAINS.BASE:
@@ -371,7 +379,7 @@ export class WEB3 {
       case CHAINS.ARBITRUM:
         return await ARB.sendTransaction(isMainnet, req);
       case CHAINS.AVALANCHE:
-        return '';
+        return await AVAX.sendTransaction(isMainnet, req);
       case CHAINS.POLYGON:
         return await POL.sendTransaction(isMainnet, req);
       case CHAINS.BASE:
