@@ -1,7 +1,7 @@
 export function GetBlockchainTxUrl(isMainnet: boolean, hash: string): string {
-  return isMainnet ? `https://basescan.io/tx/${hash}` : `https://sepolia.basescan.io/tx/${hash}`;
+  return isMainnet ? `https://basescan.org/tx/${hash}` : `https://sepolia.basescan.org/tx/${hash}`;
 }
 
 export function GetBlockchainAddressUrl(isMainnet: boolean, hash: string): string {
-  return isMainnet ? `https://basescan.io/address/${hash}` : `https://sepolia.basescan.io/address/${hash}`;
+  return isMainnet ? `https://basescan.org/address/${hash}` : `https://sepolia.basescan.org/address/${hash}`;
 }

@@ -1261,7 +1261,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     rpc: [
       'https://arb1.arbitrum.io/rpc',
       'https://arbitrum.llamarpc.com',
-      'https://arbitrum.meowrpc.com',
+      // 'https://arbitrum.meowrpc.com',
       'https://arbitrum.drpc.org',
       'https://arbitrum-one.publicnode.com',
       'https://arbitrum-one-rpc.publicnode.com',
@@ -1291,7 +1291,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     rpc: [
       'https://avalanche-c-chain-rpc.publicnode.com',
       'https://avalanche.drpc.org',
-      'https://avax.meowrpc.com',
+      // 'https://avax.meowrpc.com',
       'https://1rpc.io/avax/c',
     ],
     icon: require('assets/chain/avalanche.svg'),
@@ -1352,7 +1352,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
       'https://developer-access-mainnet.base.org',
       'https://1rpc.io/base',
       'https://base-pokt.nodies.app',
-      'https://base.meowrpc.com',
+      // 'https://base.meowrpc.com',
       'https://base-rpc.publicnode.com',
       'https://base.drpc.org',
     ],
