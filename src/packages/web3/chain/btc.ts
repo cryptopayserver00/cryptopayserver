@@ -68,6 +68,7 @@ export class BTC {
 
       // nativeSegwit
       const nativeSegwitPrivateKey = node.derivePath(nativeSegwitPath).privateKey?.toString('hex');
+      // node.derivePath(nativeSegwitPath).toWIF()
       const nativeSegwitAddress = this.getAddressP2wpkhFromPrivateKey(isMainnet, nativeSegwitPrivateKey as string);
 
       accounts.push({
@@ -605,7 +606,7 @@ export class BTC {
       return txid;
     } catch (e) {
       console.error(e);
-      throw new Error('can not create the transactions of btc');
+      throw new Error('can not send the transactions of btc');
     }
   }
 }

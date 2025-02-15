@@ -51,6 +51,7 @@
     "ethereum-cryptography": "^2.2.1",
     "ethers": "^6.13.1",
     "framer-motion": "^11.2.11",
+    "mainnet-js": "^2.6.2",
     "mysql2": "^3.10.2",
     "next": "14.2.4",
     "node-cron": "^3.0.3",

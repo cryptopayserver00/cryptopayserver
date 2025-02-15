@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const chainId = req.query.chain_id;
         const network = req.query.network;
 
-        const result = WEB3.checkAddress(
+        const result = await WEB3.checkAddress(
           parseInt(network as string) === 1 ? true : false,
           parseInt(chainId as string),
           address as string,

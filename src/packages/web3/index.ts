@@ -27,10 +27,10 @@ export class WEB3 {
     const seed = await Bip39.generateSeed(mnemonic);
 
     // mainnet
-    const mainnetAccount = await this.createAccountBySeed(true, seed);
+    const mainnetAccount = await this.createAccountBySeed(true, seed, mnemonic);
 
     //testnet
-    const testnetAccount = await this.createAccountBySeed(false, seed);
+    const testnetAccount = await this.createAccountBySeed(false, seed, mnemonic);
 
     return {
       isGenerate: isGenerate,
@@ -39,7 +39,11 @@ export class WEB3 {
     };
   }
 
-  static async createAccountBySeed(isMainnet: boolean, seed: Buffer): Promise<Array<ChainAccountType>> {
+  static async createAccountBySeed(
+    isMainnet: boolean,
+    seed: Buffer,
+    mnemonic: string,
+  ): Promise<Array<ChainAccountType>> {
     return await Promise.all([
       ...BTC.createAccountBySeed(isMainnet, seed),
       ETH.createAccountBySeed(isMainnet, seed),
@@ -47,6 +51,7 @@ export class WEB3 {
       LTC.createAccountBySeed(isMainnet, seed),
       TRON.createAccountBySeed(isMainnet, seed),
       await TON.createAccountBySeed(isMainnet, seed),
+      await BITCOINCASH.createAccountBySeed(isMainnet, seed, mnemonic),
     ]);
   }
 
@@ -63,7 +68,7 @@ export class WEB3 {
       case CHAINS.XRP:
         return [];
       case CHAINS.BITCOINCASH:
-        return [];
+        return Array<ChainAccountType>(await BITCOINCASH.createAccountByPrivateKey(isMainnet, privateKey));
       case CHAINS.ETHEREUM:
       case CHAINS.BSC:
       case CHAINS.ARBITRUM:
@@ -83,7 +88,7 @@ export class WEB3 {
     }
   }
 
-  static checkAddress(isMainnet: boolean, chain: CHAINS, address: string): boolean {
+  static async checkAddress(isMainnet: boolean, chain: CHAINS, address: string): Promise<boolean> {
     switch (chain) {
       case CHAINS.BITCOIN:
         return BTC.checkAddress(isMainnet, address);
@@ -92,7 +97,7 @@ export class WEB3 {
       case CHAINS.XRP:
         return false;
       case CHAINS.BITCOINCASH:
-        return false;
+        return await BITCOINCASH.checkAddress(isMainnet, address);
       case CHAINS.ETHEREUM:
       case CHAINS.BSC:
       case CHAINS.ARBITRUM:
@@ -194,7 +199,7 @@ export class WEB3 {
       case CHAINS.XRP:
         return {} as AssetBalance;
       case CHAINS.BITCOINCASH:
-        return {} as AssetBalance;
+        return await BITCOINCASH.getAssetBalance(isMainnet, address);
       case CHAINS.ETHEREUM:
         return await ETH.getAssetBalance(isMainnet, address);
       case CHAINS.TRON:
@@ -297,7 +302,7 @@ export class WEB3 {
       case CHAINS.XRP:
         return {} as TransactionDetail;
       case CHAINS.BITCOINCASH:
-        return {} as TransactionDetail;
+        return await BITCOINCASH.getTransactionDetail(isMainnet, hash);
       case CHAINS.ETHEREUM:
         return await ETH.getTransactionDetail(isMainnet, hash);
       case CHAINS.TRON:
@@ -332,7 +337,7 @@ export class WEB3 {
       case CHAINS.XRP:
         return [];
       case CHAINS.BITCOINCASH:
-        return [];
+        return await BITCOINCASH.getTransactions(isMainnet, address);
       case CHAINS.ETHEREUM:
         return await ETH.getTransactions(isMainnet, address, token?.symbol);
       case CHAINS.TRON:
@@ -367,7 +372,7 @@ export class WEB3 {
       case CHAINS.XRP:
         return '';
       case CHAINS.BITCOINCASH:
-        return '';
+        return await BITCOINCASH.sendTransaction(isMainnet, req);
       case CHAINS.ETHEREUM:
         return await ETH.sendTransaction(isMainnet, req);
       case CHAINS.TRON:
