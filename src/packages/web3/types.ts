@@ -157,6 +157,7 @@ export type SendTransaction = {
   feeRate?: number;
   btcType?: BTCTYPE;
   nonce?: number;
+  memo?: string;
 };
 
 export type CreateEthereumTransaction = {

@@ -43,11 +43,11 @@ const TonSend = () => {
   const [balance, setBalance] = useState<Coin>({});
   const [destinationAddress, setDestinationAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
+  const [memo, setMemo] = useState<string>('');
 
-  const [networkFee, setNetworkFee] = useState<string>('');
+  const [networkFee, setNetworkFee] = useState<string>('0.0001');
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('');
   const [coin, setCoin] = useState<string>('TON');
-  const [displaySign, setDisplaySign] = useState<boolean>(false);
   const [amountRed, setAmountRed] = useState<boolean>(false);
 
   const [isDisableDestinationAddress, setIsDisableDestinationAddress] = useState<boolean>(false);
@@ -71,32 +71,6 @@ const TonSend = () => {
       if (response.result) {
         setFromAddress(response.data.address);
         setBalance(response.data.balance);
-      }
-    } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
-    }
-  };
-
-  const getGasFee = async () => {
-    try {
-      const response: any = await axios.get(Http.find_gas_fee, {
-        params: {
-          user_id: getUserId(),
-          chain_id: CHAINS.TON,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
-          coin: coin,
-          from: fromAddress,
-          to: destinationAddress,
-          value: amount,
-        },
-      });
-      if (response.result) {
-        setNetworkFee(response.data);
-
-        setDisplaySign(true);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -189,11 +163,6 @@ const TonSend = () => {
       return;
     }
 
-    if (!networkFee) {
-      await getGasFee();
-      return;
-    }
-
     if (!checkAmount()) {
       setSnackSeverity('error');
       setSnackMessage('Insufficient balance or input error');
@@ -201,20 +170,20 @@ const TonSend = () => {
       return;
     }
 
-    if (displaySign) {
-      if (coin === 'TON') {
-        if (!networkFee || !amount || parseFloat(networkFee) * 2 + parseFloat(amount) > parseFloat(balance['TON'])) {
-          setSnackSeverity('error');
-          setSnackMessage('Insufficient balance or input error');
-          setSnackOpen(true);
-          return;
-        }
-      }
+    // if (coin === 'TON') {
+    //   if (!networkFee || !amount || parseFloat(networkFee) * 2 + parseFloat(amount) > parseFloat(balance['TON'])) {
+    //     setSnackSeverity('error');
+    //     setSnackMessage('Insufficient balance or input error');
+    //     setSnackOpen(true);
+    //     return;
+    //   }
+    // }
 
-      if (networkFee && networkFee != '') {
-        setPage(2);
-      }
-    }
+    // if (networkFee && networkFee != '') {
+    //   setPage(2);
+    // }
+
+    setPage(2);
   };
 
   const onClickSignAndPay = async () => {
@@ -228,6 +197,7 @@ const TonSend = () => {
         user_id: getUserId(),
         value: amount,
         coin: coin,
+        memo: memo,
       });
 
       if (response.result) {
@@ -382,31 +352,28 @@ const TonSend = () => {
               </Typography>
             </Box>
 
-            {displaySign && (
-              <>
-                <Box mt={4}>
-                  <Typography>Gas Fee</Typography>
-                  <Box mt={1}>
-                    <FormControl sx={{ width: '25ch' }} variant="outlined">
-                      <OutlinedInput
-                        size={'small'}
-                        type="number"
-                        aria-describedby="outlined-weight-helper-text"
-                        inputProps={{
-                          'aria-label': 'weight',
-                        }}
-                        value={networkFee}
-                        disabled
-                      />
-                    </FormControl>
-                  </Box>
-                </Box>
-              </>
-            )}
+            <Box mt={4}>
+              <Typography>Memo</Typography>
+              <Box mt={1}>
+                <FormControl fullWidth variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={memo}
+                    onChange={(e: any) => {
+                      setMemo(e.target.value);
+                    }}
+                  />
+                </FormControl>
+              </Box>
+            </Box>
 
             <Box mt={8}>
               <Button variant={'contained'} onClick={onClickSignTransaction}>
-                {displaySign ? 'Sign Transaction' : 'Calculate Gas Fee'}
+                Sign Transaction
               </Button>
             </Box>
           </>
@@ -433,11 +400,11 @@ const TonSend = () => {
                   </Typography>
                   <Typography ml={1}>{coin}</Typography>
                 </Stack>
-                <Stack direction={'row'} alignItems={'baseline'} justifyContent={'center'}>
+                {/* <Stack direction={'row'} alignItems={'baseline'} justifyContent={'center'}>
                   <Typography mt={1}>{networkFee}</Typography>
                   <Typography ml={1}>TON</Typography>
                   <Typography ml={1}>(network fee)</Typography>
-                </Stack>
+                </Stack> */}
               </Box>
 
               <Box mt={4}>
@@ -510,7 +477,7 @@ const TonSend = () => {
                 </Box>
               </Box> */}
 
-              <Box mt={4}>
+              {/* <Box mt={4}>
                 <Typography>Network Fee:</Typography>
                 <Box mt={1}>
                   <FormControl variant="outlined">
@@ -522,6 +489,23 @@ const TonSend = () => {
                         'aria-label': 'weight',
                       }}
                       value={networkFee}
+                      disabled
+                    />
+                  </FormControl>
+                </Box>
+              </Box> */}
+
+              <Box mt={4}>
+                <Typography>Memo:</Typography>
+                <Box mt={1}>
+                  <FormControl variant="outlined">
+                    <OutlinedInput
+                      size={'small'}
+                      aria-describedby="outlined-weight-helper-text"
+                      inputProps={{
+                        'aria-label': 'weight',
+                      }}
+                      value={memo}
                       disabled
                     />
                   </FormControl>

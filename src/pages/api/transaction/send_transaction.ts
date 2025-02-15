@@ -28,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const maxFee = req.body.max_fee;
         const maxPriortyFee = req.body.max_priorty_fee;
         const gasLimit = req.body.gas_limit;
+        const memo = req.body.memo;
 
         let dbChainId = chainId || 0;
 
@@ -65,6 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             gasLimit: gasLimit ? gasLimit : '',
             maxPriorityFeePerGas: maxPriortyFee ? GweiToWei(maxPriortyFee).toString() : '',
             nonce: nonce ? nonce : '',
+            memo: memo ? memo : '',
           });
 
           return res.status(200).json({

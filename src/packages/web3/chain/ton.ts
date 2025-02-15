@@ -39,7 +39,7 @@ export class TON {
     try {
       const hdkey = HDKey.fromMasterSeed(Uint8Array.from(seed)).derive(path);
 
-      const privateKey = Buffer.from(hdkey.privateKey as Uint8Array).toString('hex');
+      const privateKey = TonWeb.utils.bytesToHex(hdkey.privateKey as Uint8Array);
 
       const tonweb = this.getTonClient(isMainnet);
 
@@ -142,7 +142,7 @@ export class TON {
     amount?: string,
   ): Promise<string> {
     let qrcodeText = `ton:${address}`;
-    const decimal = contractAddress ? await this.getTON20Decimals(isMainnet, contractAddress) : 9;
+    const decimal = contractAddress ? await this.getTokenDecimals(isMainnet, contractAddress) : 9;
 
     amount = amount || '0';
     const value = ethers.parseUnits(amount, decimal).toString();
@@ -167,7 +167,7 @@ export class TON {
 
         const promises = tokens.map(async (token) => {
           if (token.contractAddress && token.contractAddress !== '') {
-            const balance = await this.getTON20Balance(isMainnet, address, token.contractAddress);
+            const balance = await this.getTokenBalance(isMainnet, address, token.contractAddress);
             items[token.symbol] = balance;
           }
         });
@@ -193,24 +193,30 @@ export class TON {
     }
   }
 
-  static async getTON20Balance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
-    // const tonweb = this.getTonClient(isMainnet);
-    // const je = new TonWeb.token.jetton.JettonWallet()
-    // await je.getAddress()
-    // const contract = new tonweb.Contract(new TonWeb.HttpProvider("", { apiKey: process.env.TON_API_KEY }))
-    // const seqno = contract.methods.seqno().call();
-    // const wallet = tonweb.wallet.create({ address: contractAddress });
-    return '';
+  static async getTokenBalance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
+    try {
+      // const tonweb = this.getTonClient(isMainnet);
+      // const jettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, {
+      //   address: contractAddress,
+      // });
+      // const result = await jettonWallet.provider.getBalance(address);
+      // const tokenDecimals = await this.getTokenDecimals(isMainnet, contractAddress);
+      // return ethers.formatUnits(result, tokenDecimals);
+      return '0';
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not get the token balance of ton');
+    }
   }
 
-  static async getTON20Decimals(isMainnet: boolean, contractAddress: string): Promise<number> {
+  static async getTokenDecimals(isMainnet: boolean, contractAddress: string): Promise<number> {
     const decimals = FindDecimalsByChainIdsAndContractAddress(this.getChainIds(isMainnet), contractAddress);
     if (decimals && decimals > 0) {
       return decimals;
     }
 
     try {
-      const tonweb = this.getTonClient(isMainnet);
+      // const tonweb = this.getTonClient(isMainnet);
 
       return 0;
     } catch (e) {
@@ -269,13 +275,13 @@ export class TON {
 
   static async createTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<any> {
     if (request.contractAddress) {
-      return await this.createTON20Transaction(isMainnet, request);
+      return await this.createTokenTransaction(isMainnet, request);
     } else {
       return await this.createTONTransaction(isMainnet, request);
     }
   }
 
-  static async createTON20Transaction(isMainnet: boolean, request: CreateTonTransaction): Promise<any> {
+  static async createTokenTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<any> {
     return '';
   }
 
@@ -290,15 +296,46 @@ export class TON {
 
     try {
       const tonweb = this.getTonClient(isMainnet);
-
-      const keypair = keyPairFromSecretKey(Buffer.from(request.privateKey));
-
       const wallet = tonweb.wallet.create({
-        publicKey: keypair.publicKey,
-        wc: 0,
+        address: request.from,
       });
 
       const seqno = (await wallet.methods.seqno().call()) || 0;
+      const transfer = wallet.methods.transfer({
+        secretKey: Buffer.from(request.privateKey),
+        toAddress: request.to,
+        amount: TonWeb.utils.toNano(request.value),
+        seqno: seqno,
+        payload: request.memo,
+        expireAt: Math.floor(Date.now() / 1000) + 60,
+      });
+
+      // const deploy = wallet.deploy(Buffer.from(request.privateKey)); // deploy method
+      // /*  */
+      // console.log(111);
+      // const deployFee = await deploy.estimateFee(); // get estimate fee of deploy
+      // console.log(deployFee);
+
+      // const deploySended = await deploy.send(); // deploy wallet contract to blockchain
+      // console.log(deploySended);
+
+      // const deployQuery = await deploy.getQuery(); // get deploy query Cell
+      // console.log(deployQuery);
+
+      const transferFee = await transfer.estimateFee(); // get estimate fee of transfer
+      console.log(transferFee);
+
+      const transferSended = await transfer.send(); // send transfer query to blockchain
+      console.log(transferSended);
+
+      const transferQuery = await transfer.getQuery(); // get transfer query Cell
+      console.log(transferQuery);
+
+      // const keypair = keyPairFromSecretKey(Buffer.from(request.privateKey));
+
+      // const wallet = tonweb.wallet.create({
+      //   publicKey: keypair.publicKey,
+      // });
 
       // await wallet.createInitExternalMessage(keypair.publicKey);
       // await wallet.createTransferMessage(keypair.secretKey, request.from, TonWeb.utils.toNano(request.value), seqno);
@@ -311,21 +348,21 @@ export class TON {
 
       // const deployQuery = await deploy.getQuery(); // get deploy query Cell
 
-      const transfer = wallet.methods.transfer({
-        secretKey: new Uint8Array(keypair.secretKey),
-        toAddress: request.to,
-        amount: TonWeb.utils.toNano(request.value),
-        seqno,
-        payload: 'send transaction',
-        sendMode: 3,
-      });
+      // const transfer = wallet.methods.transfer({
+      //   secretKey: new Uint8Array(keypair.secretKey),
+      //   toAddress: request.to,
+      //   amount: TonWeb.utils.toNano(request.value),
+      //   seqno,
+      //   payload: 'send transaction',
+      //   sendMode: 3,
+      // });
 
-      const transferSended = await transfer.send();
+      // const transferSended = await transfer.send();
 
-      console.log('transferSended', transferSended);
-      if (transferSended) {
-        return transferSended;
-      }
+      // console.log('transferSended', transferSended);
+      // if (transferSended) {
+      //   return transferSended;
+      // }
 
       throw new Error('can not send the transaction of ton');
     } catch (e) {
