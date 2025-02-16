@@ -70,6 +70,7 @@
     "tronweb": "^6.0.0",
     "viem": "2.x",
     "wagmi": "^2.10.4",
+    "xrpl": "^4.2.0",
     "zustand": "^4.5.4"
   },
   "devDependencies": {

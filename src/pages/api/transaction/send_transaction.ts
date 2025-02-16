@@ -45,37 +45,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         }
 
         const addressQuery =
-          'SELECT private_key, note, network, address FROM addresses where chain_id = ? and network = ? and address = ? and wallet_id = ? and user_id = ? and status = 1';
+          'SELECT wallet_id, private_key, note, network, address FROM addresses where chain_id = ? and network = ? and address = ? and wallet_id = ? and user_id = ? and status = 1';
         const addressValues = [dbChainId, network, fromAddress, walletId, userId];
         const [addressRows] = await connection.query(addressQuery, addressValues);
         if (Array.isArray(addressRows) && addressRows.length === 1) {
           const addressRow = addressRows[0] as mysql.RowDataPacket;
 
-          const hash = await WEB3.sendTransaction(addressRow.network === 1 ? true : false, {
-            coin: FindTokenByChainIdsAndSymbol(
-              WEB3.getChainIds(addressRow.network === 1 ? true : false, chainId),
-              coin,
-            ),
-            value: value,
-            privateKey: addressRow.private_key,
-            feeRate: feeRate,
-            btcType: coin === COINS.BTC ? BTC.getType(addressRow.note) : undefined,
-            from: addressRow.address,
-            to: toAddress,
-            gasPrice: maxFee ? GweiToWei(maxFee).toString() : '',
-            gasLimit: gasLimit ? gasLimit : '',
-            maxPriorityFeePerGas: maxPriortyFee ? GweiToWei(maxPriortyFee).toString() : '',
-            nonce: nonce ? nonce : '',
-            memo: memo ? memo : '',
-          });
+          const walletQuery = 'SELECT mnemonic FROM wallets WHERE id = ? and status = ?';
+          const walletValues = [addressRow.wallet_id, 1];
+          const [walletRows] = await connection.query(walletQuery, walletValues);
 
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: {
-              hash: hash,
-            },
-          });
+          if (Array.isArray(walletRows) && walletRows.length === 1) {
+            const walletRow = walletRows[0] as mysql.RowDataPacket;
+
+            const hash = await WEB3.sendTransaction(addressRow.network === 1 ? true : false, {
+              coin: FindTokenByChainIdsAndSymbol(
+                WEB3.getChainIds(addressRow.network === 1 ? true : false, chainId),
+                coin,
+              ),
+              value: value,
+              privateKey: addressRow.private_key,
+              mnemonic: walletRow.mnemonic,
+              feeRate: feeRate,
+              btcType: coin === COINS.BTC ? BTC.getType(addressRow.note) : undefined,
+              from: addressRow.address,
+              to: toAddress,
+              gasPrice: maxFee ? GweiToWei(maxFee).toString() : '',
+              gasLimit: gasLimit ? gasLimit : '',
+              maxPriorityFeePerGas: maxPriortyFee ? GweiToWei(maxPriortyFee).toString() : '',
+              nonce: nonce ? nonce : '',
+              memo: memo ? memo : '',
+            });
+
+            return res.status(200).json({
+              message: '',
+              result: true,
+              data: {
+                hash: hash,
+              },
+            });
+          }
         }
 
       default:

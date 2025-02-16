@@ -188,7 +188,7 @@ export class LTC {
       return '0';
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the balance of ltc');
+      return '0';
     }
   }
 

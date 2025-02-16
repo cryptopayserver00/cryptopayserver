@@ -131,6 +131,7 @@ export class Http {
   static find_crypto_price = this.httpPath + '/tool/find_crypto_price';
   static find_asset_balance = this.httpPath + '/tool/find_asset_balance';
   static checkout_chain_address = this.httpPath + '/tool/checkout_chain_address';
+  static checkout_chain_address_status = this.httpPath + '/tool/checkout_chain_address_status';
   static find_fee_rate = this.httpPath + '/tool/find_fee_rate';
   static find_gas_fee = this.httpPath + '/tool/find_gas_fee';
 }

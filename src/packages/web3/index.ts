@@ -52,6 +52,7 @@ export class WEB3 {
       TRON.createAccountBySeed(isMainnet, seed),
       await TON.createAccountBySeed(isMainnet, seed),
       await BITCOINCASH.createAccountBySeed(isMainnet, seed, mnemonic),
+      XRP.createAccountBySeed(isMainnet, seed, mnemonic),
     ]);
   }
 
@@ -66,6 +67,7 @@ export class WEB3 {
       case CHAINS.LITECOIN:
         return Array<ChainAccountType>(LTC.createAccountByPrivateKey(isMainnet, privateKey));
       case CHAINS.XRP:
+        // return Array<ChainAccountType>(XRP.createAccountByPrivateKey(isMainnet, privateKey));
         return [];
       case CHAINS.BITCOINCASH:
         return Array<ChainAccountType>(await BITCOINCASH.createAccountByPrivateKey(isMainnet, privateKey));
@@ -88,6 +90,15 @@ export class WEB3 {
     }
   }
 
+  static async checkAccountStatus(isMainnet: boolean, chain: CHAINS, address: string): Promise<number> {
+    switch (chain) {
+      case CHAINS.XRP:
+        return (await XRP.checkAccountStatus(isMainnet, address)) ? 1 : 2;
+      default:
+        return 0;
+    }
+  }
+
   static async checkAddress(isMainnet: boolean, chain: CHAINS, address: string): Promise<boolean> {
     switch (chain) {
       case CHAINS.BITCOIN:
@@ -95,7 +106,7 @@ export class WEB3 {
       case CHAINS.LITECOIN:
         return LTC.checkAddress(isMainnet, address);
       case CHAINS.XRP:
-        return false;
+        return XRP.checkAddress(isMainnet, address);
       case CHAINS.BITCOINCASH:
         return await BITCOINCASH.checkAddress(isMainnet, address);
       case CHAINS.ETHEREUM:
@@ -197,7 +208,7 @@ export class WEB3 {
       case CHAINS.LITECOIN:
         return await LTC.getAssetBalance(isMainnet, address);
       case CHAINS.XRP:
-        return {} as AssetBalance;
+        return await XRP.getAssetBalance(isMainnet, address);
       case CHAINS.BITCOINCASH:
         return await BITCOINCASH.getAssetBalance(isMainnet, address);
       case CHAINS.ETHEREUM:
@@ -300,7 +311,7 @@ export class WEB3 {
       case CHAINS.LITECOIN:
         return await LTC.getTransactionDetail(isMainnet, hash);
       case CHAINS.XRP:
-        return {} as TransactionDetail;
+        return await XRP.getTransactionDetail(isMainnet, hash);
       case CHAINS.BITCOINCASH:
         return await BITCOINCASH.getTransactionDetail(isMainnet, hash);
       case CHAINS.ETHEREUM:
@@ -335,7 +346,7 @@ export class WEB3 {
       case CHAINS.LITECOIN:
         return await LTC.getTransactions(isMainnet, address);
       case CHAINS.XRP:
-        return [];
+        return await XRP.getTransactions(isMainnet, address);
       case CHAINS.BITCOINCASH:
         return await BITCOINCASH.getTransactions(isMainnet, address);
       case CHAINS.ETHEREUM:
@@ -370,7 +381,7 @@ export class WEB3 {
       case CHAINS.LITECOIN:
         return await LTC.sendTransaction(isMainnet, req);
       case CHAINS.XRP:
-        return '';
+        return await XRP.sendTransaction(isMainnet, req);
       case CHAINS.BITCOINCASH:
         return await BITCOINCASH.sendTransaction(isMainnet, req);
       case CHAINS.ETHEREUM:

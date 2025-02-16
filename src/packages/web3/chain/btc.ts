@@ -296,7 +296,7 @@ export class BTC {
       return '0';
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the balance of btc');
+      return '0';
     }
   }
 

@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const newPwd = req.body.new_password;
 
         const oldCryptoPassword = CryptoJS.SHA256(oldPwd).toString();
-        const newCryptoPassword = CryptoJS.SHA256(newPwd).toString();
+        const newCryptoPassword = CryptoJS.(newPwd).toString();
 
         const updateQuery = 'UPDATE users SET password = ? WHERE email = ? and password = ? and status = ?';
         const updateValues = [newCryptoPassword, email, oldCryptoPassword, 1];

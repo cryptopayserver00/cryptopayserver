@@ -2,7 +2,6 @@ import axios from 'axios';
 import { TestNetWallet, TestNetWatchWallet, Wallet } from 'mainnet-js';
 import { CHAINIDS, CHAINS } from 'packages/constants/blockchain';
 import { AssetBalance, ChainAccountType, SendTransaction, TransactionDetail } from '../types';
-import { Bip39 } from '../bip39';
 
 export class BITCOINCASH {
   static chain = CHAINS.BITCOINCASH;
@@ -133,7 +132,7 @@ export class BITCOINCASH {
       return toBCH ? (await wallet.getBalance('bch')).toString() : (await wallet.getBalance('sat')).toString();
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the balance of bch');
+      return '0';
     }
   }
 
@@ -185,7 +184,7 @@ export class BITCOINCASH {
         return txData.txId as string;
       }
 
-      throw new Error('can not send transaction of bch');
+      throw new Error('can not send the transaction of bch');
     } catch (e) {
       console.error(e);
       throw new Error('can not send the transactions of bch');
