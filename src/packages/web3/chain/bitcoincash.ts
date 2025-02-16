@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { TestNetWallet, TestNetWatchWallet, Wallet } from 'mainnet-js';
+import { TestNetWallet, Wallet } from 'mainnet-js';
 import { CHAINIDS, CHAINS } from 'packages/constants/blockchain';
 import { AssetBalance, ChainAccountType, SendTransaction, TransactionDetail } from '../types';
 
@@ -172,13 +172,11 @@ export class BITCOINCASH {
         toWalelt = await TestNetWallet.watchOnly(req.to);
       }
 
-      const txData = await wallet.send([
-        {
-          cashaddr: toWalelt?.getDepositAddress(),
-          value: req.value,
-          unit: 'bch',
-        },
-      ]);
+      const txData = await wallet.send({
+        cashaddr: toWalelt?.getDepositAddress(),
+        value: parseFloat(req.value),
+        unit: 'bch',
+      });
 
       if (txData) {
         return txData.txId as string;

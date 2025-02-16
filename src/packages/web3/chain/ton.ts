@@ -302,7 +302,7 @@ export class TON {
 
       const seqno = (await wallet.methods.seqno().call()) || 0;
       const transfer = wallet.methods.transfer({
-        secretKey: Buffer.from(request.privateKey),
+        secretKey: new Uint8Array(Buffer.from(request.privateKey)),
         toAddress: request.to,
         amount: TonWeb.utils.toNano(request.value),
         seqno: seqno,

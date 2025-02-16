@@ -151,7 +151,7 @@ export type SendTransaction = {
   to: string;
   value: string;
   privateKey: string;
-  mnemonic: string;
+  mnemonic?: string;
   gasPrice?: string;
   gasLimit?: number;
   maxPriorityFeePerGas?: string;
