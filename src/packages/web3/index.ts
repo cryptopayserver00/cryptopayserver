@@ -398,4 +398,3 @@ export class WEB3 {
     }
   }
 }
-/*  */

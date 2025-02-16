@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { TestNetWallet, Wallet } from 'mainnet-js';
+import { TestNetWallet, TestNetWatchWallet, Wallet } from 'mainnet-js';
 import { CHAINIDS, CHAINS } from 'packages/constants/blockchain';
 import { AssetBalance, ChainAccountType, SendTransaction, TransactionDetail } from '../types';
 import { Bip39 } from '../bip39';
