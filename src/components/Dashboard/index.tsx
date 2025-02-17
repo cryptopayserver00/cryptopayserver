@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   CardContent,
+  Chip,
   Container,
   FormControlLabel,
   Grid,
@@ -108,8 +109,11 @@ const Dashboard = () => {
       )}
 
       <Container>
-        <Typography variant="h5">{getStoreName()}</Typography>
-        <Grid container spacing={2} mt={2}>
+        <Box my={2}>
+          <Chip label={getStoreName()} />
+        </Box>
+        {/* <Typography variant="h5">{}</Typography> */}
+        <Grid container spacing={2}>
           <Grid item xs={12}>
             <Card variant="outlined">
               <CardContent>

@@ -18,10 +18,11 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWal
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
+import { IsValidEmail, isValidPassword } from 'utils/verify';
 
 const Login = () => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const [email, setEmail] = useState<string>('test@cryptopayserver.xyz');
+  const [password, setPassword] = useState<string>('bUvJZEmnipC!Wr,6');
 
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
   const { getIsLogin, setUserId, setUserEmail, setUsername, setIsLogin } = useUserPresistStore((state) => state);
@@ -32,58 +33,66 @@ const Login = () => {
 
   const onLogin = async () => {
     try {
-      if (email !== '' && password !== '') {
-        const response: any = await axios.post(Http.login, {
-          email: email,
-          password: password,
+      if (!email || email === '' || !IsValidEmail(email)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect email input');
+        setSnackOpen(true);
+        return;
+      }
+
+      if (!password || !isValidPassword(password)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect password input');
+        setSnackOpen(true);
+        return;
+      }
+
+      const response: any = await axios.post(Http.login, {
+        email: email,
+        password: password,
+      });
+      if (response.result) {
+        setUserId(response.data.id);
+        setUserEmail(response.data.email);
+        setUsername(response.data.username);
+        setIsLogin(true);
+
+        const store_resp: any = await axios.get(Http.find_store, {
+          params: {
+            user_id: response.data.id,
+          },
         });
-        if (response.result) {
-          setUserId(response.data.id);
-          setUserEmail(response.data.email);
-          setUsername(response.data.username);
-          setIsLogin(true);
 
-          const store_resp: any = await axios.get(Http.find_store, {
-            params: {
-              user_id: response.data.id,
-            },
-          });
+        if (store_resp.result) {
+          if (store_resp.data.length > 0) {
+            setStoreId(store_resp.data[0].id);
+            setStoreName(store_resp.data[0].name);
+            setStoreCurrency(store_resp.data[0].currency);
+            setStorePriceSource(store_resp.data[0].price_source);
+            setIsStore(true);
 
-          if (store_resp.result) {
-            if (store_resp.data.length > 0) {
-              setStoreId(store_resp.data[0].id);
-              setStoreName(store_resp.data[0].name);
-              setStoreCurrency(store_resp.data[0].currency);
-              setStorePriceSource(store_resp.data[0].price_source);
-              setIsStore(true);
-
-              const wallet_resp: any = await axios.get(Http.find_wallet, {
-                params: {
-                  store_id: store_resp.data[0].id,
-                },
-              });
-              if (wallet_resp.result) {
-                setWalletId(wallet_resp.data.id);
-                setIsWallet(true);
-              }
-
-              window.location.href = '/dashboard';
-            } else {
-              window.location.href = '/stores/create';
+            const wallet_resp: any = await axios.get(Http.find_wallet, {
+              params: {
+                store_id: store_resp.data[0].id,
+              },
+            });
+            if (wallet_resp.result) {
+              setWalletId(wallet_resp.data.id);
+              setIsWallet(true);
             }
+
+            window.location.href = '/dashboard';
           } else {
-            setSnackSeverity('error');
-            setSnackMessage('Can not find the store on site!');
-            setSnackOpen(true);
+            window.location.href = '/stores/create';
           }
         } else {
           setSnackSeverity('error');
-          setSnackMessage('Incorrect username or password!');
+          setSnackMessage('Can not find the store on site!');
           setSnackOpen(true);
         }
       } else {
         setSnackSeverity('error');
-        setSnackMessage('The input content is incorrect, please check!');
+        setSnackMessage('Incorrect username or password!');
         setSnackOpen(true);
       }
     } catch (e) {
@@ -124,13 +133,20 @@ const Login = () => {
                     onChange={(e) => {
                       setEmail(e.target.value);
                     }}
+                    placeholder="test@cryptopayserver.xyz"
                   />
                 </Box>
               </Box>
               <Box mt={3}>
                 <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
                   <Typography>Password</Typography>
-                  <Button>Forgot password?</Button>
+                  <Button
+                    onClick={() => {
+                      window.location.href = '/forgot-password';
+                    }}
+                  >
+                    Forgot password?
+                  </Button>
                 </Stack>
                 <Box mt={1}>
                   <TextField
@@ -145,9 +161,9 @@ const Login = () => {
                   />
                 </Box>
               </Box>
-              <Box mt={3}>
+              {/* <Box mt={3}>
                 <FormControlLabel control={<Checkbox />} label="Remember me" />
-              </Box>
+              </Box> */}
 
               <Box mt={3}>
                 <Button fullWidth variant={'contained'} size={'large'} onClick={onLogin}>
@@ -155,8 +171,10 @@ const Login = () => {
                 </Button>
               </Box>
 
-              <Box mt={3} textAlign={'center'}>
+              <Box mt={2} textAlign={'center'}>
                 <Button
+                  size={'large'}
+                  fullWidth
                   onClick={() => {
                     window.location.href = '/register';
                   }}

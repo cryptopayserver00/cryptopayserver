@@ -6,6 +6,7 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useRouter } from 'next/router';
 import { useUserPresistStore } from 'lib/store';
+import { isValidPassword, IsValidEmail } from 'utils/verify';
 
 const Register = () => {
   const router = useRouter();
@@ -19,36 +20,50 @@ const Register = () => {
 
   const onRegister = async () => {
     try {
-      if (email !== '' && password !== '' && confirmPassword !== '' && password === confirmPassword) {
-        const response: any = await axios.get(Http.find_user_by_email, {
-          params: {
-            email: email,
-          },
-        });
-        if (response.result) {
-          setSnackSeverity('error');
-          setSnackMessage('User already exists!');
-          setSnackOpen(true);
-          return;
-        }
-
-        // create user
-        const create_user_resp: any = await axios.post(Http.create_user, {
-          email: email,
-          password: password,
-        });
-        if (create_user_resp.result) {
-          setSnackSeverity('success');
-          setSnackMessage('Successful creation!');
-          setSnackOpen(true);
-          setTimeout(() => {
-            window.location.href = '/login';
-          }, 2000);
-        }
-      } else {
+      if (!email || email === '' || !IsValidEmail(email)) {
         setSnackSeverity('error');
-        setSnackMessage('The input content is incorrect, please check!');
+        setSnackMessage('Incorrect email input');
         setSnackOpen(true);
+        return;
+      }
+
+      if (
+        !password ||
+        !confirmPassword ||
+        !isValidPassword(password) ||
+        !isValidPassword(confirmPassword) ||
+        password != confirmPassword
+      ) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect password input');
+        setSnackOpen(true);
+        return;
+      }
+
+      const response: any = await axios.get(Http.find_user_by_email, {
+        params: {
+          email: email,
+        },
+      });
+      if (response.result) {
+        setSnackSeverity('error');
+        setSnackMessage('User already exists!');
+        setSnackOpen(true);
+        return;
+      }
+
+      // create user
+      const create_user_resp: any = await axios.post(Http.create_user, {
+        email: email,
+        password: password,
+      });
+      if (create_user_resp.result) {
+        setSnackSeverity('success');
+        setSnackMessage('Successful creation!');
+        setSnackOpen(true);
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -138,8 +153,10 @@ const Register = () => {
                 </Button>
               </Box>
 
-              <Box mt={3} textAlign={'center'}>
+              <Box mt={2} textAlign={'center'}>
                 <Button
+                  size={'large'}
+                  fullWidth
                   onClick={() => {
                     window.location.href = '/login';
                   }}

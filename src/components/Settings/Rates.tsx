@@ -26,7 +26,7 @@ import { Http } from 'utils/http/http';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
 
 const Rates = () => {
-  const [priceSource, setPriceSource] = useState<string>('');
+  const [priceSource, setPriceSource] = useState<string>(PRICE_RESOURCE[0]);
 
   const { getStoreId } = useStorePresistStore((state) => state);
   const { getUserId } = useUserPresistStore((state) => state);
@@ -58,6 +58,13 @@ const Rates = () => {
 
   const onClickSave = async () => {
     try {
+      if (!PRICE_RESOURCE.includes(priceSource)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect price source');
+        setSnackOpen(true);
+        return;
+      }
+
       const response: any = await axios.put(Http.update_store_by_id, {
         user_id: getUserId(),
         store_id: getStoreId(),

@@ -100,7 +100,7 @@ export const CURRENCY_SYMBOLS = {
   XDR: 'XDR', // 特别提款权
 };
 
-export const PRICE_RESOURCE = ['Kraken', 'CoinGecko'];
+export const PRICE_RESOURCE = ['CoinGecko', 'Kraken'];
 
 export const PAID_STATUS = {
   PAID: 'PAID',

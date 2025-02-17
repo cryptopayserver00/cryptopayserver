@@ -95,6 +95,13 @@ const Requests = () => {
 
   const onClickCreate = async () => {
     try {
+      if (!CURRENCY.includes(currency)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect currency');
+        setSnackOpen(true);
+        return;
+      }
+
       if (!checkTitle()) {
         return;
       }

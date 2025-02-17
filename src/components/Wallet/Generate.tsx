@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Container, Icon, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Container, Icon, Stack, Typography } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useEffect } from 'react';
@@ -6,6 +6,7 @@ import { useSnackPresistStore } from 'lib/store/snack';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import Link from 'next/link';
 
 const GenerateWallet = () => {
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
@@ -92,41 +93,44 @@ const GenerateWallet = () => {
         <Stack alignItems={'center'} mt={20}>
           <Typography variant="h4">Create wallet</Typography>
           <Box mt={8}>
-            <div onClick={onClickMnemonicPhrase}>
+            <Button onClick={onClickMnemonicPhrase}>
               <Card sx={{ width: 700, padding: 2 }}>
                 <CardContent>
                   <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                     <Stack direction={'row'} alignItems={'center'}>
                       <Icon component={AccountBalanceWalletIcon} fontSize={'large'} />
-                      <Box ml={5}>
-                        <Typography variant="h5">Mnemonic phrase</Typography>
-                      </Box>
+                      <Typography variant="h5" ml={5}>
+                        Mnemonic phrase
+                      </Typography>
                     </Stack>
                     <Icon component={ChevronRightIcon} fontSize={'large'} />
                   </Stack>
                 </CardContent>
               </Card>
-            </div>
-          </Box>
-          <Box mt={8}>
-            <div onClick={onClickHardwareWallet}>
-              <Card sx={{ width: 700, padding: 2 }}>
-                <CardContent>
-                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                    <Stack direction={'row'} alignItems={'center'}>
-                      <Icon component={AccountBalanceWalletIcon} fontSize={'large'} />
-                      <Box ml={5}>
-                        <Typography variant="h5">Hardware wallet</Typography>
-                      </Box>
-                    </Stack>
-                    <Icon component={ChevronRightIcon} fontSize={'large'} />
-                  </Stack>
-                </CardContent>
-              </Card>
-            </div>
+            </Button>
           </Box>
 
-          <Typography mt={10}>Continuing implies agreeing to CryptoPayServer user agreement.</Typography>
+          <Box mt={8}>
+            <Button onClick={onClickHardwareWallet}>
+              <Card sx={{ width: 700, padding: 2 }}>
+                <CardContent>
+                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                    <Stack direction={'row'} alignItems={'center'}>
+                      <Icon component={AccountBalanceWalletIcon} fontSize={'large'} />
+                      <Typography variant="h5" ml={5}>
+                        Hardware wallet
+                      </Typography>
+                    </Stack>
+                    <Icon component={ChevronRightIcon} fontSize={'large'} />
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Button>
+          </Box>
+
+          <Typography mt={10}>
+            Continuing implies agreeing to CryptoPayServer <Link href={'#'}>user agreement</Link>.
+          </Typography>
         </Stack>
       </Container>
     </Box>

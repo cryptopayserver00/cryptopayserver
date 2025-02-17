@@ -92,6 +92,13 @@ const General = () => {
 
   const onClickSaveStore = async () => {
     try {
+      if (!CURRENCY.includes(currency)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect currency');
+        setSnackOpen(true);
+        return;
+      }
+
       const response: any = await axios.put(Http.update_store_by_id, {
         user_id: getUserId(),
         store_id: getStoreId(),

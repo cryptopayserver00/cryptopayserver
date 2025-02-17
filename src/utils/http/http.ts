@@ -13,6 +13,7 @@ export class Http {
   static delete_user_by_email = this.httpPath + '/user/delete_user_by_email';
   static create_user = this.httpPath + '/user/create_user';
   static login = this.httpPath + '/user/login';
+  static send_reset_email = this.httpPath + '/user/send_reset_email';
 
   // apikeys
   static find_apikeys_setting = this.httpPath + '/apikeys/find_apikeys_setting';
@@ -67,6 +68,7 @@ export class Http {
   static update_pwd_by_wallet_id = this.httpPath + '/wallet/update_pwd_by_wallet_id';
   static update_backup_by_wallet_id = this.httpPath + '/wallet/update_backup_by_wallet_id';
   static save_wallet = this.httpPath + '/wallet/save_wallet';
+  static save_wallet_by_private_key = this.httpPath + '/wallet/save_wallet_by_private_key';
   static find_wallet_balance_by_network = this.httpPath + '/wallet/find_wallet_balance_by_network';
   static find_wallet_address_by_chain_and_network = this.httpPath + '/wallet/find_wallet_address_by_chain_and_network';
   static find_wallet_address_by_network = this.httpPath + '/wallet/find_wallet_address_by_network';

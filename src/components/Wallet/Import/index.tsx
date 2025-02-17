@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Container, Icon, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Container, Icon, Stack, Typography } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -43,62 +43,65 @@ const WalletImport = () => {
   return (
     <Box>
       <Container>
-        <Stack alignItems={'center'} mt={6}>
+        <Stack alignItems={'center'} mt={20}>
           <Typography variant="h4">Choose your import method</Typography>
-          <Typography variant="h6" mt={2}>
+          <Typography variant="h6" mt={4}>
             The following methods assume that you already have an existing wallet created and backed up.
           </Typography>
           <Box mt={8}>
-            <div onClick={onClickMnemonicPhraseAndPrivateKey}>
+            <Button onClick={onClickMnemonicPhraseAndPrivateKey}>
               <Card sx={{ width: 750, padding: 2 }}>
                 <CardContent>
                   <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                     <Stack direction={'row'} alignItems={'center'}>
                       <Icon component={AccountBalanceWalletIcon} fontSize={'large'} />
-                      <Box ml={5}>
-                        <Typography variant="h5">Mnemonic phrase or private keys</Typography>
-                      </Box>
+                      <Typography variant="h5" ml={5}>
+                        Mnemonic phrase or private keys
+                      </Typography>
                     </Stack>
                     <Icon component={ChevronRightIcon} fontSize={'large'} />
                   </Stack>
                 </CardContent>
               </Card>
-            </div>
+            </Button>
           </Box>
+
           <Box mt={4}>
-            <div onClick={onClickNoPrivateKeyWallet}>
+            <Button onClick={onClickNoPrivateKeyWallet}>
               <Card sx={{ width: 750, padding: 2 }}>
                 <CardContent>
                   <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                     <Stack direction={'row'} alignItems={'center'}>
                       <Icon component={AccountBalanceWalletIcon} fontSize={'large'} />
-                      <Box ml={5}>
-                        <Typography variant="h5">No private key wallet</Typography>
-                      </Box>
+                      <Typography variant="h5" ml={5}>
+                        No private key wallet
+                      </Typography>
                     </Stack>
                     <Icon component={ChevronRightIcon} fontSize={'large'} />
                   </Stack>
                 </CardContent>
               </Card>
-            </div>
+            </Button>
           </Box>
+
           <Box mt={4}>
-            <div onClick={onClickHardwareWallet}>
+            <Button onClick={onClickHardwareWallet}>
               <Card sx={{ width: 750, padding: 2 }}>
                 <CardContent>
                   <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                     <Stack direction={'row'} alignItems={'center'}>
                       <Icon component={AccountBalanceWalletIcon} fontSize={'large'} />
-                      <Box ml={5}>
-                        <Typography variant="h5">Hardware wallet</Typography>
-                      </Box>
+                      <Typography variant="h5" ml={5}>
+                        Hardware wallet
+                      </Typography>
                     </Stack>
                     <Icon component={ChevronRightIcon} fontSize={'large'} />
                   </Stack>
                 </CardContent>
               </Card>
-            </div>
+            </Button>
           </Box>
+
           {/* 
           <Box mt={4}>
             <div onClick={onClickImportWalletFile}>

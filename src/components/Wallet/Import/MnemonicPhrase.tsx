@@ -16,6 +16,7 @@ import { Http } from 'utils/http/http';
 
 const ImportMnemonicPhrase = () => {
   const [bit, setBit] = useState<number>(12);
+  const [numbers, setNumbers] = useState<number[]>([]);
   const [phrase, setPhrase] = useState<string[]>([]);
 
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
@@ -36,7 +37,7 @@ const ImportMnemonicPhrase = () => {
   const handleButtonClick = async () => {
     if (!phrase || phrase.filter((element) => element !== undefined && element !== '').length !== bit) {
       setSnackSeverity('error');
-      setSnackMessage('No support the wallet');
+      setSnackMessage('The input cannot be empty');
       setSnackOpen(true);
       return;
     }
@@ -108,6 +109,11 @@ const ImportMnemonicPhrase = () => {
   };
 
   useEffect(() => {
+    const newNumbers = Array.from({ length: bit / 2 }, (_, index) => index);
+    setNumbers(newNumbers);
+  }, [bit]);
+
+  useEffect(() => {
     if (!getIsStore()) {
       window.location.href = '/stores/create';
     }
@@ -122,196 +128,49 @@ const ImportMnemonicPhrase = () => {
           <FormControl hiddenLabel size="small">
             <Select value={bit} onChange={handleBitChange}>
               <MenuItem value={12}>12 bit</MenuItem>
-              {/* <MenuItem value={24}>24 bit</MenuItem> */}
+              <MenuItem value={24}>24 bit</MenuItem>
             </Select>
           </FormControl>
         </Box>
       </Stack>
       <Box>
-        <Box mt={2}>
-          <Stack direction={'row'} alignItems={'center'}>
-            <TextField
-              hiddenLabel
-              size="small"
-              InputProps={{
-                startAdornment: <InputAdornment position="start">1</InputAdornment>,
-              }}
-              value={phrase[0]}
-              onChange={(e: any) => {
-                handlePhraseChange(e, 1);
-              }}
-              style={{ width: 200 }}
-            />
-            <Box ml={2}>
-              <TextField
-                hiddenLabel
-                size="small"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">2</InputAdornment>,
-                }}
-                style={{ width: 200 }}
-                value={phrase[1]}
-                onChange={(e: any) => {
-                  handlePhraseChange(e, 2);
-                }}
-              />
+        {numbers &&
+          numbers.map((item, index) => (
+            <Box mt={2} key={index}>
+              <Stack direction={'row'} alignItems={'center'}>
+                <TextField
+                  hiddenLabel
+                  size="small"
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">{item * 2 + 1}</InputAdornment>,
+                  }}
+                  value={phrase[item * 2]}
+                  onChange={(e: any) => {
+                    handlePhraseChange(e, item * 2 + 1);
+                  }}
+                  style={{ width: 200 }}
+                />
+                <Box ml={2}>
+                  <TextField
+                    hiddenLabel
+                    size="small"
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">{item * 2 + 2}</InputAdornment>,
+                    }}
+                    style={{ width: 200 }}
+                    value={phrase[item * 2 + 1]}
+                    onChange={(e: any) => {
+                      handlePhraseChange(e, item * 2 + 2);
+                    }}
+                  />
+                </Box>
+              </Stack>
             </Box>
-          </Stack>
-        </Box>
-        <Box mt={2}>
-          <Stack direction={'row'} alignItems={'center'}>
-            <TextField
-              hiddenLabel
-              size="small"
-              InputProps={{
-                startAdornment: <InputAdornment position="start">3</InputAdornment>,
-              }}
-              style={{ width: 200 }}
-              value={phrase[2]}
-              onChange={(e: any) => {
-                handlePhraseChange(e, 3);
-              }}
-            />
-            <Box ml={2}>
-              <TextField
-                hiddenLabel
-                size="small"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">4</InputAdornment>,
-                }}
-                style={{ width: 200 }}
-                value={phrase[3]}
-                onChange={(e: any) => {
-                  handlePhraseChange(e, 4);
-                }}
-              />
-            </Box>
-          </Stack>
-        </Box>
-        <Box mt={2}>
-          <Stack direction={'row'} alignItems={'center'}>
-            <TextField
-              hiddenLabel
-              size="small"
-              InputProps={{
-                startAdornment: <InputAdornment position="start">5</InputAdornment>,
-              }}
-              style={{ width: 200 }}
-              value={phrase[4]}
-              onChange={(e: any) => {
-                handlePhraseChange(e, 5);
-              }}
-            />
-            <Box ml={2}>
-              <TextField
-                hiddenLabel
-                size="small"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">6</InputAdornment>,
-                }}
-                style={{ width: 200 }}
-                value={phrase[5]}
-                onChange={(e: any) => {
-                  handlePhraseChange(e, 6);
-                }}
-              />
-            </Box>
-          </Stack>
-        </Box>
-        <Box mt={2}>
-          <Stack direction={'row'} alignItems={'center'}>
-            <TextField
-              hiddenLabel
-              size="small"
-              InputProps={{
-                startAdornment: <InputAdornment position="start">7</InputAdornment>,
-              }}
-              style={{ width: 200 }}
-              value={phrase[6]}
-              onChange={(e: any) => {
-                handlePhraseChange(e, 7);
-              }}
-            />
-            <Box ml={2}>
-              <TextField
-                hiddenLabel
-                size="small"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">8</InputAdornment>,
-                }}
-                style={{ width: 200 }}
-                value={phrase[7]}
-                onChange={(e: any) => {
-                  handlePhraseChange(e, 8);
-                }}
-              />
-            </Box>
-          </Stack>
-        </Box>
-        <Box mt={2}>
-          <Stack direction={'row'} alignItems={'center'}>
-            <TextField
-              hiddenLabel
-              size="small"
-              InputProps={{
-                startAdornment: <InputAdornment position="start">9</InputAdornment>,
-              }}
-              style={{ width: 200 }}
-              value={phrase[8]}
-              onChange={(e: any) => {
-                handlePhraseChange(e, 9);
-              }}
-            />
-            <Box ml={2}>
-              <TextField
-                hiddenLabel
-                size="small"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">10</InputAdornment>,
-                }}
-                style={{ width: 200 }}
-                value={phrase[9]}
-                onChange={(e: any) => {
-                  handlePhraseChange(e, 10);
-                }}
-              />
-            </Box>
-          </Stack>
-        </Box>
-        <Box mt={2}>
-          <Stack direction={'row'} alignItems={'center'}>
-            <TextField
-              hiddenLabel
-              size="small"
-              InputProps={{
-                startAdornment: <InputAdornment position="start">11</InputAdornment>,
-              }}
-              style={{ width: 200 }}
-              value={phrase[10]}
-              onChange={(e: any) => {
-                handlePhraseChange(e, 11);
-              }}
-            />
-            <Box ml={2}>
-              <TextField
-                hiddenLabel
-                size="small"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">12</InputAdornment>,
-                }}
-                style={{ width: 200 }}
-                value={phrase[11]}
-                onChange={(e: any) => {
-                  handlePhraseChange(e, 12);
-                }}
-              />
-            </Box>
-          </Stack>
-        </Box>
+          ))}
       </Box>
 
-      <Box mt={5}>
-        <Button size="large" variant={'contained'} onClick={() => handleButtonClick()}>
+      <Box mt={5} width={420}>
+        <Button size="large" fullWidth variant={'contained'} onClick={handleButtonClick}>
           Confirm
         </Button>
       </Box>

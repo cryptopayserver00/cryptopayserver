@@ -29,16 +29,28 @@ const CreateStore = () => {
   const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource, setIsStore } = useStorePresistStore(
     (state) => state,
   );
-  const { resetWallet } = useWalletPresistStore(
-    (state) => state,
-  );
+  const { resetWallet } = useWalletPresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
   const onCreateStore = async () => {
     try {
-      if (name === '' || currency === '' || priceSource === '') {
+      if (!name || name === '') {
         setSnackSeverity('error');
-        setSnackMessage('The input content is incorrect, please check!');
+        setSnackMessage('Incorrect name input');
+        setSnackOpen(true);
+        return;
+      }
+
+      if (!CURRENCY.includes(currency)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect currency select');
+        setSnackOpen(true);
+        return;
+      }
+
+      if (!PRICE_RESOURCE.includes(priceSource)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect price source select');
         setSnackOpen(true);
         return;
       }
@@ -58,7 +70,7 @@ const CreateStore = () => {
         setStorePriceSource(response.data.price_source);
         setIsStore(true);
 
-        resetWallet()
+        resetWallet();
 
         setSnackSeverity('success');
         setSnackMessage('Successful creation!');
@@ -147,7 +159,7 @@ const CreateStore = () => {
                       ))}
                   </Select>
                 </Box>
-                <Typography fontSize={14}>
+                <Typography fontSize={14} mt={1}>
                   The recommended price source gets chosen based on the default currency.
                 </Typography>
               </Box>

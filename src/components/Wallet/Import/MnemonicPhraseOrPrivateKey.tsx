@@ -47,8 +47,7 @@ const ImportMnemonicPhraseOrPrivateKey = () => {
               <ImportMnemonicPhrase />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
-              {/* <ImportPrivateKey /> */}
-              <Typography>No support right now</Typography>
+              <ImportPrivateKey />
             </CustomTabPanel>
           </Box>
         </Stack>

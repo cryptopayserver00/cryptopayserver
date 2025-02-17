@@ -10,6 +10,7 @@ import Account from 'components/Account';
 import Notifications from 'components/Notifications';
 import Login from 'components/Login';
 import Register from 'components/Register';
+import ForgotPassword from 'components/ForgotPassword';
 import CreateStore from 'components/Stores/Create';
 import CreateWallet from 'components/Wallet/Create';
 import WalletImport from 'components/Wallet/Import';
@@ -109,6 +110,15 @@ export const routes: RouteType[] = [
     name: 'Register',
     title: 'Register',
     component: <Register />,
+    enableSidebar: false,
+    needLogin: false,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    title: 'ForgotPassword',
+    component: <ForgotPassword />,
     enableSidebar: false,
     needLogin: false,
     enableInnerFooter: true,
