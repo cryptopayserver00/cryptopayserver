@@ -77,8 +77,6 @@ export default function WebhookDataGrid(props: GridType) {
     try {
       const response: any = await axios.put(Http.delete_webhook_setting_by_id, {
         id: params.row.webhookId,
-        store_id: getStoreId(),
-        user_id: getUserId(),
       });
 
       if (response.result) {

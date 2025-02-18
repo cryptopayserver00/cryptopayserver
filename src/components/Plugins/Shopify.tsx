@@ -79,8 +79,6 @@ const Shopify = () => {
         // update
         const response: any = await axios.put(Http.update_shopify_setting, {
           id: id,
-          user_id: getUserId(),
-          store_id: getStoreId(),
           shop_name: shopName,
           api_key: apiKey,
           admin_api_access_token: adminApiAccessToken,

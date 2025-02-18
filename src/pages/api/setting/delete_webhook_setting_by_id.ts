@@ -10,12 +10,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       case 'PUT':
         const connection = await connectDatabase();
         const id = req.body.id;
-        const userId = req.body.user_id;
-        const storeId = req.body.store_id;
 
-        const updateQuery =
-          'UPDATE webhook_settings SET status = ? WHERE id = ? and store_id = ? and user_id = ? and status = ?';
-        const updateValues = [2, id, storeId, userId, 1];
+        const updateQuery = 'UPDATE webhook_settings SET status = ? WHERE id = ? and status = ?';
+        const updateValues = [2, id, 1];
 
         await connection.query(updateQuery, updateValues);
 

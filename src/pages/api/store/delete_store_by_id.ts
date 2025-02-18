@@ -9,13 +9,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'PUT':
         const connection = await connectDatabase();
-        const userId = req.body.user_id;
-        const storeId = req.body.store_id;
+        const id = req.body.id;
 
         const status = 2; // delete
 
-        const updateQuery = 'UPDATE stores SET status = ? WHERE id = ? and user_id = ?';
-        const updateValues = [status, storeId, userId];
+        const updateQuery = 'UPDATE stores SET status = ? WHERE id = ? and status = ?';
+        const updateValues = [status, id, 1];
         await connection.query(updateQuery, updateValues);
 
         return res.status(200).json({

@@ -66,8 +66,7 @@ const Rates = () => {
       }
 
       const response: any = await axios.put(Http.update_store_by_id, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
+        id: getStoreId(),
         price_source: priceSource ? priceSource : '',
       });
 

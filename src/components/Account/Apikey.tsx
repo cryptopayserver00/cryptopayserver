@@ -251,8 +251,6 @@ function AccountApiKeyTable() {
     try {
       const response: any = await axios.put(Http.delete_apikeys_setting_by_id, {
         id: id,
-        user_id: getUserId(),
-        store_id: getStoreId(),
       });
 
       if (response.result) {

@@ -82,8 +82,6 @@ const Webhooks = () => {
       } else if (pageStatus === 'UPDATE') {
         const response: any = await axios.put(Http.update_webhook_setting_by_id, {
           id: modifyId,
-          store_id: getStoreId(),
-          user_id: getUserId(),
           payload_url: payloadUrl ? payloadUrl : '',
           secret: secret ? secret : '',
           automatic_redelivery: showAutomaticRedelivery ? 1 : 2,

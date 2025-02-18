@@ -9,9 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'PUT':
         const connection = await connectDatabase();
-        const userId = req.body.user_id;
-        const storeId = req.body.store_id;
-        const network = req.body.network;
         const id = req.body.id;
 
         const label = req.body.label;
@@ -35,8 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         updateQuery = updateQuery.slice(0, -1);
 
-        updateQuery += ' WHERE id = ? and store_id = ? and user_id = ? and network = ? and status = ?';
-        updateValues.push(id, storeId, userId, network, 1);
+        updateQuery += ' WHERE id = ? and status = ?';
+        updateValues.push(id, 1);
 
         await connection.query(updateQuery, updateValues);
 

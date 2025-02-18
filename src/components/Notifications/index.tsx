@@ -112,9 +112,6 @@ function NotificationsTab() {
   const onClickSeen = async (id: number, isSeen: number) => {
     try {
       const response: any = await axios.put(Http.update_notification, {
-        store_id: getStoreId(),
-        user_id: getUserId(),
-        network: getNetwork() === 'mainnet' ? 1 : 2,
         id: id,
         is_seen: isSeen === 1 ? 2 : 1,
       });

@@ -100,8 +100,7 @@ const General = () => {
       }
 
       const response: any = await axios.put(Http.update_store_by_id, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
+        id: getStoreId(),
         brand_color: brandColor ? brandColor : '',
         logo_url: logoUrl ? logoUrl : '',
         custom_css_url: customCssUrl ? customCssUrl : '',
@@ -135,8 +134,7 @@ const General = () => {
   const onClickArchiveStore = async () => {
     try {
       const response: any = await axios.put(Http.archive_store_by_id, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
+        id: getStoreId(),
       });
 
       if (response.result) {
@@ -159,8 +157,7 @@ const General = () => {
   const onClickDeleteStore = async () => {
     try {
       const response: any = await axios.put(Http.delete_store_by_id, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
+        id: getStoreId(),
       });
 
       if (response.result) {
