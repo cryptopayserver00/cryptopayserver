@@ -90,19 +90,25 @@ const PhraseBackup = () => {
                 </Box>
               </div>
             )}
-            <Card variant="outlined">
-              <CardContent>
-                {groupedArray.map((group, groupIndex) => (
-                  <Box key={groupIndex} display="flex" mb={1}>
-                    {group.map((item, itemIndex) => (
-                      <Box key={itemIndex} mr={2}>
-                        <Chip label={`${groupIndex * groupSize + itemIndex + 1}. ${item}`} style={{ width: 220 }} />
-                      </Box>
-                    ))}
-                  </Box>
-                ))}
-              </CardContent>
-            </Card>
+            <Box
+              onClick={() => {
+                setIsView(false);
+              }}
+            >
+              <Card variant="outlined">
+                <CardContent>
+                  {groupedArray.map((group, groupIndex) => (
+                    <Box key={groupIndex} display="flex" mb={1}>
+                      {group.map((item, itemIndex) => (
+                        <Box key={itemIndex} mr={2}>
+                          <Chip label={`${groupIndex * groupSize + itemIndex + 1}. ${item}`} style={{ width: 220 }} />
+                        </Box>
+                      ))}
+                    </Box>
+                  ))}
+                </CardContent>
+              </Card>
+            </Box>
           </Box>
 
           <Box mt={16}>

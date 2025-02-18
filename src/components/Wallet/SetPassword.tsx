@@ -9,6 +9,7 @@ import {
   Link,
   OutlinedInput,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
@@ -17,6 +18,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import { isValidPassword } from 'utils/verify';
 
 const SetPassword = () => {
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
@@ -39,38 +41,40 @@ const SetPassword = () => {
 
   const onClickConfirm = async () => {
     try {
-      const pwd = password.trim();
-      const comPwd = confirmPassword.trim();
-      if (pwd.length > 8 && pwd === comPwd) {
-        // create password and wallet
-        const response: any = await axios.put(Http.update_pwd_by_wallet_id, {
-          user_id: getUserId(),
-          wallet_id: getWalletId(),
-          store_id: getStoreId(),
-          password: pwd,
-        });
-        if (response.result) {
-          setSnackSeverity('success');
-          setSnackMessage('Successful update!');
-          setSnackOpen(true);
-
-          setTimeout(() => {
-            if (response.data.is_backup === 1) {
-              window.location.href = '/dashboard';
-            } else if (response.data.is_backup === 2) {
-              window.location.href = '/wallet/phrase/intro';
-            } else {
-              setSnackMessage('Input is wrong');
-              setSnackSeverity('error');
-              setSnackOpen(true);
-              return;
-            }
-          }, 2000);
-        }
-      } else {
-        setSnackMessage('Input is wrong');
+      if (
+        !password ||
+        !confirmPassword ||
+        !isValidPassword(password) ||
+        !isValidPassword(confirmPassword) ||
+        password != confirmPassword
+      ) {
         setSnackSeverity('error');
+        setSnackMessage('Incorrect password input');
         setSnackOpen(true);
+        return;
+      }
+
+      const response: any = await axios.put(Http.update_pwd_by_wallet_id, {
+        wallet_id: getWalletId(),
+        password: password,
+      });
+      if (response.result) {
+        setSnackSeverity('success');
+        setSnackMessage('Successful update!');
+        setSnackOpen(true);
+
+        setTimeout(() => {
+          if (response.data.is_backup === 1) {
+            window.location.href = '/dashboard';
+          } else if (response.data.is_backup === 2) {
+            window.location.href = '/wallet/phrase/intro';
+          } else {
+            setSnackMessage('Input is wrong');
+            setSnackSeverity('error');
+            setSnackOpen(true);
+            return;
+          }
+        }, 2000);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -101,48 +105,35 @@ const SetPassword = () => {
           <Box mt={4}>
             <Typography>New password</Typography>
             <Box mt={1}>
-              <FormControl variant="outlined" fullWidth>
-                <InputLabel htmlFor="outlined-adornment-password" size={'small'}>
-                  Enter at least 8 characters
-                </InputLabel>
-                <OutlinedInput
-                  size={'small'}
-                  aria-describedby="outlined-weight-helper-text"
-                  inputProps={{
-                    'aria-label': 'weight',
-                  }}
-                  type={showPassword ? 'text' : 'password'}
-                  endAdornment={
+              <TextField
+                fullWidth
+                type={showPassword ? 'text' : 'password'}
+                size="small"
+                InputProps={{
+                  endAdornment: (
                     <InputAdornment position="end">
                       <IconButton onClick={handleClickShowPassword} onMouseDown={handleMouseDownPassword} edge="end">
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
-                  }
-                  label="Password"
-                  value={password}
-                  onChange={(e: any) => {
-                    setPassword(e.target.value);
-                  }}
-                />
-              </FormControl>
+                  ),
+                }}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+              />
             </Box>
           </Box>
           <Box mt={4}>
             <Typography>Confirm password</Typography>
             <Box mt={1}>
-              <FormControl variant="outlined" fullWidth>
-                <InputLabel htmlFor="outlined-adornment-password" size={'small'}>
-                  Enter at least 8 characters
-                </InputLabel>
-                <OutlinedInput
-                  size={'small'}
-                  aria-describedby="outlined-weight-helper-text"
-                  inputProps={{
-                    'aria-label': 'weight',
-                  }}
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  endAdornment={
+              <TextField
+                fullWidth
+                type={showConfirmPassword ? 'text' : 'password'}
+                size="small"
+                InputProps={{
+                  endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
                         onClick={handleClickShowConfirmPassword}
@@ -152,14 +143,13 @@ const SetPassword = () => {
                         {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
-                  }
-                  label="Password"
-                  value={confirmPassword}
-                  onChange={(e: any) => {
-                    setConfirmPassword(e.target.value);
-                  }}
-                />
-              </FormControl>
+                  ),
+                }}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                }}
+              />
             </Box>
           </Box>
 

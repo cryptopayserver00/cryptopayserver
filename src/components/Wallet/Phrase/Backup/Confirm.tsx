@@ -25,9 +25,7 @@ const PhraseBackupConfirm = () => {
   const updateWalletBackup = async () => {
     try {
       const response: any = await axios.put(Http.update_backup_by_wallet_id, {
-        user_id: getUserId(),
         wallet_id: getWalletId(),
-        store_id: getStoreId(),
       });
       if (response.result) {
         setSnackSeverity('success');
@@ -67,7 +65,7 @@ const PhraseBackupConfirm = () => {
             value: phraseArray[index - 1],
           });
 
-          setSelectMems(randomIndices.map(createMem));
+          setSelectMems(randomIndices.map(createMem).sort((a, b) => a.index - b.index));
         } else {
           setSnackSeverity('error');
           setSnackMessage("Can't find the wallet, please try again later.");
@@ -130,15 +128,14 @@ const PhraseBackupConfirm = () => {
         <Stack mt={20}>
           <Typography variant="h4">Confirm your mnemonic phrase again</Typography>
           <Typography mt={5}>Please select your mnemonic phrase in order</Typography>
-          <Typography>{phrase.join(' ')}</Typography>
           <Box mt={5} width={500}>
             <Card variant="outlined">
               <CardContent>
                 {selectMems.map((item) => (
                   <Box key={item.index} pb={4}>
                     <Stack direction={'row'} alignItems={'center'}>
-                      <Typography>Mnemonic phrase</Typography>
-                      <Typography># {item.index}</Typography>
+                      <Typography fontWeight={'bold'}>Mnemonic phrase</Typography>
+                      <Typography fontWeight={'bold'}># {item.index}</Typography>
                     </Stack>
                     <Stack direction={'row'} alignItems={'center'} mt={2}>
                       {item.selectArrays.map((selectItem, selectIndex) => (
