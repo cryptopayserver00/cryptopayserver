@@ -17,14 +17,13 @@ import { useSnackPresistStore } from 'lib/store/snack';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import { useStorePresistStore, useWalletPresistStore } from 'lib/store';
 import { isValidPassword } from 'utils/verify';
 
 const SetPassword = () => {
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
-  const { getUserId } = useUserPresistStore((state) => state);
   const { getWalletId } = useWalletPresistStore((state) => state);
-  const { getIsStore, getStoreId } = useStorePresistStore((state) => state);
+  const { getIsStore } = useStorePresistStore((state) => state);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
