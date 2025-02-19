@@ -21,6 +21,7 @@ import {
   CallMade,
   Settings,
   ShoppingBag,
+  Security,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import BitcoinSVG from 'assets/chain/bitcoin.svg';
@@ -187,13 +188,22 @@ const HomeSidebar = () => {
               Dashboard
             </MenuItem>
             {isStore && isWallet && (
-              <MenuItem
-                icon={<Settings />}
-                active={router.pathname === '/settings' ? true : false}
-                component={<Link href={'/settings'} />}
-              >
-                Settings
-              </MenuItem>
+              <>
+                <MenuItem
+                  icon={<Settings />}
+                  active={router.pathname === '/settings' ? true : false}
+                  component={<Link href={'/settings'} />}
+                >
+                  Store Settings
+                </MenuItem>
+                <MenuItem
+                  icon={<Settings />}
+                  active={router.pathname === '/account' ? true : false}
+                  component={<Link href={'/account'} />}
+                >
+                  Account Settings
+                </MenuItem>
+              </>
             )}
           </Menu>
 
@@ -322,6 +332,14 @@ const HomeSidebar = () => {
                   component={<Link href={'/wallets/blockscan'} />}
                 >
                   BlockScan
+                </MenuItem>
+
+                <MenuItem
+                  icon={<Security />}
+                  active={router.pathname === '/wallets/security' ? true : false}
+                  component={<Link href={'/wallets/security'} />}
+                >
+                  WalletSecurity
                 </MenuItem>
               </Menu>
 

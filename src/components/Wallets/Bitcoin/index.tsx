@@ -237,6 +237,16 @@ const Bitcoin = () => {
               </Button>
             </Box>
             <Box>
+              <Button
+                variant={'contained'}
+                onClick={() => {
+                  window.location.href = '/wallets/security/privatekey';
+                }}
+              >
+                Private Key
+              </Button>
+            </Box>
+            <Box>
               <Button variant={'contained'} onClick={onClickRescanAddress}>
                 Rescan address
               </Button>

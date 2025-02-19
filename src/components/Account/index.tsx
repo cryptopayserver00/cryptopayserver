@@ -17,7 +17,7 @@ const Account = () => {
   return (
     <Box>
       <Container>
-        <Typography variant="h5" pt={5}>
+        <Typography variant="h6" pt={5}>
           Account Settings
         </Typography>
 

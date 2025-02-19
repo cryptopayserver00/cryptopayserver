@@ -30,6 +30,7 @@ import BitcoinSend from 'components/Wallets/Bitcoin/Send';
 import BitcoinReceive from 'components/Wallets/Bitcoin/Receive';
 import InvoicesDetails from 'components/Invoices/id';
 import BlockScan from 'components/Wallets/BlockScan';
+import Security from 'components/Wallets/Security';
 import EthereumSend from 'components/Wallets/Ethereum/Send';
 import EthereumReceive from 'components/Wallets/Ethereum/Receive';
 import SolanaSend from 'components/Wallets/Solana/Send';
@@ -75,6 +76,12 @@ import BaseReceive from 'components/Wallets/Base/Receive';
 import Optimism from 'components/Wallets/Optimism';
 import OptimismSend from 'components/Wallets/Optimism/Send';
 import OptimismReceive from 'components/Wallets/Optimism/Receive';
+import SecurityPassword from 'components/Wallets/Security/Password';
+import SecurityPrivateKey from 'components/Wallets/Security/PrivateKey';
+import SecurityAudit from 'components/Wallets/Security/Audit';
+import SecurityWallet from 'components/Wallets/Security/Wallet';
+import SecurityNetwork from 'components/Wallets/Security/Network';
+import SecurityAddressBook from 'components/Wallets/Security/AddressBook';
 
 export type RouteType = {
   path: string;
@@ -533,6 +540,69 @@ export const routes: RouteType[] = [
     name: 'BlockScan',
     title: 'BlockScan',
     component: <BlockScan />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/security',
+    name: 'Security',
+    title: 'Security',
+    component: <Security />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/security/password',
+    name: 'SecurityPassword',
+    title: 'SecurityPassword',
+    component: <SecurityPassword />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/security/privatekey',
+    name: 'SecurityPrivateKey',
+    title: 'SecurityPrivateKey',
+    component: <SecurityPrivateKey />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/security/audit',
+    name: 'SecurityAudit',
+    title: 'SecurityAudit',
+    component: <SecurityAudit />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/security/wallet',
+    name: 'SecurityWallet',
+    title: 'SecurityWallet',
+    component: <SecurityWallet />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/security/network',
+    name: 'SecurityNetwork',
+    title: 'SecurityNetwork',
+    component: <SecurityNetwork />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/security/addressbook',
+    name: 'SecurityAddressBook',
+    title: 'SecurityAddressBook',
+    component: <SecurityAddressBook />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,

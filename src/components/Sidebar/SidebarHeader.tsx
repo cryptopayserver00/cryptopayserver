@@ -156,7 +156,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         }, 2000);
       } else {
         setSnackSeverity('error');
-        setSnackMessage("Can't find the store, please try again later.");
+        setSnackMessage("Cannot find the store, please try again later.");
         setSnackOpen(true);
       }
     } catch (e) {

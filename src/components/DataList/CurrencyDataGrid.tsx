@@ -241,7 +241,7 @@ export default function CurrencyDataGrid(props: GridType) {
         onRowClick={(e: any) => {
           onClickRow(e.row);
         }}
-        hideFooter={source === 'dashboard' ? true : false}
+        // hideFooter={source === 'dashboard' ? true : false}
         disableColumnMenu
       />
 

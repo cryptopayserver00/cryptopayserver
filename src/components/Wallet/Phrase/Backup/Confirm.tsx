@@ -68,7 +68,7 @@ const PhraseBackupConfirm = () => {
           setSelectMems(randomIndices.map(createMem).sort((a, b) => a.index - b.index));
         } else {
           setSnackSeverity('error');
-          setSnackMessage("Can't find the wallet, please try again later.");
+          setSnackMessage("Cannot find the wallet, please try again later.");
           setSnackOpen(true);
         }
       }

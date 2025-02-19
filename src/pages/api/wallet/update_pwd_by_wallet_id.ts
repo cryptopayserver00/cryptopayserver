@@ -13,7 +13,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
         const connection = await connectDatabase();
         const walletId = req.body.wallet_id;
         const password = req.body.password;
-        const cryptoPassword = CryptoJS.SHA256(password).toString();
+        const cryptoPassword = password ? CryptoJS.SHA256(password).toString() : password;
 
         const query = 'UPDATE wallets set password = ? where id = ? and status = ?';
         const values = [cryptoPassword, walletId, 1];

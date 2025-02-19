@@ -36,7 +36,7 @@ const PhraseBackup = () => {
           setPhrase(response.data.mnemonic.split(' '));
         } else {
           setSnackSeverity('error');
-          setSnackMessage("Can't find the wallet, please try again later.");
+          setSnackMessage("Cannot find the wallet, please try again later.");
           setSnackOpen(true);
         }
       }
