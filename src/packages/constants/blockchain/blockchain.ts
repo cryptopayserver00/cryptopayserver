@@ -1302,7 +1302,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     chainId: CHAINIDS.AVALANCHE_TESTNET,
     explorerUrl: 'https://testnet.snowtrace.io',
     websiteUrl: 'https://www.avax.network',
-    isMainnet: true,
+    isMainnet: false,
     coins: AVALANCHE_TESTNET_COINS,
     rpc: [
       'https://ava-testnet.public.blastapi.io/ext/bc/C/rpc',
@@ -1329,7 +1329,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     chainId: CHAINIDS.POLYGON_TESTNET,
     explorerUrl: 'https://amoy.polygonscan.com',
     websiteUrl: 'https://polygon.technology',
-    isMainnet: true,
+    isMainnet: false,
     coins: POLYGON_TESTNET_COINS,
     rpc: [
       'https://polygon-amoy-bor-rpc.publicnode.com',
@@ -1364,7 +1364,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     chainId: CHAINIDS.BASE_SEPOLIA,
     explorerUrl: 'https://sepolia.basescan.org',
     websiteUrl: 'https://www.base.org',
-    isMainnet: true,
+    isMainnet: false,
     coins: BASE_SEPOLIA_COINS,
     rpc: [
       'https://base-sepolia-rpc.publicnode.com',
@@ -1395,7 +1395,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     chainId: CHAINIDS.OPTIMISM_SEPOLIA,
     explorerUrl: 'https://sepolia-optimism.etherscan.io',
     websiteUrl: 'https://www.optimism.io',
-    isMainnet: true,
+    isMainnet: false,
     coins: OPTIMISM_SEPOLIA_COINS,
     rpc: [
       'https://sepolia.optimism.io',
