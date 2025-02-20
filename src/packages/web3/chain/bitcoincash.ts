@@ -138,10 +138,11 @@ export class BITCOINCASH {
 
   static async getTransactions(isMainnet: boolean, address: string): Promise<TransactionDetail[]> {
     try {
-      throw new Error('can not get the transactions of bch');
+      return [];
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of bch');
+      return [];
+      // throw new Error('can not get the transactions of bch');
     }
   }
 

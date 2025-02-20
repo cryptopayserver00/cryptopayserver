@@ -222,7 +222,8 @@ export class BSC {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of bsc');
+      return [];
+      // throw new Error('can not get the transactions of bsc');
     }
   }
 

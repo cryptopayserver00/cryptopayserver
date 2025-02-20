@@ -223,7 +223,8 @@ export class POL {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of polygon');
+      return [];
+      // throw new Error('can not get the transactions of polygon');
     }
   }
 

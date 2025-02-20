@@ -432,7 +432,8 @@ export class BTC {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of btc');
+      return [];
+      // throw new Error('can not get the transactions of btc');
     }
   }
 

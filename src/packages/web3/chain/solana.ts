@@ -404,7 +404,8 @@ export class SOLANA {
       return details;
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of solana');
+      return [];
+      // throw new Error('can not get the transactions of solana');
     }
   }
 

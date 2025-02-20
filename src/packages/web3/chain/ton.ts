@@ -269,7 +269,8 @@ export class TON {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of ton');
+      return [];
+      // throw new Error('can not get the transactions of ton');
     }
   }
 

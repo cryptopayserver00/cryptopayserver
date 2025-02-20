@@ -324,7 +324,8 @@ export class LTC {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of ltc');
+      return [];
+      // throw new Error('can not get the transactions of ltc');
     }
   }
 

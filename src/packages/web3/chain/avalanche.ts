@@ -223,7 +223,8 @@ export class AVAX {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of avax');
+      return [];
+      // throw new Error('can not get the transactions of avax');
     }
   }
 

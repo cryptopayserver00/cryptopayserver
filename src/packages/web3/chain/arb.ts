@@ -223,7 +223,8 @@ export class ARB {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of arb');
+      return [];
+      // throw new Error('can not get the transactions of arb');
     }
   }
 

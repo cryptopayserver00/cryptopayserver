@@ -223,7 +223,8 @@ export class BASE {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of base');
+      return [];
+      // throw new Error('can not get the transactions of base');
     }
   }
 

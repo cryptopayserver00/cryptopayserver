@@ -310,7 +310,8 @@ export class ETH {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of eth');
+      return [];
+      // throw new Error('can not get the transactions of eth');
     }
   }
 

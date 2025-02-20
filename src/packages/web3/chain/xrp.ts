@@ -140,10 +140,11 @@ export class XRP {
 
   static async getTransactions(isMainnet: boolean, address: string): Promise<TransactionDetail[]> {
     try {
-      throw new Error('can not get the transactions of xrp');
+      return [];
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of xrp');
+      return [];
+      // throw new Error('can not get the transactions of xrp');
     }
   }
 

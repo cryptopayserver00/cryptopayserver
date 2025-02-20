@@ -223,7 +223,8 @@ export class OP {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of op');
+      return [];
+      // throw new Error('can not get the transactions of op');
     }
   }
 

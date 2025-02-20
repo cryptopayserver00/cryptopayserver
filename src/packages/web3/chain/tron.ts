@@ -285,7 +285,8 @@ export class TRON {
       }
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the transactions of tron');
+      return [];
+      // throw new Error('can not get the transactions of tron');
     }
   }
 
