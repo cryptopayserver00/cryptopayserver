@@ -95,7 +95,6 @@ const Bitcoin = () => {
     try {
       const response: any = await axios.get(Http.find_wallet_address_by_chain_and_network, {
         params: {
-          user_id: getUserId(),
           wallet_id: getWalletId(),
           chain_id: CHAINS.BITCOIN,
           network: getNetwork() === 'mainnet' ? 1 : 2,
