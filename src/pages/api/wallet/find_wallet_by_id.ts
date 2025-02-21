@@ -21,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             message: '',
             result: true,
             data: {
+              name: row.name,
               mnemonic: row.mnemonic,
               password: row.password,
               is_backup: row.is_backup,

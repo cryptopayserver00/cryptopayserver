@@ -20,8 +20,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    },
+    }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "task.js", "tests/totp.test.js"],
-  "exclude": ["node_modules"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "task.js"],
+  "exclude": ["node_modules"]
 }

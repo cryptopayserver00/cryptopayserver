@@ -67,6 +67,7 @@ export class Http {
   static create_wallet = this.httpPath + '/wallet/create_wallet';
   static update_pwd_by_wallet_id = this.httpPath + '/wallet/update_pwd_by_wallet_id';
   static update_backup_by_wallet_id = this.httpPath + '/wallet/update_backup_by_wallet_id';
+  static update_name_by_wallet_id = this.httpPath + '/wallet/update_name_by_wallet_id';
   static save_wallet = this.httpPath + '/wallet/save_wallet';
   static save_wallet_by_private_key = this.httpPath + '/wallet/save_wallet_by_private_key';
   static find_wallet_balance_by_network = this.httpPath + '/wallet/find_wallet_balance_by_network';

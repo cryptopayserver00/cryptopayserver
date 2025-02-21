@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDatabase } from 'packages/db/mysql';
 import { WEB3 } from 'packages/web3';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
+import { GetSecureRandomString } from 'utils/strings';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -14,10 +15,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const storeId = req.body.store_id;
         const import_wallet = req.body.import_wallet;
         const wallet = await WEB3.generateWallet(import_wallet);
+        const name = GetSecureRandomString(12);
 
         const createQuery =
-          'INSERT INTO wallets (user_id, store_id, mnemonic, is_backup, is_generate, status) VALUES (?, ?, ?, ?, ?, ?)';
-        const createValues = [userId, storeId, wallet.mnemonic, 2, wallet.isGenerate ? 1 : 2, 1];
+          'INSERT INTO wallets (user_id, store_id, name, mnemonic, is_backup, is_generate, status) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        const createValues = [userId, storeId, name, wallet.mnemonic, 2, wallet.isGenerate ? 1 : 2, 1];
         const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
         const walletId = ResultSetHeader.insertId;
         if (walletId === 0) {

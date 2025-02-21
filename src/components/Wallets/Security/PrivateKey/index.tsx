@@ -42,8 +42,6 @@ const SecurityPrivateKey = () => {
   const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>();
   const [currentItem, setCurrentItem] = useState<BLOCKCHAIN>();
   const [open, setOpen] = useState<boolean>(false);
-  // const [address, setAddress] = useState<string>('');
-  // const [privateKey, setPrivateKey] = useState<string>('');
   const [rows, setRows] = useState<RowType[]>([]);
 
   const { getWalletId } = useWalletPresistStore((state) => state);
@@ -81,9 +79,6 @@ const SecurityPrivateKey = () => {
         });
 
         setRows(rt);
-
-        // setAddress(response.data.address);
-        // setPrivateKey(response.data.private_key);
       } else {
         setSnackSeverity('error');
         setSnackMessage('Can not find the data on site!');
@@ -102,6 +97,7 @@ const SecurityPrivateKey = () => {
       getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet,
     );
     setBlcokchain(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -171,7 +167,7 @@ const SecurityPrivateKey = () => {
                             setRows(newRows);
                           }}
                         >
-                          <Box mt={2} py={2}>
+                          <Box mt={2} p={2}>
                             <Icon component={VisibilityOff} fontSize={'large'} />
                             <Typography mt={1}>Click to view private key</Typography>
                             <Typography mt={2}>Please make sure no one can view your screen</Typography>
@@ -220,40 +216,9 @@ const SecurityPrivateKey = () => {
                     </Stack>
                   </Box>
                 ))}
-              {/* {!isView && (
-                <Box
-                  style={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                    boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
-                    textAlign: 'center',
-                    color: '#fff',
-                  }}
-                  onClick={() => {
-                    setIsView(true);
-                    setIsDisable(false);
-                  }}
-                >
-                  <Box>
-                    <Icon component={VisibilityOff} fontSize={'large'} />
-                    <Typography mt={4}>Click to view private key</Typography>
-                    <Typography mt={1}>Please make sure no one can view your screen</Typography>
-                  </Box>
-                </Box>
-              )} */}
             </Box>
           </DialogContent>
           <DialogActions>
-            {/* <Button
-              onClick={async () => {
-                await navigator.clipboard.writeText(privateKey);
-
-                setSnackMessage('Successfully copy');
-                setSnackSeverity('success');
-                setSnackOpen(true);
-              }}
-            >
-              Copy
-            </Button> */}
             <Button onClick={handleClose}>Close</Button>
           </DialogActions>
         </Dialog>
