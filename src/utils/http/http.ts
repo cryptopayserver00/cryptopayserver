@@ -28,6 +28,9 @@ export class Http {
   static archive_store_by_id = this.httpPath + '/store/archive_store_by_id';
   static delete_store_by_id = this.httpPath + '/store/delete_store_by_id';
 
+  // address book of store
+  static create_address_book = this.httpPath + '/addressbook/find_address_book';
+
   // notification setting of store
   static find_notification_setting = this.httpPath + '/setting/find_notification_setting';
   static update_notification_setting = this.httpPath + '/setting/update_notification_setting';
