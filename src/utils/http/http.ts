@@ -29,7 +29,11 @@ export class Http {
   static delete_store_by_id = this.httpPath + '/store/delete_store_by_id';
 
   // address book of store
-  static create_address_book = this.httpPath + '/addressbook/find_address_book';
+  static find_address_book = this.httpPath + '/store/addressbook/find_address_book';
+  static find_address_book_by_id = this.httpPath + '/store/addressbook/find_address_book_by_id';
+  static update_address_book_by_id = this.httpPath + '/store/addressbook/update_address_book_by_id';
+  static create_address_book = this.httpPath + '/store/addressbook/create_address_book';
+  static delete_address_book_by_id = this.httpPath + '/store/addressbook/delete_address_book_by_id';
 
   // notification setting of store
   static find_notification_setting = this.httpPath + '/setting/find_notification_setting';
