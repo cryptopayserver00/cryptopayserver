@@ -15,15 +15,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const sourceType = req.query.source_type;
         const externalPaymentId = req.query.external_payment_id;
 
-        // let queryTypeString = '';
-        // switch (sourceType) {
-        //   case PAYOUT_SOURCE_TYPE.PullPayment:
-        //     queryTypeString = 'payout_id';
-        //     break;
-        //   default:
-        //     return res.status(500).json({ message: '', result: false, data: '' });
-        // }
-
         const query = `SELECT chain_id, address, crypto, crypto_amount, currency, amount, payout_status, tx FROM payouts where store_id = ? and network = ? and source_type = ? and external_payment_id = ? and status = ? order by id desc`;
         const values = [storeId, network, sourceType, externalPaymentId, 1];
         const [rows] = await connection.query(query, values);

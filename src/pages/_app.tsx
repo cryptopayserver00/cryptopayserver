@@ -23,7 +23,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   }
 
   async function init() {
-    await test_db_conn();
+    // await test_db_conn();
   }
 
   useEffect(() => {

@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const network = req.query.network;
 
         if (!chainId) {
-          return res.status(500).json({ message: 'something wrong', result: false, data: '' });
+          return res.status(200).json({ message: 'something wrong', result: false, data: '' });
         }
 
         let dbChainId = chainId || 0;

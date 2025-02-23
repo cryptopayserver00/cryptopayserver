@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: true, data: gas });
         }
 
-        return res.status(500).json({ message: '', result: false, data: '' });
+        return res.status(200).json({ message: '', result: false, data: '' });
       case 'POST':
         break;
       default:
