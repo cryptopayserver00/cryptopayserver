@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const update_user = await prisma.users.update({
           where: {
-            email: email,
+            email: typeof email === 'string' ? email : undefined,
             status: 1,
           },
           data: {

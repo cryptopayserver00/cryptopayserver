@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const user = await prisma.users.findFirst({
           where: {
-            email: email,
+            email: typeof email === 'string' ? email : undefined,
             status: 1,
           },
           select: {

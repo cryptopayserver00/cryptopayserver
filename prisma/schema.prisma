@@ -133,7 +133,7 @@ model invoices {
   store_id Int
   chain_id Int
   network Int
-  order_id BigInt
+  order_id BigInt @unique
   currency String
   amount Float
   crypto String
@@ -142,13 +142,13 @@ model invoices {
   description Json
   buyer_email String
   order_status String
-  payment_method String
+  payment_method String?
   destination_address String
   paid Int
   metadata Json
   notification_url String
   notification_email String
-  match_tx_id Int
+  match_tx_id Int?
   external_payment_id BigInt
   source_type String
   status Int
@@ -197,7 +197,7 @@ model payment_requests {
   user_id Int
   store_id Int
   network Int
-  payment_request_id BigInt
+  payment_request_id BigInt @unique
   title String
   amount Int
   currency String
@@ -280,7 +280,7 @@ model pull_payments {
   user_id Int
   store_id Int
   network Int
-  pull_payment_id BigInt
+  pull_payment_id BigInt @unique
   name String
   amount Float
   currency String

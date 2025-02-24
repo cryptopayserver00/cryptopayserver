@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import mysql from 'mysql2/promise';
+import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -9,25 +10,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'GET':
-        const connection = await connectDatabase();
+        const prisma = new PrismaClient();
+        // const connection = await connectDatabase();
         const email = req.query.email;
 
-        const query = 'SELECT username, email, profile_picture_url FROM users where email = ? and status = ?';
-        const values = [email, 1];
-        const [rows] = await connection.query(query, values);
-        if (Array.isArray(rows) && rows.length === 1) {
-          const row = rows[0] as mysql.RowDataPacket;
+        const user = await prisma.users.findFirst({
+          where: {
+            email: typeof email === 'string' ? email : undefined,
+            status: 1,
+          },
+          select: {
+            username: true,
+            email: true,
+            profile_picture_url: true,
+          },
+        });
 
+        if (user) {
           // todo: send reset email
-
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: null,
-          });
         }
 
-        return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: null,
+        });
+
+      // const query = 'SELECT username, email, profile_picture_url FROM users where email = ? and status = ?';
+      // const values = [email, 1];
+      // const [rows] = await connection.query(query, values);
+      // if (Array.isArray(rows) && rows.length === 1) {
+      //   const row = rows[0] as mysql.RowDataPacket;
+
+      //   // todo: send reset email
+
+      //   return res.status(200).json({
+      //     message: '',
+      //     result: true,
+      //     data: null,
+      //   });
+      // }
+
+      // return res.status(200).json({ message: 'Something wrong', result: false, data: null });
 
       case 'POST':
         break;
