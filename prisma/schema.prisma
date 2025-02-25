@@ -250,16 +250,16 @@ model payouts {
   user_id Int
   chain_id Int
   store_id Int
-  payout_id BigInt
+  payout_id BigInt @unique
   external_payment_id BigInt
   address String
   source_type String
   currency String
   amount Float
   crypto String
-  crypto_amount Float
+  crypto_amount Float?
   payout_status String
-  tx String
+  tx String?
   network Int
   status Int
   created_at DateTime @default(now())
@@ -285,7 +285,7 @@ model pull_payments {
   amount Float
   currency String
   show_auto_approve_claim Int
-  payout_method String
+  payout_method String?
   description Json
   pull_payment_status String
   status Int
@@ -369,4 +369,51 @@ model webhook_settings {
   status Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+}
+
+// node chains
+model node_chains {
+  id Int @id @default(autoincrement())
+  name String
+  chain String
+  chain_id BigInt
+  network_id BigInt
+  symbol String
+  decimals BigInt
+  contract String
+  is_main_coin Boolean
+  status BigInt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime @updatedAt
+}
+
+// node own transactions
+model node_own_transactions {
+  id Int @id @default(autoincrement())
+  chain_id BigInt
+  hash String
+  address String
+  from_address String
+  to_address String
+  token String
+  transact_type String
+  amount String
+  block_timestamp BigInt
+  status Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime @updatedAt
+}
+
+// node wallets
+model node_wallets {
+  id Int @id @default(autoincrement())
+  address String
+  chain_id BigInt
+  network_name String
+  status Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime @updatedAt
 }

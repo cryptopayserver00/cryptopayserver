@@ -5,6 +5,7 @@ import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
 import { CHAINS, COIN, COINS } from 'packages/constants/blockchain';
 import { connectDatabase } from 'packages/db/mysql';
 import mysql from 'mysql2/promise';
+import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -12,7 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'GET':
-        const connection = await connectDatabase();
+        const prisma = new PrismaClient();
+        // const connection = await connectDatabase();
         const userId = req.query.user_id;
         const chainId = req.query.chain_id;
         const network = req.query.network;
@@ -33,28 +35,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: 'Something wrong', result: false, data: null });
         }
 
-        const addressQuery =
-          'SELECT chain_id, private_key, note, network, address FROM addresses where chain_id = ? and network = ? and address = ? and user_id = ? and status = 1';
-        const addressValues = [chainId, network, from, userId];
-        const [addressRows] = await connection.query(addressQuery, addressValues);
-        if (Array.isArray(addressRows) && addressRows.length === 1) {
-          const addressRow = addressRows[0] as mysql.RowDataPacket;
+        const address = await prisma.addresses.findFirst({
+          where: {
+            chain_id: typeof chainId === 'number' ? chainId : 0,
+            network: typeof network === 'number' ? network : 0,
+            address: typeof from === 'string' ? from : '',
+            user_id: typeof userId === 'number' ? userId : 0,
+            status: 1,
+          },
+          select: {
+            chain_id: true,
+            private_key: true,
+            note: true,
+            network: true,
+            address: true,
+          },
+        });
 
-          const gas = await WEB3.estimateGasFee(addressRow.network === 1 ? true : false, {
-            coin: FindTokenByChainIdsAndSymbol(
-              WEB3.getChainIds(addressRow.network === 1 ? true : false, addressRow.chain_id),
-              coin as COINS,
-            ),
-            value: value as string,
-            privateKey: addressRow.private_key,
-            from: addressRow.address,
-            to: to as string,
-          });
-
-          return res.status(200).json({ message: '', result: true, data: gas });
+        if (!address) {
+          return res.status(200).json({ message: '', result: false, data: '' });
         }
 
-        return res.status(200).json({ message: '', result: false, data: '' });
+        const gas = await WEB3.estimateGasFee(address.network === 1 ? true : false, {
+          coin: FindTokenByChainIdsAndSymbol(
+            WEB3.getChainIds(address.network === 1 ? true : false, address.chain_id),
+            coin as COINS,
+          ),
+          value: value as string,
+          privateKey: address.private_key,
+          from: address.address,
+          to: to as string,
+        });
+
+        return res.status(200).json({ message: '', result: true, data: gas });
+
+      // const addressQuery =
+      //   'SELECT chain_id, private_key, note, network, address FROM addresses where chain_id = ? and network = ? and address = ? and user_id = ? and status = 1';
+      // const addressValues = [chainId, network, from, userId];
+      // const [addressRows] = await connection.query(addressQuery, addressValues);
+      // if (Array.isArray(addressRows) && addressRows.length === 1) {
+      //   const addressRow = addressRows[0] as mysql.RowDataPacket;
+
+      //   const gas = await WEB3.estimateGasFee(addressRow.network === 1 ? true : false, {
+      //     coin: FindTokenByChainIdsAndSymbol(
+      //       WEB3.getChainIds(addressRow.network === 1 ? true : false, addressRow.chain_id),
+      //       coin as COINS,
+      //     ),
+      //     value: value as string,
+      //     privateKey: addressRow.private_key,
+      //     from: addressRow.address,
+      //     to: to as string,
+      //   });
+
+      //   return res.status(200).json({ message: '', result: true, data: gas });
+      // }
+
+      // return res.status(200).json({ message: '', result: false, data: '' });
       case 'POST':
         break;
       default:

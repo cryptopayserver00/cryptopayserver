@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { WEB3 } from 'packages/web3';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 // import { Bip39 } from 'packages/web3/bip39';
@@ -8,7 +7,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   try {
     await CorsMiddleware(req, res, CorsMethod);
 
-    // const connection = await connectDatabase();
     // await connection.query('SELECT * FROM users;');
     // const me = Bip39.generateMnemonic();
     // const seed = await Bip39.generateSeed(me);

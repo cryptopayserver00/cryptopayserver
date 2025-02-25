@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
+import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -8,7 +9,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'POST':
-        const connection = await connectDatabase();
+        const prisma = new PrismaClient();
+        // const connection = await connectDatabase();
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
 
@@ -18,22 +20,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const subject = req.body.subject;
         const body = req.body.body;
 
-        const createQuery =
-          'INSERT INTO email_rule_settings (user_id, store_id, tigger, recipients, show_send_to_buyer, subject, body, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-        const createValues = [userId, storeId, tigger, recipients, showSendToBuyer, subject, body, 1];
-        const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
-        const id = ResultSetHeader.insertId;
-        if (id === 0) {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
-        }
-
-        return res.status(200).json({
-          message: '',
-          result: true,
+        const email_rule_setting = await prisma.email_rule_settings.create({
           data: {
-            id: id,
+            user_id: userId,
+            store_id: storeId,
+            tigger: tigger,
+            recipients: recipients,
+            show_send_to_buyer: showSendToBuyer,
+            subject: subject,
+            body: body,
+            status: 1,
           },
         });
+
+        if (email_rule_setting) {
+          return res.status(200).json({
+            message: '',
+            result: true,
+            data: {
+              id: email_rule_setting.id,
+            },
+          });
+        } else {
+          return res.status(200).json({
+            message: 'something wrong',
+            result: false,
+            data: null,
+          });
+        }
+
+      // const createQuery =
+      //   'INSERT INTO email_rule_settings (user_id, store_id, tigger, recipients, show_send_to_buyer, subject, body, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+      // const createValues = [userId, storeId, tigger, recipients, showSendToBuyer, subject, body, 1];
+      // const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
+      // const id = ResultSetHeader.insertId;
+      // if (id === 0) {
+      //   return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      // }
+
+      // return res.status(200).json({
+      //   message: '',
+      //   result: true,
+      //   data: {
+      //     id: id,
+      //   },
+      // });
       default:
         throw 'no support the method of api';
     }

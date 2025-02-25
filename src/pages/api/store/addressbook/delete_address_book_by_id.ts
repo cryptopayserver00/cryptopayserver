@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from 'pages/api';
+import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -8,19 +9,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'PUT':
-        const connection = await connectDatabase();
+        const prisma = new PrismaClient();
+        // const connection = await connectDatabase();
         const id = req.body.id;
 
-        const updateQuery = 'UPDATE address_books SET status = ? WHERE id = ? and status = ?';
-        const updateValues = [2, id, 1];
-
-        await connection.query(updateQuery, updateValues);
-
-        return res.status(200).json({
-          message: '',
-          result: true,
-          data: null,
+        const address_book = await prisma.address_books.update({
+          data: {
+            status: 2,
+          },
+          where: {
+            id: id,
+            status: 1,
+          },
         });
+
+        if (address_book) {
+          return res.status(200).json({
+            message: '',
+            result: true,
+            data: null,
+          });
+        } else {
+          return res.status(200).json({
+            message: 'something wrong',
+            result: false,
+            data: null,
+          });
+        }
+
+      // const updateQuery = 'UPDATE address_books SET status = ? WHERE id = ? and status = ?';
+      // const updateValues = [2, id, 1];
+
+      // await connection.query(updateQuery, updateValues);
+
+      // return res.status(200).json({
+      //   message: '',
+      //   result: true,
+      //   data: null,
+      // });
       default:
         throw 'no support the method of api';
     }

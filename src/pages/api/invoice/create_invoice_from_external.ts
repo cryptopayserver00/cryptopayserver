@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({
             message: 'something wrong',
             result: false,
-            data: {},
+            data: null,
           });
         }
 
@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({
             message: 'something wrong',
             result: false,
-            data: {},
+            data: null,
           });
         }
 
@@ -76,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const now = new Date();
         // const createDate = now.getTime();
-        const expirationDate = new Date(now.setDate(now.getDate() + payment_setting.payment_expire * 60 * 1000));
+        const expirationDate = new Date(now.setMinutes(now.getMinutes() + payment_setting.payment_expire));
         // const expirationDate = now.getTime() + payment_setting.payment_expire * 60 * 1000;
 
         const sourceType = INVOICE_SOURCE_TYPE.PaymentRequest;
@@ -112,7 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({
             message: 'something wrong',
             result: false,
-            data: {},
+            data: null,
           });
         }
 
@@ -162,7 +162,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({
             message: 'something wrong',
             result: false,
-            data: {},
+            data: null,
           });
         }
 
@@ -262,7 +262,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       // return res.status(200).json({
       //   message: 'something wrong',
       //   result: false,
-      //   data: {},
+      //   data: null
       // });
 
       default:

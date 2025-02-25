@@ -7,6 +7,7 @@ import mysql from 'mysql2/promise';
 import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
 import { BTC } from 'packages/web3/chain/btc';
 import { GweiToWei } from 'utils/number';
+import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -14,7 +15,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'POST':
-        const connection = await connectDatabase();
+        const prisma = new PrismaClient();
+        // const connection = await connectDatabase();
         const walletId = req.body.wallet_id;
         const userId = req.body.user_id;
         const chainId = req.body.chain_id;
@@ -36,48 +38,108 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           dbChainId = CHAINS.ETHEREUM;
         }
 
-        const addressQuery =
-          'SELECT wallet_id, private_key, note, network, address FROM addresses where chain_id = ? and network = ? and address = ? and wallet_id = ? and user_id = ? and status = 1';
-        const addressValues = [dbChainId, network, fromAddress, walletId, userId];
-        const [addressRows] = await connection.query(addressQuery, addressValues);
-        if (Array.isArray(addressRows) && addressRows.length === 1) {
-          const addressRow = addressRows[0] as mysql.RowDataPacket;
+        const address = await prisma.addresses.findFirst({
+          where: {
+            chain_id: dbChainId,
+            network: network,
+            address: fromAddress,
+            wallet_id: walletId,
+            user_id: userId,
+            status: 1,
+          },
+          select: {
+            wallet_id: true,
+            private_key: true,
+            note: true,
+            network: true,
+            address: true,
+          },
+        });
 
-          const walletQuery = 'SELECT mnemonic FROM wallets WHERE id = ? and status = ?';
-          const walletValues = [addressRow.wallet_id, 1];
-          const [walletRows] = await connection.query(walletQuery, walletValues);
-
-          if (Array.isArray(walletRows) && walletRows.length === 1) {
-            const walletRow = walletRows[0] as mysql.RowDataPacket;
-
-            const hash = await WEB3.sendTransaction(addressRow.network === 1 ? true : false, {
-              coin: FindTokenByChainIdsAndSymbol(
-                WEB3.getChainIds(addressRow.network === 1 ? true : false, chainId),
-                coin,
-              ),
-              value: value,
-              privateKey: addressRow.private_key,
-              mnemonic: walletRow.mnemonic,
-              feeRate: feeRate,
-              btcType: coin === COINS.BTC ? BTC.getType(addressRow.note) : undefined,
-              from: addressRow.address,
-              to: toAddress,
-              gasPrice: maxFee ? GweiToWei(maxFee).toString() : '',
-              gasLimit: gasLimit ? gasLimit : '',
-              maxPriorityFeePerGas: maxPriortyFee ? GweiToWei(maxPriortyFee).toString() : '',
-              nonce: nonce ? nonce : '',
-              memo: memo ? memo : '',
-            });
-
-            return res.status(200).json({
-              message: '',
-              result: true,
-              data: {
-                hash: hash,
-              },
-            });
-          }
+        if (!address) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
+
+        const wallet = await prisma.wallets.findFirst({
+          where: {
+            id: address.wallet_id,
+            status: 1,
+          },
+          select: {
+            mnemonic: true,
+          },
+        });
+
+        if (!wallet) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        }
+
+        const hash = await WEB3.sendTransaction(address.network === 1 ? true : false, {
+          coin: FindTokenByChainIdsAndSymbol(WEB3.getChainIds(address.network === 1 ? true : false, chainId), coin),
+          value: value,
+          privateKey: address.private_key,
+          mnemonic: wallet.mnemonic,
+          feeRate: feeRate,
+          btcType: coin === COINS.BTC ? BTC.getType(address.note) : undefined,
+          from: address.address,
+          to: toAddress,
+          gasPrice: maxFee ? GweiToWei(maxFee).toString() : '',
+          gasLimit: gasLimit ? gasLimit : '',
+          maxPriorityFeePerGas: maxPriortyFee ? GweiToWei(maxPriortyFee).toString() : '',
+          nonce: nonce ? nonce : '',
+          memo: memo ? memo : '',
+        });
+
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: {
+            hash: hash,
+          },
+        });
+
+      // const addressQuery =
+      //   'SELECT wallet_id, private_key, note, network, address FROM addresses where chain_id = ? and network = ? and address = ? and wallet_id = ? and user_id = ? and status = 1';
+      // const addressValues = [dbChainId, network, fromAddress, walletId, userId];
+      // const [addressRows] = await connection.query(addressQuery, addressValues);
+      // if (Array.isArray(addressRows) && addressRows.length === 1) {
+      //   const addressRow = addressRows[0] as mysql.RowDataPacket;
+
+      //   const walletQuery = 'SELECT mnemonic FROM wallets WHERE id = ? and status = ?';
+      //   const walletValues = [addressRow.wallet_id, 1];
+      //   const [walletRows] = await connection.query(walletQuery, walletValues);
+
+      //   if (Array.isArray(walletRows) && walletRows.length === 1) {
+      //     const walletRow = walletRows[0] as mysql.RowDataPacket;
+
+      //     const hash = await WEB3.sendTransaction(addressRow.network === 1 ? true : false, {
+      //       coin: FindTokenByChainIdsAndSymbol(
+      //         WEB3.getChainIds(addressRow.network === 1 ? true : false, chainId),
+      //         coin,
+      //       ),
+      //       value: value,
+      //       privateKey: addressRow.private_key,
+      //       mnemonic: walletRow.mnemonic,
+      //       feeRate: feeRate,
+      //       btcType: coin === COINS.BTC ? BTC.getType(addressRow.note) : undefined,
+      //       from: addressRow.address,
+      //       to: toAddress,
+      //       gasPrice: maxFee ? GweiToWei(maxFee).toString() : '',
+      //       gasLimit: gasLimit ? gasLimit : '',
+      //       maxPriorityFeePerGas: maxPriortyFee ? GweiToWei(maxPriortyFee).toString() : '',
+      //       nonce: nonce ? nonce : '',
+      //       memo: memo ? memo : '',
+      //     });
+
+      //     return res.status(200).json({
+      //       message: '',
+      //       result: true,
+      //       data: {
+      //         hash: hash,
+      //       },
+      //     });
+      //   }
+      // }
 
       default:
         throw 'no support the method of api';

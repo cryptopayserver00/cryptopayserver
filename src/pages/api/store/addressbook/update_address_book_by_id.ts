@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from 'pages/api';
+import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -8,35 +9,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'PUT':
-        const connection = await connectDatabase();
+        const prisma = new PrismaClient();
+        // const connection = await connectDatabase();
         const id = req.body.id;
         const name = req.body.name;
         const address = req.body.address;
         const chainId = req.body.chain_id;
 
-        let updateQuery = 'UPDATE address_books SET ';
-        let updateValues = [];
-        if (name) {
-          updateQuery += 'name = ?,';
-          updateValues.push(name);
+        const address_book = await prisma.address_books.update({
+          data: {
+            name: name,
+            address: address,
+            chain_id: chainId,
+          },
+          where: {
+            id: id,
+            status: 1,
+          },
+        });
+
+        if (!address_book) {
+          return res.status(200).json({
+            message: '',
+            result: false,
+            data: null,
+          });
         }
-        if (address) {
-          updateQuery += 'address = ?,';
-          updateValues.push(address);
-        }
-        if (chainId) {
-          updateQuery += 'chain_id = ?,';
-          updateValues.push(chainId);
-        }
 
-        updateQuery = updateQuery.slice(0, -1);
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: null,
+        });
 
-        updateQuery += ' WHERE id = ? and status = ?';
-        updateValues.push(id, 1);
+      // let updateQuery = 'UPDATE address_books SET ';
+      // let updateValues = [];
+      // if (name) {
+      //   updateQuery += 'name = ?,';
+      //   updateValues.push(name);
+      // }
+      // if (address) {
+      //   updateQuery += 'address = ?,';
+      //   updateValues.push(address);
+      // }
+      // if (chainId) {
+      //   updateQuery += 'chain_id = ?,';
+      //   updateValues.push(chainId);
+      // }
 
-        await connection.query(updateQuery, updateValues);
+      // updateQuery = updateQuery.slice(0, -1);
 
-        return res.status(200).json({ message: '', result: true, data: null });
+      // updateQuery += ' WHERE id = ? and status = ?';
+      // updateValues.push(id, 1);
+
+      // await connection.query(updateQuery, updateValues);
+
+      // return res.status(200).json({ message: '', result: true, data: null });
       case 'POST':
         break;
       default:
