@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { WEB3 } from 'packages/web3';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 
@@ -9,7 +8,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'POST':
-        const connection = await connectDatabase();
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
         const chainId = req.body.chain_id;
@@ -22,15 +20,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           privateKey,
         );
 
-        if (result) {
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: result,
-          });
+        if (!result) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({ message: '', result: false, data: null });
+        return res.status(200).json({ message: '', result: true, data: null });
 
       default:
         throw 'no support the method of api';

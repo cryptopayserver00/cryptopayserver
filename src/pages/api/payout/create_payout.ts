@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { GenerateOrderIDByTime } from 'utils/number';
 import { PAYOUT_SOURCE_TYPE, PAYOUT_STATUS, PULL_PAYMENT_STATUS } from 'packages/constants';
-import mysql from 'mysql2/promise';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -13,7 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'POST':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
         const network = req.body.network;
@@ -43,23 +40,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             });
 
             if (!pull_payment) {
-              return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+              return res.status(200).json({ message: '', result: false, data: null });
             }
 
             if (pull_payment.show_auto_approve_claim === 1) {
               status = PAYOUT_STATUS.AwaitingPayment;
             }
-
-          // const findQuery =
-          //   'SELECT show_auto_approve_claim FROM pull_payments where pull_payment_id = ? and status = ? limit 1';
-          // const findValues = [externalPaymentId, 1];
-          // const [findRows] = await connection.query(findQuery, findValues);
-          // if (Array.isArray(findRows) && findRows.length === 1) {
-          //   const row = findRows[0] as mysql.RowDataPacket;
-          //   if (row.show_auto_approve_claim === 1) {
-          //     status = PAYOUT_STATUS.AwaitingPayment;
-          //   }
-          // }
         }
 
         const payouts = await prisma.payouts.create({
@@ -83,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!payouts) {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         return res.status(200).json({
@@ -94,38 +80,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-      // const createQuery =
-      //   'INSERT INTO payouts (user_id, store_id, network, chain_id, payout_id, address, source_type, currency, amount, crypto, external_payment_id, payout_status, created_date, updated_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      // const createValues = [
-      //   userId,
-      //   storeId,
-      //   network,
-      //   chainId,
-      //   payoutId,
-      //   address,
-      //   sourceType,
-      //   currency,
-      //   amount,
-      //   crypto,
-      //   externalPaymentId,
-      //   status,
-      //   createdDate,
-      //   updatedDate,
-      //   1,
-      // ];
-      // const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
-      // const id = ResultSetHeader.insertId;
-      // if (id === 0) {
-      //   return res.status(200).json({ message: 'Something wrong', result: false, data: null });
-      // }
-
-      // return res.status(200).json({
-      //   message: '',
-      //   result: true,
-      //   data: {
-      //     id: id,
-      //   },
-      // });
       default:
         throw 'no support the method of api';
     }

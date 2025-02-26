@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
 
@@ -10,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'POST':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const invoiceId = req.body.invoice_id;
         const orderId = req.body.order_id;
         const message = req.body.message;
@@ -26,33 +24,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (invoice_event) {
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: {
-              id: invoice_event.id,
-            },
-          });
-        } else {
+        if (!invoice_event) {
           return res.status(200).json({ message: 'Something wrong', result: false, data: null });
         }
 
-      // const createQuery = `INSERT INTO invoice_events (invoice_id, order_id, message, created_date, status) VALUES (?, ?, ?, ?, ?)`;
-      // const createValues = [invoiceId, orderId, message, createDate, 1];
-      // const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
-      // const id = ResultSetHeader.insertId;
-      // if (id === 0) {
-      //   return res.status(200).json({ message: 'Something wrong', result: false, data: null });
-      // }
-
-      // return res.status(200).json({
-      //   message: '',
-      //   result: true,
-      //   data: {
-      //     id: id,
-      //   },
-      // });
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: {
+            id: invoice_event.id,
+          },
+        });
 
       default:
         throw 'no support the method of api';

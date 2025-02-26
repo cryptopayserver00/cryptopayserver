@@ -10,6 +10,7 @@ const Checkout = () => {
   const { getUserId } = useUserPresistStore((state) => state);
   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
 
+  const [id, setId] = useState<number>(0);
   const [customHtmlTitle, setCustomHtmlTitle] = useState<string>('');
   const [language, setLanguage] = useState<string>('');
   const [showDetectLanguage, setShowDetectLanguage] = useState<boolean>(false);
@@ -34,6 +35,7 @@ const Checkout = () => {
       });
 
       if (response.result) {
+        setId(response.data.id);
         setShowPaymentConfetti(response.data.show_payment_confetti === 1 ? true : false);
         setShowSound(response.data.show_sound === 1 ? true : false);
         setShowPayInWalletButton(response.data.show_pay_in_wallet_button === 1 ? true : false);
@@ -64,8 +66,7 @@ const Checkout = () => {
   const onClickSave = async () => {
     try {
       const response: any = await axios.put(Http.update_checkout_setting_by_id, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
+        id: id,
         show_payment_confetti: showPaymentConfetti ? 1 : 2,
         show_sound: showSound ? 1 : 2,
         show_pay_in_wallet_button: showPayInWalletButton ? 1 : 2,

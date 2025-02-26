@@ -17,8 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const shopify_setting = await prisma.shopify_settings.findFirst({
           where: {
-            store_id: typeof storeId === 'number' ? storeId : 0,
-            user_id: typeof userId === 'number' ? userId : 0,
+            store_id: Number(storeId),
+            user_id: Number(userId),
             status: 1,
           },
         });
@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           });
         }
 
-        return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        return res.status(200).json({ message: '', result: false, data: null });
 
       // const query = 'SELECT * FROM shopify_settings where user_id = ? and store_id = ? and status = ?';
       // const values = [userId, storeId, 1];
@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       //   });
       // }
 
-      // return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      // return res.status(200).json({ message: '', result: false, data: null });
 
       case 'POST':
         break;

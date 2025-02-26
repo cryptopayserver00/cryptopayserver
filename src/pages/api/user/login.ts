@@ -25,19 +25,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (user) {
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: {
-              id: user?.id,
-              email: user?.email,
-              username: user?.username,
-            },
-          });
-        } else {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        if (!user) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
+
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: {
+            id: user?.id,
+            email: user?.email,
+            username: user?.username,
+          },
+        });
 
       // const query = 'SELECT * FROM users where email = ? AND password = ? limit 1';
       // const values = [email, cryptoPassword];

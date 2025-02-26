@@ -15,16 +15,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const stores = await prisma.stores.findMany({
           where: {
-            user_id: typeof userId === 'number' ? userId : 0,
+            user_id: Number(userId),
             status: 1,
           },
         });
 
-        if (stores) {
-          return res.status(200).json({ message: '', result: true, data: stores });
+        if (!stores) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({ message: '', result: false, data: null });
+        return res.status(200).json({ message: '', result: true, data: stores });
 
       // const query = 'SELECT * FROM stores where user_id = ? and status = ? ';
       // const values = [userId, 1];

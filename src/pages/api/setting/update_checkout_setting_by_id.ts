@@ -54,18 +54,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!checkout_setting) {
-          return res.status(200).json({
-            message: '',
-            result: false,
-            data: null,
-          });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({
-          message: '',
-          result: true,
-          data: null,
-        });
+        return res.status(200).json({ message: '', result: true, data: null });
 
       // let updateQuery = 'UPDATE checkout_settings SET ';
       // let updateValues = [];

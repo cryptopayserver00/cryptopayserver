@@ -22,6 +22,7 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 
 const Payout = () => {
+  const [id, setId] = useState<number>(0);
   const [isConfigure, setIsConfigure] = useState<boolean>(false);
   const [configureChain, setConfigureChain] = useState<CHAINS>(CHAINS.BITCOIN);
   const [showApprovePayoutProcess, setShowApprovePayoutProcess] = useState<boolean>();
@@ -36,10 +37,7 @@ const Payout = () => {
   const onClickSave = async () => {
     try {
       const response: any = await axios.put(Http.update_payout_setting_by_network, {
-        store_id: getStoreId(),
-        user_id: getUserId(),
-        network: getNetwork() === 'mainnnet' ? 1 : 2,
-        chain_id: configureChain,
+        id: id,
         show_approve_payout_process: showApprovePayoutProcess ? 1 : 2,
         interval: interval,
         fee_block_target: feeBlockTarget,
@@ -81,6 +79,7 @@ const Payout = () => {
 
             <Box mt={4}>
               <StorePayoutTable
+                setId={setId}
                 setIsConfigure={setIsConfigure}
                 setConfigureChain={setConfigureChain}
                 setShowApprovePayoutProcess={setShowApprovePayoutProcess}
@@ -192,6 +191,7 @@ const rows = [
 ];
 
 type TableType = {
+  setId: (value: number) => void;
   setIsConfigure: (value: boolean) => void;
   setConfigureChain: (value: CHAINS) => void;
   setShowApprovePayoutProcess: (value: boolean) => void;
@@ -219,6 +219,7 @@ function StorePayoutTable(props: TableType) {
         });
 
         if (response.result) {
+          props.setId(response.data.id);
           props.setConfigureChain(response.data.chain_id);
           props.setShowApprovePayoutProcess(response.data.show_approve_payout_process === 1 ? true : false);
           props.setInterval(response.data.interval);

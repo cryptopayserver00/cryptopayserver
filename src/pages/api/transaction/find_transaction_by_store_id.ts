@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const wallet = await prisma.wallets.findFirst({
           where: {
-            store_id: typeof storeId === 'number' ? storeId : 0,
+            store_id: Number(storeId),
             status: 1,
           },
           select: {

@@ -8,6 +8,7 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 
 const Notification = () => {
+  const [id, setId] = useState<number>(0);
   const [notification, setNotification] = useState<NOTIFICATION[]>([]);
 
   const { getUserId } = useUserPresistStore((state) => state);
@@ -41,6 +42,7 @@ const Notification = () => {
         });
 
         setNotification(notification_list);
+        setId(response.data.id);
       } else {
         setNotification([]);
 
@@ -86,8 +88,9 @@ const Notification = () => {
       }
 
       const response: any = await axios.put(Http.update_notification_setting, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
+        id: id,
+        // user_id: getUserId(),
+        // store_id: getStoreId(),
         notifications: ids.join(','),
       });
       if (response.result) {

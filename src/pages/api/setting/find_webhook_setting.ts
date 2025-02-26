@@ -16,8 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const webhook_settings = await prisma.webhook_settings.findMany({
           where: {
-            store_id: typeof storeId === 'number' ? storeId : 0,
-            user_id: typeof userId === 'number' ? userId : 0,
+            store_id: Number(storeId),
+            user_id: Number(userId),
             status: 1,
           },
         });

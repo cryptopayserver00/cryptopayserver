@@ -137,10 +137,6 @@ const XRP = () => {
     try {
       const response: any = await axios.put(Http.update_payment_setting_by_id, {
         id: settingId,
-        user_id: getUserId(),
-        chain_id: CHAINS.XRP,
-        store_id: getStoreId(),
-        network: getNetwork() === 'mainnet' ? 1 : 2,
         payment_expire: paymentExpire,
         confirm_block: confirmBlock,
         show_recommended_fee: showRecommendedFee ? 1 : 2,

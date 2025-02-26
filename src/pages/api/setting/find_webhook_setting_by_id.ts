@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const webhook_setting = await prisma.webhook_settings.findFirst({
           where: {
-            id: typeof id === 'number' ? id : 0,
+            id: Number(id),
             status: 1,
           },
         });

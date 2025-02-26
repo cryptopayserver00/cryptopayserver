@@ -19,10 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const payout_setting = await prisma.payout_settings.findFirst({
           where: {
-            store_id: typeof storeId === 'number' ? storeId : 0,
-            user_id: typeof userId === 'number' ? userId : 0,
-            network: typeof network === 'number' ? network : 0,
-            chain_id: typeof chainId === 'number' ? chainId : 0,
+            chain_id: Number(chainId),
+            network: Number(network),
+            user_id: Number(userId),
+            store_id: Number(storeId),
             status: 1,
           },
         });
@@ -32,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             message: '',
             result: true,
             data: {
+              id: payout_setting.id,
               chain_id: payout_setting.chain_id,
               show_approve_payout_process: payout_setting.show_approve_payout_process,
               interval: payout_setting.interval,
@@ -41,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           });
         }
 
-        return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        return res.status(200).json({ message: '', result: false, data: null });
 
       // const query =
       //   'SELECT * FROM payout_settings where store_id = ? and user_id = ? and network = ? and chain_id = ? and status = ? ';
@@ -63,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       //   });
       // }
 
-      // return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      // return res.status(200).json({ message: '', result: false, data: null });
 
       case 'POST':
         break;

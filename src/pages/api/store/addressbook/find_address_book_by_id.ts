@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const address_book = await prisma.address_books.findFirst({
           where: {
-            id: typeof id === 'number' ? id : 0,
+            id: Number(id),
             status: 1,
           },
         });
@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           });
         }
 
-        return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        return res.status(200).json({ message: '', result: false, data: null });
 
       // const query = 'SELECT * FROM address_books where id = ? and status = ? ';
       // const values = [id, 1];

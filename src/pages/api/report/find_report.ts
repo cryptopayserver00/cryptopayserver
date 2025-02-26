@@ -20,13 +20,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const reports = await prisma.invoices.findMany({
           where: {
-            source_type: typeof status === 'string' ? (status && status !== REPORT_STATUS.All ? status : '') : '',
+            source_type: String(status) && String(status) !== REPORT_STATUS.All ? String(status) : REPORT_STATUS.All,
             created_at: {
-              gte: typeof startDate === 'string' ? startDate : '',
-              lte: typeof endDate === 'string' ? endDate : '',
+              gte: String(startDate),
+              lte: String(endDate),
             },
-            store_id: typeof storeId === 'number' ? storeId : 0,
-            network: typeof network === 'number' ? network : 0,
+            store_id: Number(storeId),
+            network: Number(network),
             status: 1,
           },
           select: {

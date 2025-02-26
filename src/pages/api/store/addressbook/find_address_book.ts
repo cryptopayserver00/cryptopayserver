@@ -16,8 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const address_books = await prisma.address_books.findMany({
           where: {
-            store_id: typeof storeId === 'number' ? storeId : 0,
-            network: typeof network === 'number' ? network : 0,
+            store_id: Number(storeId),
+            network: Number(network),
             status: 1,
           },
           orderBy: {
@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           });
         }
 
-        return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        return res.status(200).json({ message: '', result: false, data: null });
 
       // const query = 'SELECT * FROM address_books where store_id = ? and network = ? and status = ? order by id desc';
       // const values = [storeId, network, 1];

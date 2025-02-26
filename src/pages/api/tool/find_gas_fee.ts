@@ -24,23 +24,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         let value = req.query.value;
 
         if (!to || to === '') {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         if (!value || value === '') {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         if (!coin || coin === '') {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         const address = await prisma.addresses.findFirst({
           where: {
-            chain_id: typeof chainId === 'number' ? chainId : 0,
-            network: typeof network === 'number' ? network : 0,
-            address: typeof from === 'string' ? from : '',
-            user_id: typeof userId === 'number' ? userId : 0,
+            chain_id: Number(chainId),
+            network: Number(network),
+            address: String(from),
+            user_id: Number(userId),
             status: 1,
           },
           select: {

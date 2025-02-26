@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { GenerateOrderIDByTime } from 'utils/number';
 import { PULL_PAYMENT_STATUS } from 'packages/constants';
@@ -12,7 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'POST':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
         const network = req.body.network;
@@ -59,38 +57,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             id: pull_payment.id,
           },
         });
-
-      // const createQuery =
-      //   'INSERT INTO pull_payments (user_id, store_id, network, pull_payment_id, name, amount, currency, show_auto_approve_claim, description, pull_payment_status, created_date, updated_date, expiration_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      // const createValues = [
-      //   userId,
-      //   storeId,
-      //   network,
-      //   pullPaymentId,
-      //   name,
-      //   amount,
-      //   currency,
-      //   showAutoApproveClaim,
-      //   description,
-      //   PULL_PAYMENT_STATUS.Active,
-      //   createdDate,
-      //   createdDate,
-      //   expirationDate,
-      //   1,
-      // ];
-      // const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
-      // const id = ResultSetHeader.insertId;
-      // if (id === 0) {
-      //   return res.status(200).json({ message: 'Something wrong', result: false, data: null });
-      // }
-
-      // return res.status(200).json({
-      //   message: '',
-      //   result: true,
-      //   data: {
-      //     id: id,
-      //   },
-      // });
 
       default:
         throw 'no support the method of api';

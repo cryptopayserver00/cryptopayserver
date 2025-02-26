@@ -63,8 +63,6 @@ const Emails = () => {
     try {
       if (ruleId && ruleId > 0) {
         const response: any = await axios.put(Http.update_email_rule_setting, {
-          store_id: getStoreId(),
-          user_id: getUserId(),
           id: ruleId,
           tigger: tigger,
           recipients: recipients,
@@ -121,8 +119,6 @@ const Emails = () => {
     try {
       if (id && id > 0) {
         const response: any = await axios.put(Http.update_email_setting, {
-          store_id: getStoreId(),
-          user_id: getUserId(),
           id: id,
           smtp_server: smtpServer,
           port: port,

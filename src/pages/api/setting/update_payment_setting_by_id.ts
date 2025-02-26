@@ -12,10 +12,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
         const prisma = new PrismaClient();
         // const connection = await connectDatabase();
         const id = req.body.id;
-        // const userId = req.body.user_id;
-        // const chainId = req.body.chain_id;
-        // const storeId = req.body.store_id;
-        // const network = req.body.network;
 
         const paymentExpire = req.body.payment_expire ? req.body.payment_expire : 0;
         const confirmBlock = req.body.confirm_block ? req.body.confirm_block : 0;

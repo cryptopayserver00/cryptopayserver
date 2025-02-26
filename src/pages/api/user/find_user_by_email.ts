@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const user = await prisma.users.findFirst({
           where: {
-            email: typeof email === 'string' ? email : undefined,
+            email: String(email),
             status: 1,
           },
           select: {
@@ -27,20 +27,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (user) {
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: {
-              username: user.username,
-              email: user.email,
-              profile_picture_url: user.profile_picture_url,
-              authenticator: user.authenticator,
-            },
-          });
-        } else {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        if (!user) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
+
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: {
+            username: user.username,
+            email: user.email,
+            profile_picture_url: user.profile_picture_url,
+            authenticator: user.authenticator,
+          },
+        });
 
       // const query =
       //   'SELECT username, email, profile_picture_url, authenticator FROM users where email = ? and status = ?';
@@ -61,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       //   });
       // }
 
-      // return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      // return res.status(200).json({ message: '', result: false, data: null });
 
       case 'POST':
         break;

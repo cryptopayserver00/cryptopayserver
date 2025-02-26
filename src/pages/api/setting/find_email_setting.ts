@@ -17,8 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const email_setting = await prisma.email_settings.findFirst({
           where: {
-            store_id: typeof storeId === 'number' ? storeId : 0,
-            user_id: typeof userId === 'number' ? userId : 0,
+            store_id: Number(storeId),
+            user_id: Number(userId),
             status: 1,
           },
         });
@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           });
         }
 
-        return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        return res.status(200).json({ message: '', result: false, data: null });
 
       // const query = 'SELECT * FROM email_settings where store_id = ? and user_id = ? and status = ? ';
       // const values = [storeId, userId, 1];
@@ -61,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       //   });
       // }
 
-      // return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      // return res.status(200).json({ message: '', result: false, data: null });
 
       case 'POST':
         break;

@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           });
         } else {
           return res.status(200).json({
-            message: 'something wrong',
+            message: '',
             result: false,
             data: null,
           });

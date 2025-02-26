@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const user = await prisma.users.findFirst({
           where: {
-            email: typeof email === 'string' ? email : undefined,
+            email: String(email),
             status: 1,
           },
           select: {
@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       //   });
       // }
 
-      // return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      // return res.status(200).json({ message: '', result: false, data: null });
 
       case 'POST':
         break;

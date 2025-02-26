@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
 
@@ -10,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'PUT':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const paymentRequestId = req.body.id;
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
@@ -57,53 +55,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           data: null,
         });
 
-      // let updateQuery = 'UPDATE payment_requests SET ';
-      // let updateValues = [];
-      // if (title) {
-      //   updateQuery += 'title = ?,';
-      //   updateValues.push(title);
-      // }
-      // if (amount) {
-      //   updateQuery += 'amount = ?,';
-      //   updateValues.push(amount);
-      // }
-      // if (currency) {
-      //   updateQuery += 'currency = ?,';
-      //   updateValues.push(currency);
-      // }
-      // if (showAllowCustomAmount) {
-      //   updateQuery += 'show_allow_custom_amount = ?,';
-      //   updateValues.push(showAllowCustomAmount);
-      // }
-      // if (expirationDate) {
-      //   updateQuery += 'expiration_date = ?,';
-      //   updateValues.push(expirationDate);
-      // }
-      // if (email) {
-      //   updateQuery += 'email = ?,';
-      //   updateValues.push(email);
-      // }
-      // if (requestCustomerData) {
-      //   updateQuery += 'request_customer_data = ?,';
-      //   updateValues.push(requestCustomerData);
-      // }
-      // if (memo) {
-      //   updateQuery += 'memo = ?,';
-      //   updateValues.push(memo);
-      // }
-
-      // updateQuery = updateQuery.slice(0, -1);
-
-      // updateQuery += ' WHERE payment_request_id = ? and user_id = ? and store_id = ? and status = ?';
-      // updateValues.push(paymentRequestId, userId, storeId, 1);
-
-      // await connection.query(updateQuery, updateValues);
-
-      // return res.status(200).json({
-      //   message: '',
-      //   result: true,
-      //   data: null,
-      // });
       default:
         throw 'no support the method of api';
     }

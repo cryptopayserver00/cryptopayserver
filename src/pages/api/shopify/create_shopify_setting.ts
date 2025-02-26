@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           });
         } else {
           return res.status(200).json({
-            message: 'something wrong',
+            message: '',
             result: false,
             data: null,
           });
@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       // const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
       // const id = ResultSetHeader.insertId;
       // if (id === 0) {
-      //   return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      //   return res.status(200).json({ message: '', result: false, data: null });
       // }
 
       // return res.status(200).json({

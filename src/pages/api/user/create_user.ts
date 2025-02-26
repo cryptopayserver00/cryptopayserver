@@ -29,11 +29,11 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
           },
         });
 
-        if (createUser) {
-          return res.status(200).json({ message: '', result: true, data: null });
-        } else {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        if (!createUser) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
+
+        return res.status(200).json({ message: '', result: true, data: null });
 
       // user
       // const query = 'INSERT INTO users (email, username, password, status) VALUES (?, ?, ?, ?)';
@@ -41,7 +41,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
       // const [ResultSetHeader]: any = await connection.query(query, values);
       // const userId = ResultSetHeader.insertId;
       // if (userId === 0) {
-      //   return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      //   return res.status(200).json({ message: '', result: false, data: null });
       // }
 
       // return res.status(200).json({ message: '', result: true, data: null });

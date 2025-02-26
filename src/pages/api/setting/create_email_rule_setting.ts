@@ -33,19 +33,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (email_rule_setting) {
+        if (!email_rule_setting) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        } else {
           return res.status(200).json({
             message: '',
             result: true,
             data: {
               id: email_rule_setting.id,
             },
-          });
-        } else {
-          return res.status(200).json({
-            message: 'something wrong',
-            result: false,
-            data: null,
           });
         }
 

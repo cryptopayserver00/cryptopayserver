@@ -19,10 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const payment_setting = await prisma.payment_settings.findFirst({
           where: {
-            store_id: typeof storeId === 'number' ? storeId : 0,
-            user_id: typeof userId === 'number' ? userId : 0,
-            chain_id: typeof chainId === 'number' ? chainId : 0,
-            network: typeof network === 'number' ? network : 0,
+            user_id: Number(userId),
+            store_id: Number(storeId),
+            chain_id: Number(chainId),
+            network: Number(network),
             status: 1,
           },
         });
@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           });
         }
 
-        return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        return res.status(200).json({ message: '', result: false, data: null });
 
       // const query =
       //   'SELECT id, payment_expire, confirm_block, show_recommended_fee, current_used_address_id FROM payment_settings where user_id = ? and store_id = ? and chain_id = ? and network = ? and status = ?';
@@ -62,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       //   });
       // }
 
-      // return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      // return res.status(200).json({ message: '', result: false, data: null });
 
       case 'POST':
         break;

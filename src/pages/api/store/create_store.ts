@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!store) {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         // create notification setting
@@ -59,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!notification_setting) {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         // create payment setting for blockchain
@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           });
 
           if (!payment_setting) {
-            return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+            return res.status(200).json({ message: '', result: false, data: null });
           }
         });
 
@@ -115,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       // const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
       // const storeId = ResultSetHeader.insertId;
       // if (storeId === 0) {
-      //   return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      //   return res.status(200).json({ message: '', result: false, data: null });
       // }
 
       // // create notification setting
@@ -160,7 +160,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       //   });
       // }
 
-      // return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+      // return res.status(200).json({ message: '', result: false, data: null });
 
       default:
         throw 'no support the method of api';

@@ -30,19 +30,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (user) {
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: null,
-          });
-        } else {
-          return res.status(200).json({
-            message: 'something wrong',
-            result: false,
-            data: null,
-          });
+        if (!user) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
+
+        return res.status(200).json({ message: '', result: true, data: null });
 
       // const updateQuery = 'UPDATE users SET password = ? WHERE email = ? and password = ? and status = ?';
       // const updateValues = [newCryptoPassword, email, oldCryptoPassword, 1];
@@ -56,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       //   });
       // } else {
       //   return res.status(200).json({
-      //     message: 'something wrong',
+      //     message: '',
       //     result: false,
       //     data: null,
       //   });

@@ -20,10 +20,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const payment_setting = await prisma.payment_settings.findFirst({
           where: {
-            user_id: typeof userId === 'number' ? userId : 0,
-            store_id: typeof storeId === 'number' ? storeId : 0,
-            chain_id: typeof chainId === 'number' ? chainId : 0,
-            network: typeof network === 'number' ? network : 0,
+            user_id: Number(userId),
+            store_id: Number(storeId),
+            chain_id: Number(chainId),
+            network: Number(network),
             status: 1,
           },
           select: {

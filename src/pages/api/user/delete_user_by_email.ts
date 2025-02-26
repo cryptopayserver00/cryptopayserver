@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const update_user = await prisma.users.update({
           where: {
-            email: typeof email === 'string' ? email : undefined,
+            email: email,
             status: 1,
           },
           data: {
@@ -25,15 +25,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (update_user) {
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: null,
-          });
-        } else {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+        if (!update_user) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
+
+        return res.status(200).json({ message: '', result: true, data: null });
 
       // const updateQuery = 'UPDATE users SET status = ? WHERE email = ?';
       // const updateValues = [status, email];
