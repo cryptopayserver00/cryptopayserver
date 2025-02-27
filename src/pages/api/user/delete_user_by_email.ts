@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
 
@@ -10,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'PUT':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const email = req.body.email;
 
         const status = 2; // delete
@@ -30,10 +28,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         }
 
         return res.status(200).json({ message: '', result: true, data: null });
-
-      // const updateQuery = 'UPDATE users SET status = ? WHERE email = ?';
-      // const updateValues = [status, email];
-      // await connection.query(updateQuery, updateValues);
 
       default:
         throw 'no support the method of api';

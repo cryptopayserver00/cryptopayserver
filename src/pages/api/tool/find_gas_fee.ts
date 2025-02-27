@@ -2,9 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { WEB3 } from 'packages/web3';
 import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
-import { CHAINS, COIN, COINS } from 'packages/constants/blockchain';
-import { connectDatabase } from 'packages/db/mysql';
-import mysql from 'mysql2/promise';
+import { COINS } from 'packages/constants/blockchain';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -14,7 +12,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const userId = req.query.user_id;
         const chainId = req.query.chain_id;
         const network = req.query.network;
@@ -67,32 +64,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           to: to as string,
         });
 
+        if (!gas) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        }
+
         return res.status(200).json({ message: '', result: true, data: gas });
 
-      // const addressQuery =
-      //   'SELECT chain_id, private_key, note, network, address FROM addresses where chain_id = ? and network = ? and address = ? and user_id = ? and status = 1';
-      // const addressValues = [chainId, network, from, userId];
-      // const [addressRows] = await connection.query(addressQuery, addressValues);
-      // if (Array.isArray(addressRows) && addressRows.length === 1) {
-      //   const addressRow = addressRows[0] as mysql.RowDataPacket;
-
-      //   const gas = await WEB3.estimateGasFee(addressRow.network === 1 ? true : false, {
-      //     coin: FindTokenByChainIdsAndSymbol(
-      //       WEB3.getChainIds(addressRow.network === 1 ? true : false, addressRow.chain_id),
-      //       coin as COINS,
-      //     ),
-      //     value: value as string,
-      //     privateKey: addressRow.private_key,
-      //     from: addressRow.address,
-      //     to: to as string,
-      //   });
-
-      //   return res.status(200).json({ message: '', result: true, data: gas });
-      // }
-
-      // return res.status(200).json({ message: '', result: false, data: '' });
-      case 'POST':
-        break;
       default:
         throw 'no support the method of api';
     }

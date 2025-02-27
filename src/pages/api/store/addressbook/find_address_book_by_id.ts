@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from 'pages/api';
 import { PrismaClient } from '@prisma/client';
 
@@ -10,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const id = req.query.id;
 
         const address_book = await prisma.address_books.findFirst({
@@ -20,24 +18,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (address_book) {
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: address_book,
-          });
+        if (!address_book) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({ message: '', result: false, data: null });
-
-      // const query = 'SELECT * FROM address_books where id = ? and status = ? ';
-      // const values = [id, 1];
-      // const [rows] = await connection.query(query, values);
-      // return res.status(200).json({
-      //   message: '',
-      //   result: true,
-      //   data: rows,
-      // });
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: address_book,
+        });
 
       case 'POST':
         break;

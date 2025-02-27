@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
 
@@ -10,9 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'PUT':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
-        // const userId = req.body.user_id;
-        // const storeId = req.body.store_id;
         const id = req.body.id;
 
         const smtpServer = req.body.smtp_server;
@@ -43,45 +39,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         return res.status(200).json({ message: '', result: true, data: null });
 
-      // let updateQuery = 'UPDATE email_settings SET ';
-      // let updateValues = [];
-      // if (smtpServer) {
-      //   updateQuery += 'smtp_server = ?,';
-      //   updateValues.push(smtpServer);
-      // }
-      // if (port) {
-      //   updateQuery += 'port = ?,';
-      //   updateValues.push(port);
-      // }
-      // if (senderEmail) {
-      //   updateQuery += 'sender_email = ?,';
-      //   updateValues.push(senderEmail);
-      // }
-      // if (login) {
-      //   updateQuery += 'login = ?,';
-      //   updateValues.push(login);
-      // }
-      // if (password) {
-      //   updateQuery += 'password = ?,';
-      //   updateValues.push(password);
-      // }
-      // if (showTls) {
-      //   updateQuery += 'show_tls = ?,';
-      //   updateValues.push(showTls);
-      // }
-
-      // updateQuery = updateQuery.slice(0, -1);
-
-      // updateQuery += ' WHERE store_id = ? and user_id = ? and status = ?';
-      // updateValues.push(storeId, userId, 1);
-
-      // await connection.query(updateQuery, updateValues);
-
-      // return res.status(200).json({
-      //   message: '',
-      //   result: true,
-      //   data: null,
-      // });
       default:
         throw 'no support the method of api';
     }

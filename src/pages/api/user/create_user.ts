@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import CryptoJS from 'crypto-js';
-import { NOTIFICATION, NOTIFICATIONS } from 'packages/constants';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -12,7 +10,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
     switch (req.method) {
       case 'POST':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const email = req.body.email;
         const username = req.body.email;
         const password = req.body.password;
@@ -34,17 +31,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
         }
 
         return res.status(200).json({ message: '', result: true, data: null });
-
-      // user
-      // const query = 'INSERT INTO users (email, username, password, status) VALUES (?, ?, ?, ?)';
-      // const values = [email, username, cryptoPassword, 1];
-      // const [ResultSetHeader]: any = await connection.query(query, values);
-      // const userId = ResultSetHeader.insertId;
-      // if (userId === 0) {
-      //   return res.status(200).json({ message: '', result: false, data: null });
-      // }
-
-      // return res.status(200).json({ message: '', result: true, data: null });
     }
   } catch (e) {
     console.error(e);

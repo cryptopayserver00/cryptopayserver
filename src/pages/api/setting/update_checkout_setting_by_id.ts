@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
 
@@ -10,9 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'PUT':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
-        // const userId = req.body.user_id;
-        // const storeId = req.body.store_id;
         const id = req.body.id;
 
         const showPaymentConfetti = req.body.show_payment_confetti;
@@ -46,8 +42,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             show_header: showHeader,
           },
           where: {
-            // store_id: storeId,
-            // user_id: userId,
             id: id,
             status: 1,
           },
@@ -59,73 +53,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         return res.status(200).json({ message: '', result: true, data: null });
 
-      // let updateQuery = 'UPDATE checkout_settings SET ';
-      // let updateValues = [];
-      // if (showPaymentConfetti) {
-      //   updateQuery += 'show_payment_confetti = ?,';
-      //   updateValues.push(showPaymentConfetti);
-      // }
-      // if (showSound) {
-      //   updateQuery += 'show_sound = ?,';
-      //   updateValues.push(showSound);
-      // }
-      // if (showPayInWalletButton) {
-      //   updateQuery += 'show_pay_in_wallet_button = ?,';
-      //   updateValues.push(showPayInWalletButton);
-      // }
-      // if (showDetectLanguage) {
-      //   updateQuery += 'show_detect_language = ?,';
-      //   updateValues.push(showDetectLanguage);
-      // }
-      // if (language) {
-      //   updateQuery += 'language = ?,';
-      //   updateValues.push(language);
-      // }
-      // if (customHtmlTitle) {
-      //   updateQuery += 'custom_html_title = ?,';
-      //   updateValues.push(customHtmlTitle);
-      // }
-      // if (supportUrl) {
-      //   updateQuery += 'support_url = ?,';
-      //   updateValues.push(supportUrl);
-      // }
-      // if (showPaymentMethod) {
-      //   updateQuery += 'show_payment_method = ?,';
-      //   updateValues.push(showPaymentMethod);
-      // }
-      // if (showRedirectUrl) {
-      //   updateQuery += 'show_redirect_url = ?,';
-      //   updateValues.push(showRedirectUrl);
-      // }
-      // if (showPublicReceiptPage) {
-      //   updateQuery += 'show_public_receipt_page = ?,';
-      //   updateValues.push(showPublicReceiptPage);
-      // }
-      // if (showPaymentList) {
-      //   updateQuery += 'show_payment_list = ?,';
-      //   updateValues.push(showPaymentList);
-      // }
-      // if (showQrcodeReceipt) {
-      //   updateQuery += 'show_qrcode_receipt = ?,';
-      //   updateValues.push(showQrcodeReceipt);
-      // }
-      // if (showHeader) {
-      //   updateQuery += 'show_header = ?,';
-      //   updateValues.push(showHeader);
-      // }
-
-      // updateQuery = updateQuery.slice(0, -1);
-
-      // updateQuery += ' WHERE store_id = ? and user_id = ? and status = ?';
-      // updateValues.push(storeId, userId, 1);
-
-      // await connection.query(updateQuery, updateValues);
-
-      // return res.status(200).json({
-      //   message: '',
-      //   result: true,
-      //   data: null,
-      // });
       default:
         throw 'no support the method of api';
     }

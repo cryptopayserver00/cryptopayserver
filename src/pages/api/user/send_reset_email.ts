@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import mysql from 'mysql2/promise';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -11,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const email = req.query.email;
 
         const user = await prisma.users.findFirst({
@@ -26,32 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (user) {
-          // todo: send reset email
+        if (!user) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({
-          message: '',
-          result: true,
-          data: null,
-        });
+        // todo: send reset email
 
-      // const query = 'SELECT username, email, profile_picture_url FROM users where email = ? and status = ?';
-      // const values = [email, 1];
-      // const [rows] = await connection.query(query, values);
-      // if (Array.isArray(rows) && rows.length === 1) {
-      //   const row = rows[0] as mysql.RowDataPacket;
-
-      //   // todo: send reset email
-
-      //   return res.status(200).json({
-      //     message: '',
-      //     result: true,
-      //     data: null,
-      //   });
-      // }
-
-      // return res.status(200).json({ message: '', result: false, data: null });
+        return res.status(200).json({ message: '', result: true, data: null });
 
       case 'POST':
         break;

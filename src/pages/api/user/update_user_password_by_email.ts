@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import CryptoJS from 'crypto-js';
 import { PrismaClient } from '@prisma/client';
@@ -11,7 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'PUT':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const email = req.body.email;
         const oldPwd = req.body.old_password;
         const newPwd = req.body.new_password;
@@ -35,24 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         }
 
         return res.status(200).json({ message: '', result: true, data: null });
-
-      // const updateQuery = 'UPDATE users SET password = ? WHERE email = ? and password = ? and status = ?';
-      // const updateValues = [newCryptoPassword, email, oldCryptoPassword, 1];
-      // const [ResultSetHeader]: any = await connection.query(updateQuery, updateValues);
-
-      // if (ResultSetHeader.changedRows === 1) {
-      //   return res.status(200).json({
-      //     message: '',
-      //     result: true,
-      //     data: null,
-      //   });
-      // } else {
-      //   return res.status(200).json({
-      //     message: '',
-      //     result: false,
-      //     data: null,
-      //   });
-      // }
 
       default:
         throw 'no support the method of api';

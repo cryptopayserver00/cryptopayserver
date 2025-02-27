@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PAYOUT_SOURCE_TYPE, PAYOUT_STATUS } from 'packages/constants';
 import { PrismaClient } from '@prisma/client';
@@ -11,7 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const storeId = req.query.store_id;
         const network = req.query.network;
         const pullPaymentStatus = req.query.pull_payment_status;
@@ -29,17 +27,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         return res.status(200).json({ message: '', result: true, data: pull_payments });
 
-      // const values = [
-      //   PAYOUT_SOURCE_TYPE.PullPayment,
-      //   PAYOUT_STATUS.Completed,
-      //   1,
-      //   pullPaymentStatus,
-      //   storeId,
-      //   network,
-      //   1,
-      // ];
-      // const [rows] = await connection.query(query, values);
-      // return res.status(200).json({ message: '', result: true, data: rows });
       case 'POST':
         break;
       default:

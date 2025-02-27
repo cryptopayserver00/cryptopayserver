@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
 
@@ -10,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'POST':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
 
@@ -29,21 +27,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (shopify_setting) {
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: {
-              id: shopify_setting.id,
-            },
-          });
-        } else {
-          return res.status(200).json({
-            message: '',
-            result: false,
-            data: null,
-          });
+        if (!shopify_setting) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
+
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: {
+            id: shopify_setting.id,
+          },
+        });
 
       // const createQuery =
       //   'INSERT INTO shopify_settings (user_id, store_id, shop_name, api_key, admin_api_access_token, status) VALUES (?, ?, ?, ?, ?, ?)';

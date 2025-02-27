@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import mysql from 'mysql2/promise';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -11,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const id = req.query.id;
 
         const wallet = await prisma.wallets.findFirst({
@@ -36,27 +33,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-      // const query = 'SELECT * FROM wallets where id = ? and status = ? ';
-      // const values = [id, 1];
-      // const [rows] = await connection.query(query, values);
-      // if (Array.isArray(rows) && rows.length === 1) {
-      //   const row = rows[0] as mysql.RowDataPacket;
-      //   return res.status(200).json({
-      //     message: '',
-      //     result: true,
-      //     data: {
-      //       name: row.name,
-      //       mnemonic: row.mnemonic,
-      //       password: row.password,
-      //       is_backup: row.is_backup,
-      //     },
-      //   });
-      // }
-
-      // return res.status(200).json({ message: '', result: false, data: null });
-
-      case 'POST':
-        break;
       default:
         throw 'no support the method of api';
     }

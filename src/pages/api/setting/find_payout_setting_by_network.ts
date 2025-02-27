@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import mysql from 'mysql2/promise';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -11,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const storeId = req.query.store_id;
         const userId = req.query.user_id;
         const network = req.query.network;
@@ -27,47 +24,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (payout_setting) {
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: {
-              id: payout_setting.id,
-              chain_id: payout_setting.chain_id,
-              show_approve_payout_process: payout_setting.show_approve_payout_process,
-              interval: payout_setting.interval,
-              fee_block_target: payout_setting.fee_block_target,
-              threshold: payout_setting.threshold,
-            },
-          });
+        if (!payout_setting) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({ message: '', result: false, data: null });
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: {
+            id: payout_setting.id,
+            chain_id: payout_setting.chain_id,
+            show_approve_payout_process: payout_setting.show_approve_payout_process,
+            interval: payout_setting.interval,
+            fee_block_target: payout_setting.fee_block_target,
+            threshold: payout_setting.threshold,
+          },
+        });
 
-      // const query =
-      //   'SELECT * FROM payout_settings where store_id = ? and user_id = ? and network = ? and chain_id = ? and status = ? ';
-      // const values = [storeId, userId, network, chainId, 1];
-      // const [rows] = await connection.query(query, values);
-      // if (Array.isArray(rows) && rows.length === 1) {
-      //   const row = rows[0] as mysql.RowDataPacket;
-
-      //   return res.status(200).json({
-      //     message: '',
-      //     result: true,
-      //     data: {
-      //       chain_id: row.chain_id,
-      //       show_approve_payout_process: row.show_approve_payout_process,
-      //       interval: row.interval,
-      //       fee_block_target: row.fee_block_target,
-      //       threshold: row.threshold,
-      //     },
-      //   });
-      // }
-
-      // return res.status(200).json({ message: '', result: false, data: null });
-
-      case 'POST':
-        break;
       default:
         throw 'no support the method of api';
     }

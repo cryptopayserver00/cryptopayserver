@@ -1,9 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { CHAINS, COINS, ETHEREUM_CATEGORY_CHAINS } from 'packages/constants/blockchain';
-import { connectDatabase } from 'packages/db/mysql';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { WEB3 } from 'packages/web3';
-import mysql from 'mysql2/promise';
 import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
 import { BTC } from 'packages/web3/chain/btc';
 import { GweiToWei } from 'utils/number';
@@ -16,7 +14,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'POST':
         const prisma = new PrismaClient();
-        // const connection = await connectDatabase();
         const walletId = req.body.wallet_id;
         const userId = req.body.user_id;
         const chainId = req.body.chain_id;
@@ -90,6 +87,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           memo: memo ? memo : '',
         });
 
+        if (!hash) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        }
+
         return res.status(200).json({
           message: '',
           result: true,
@@ -97,49 +98,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             hash: hash,
           },
         });
-
-      // const addressQuery =
-      //   'SELECT wallet_id, private_key, note, network, address FROM addresses where chain_id = ? and network = ? and address = ? and wallet_id = ? and user_id = ? and status = 1';
-      // const addressValues = [dbChainId, network, fromAddress, walletId, userId];
-      // const [addressRows] = await connection.query(addressQuery, addressValues);
-      // if (Array.isArray(addressRows) && addressRows.length === 1) {
-      //   const addressRow = addressRows[0] as mysql.RowDataPacket;
-
-      //   const walletQuery = 'SELECT mnemonic FROM wallets WHERE id = ? and status = ?';
-      //   const walletValues = [addressRow.wallet_id, 1];
-      //   const [walletRows] = await connection.query(walletQuery, walletValues);
-
-      //   if (Array.isArray(walletRows) && walletRows.length === 1) {
-      //     const walletRow = walletRows[0] as mysql.RowDataPacket;
-
-      //     const hash = await WEB3.sendTransaction(addressRow.network === 1 ? true : false, {
-      //       coin: FindTokenByChainIdsAndSymbol(
-      //         WEB3.getChainIds(addressRow.network === 1 ? true : false, chainId),
-      //         coin,
-      //       ),
-      //       value: value,
-      //       privateKey: addressRow.private_key,
-      //       mnemonic: walletRow.mnemonic,
-      //       feeRate: feeRate,
-      //       btcType: coin === COINS.BTC ? BTC.getType(addressRow.note) : undefined,
-      //       from: addressRow.address,
-      //       to: toAddress,
-      //       gasPrice: maxFee ? GweiToWei(maxFee).toString() : '',
-      //       gasLimit: gasLimit ? gasLimit : '',
-      //       maxPriorityFeePerGas: maxPriortyFee ? GweiToWei(maxPriortyFee).toString() : '',
-      //       nonce: nonce ? nonce : '',
-      //       memo: memo ? memo : '',
-      //     });
-
-      //     return res.status(200).json({
-      //       message: '',
-      //       result: true,
-      //       data: {
-      //         hash: hash,
-      //       },
-      //     });
-      //   }
-      // }
 
       default:
         throw 'no support the method of api';
