@@ -18,18 +18,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const name = req.body.name;
         const address = req.body.address;
 
-        const result = await WEB3.checkAddress(
-          parseInt(network as string) === 1 ? true : false,
-          parseInt(chainId as string),
-          address as string,
-        );
+        const result = await WEB3.checkAddress(Number(network) === 1 ? true : false, Number(chainId), String(address));
 
         if (!result) {
-          return res.status(200).json({
-            message: '',
-            result: false,
-            data: null,
-          });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         const address_book = await prisma.address_books.create({

@@ -30,17 +30,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         }
 
         const token = FindTokenByChainIdsAndSymbol(
-          WEB3.getChainIds(parseInt(network as string) === 1 ? true : false, parseInt(chainId as string)),
+          WEB3.getChainIds(Number(network) === 1 ? true : false, Number(chainId)),
           coin as COINS,
         );
 
         const gas = await WEB3.getGasLimit(
-          parseInt(network as string) === 1 ? true : false,
-          parseInt(chainId as string),
-          token.contractAddress as string,
-          from as string,
-          to as string,
-          value as string,
+          Number(network) === 1 ? true : false,
+          Number(chainId),
+          String(token.contractAddress),
+          String(from),
+          String(to),
+          String(value),
         );
 
         return res.status(200).json({ message: '', result: true, data: gas });

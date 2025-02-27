@@ -13,9 +13,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const network = req.query.network;
 
         const result = await WEB3.checkAccountStatus(
-          parseInt(network as string) === 1 ? true : false,
-          parseInt(chainId as string),
-          address as string,
+          Number(network) === 1 ? true : false,
+          Number(chainId),
+          String(address),
         );
 
         return res.status(200).json({ message: '', result: result ? true : false });

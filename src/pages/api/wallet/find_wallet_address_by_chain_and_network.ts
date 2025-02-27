@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         let dbChainId = chainId || 0;
 
-        if (ETHEREUM_CATEGORY_CHAINS.includes(parseInt(dbChainId as string))) {
+        if (ETHEREUM_CATEGORY_CHAINS.includes(Number(dbChainId))) {
           dbChainId = CHAINS.ETHEREUM;
         }
 
@@ -50,19 +50,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               id: item.id,
               address: item.address,
               note: item.note,
-              balance: await WEB3.getAssetBalance(
-                parseInt(network as string) === 1 ? true : false,
-                parseInt(chainId as string),
-                item.address,
-              ),
+              balance: await WEB3.getAssetBalance(Number(network) === 1 ? true : false, Number(chainId), item.address),
               status: await WEB3.checkAccountStatus(
-                parseInt(network as string) === 1 ? true : false,
-                parseInt(chainId as string),
+                Number(network) === 1 ? true : false,
+                Number(chainId),
                 item.address,
               ),
               transactions: await WEB3.getTransactions(
-                parseInt(network as string) === 1 ? true : false,
-                parseInt(chainId as string),
+                Number(network) === 1 ? true : false,
+                Number(chainId),
                 item.address,
               ),
               // transactions: [],

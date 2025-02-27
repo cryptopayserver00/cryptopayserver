@@ -12,11 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const network = req.query.network;
         const address = req.query.address;
 
-        const nonce = await WEB3.getNonce(
-          parseInt(network as string) === 1 ? true : false,
-          parseInt(chainId as string),
-          address as string,
-        );
+        const nonce = await WEB3.getNonce(Number(network) === 1 ? true : false, Number(chainId), String(address));
 
         return res.status(200).json({ message: '', result: true, data: nonce });
       case 'POST':

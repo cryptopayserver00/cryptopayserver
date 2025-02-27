@@ -15,27 +15,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const address = req.query.address;
 
         const hash = await BLOCKSCAN.getFreeCoin(
-          WEB3.getChainIds(false, parseInt(chainId as string)),
-          address as string,
-          coin as string,
-          amount as string,
+          WEB3.getChainIds(false, Number(chainId)),
+          String(address),
+          String(coin),
+          String(amount),
         );
 
-        if (hash && hash !== '') {
-          return res.status(200).json({
-            message: '',
-            result: true,
-            data: {
-              hash: hash,
-            },
-          });
-        } else {
-          return res.status(200).json({
-            message: '',
-            result: false,
-            data: null,
-          });
+        if (!hash) {
+          return res.status(200).json({ message: '', result: false, data: null });
         }
+
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: {
+            hash: hash,
+          },
+        });
 
       default:
         throw 'no support the method of api';

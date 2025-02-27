@@ -14,8 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const invoice: any = await prisma.$queryRaw`
         SELECT invoices.*, node_own_transactions.hash, node_own_transactions.address, node_own_transactions.from_address, node_own_transactions.to_address, node_own_transactions.transact_type, node_own_transactions.block_timestamp
         FROM invoices
-        LEFT JOIN node_own_transactions ON invoices.match_tx_id = node_own_transactions.id
-        WHERE invoices.order_id = ${id} AND invoices.status = 1
+        LEFT JOIN node_own_transactions 
+          ON invoices.match_tx_id = node_own_transactions.id
+        WHERE invoices.order_id = ${id} 
+          AND invoices.status = 1;
       `;
 
         if (!invoice) {
@@ -53,8 +55,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-      case 'POST':
-        break;
       default:
         throw 'no support the method of api';
     }

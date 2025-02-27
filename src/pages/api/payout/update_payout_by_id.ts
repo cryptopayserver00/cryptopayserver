@@ -33,18 +33,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!payout) {
-          return res.status(200).json({
-            message: '',
-            result: false,
-            data: null,
-          });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({
-          message: '',
-          result: true,
-          data: null,
-        });
+        return res.status(200).json({ message: '', result: true, data: null });
 
       default:
         throw 'no support the method of api';

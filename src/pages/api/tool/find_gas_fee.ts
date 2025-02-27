@@ -58,10 +58,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             WEB3.getChainIds(address.network === 1 ? true : false, address.chain_id),
             coin as COINS,
           ),
-          value: value as string,
+          value: String(value),
           privateKey: address.private_key,
           from: address.address,
-          to: to as string,
+          to: String(to),
         });
 
         if (!gas) {

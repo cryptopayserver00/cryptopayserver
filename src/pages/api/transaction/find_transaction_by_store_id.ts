@@ -28,29 +28,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         }
 
         const chainIds = GetAllMainnetChainIds();
+        const formattedChainIds = chainIds.map((id) => `'${id}'`).join(',');
+
         let node_own_transactions;
-        if (parseInt(network as string) === 1) {
+
+        if (Number(network) === 1) {
           node_own_transactions = await prisma.$queryRaw`
           SELECT node_own_transactions.*, addresses.chain_id 
-          FROM addresses JOIN node_own_transactions ON addresses.address = node_own_transactions.address 
-          WHERE addresses.wallet_id = ${
-            wallet.id
-          } AND addresses.network = ${network} AND addresses.status = 1 AND node_own_transactions.chain_id IN (${chainIds.join(
-            ',',
-          )}) AND node_own_transactions.status = 1
-          ORDER BY node_own_transactions.block_timestamp DESC
+          FROM addresses 
+          JOIN node_own_transactions 
+            ON addresses.address = node_own_transactions.address 
+          WHERE addresses.wallet_id = ${wallet.id} 
+            AND addresses.network = ${network} 
+            AND addresses.status = 1 
+            AND node_own_transactions.chain_id IN (${formattedChainIds}) 
+            AND node_own_transactions.status = 1
+          ORDER BY node_own_transactions.block_timestamp DESC;
           `;
         } else {
           node_own_transactions = await prisma.$queryRaw`
           SELECT node_own_transactions.*, addresses.chain_id 
-          FROM addresses JOIN node_own_transactions ON addresses.address = node_own_transactions.address 
-          WHERE addresses.wallet_id = ${
-            wallet.id
-          } AND addresses.network = ${network} AND addresses.status = 1 AND node_own_transactions.chain_id NOT IN (${chainIds.join(
-            ',',
-          )}) AND node_own_transactions.status = 1
-          ORDER BY node_own_transactions.block_timestamp DESC';
-          `;
+          FROM addresses 
+          JOIN node_own_transactions 
+            ON addresses.address = node_own_transactions.address 
+          WHERE addresses.wallet_id = ${wallet.id} 
+            AND addresses.network = ${network} 
+            AND addresses.status = 1 
+            AND node_own_transactions.chain_id NOT IN (${formattedChainIds}) 
+            AND node_own_transactions.status = 1
+          ORDER BY node_own_transactions.block_timestamp DESC;
+        `;
         }
 
         if (!node_own_transactions) {

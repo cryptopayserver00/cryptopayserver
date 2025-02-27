@@ -11,7 +11,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
         const ids = req.query.ids;
         const currency = req.query.currency;
 
-        const result = await CRYPTOPRICE.getCryptoPriceByCoinGecko(ids as string, currency as string);
+        const result = await CRYPTOPRICE.getCryptoPriceByCoinGecko(String(ids), String(currency));
 
         return res.status(200).json({ message: '', result: true, data: result });
     }

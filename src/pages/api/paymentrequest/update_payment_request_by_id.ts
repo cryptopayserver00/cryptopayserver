@@ -10,8 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       case 'PUT':
         const prisma = new PrismaClient();
         const paymentRequestId = req.body.id;
-        const userId = req.body.user_id;
-        const storeId = req.body.store_id;
 
         const title = req.body.title;
         const amount = req.body.amount;
@@ -35,25 +33,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
           where: {
             payment_request_id: paymentRequestId,
-            user_id: userId,
-            store_id: storeId,
             status: 1,
           },
         });
 
         if (!payment_request) {
-          return res.status(200).json({
-            message: '',
-            result: false,
-            data: null,
-          });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({
-          message: '',
-          result: true,
-          data: null,
-        });
+        return res.status(200).json({ message: '', result: true, data: null });
 
       default:
         throw 'no support the method of api';

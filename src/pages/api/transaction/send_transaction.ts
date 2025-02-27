@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         let dbChainId = chainId || 0;
 
-        if (ETHEREUM_CATEGORY_CHAINS.includes(parseInt(dbChainId as string))) {
+        if (ETHEREUM_CATEGORY_CHAINS.includes(Number(dbChainId))) {
           dbChainId = CHAINS.ETHEREUM;
         }
 

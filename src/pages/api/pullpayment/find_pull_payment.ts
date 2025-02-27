@@ -17,8 +17,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const pull_payments: any = await prisma.$queryRaw`
         SELECT pull_payments.*, COUNT(payouts.external_payment_id) AS refunded 
         FROM pull_payments 
-        LEFT JOIN payouts ON pull_payments.pull_payment_id = payouts.external_payment_id AND payouts.source_type = ${PAYOUT_SOURCE_TYPE.PullPayment} AND payouts.payout_status = ${PAYOUT_STATUS.Completed} AND payouts.status = 1 
-        WHERE pull_payments.pull_payment_status = ${pullPaymentStatus} AND pull_payments.store_id = ${storeId} AND pull_payments.network = ${network} AND pull_payments.status = 1 GROUP BY pull_payments.id ORDER BY pull_payments.id DESC
+        LEFT JOIN payouts 
+          ON pull_payments.pull_payment_id = payouts.external_payment_id 
+          AND payouts.source_type = ${PAYOUT_SOURCE_TYPE.PullPayment} 
+          AND payouts.payout_status = ${PAYOUT_STATUS.Completed} 
+          AND payouts.status = 1 
+        WHERE pull_payments.pull_payment_status = ${pullPaymentStatus} 
+          AND pull_payments.store_id = ${storeId} 
+          AND pull_payments.network = ${network} 
+          AND pull_payments.status = 1 
+          GROUP BY pull_payments.id 
+          ORDER BY pull_payments.id DESC;
       `;
 
         if (!pull_payments) {

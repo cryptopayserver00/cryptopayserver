@@ -8,15 +8,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'POST':
-        const userId = req.body.user_id;
-        const storeId = req.body.store_id;
         const chainId = req.body.chain_id;
         const network = req.body.network;
         const privateKey = req.body.private_key;
 
         const result = await WEB3.createAccountByPrivateKey(
-          parseInt(network as string) === 1 ? true : false,
-          parseInt(chainId as string),
+          Number(network) === 1 ? true : false,
+          Number(chainId),
           privateKey,
         );
 

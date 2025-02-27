@@ -47,8 +47,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         }
 
         const balance = await WEB3.getAssetBalance(
-          parseInt(network as string) === 1 ? true : false,
-          parseInt(chainId as string),
+          Number(network) === 1 ? true : false,
+          Number(chainId),
           address.address,
         );
 

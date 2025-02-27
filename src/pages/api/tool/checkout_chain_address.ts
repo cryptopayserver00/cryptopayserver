@@ -12,11 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const chainId = req.query.chain_id;
         const network = req.query.network;
 
-        const result = await WEB3.checkAddress(
-          parseInt(network as string) === 1 ? true : false,
-          parseInt(chainId as string),
-          address as string,
-        );
+        const result = await WEB3.checkAddress(Number(network) === 1 ? true : false, Number(chainId), String(address));
 
         return res.status(200).json({ message: '', result: result ? true : false });
       case 'POST':

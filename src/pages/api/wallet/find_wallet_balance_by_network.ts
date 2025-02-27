@@ -39,11 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               address: item.address,
               note: item.note,
               chain_id: item.chain_id,
-              balance: await WEB3.getAssetBalance(
-                parseInt(network as string) === 1 ? true : false,
-                item.chain_id,
-                item.address,
-              ),
+              balance: await WEB3.getAssetBalance(Number(network) === 1 ? true : false, item.chain_id, item.address),
             };
           });
           newRows = await Promise.all(promises);

@@ -11,10 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const chainId = req.query.chain_id;
         const network = req.query.network;
 
-        const fee = await WEB3.getMaxPriortyFee(
-          parseInt(network as string) === 1 ? true : false,
-          parseInt(chainId as string),
-        );
+        const fee = await WEB3.getMaxPriortyFee(Number(network) === 1 ? true : false, Number(chainId));
 
         return res.status(200).json({ message: '', result: true, data: fee });
       case 'POST':
