@@ -149,8 +149,6 @@ export default function PullPaymentDataGrid(props: GridType) {
     try {
       const response: any = await axios.put(Http.update_pull_payment_by_id, {
         id: id,
-        user_id: getUserId(),
-        store_id: getStoreId(),
         pull_payment_status: PULL_PAYMENT_STATUS.Archived,
       });
 
@@ -190,8 +188,8 @@ export default function PullPaymentDataGrid(props: GridType) {
               id: index + 1,
               pullPaymentId: item.pull_payment_id,
               name: item.name,
-              createdDate: new Date(item.created_date).toLocaleString(),
-              expirationDate: new Date(item.expiration_date).toLocaleString(),
+              createdDate: new Date(item.created_at).toLocaleString(),
+              expirationDate: new Date(item.expiration_at).toLocaleString(),
               showAutoApproveClaim: item.show_auto_approve_claim === 1 ? 'True' : 'False',
               refunded: item.refunded,
             });

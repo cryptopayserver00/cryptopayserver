@@ -132,7 +132,7 @@ const PaymentRequestsDetails = () => {
           amount: response.data.amount,
           currency: response.data.currency,
           memo: response.data.memo,
-          expirationDate: response.data.expiration_date,
+          expirationDate: response.data.expiration_at,
           paymentRequestStatus: response.data.payment_request_status,
           requesCustomerData: response.data.reques_customer_data,
           showAllowCustomAmount: response.data.show_allow_customAmount === 1 ? true : false,

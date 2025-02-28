@@ -110,8 +110,8 @@ export default function InvoiceDataGrid(props: GridType) {
               cryptoAmount: item.crypto_amount,
               crypto: item.crypto,
               chain: FindChainNamesByChains(item.chain_id),
-              createdDate: new Date(item.created_date).toLocaleString(),
-              expirationDate: new Date(item.expiration_date).toLocaleString(),
+              createdDate: new Date(item.created_at).toLocaleString(),
+              expirationDate: new Date(item.expiration_at).toLocaleString(),
               orderStatus: item.order_status,
             });
           });

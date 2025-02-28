@@ -11,18 +11,17 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
         const prisma = new PrismaClient();
         const id = req.body.id;
 
-        const paymentExpire = req.body.payment_expire ? req.body.payment_expire : 0;
-        const confirmBlock = req.body.confirm_block ? req.body.confirm_block : 0;
-        const showRecommendedFee = req.body.show_recommended_fee ? req.body.show_recommended_fee : 0;
-        const currentUsedAddressId = req.body.current_used_address_id;
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.payment_expire !== undefined) updateData.payment_expire = Number(req.body.payment_expire);
+        if (req.body.confirm_block !== undefined) updateData.confirm_block = Number(req.body.confirm_block);
+        if (req.body.show_recommended_fee !== undefined)
+          updateData.show_recommended_fee = Number(req.body.show_recommended_fee);
+        if (req.body.current_used_address_id !== undefined)
+          updateData.current_used_address_id = Number(req.body.current_used_address_id);
 
         const payment_setting = await prisma.payment_settings.update({
-          data: {
-            payment_expire: paymentExpire,
-            confirm_block: confirmBlock,
-            show_recommended_fee: showRecommendedFee,
-            current_used_address_id: currentUsedAddressId,
-          },
+          data: updateData,
           where: {
             id: id,
             status: 1,

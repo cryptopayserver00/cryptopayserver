@@ -16,7 +16,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
         if (orderStatus === ORDER_STATUS.Invalid) {
           const invoice = await prisma.invoices.update({
             where: {
-              order_id: orderId,
+              order_id: Number(orderId),
               order_status: {
                 not: orderStatus,
               },
@@ -38,7 +38,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
               invoice_id: invoice.id,
               order_id: invoice.order_id,
               message: invoiceEventMessage,
-              created_at: new Date(),
               status: 1,
             },
           });

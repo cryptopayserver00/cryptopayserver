@@ -24,7 +24,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const email = req.body.email;
         const requestCustomerData = req.body.request_customer_data;
         const memo = req.body.memo;
-        const createdDate = new Date();
 
         const payment_request = await prisma.payment_requests.create({
           data: {
@@ -40,7 +39,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             request_customer_data: requestCustomerData,
             memo: memo,
             payment_request_status: PAYMENT_REQUEST_STATUS.Pending,
-            created_at: createdDate,
             expiration_at: expirationDate,
             status: 1,
           },

@@ -35,8 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             currency: pull_payments.currency,
             description: pull_payments.description,
             show_auto_approve_claim: pull_payments.show_auto_approve_claim,
-            created_date: pull_payments.created_at,
-            expiration_date: pull_payments.expiration_at,
+            created_at: pull_payments.created_at,
+            expiration_at: pull_payments.expiration_at,
             pull_payment_status: pull_payments.pull_payment_status,
           },
         });

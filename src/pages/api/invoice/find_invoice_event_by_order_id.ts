@@ -16,6 +16,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             order_id: Number(orderId),
             status: 1,
           },
+          select: {
+            id: true,
+            message: true,
+            created_at: true,
+          },
         });
 
         if (!invoice_events) {
@@ -24,8 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         return res.status(200).json({ message: '', result: true, data: invoice_events });
 
-      case 'POST':
-        break;
       default:
         throw 'no support the method of api';
     }

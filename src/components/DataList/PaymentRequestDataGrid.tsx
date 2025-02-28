@@ -100,8 +100,8 @@ export default function PaymentRequestDataGrid(props: GridType) {
           let rt: RowType[] = [];
           response.data.forEach(async (item: any, index: number) => {
             let expiry = 'No Expiry';
-            if (item.expiration_date) {
-              expiry = new Date(item.expiration_date).toLocaleString();
+            if (item.expiration_at) {
+              expiry = new Date(item.expiration_at).toLocaleString();
             }
             rt.push({
               id: index + 1,

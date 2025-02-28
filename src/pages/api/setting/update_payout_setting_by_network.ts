@@ -11,18 +11,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const prisma = new PrismaClient();
         const id = req.body.id;
 
-        const showApprovePayoutProcess = req.body.show_approve_payout_process;
-        const interval = req.body.interval;
-        const feeBlockTarget = req.body.fee_block_target;
-        const threshold = req.body.threshold;
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.show_approve_payout_process !== undefined)
+          updateData.show_approve_payout_process = Number(req.body.show_approve_payout_process);
+        if (req.body.interval !== undefined) updateData.interval = Number(req.body.interval);
+        if (req.body.fee_block_target !== undefined) updateData.fee_block_target = Number(req.body.fee_block_target);
+        if (req.body.threshold !== undefined) updateData.threshold = Number(req.body.threshold);
 
         const payout_setting = await prisma.payout_settings.update({
-          data: {
-            show_approve_payout_process: showApprovePayoutProcess,
-            interval: interval,
-            fee_block_target: feeBlockTarget,
-            threshold: threshold,
-          },
+          data: updateData,
           where: {
             id: id,
             status: 1,

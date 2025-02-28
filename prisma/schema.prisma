@@ -199,7 +199,7 @@ model payment_requests {
   network Int
   payment_request_id BigInt @unique
   title String
-  amount Int
+  amount Float
   currency String
   show_allow_custom_amount Int
   email String

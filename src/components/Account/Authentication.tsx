@@ -71,7 +71,7 @@ const Authentication = () => {
     try {
       const response: any = await axios.put(Http.update_user_by_email, {
         email: getUserEmail(),
-        empty_authenticator: 1,
+        authenticator: '',
       });
 
       if (response.result) {

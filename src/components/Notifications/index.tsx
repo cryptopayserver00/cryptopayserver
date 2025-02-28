@@ -83,7 +83,7 @@ function NotificationsTab() {
               label: item.label,
               message: item.message,
               isSeen: item.is_seen,
-              date: new Date(item.created_date).toLocaleString(),
+              date: new Date(item.created_at).toLocaleString(),
               url: item.url,
             });
           });

@@ -11,36 +11,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const prisma = new PrismaClient();
         const id = req.body.id;
 
-        const showPaymentConfetti = req.body.show_payment_confetti;
-        const showSound = req.body.show_sound;
-        const showPayInWalletButton = req.body.show_pay_in_wallet_button;
-        const showDetectLanguage = req.body.show_detect_language;
-        const language = req.body.language;
-        const customHtmlTitle = req.body.custom_html_title;
-        const supportUrl = req.body.support_url;
-        const showPaymentMethod = req.body.show_payment_method;
-        const showRedirectUrl = req.body.show_redirect_url;
-        const showPublicReceiptPage = req.body.show_public_receipt_page;
-        const showPaymentList = req.body.show_payment_list;
-        const showQrcodeReceipt = req.body.show_qrcode_receipt;
-        const showHeader = req.body.show_header;
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.show_payment_confetti !== undefined)
+          updateData.show_payment_confetti = Number(req.body.show_payment_confetti);
+        if (req.body.show_sound !== undefined) updateData.show_sound = Number(req.body.show_sound);
+        if (req.body.show_pay_in_wallet_button !== undefined)
+          updateData.show_pay_in_wallet_button = Number(req.body.show_pay_in_wallet_button);
+        if (req.body.show_detect_language !== undefined)
+          updateData.show_detect_language = Number(req.body.show_detect_language);
+        if (req.body.language !== undefined) updateData.language = req.body.language;
+        if (req.body.custom_html_title !== undefined) updateData.custom_html_title = req.body.custom_html_title;
+        if (req.body.support_url !== undefined) updateData.support_url = req.body.support_url;
+        if (req.body.show_payment_method !== undefined)
+          updateData.show_payment_method = Number(req.body.show_payment_method);
+        if (req.body.show_redirect_url !== undefined) updateData.show_redirect_url = Number(req.body.show_redirect_url);
+        if (req.body.show_public_receipt_page !== undefined)
+          updateData.show_public_receipt_page = Number(req.body.show_public_receipt_page);
+        if (req.body.show_payment_list !== undefined) updateData.show_payment_list = Number(req.body.show_payment_list);
+        if (req.body.show_qrcode_receipt !== undefined)
+          updateData.show_qrcode_receipt = Number(req.body.show_qrcode_receipt);
+        if (req.body.show_header !== undefined) updateData.show_header = Number(req.body.show_header);
 
         const checkout_setting = await prisma.checkout_settings.update({
-          data: {
-            show_payment_confetti: showPaymentConfetti,
-            show_sound: showSound,
-            show_pay_in_wallet_button: showPayInWalletButton,
-            show_detect_language: showDetectLanguage,
-            language: language,
-            custom_html_title: customHtmlTitle,
-            support_url: supportUrl,
-            show_payment_method: showPaymentMethod,
-            show_redirect_url: showRedirectUrl,
-            show_public_receipt_page: showPublicReceiptPage,
-            show_payment_list: showPaymentList,
-            show_qrcode_receipt: showQrcodeReceipt,
-            show_header: showHeader,
-          },
+          data: updateData,
           where: {
             id: id,
             status: 1,

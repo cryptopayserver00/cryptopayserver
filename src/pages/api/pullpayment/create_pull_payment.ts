@@ -39,8 +39,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             show_auto_approve_claim: showAutoApproveClaim,
             description: description,
             pull_payment_status: PULL_PAYMENT_STATUS.Active,
-            created_at: createdDate,
-            updated_at: createdDate,
             expiration_at: expirationDate,
             status: 1,
           },

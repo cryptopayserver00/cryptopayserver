@@ -10,20 +10,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       case 'PUT':
         const prisma = new PrismaClient();
         const id = req.body.id;
-        const tigger = req.body.tigger;
-        const recipients = req.body.recipients;
-        const showSendToBuyer = req.body.show_send_to_buyer;
-        const subject = req.body.subject;
-        const body = req.body.body;
+
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.tigger !== undefined) updateData.tigger = Number(req.body.tigger);
+        if (req.body.recipients !== undefined) updateData.recipients = req.body.recipients;
+        if (req.body.show_send_to_buyer !== undefined)
+          updateData.show_send_to_buyer = Number(req.body.show_send_to_buyer);
+        if (req.body.subject !== undefined) updateData.subject = req.body.subject;
+        if (req.body.body !== undefined) updateData.body = req.body.body;
 
         const email_rule_setting = await prisma.email_rule_settings.update({
-          data: {
-            tigger: tigger,
-            recipients: recipients,
-            show_send_to_buyer: showSendToBuyer,
-            subject: subject,
-            body: body,
-          },
+          data: updateData,
           where: {
             id: id,
             status: 1,

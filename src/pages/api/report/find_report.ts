@@ -20,8 +20,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           where: {
             source_type: String(status) && String(status) !== REPORT_STATUS.All ? String(status) : REPORT_STATUS.All,
             created_at: {
-              gte: String(startDate),
-              lte: String(endDate),
+              gte: new Date(Number(startDate)),
+              lte: new Date(Number(endDate)),
             },
             store_id: Number(storeId),
             network: Number(network),

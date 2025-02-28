@@ -126,8 +126,8 @@ export default function ReportDataGrid(props: GridType) {
               orderStatus: item.order_status,
               paymentMethod: item.payment_method,
               paid: item.paid === 1 ? PAID_STATUS.PAID : PAID_STATUS.UNPAID,
-              createdDate: new Date(item.created_date).toLocaleString(),
-              expirationDate: new Date(item.expiration_date).toLocaleString(),
+              createdDate: new Date(item.created_at).toLocaleString(),
+              expirationDate: new Date(item.expiration_at).toLocaleString(),
             });
           });
           setRows(rt);

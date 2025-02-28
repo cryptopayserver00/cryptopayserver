@@ -202,8 +202,6 @@ const XrpSend = () => {
         // update payout order
         if (payoutId) {
           const update_payout_resp: any = await axios.put(Http.update_payout_by_id, {
-            user_id: getUserId(),
-            store_id: getStoreId(),
             id: payoutId,
             tx: response.data.hash,
             crypto_amount: amount,

@@ -11,22 +11,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const prisma = new PrismaClient();
         const id = req.body.id;
 
-        const smtpServer = req.body.smtp_server;
-        const port = req.body.port;
-        const senderEmail = req.body.sender_email;
-        const login = req.body.login;
-        const password = req.body.password;
-        const showTls = req.body.show_tls;
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.smtp_server !== undefined) updateData.smtp_server = req.body.smtp_server;
+        if (req.body.port !== undefined) updateData.port = Number(req.body.port);
+        if (req.body.sender_email !== undefined) updateData.sender_email = req.body.sender_email;
+        if (req.body.login !== undefined) updateData.login = req.body.login;
+        if (req.body.password !== undefined) updateData.password = req.body.password;
+        if (req.body.show_tls !== undefined) updateData.show_tls = Number(req.body.show_tls);
 
         const email_setting = await prisma.email_settings.update({
-          data: {
-            smtp_server: smtpServer,
-            port: port,
-            sender_email: senderEmail,
-            login: login,
-            password: password,
-            show_tls: showTls,
-          },
+          data: updateData,
           where: {
             id: id,
             status: 1,

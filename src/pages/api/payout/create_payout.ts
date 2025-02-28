@@ -62,8 +62,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             crypto: crypto,
             external_payment_id: externalPaymentId,
             payout_status: status,
-            created_at: now,
-            updated_at: now,
             status: 1,
           },
         });

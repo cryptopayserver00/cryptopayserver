@@ -10,16 +10,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       case 'PUT':
         const prisma = new PrismaClient();
         const id = req.body.id;
-        const name = req.body.name;
-        const address = req.body.address;
-        const chainId = req.body.chain_id;
+
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.name !== undefined) updateData.name = req.body.name;
+        if (req.body.address !== undefined) updateData.address = req.body.address;
+        if (req.body.chain_id !== undefined) updateData.chain_id = Number(req.body.chain_id);
 
         const address_book = await prisma.address_books.update({
-          data: {
-            name: name,
-            address: address,
-            chain_id: chainId,
-          },
+          data: updateData,
           where: {
             id: id,
             status: 1,

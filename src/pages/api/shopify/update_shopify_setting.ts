@@ -10,16 +10,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       case 'PUT':
         const prisma = new PrismaClient();
         const id = req.body.id;
-        const shopName = req.body.shop_name;
-        const apiKey = req.body.api_key;
-        const adminApiAccessToken = req.body.admin_api_access_token;
+
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.shop_name !== undefined) updateData.shop_name = req.body.shop_name;
+        if (req.body.api_key !== undefined) updateData.api_key = req.body.api_key;
+        if (req.body.admin_api_access_token !== undefined)
+          updateData.admin_api_access_token = req.body.admin_api_access_token;
 
         const shopify_setting = await prisma.shopify_settings.update({
-          data: {
-            shop_name: shopName,
-            api_key: apiKey,
-            admin_api_access_token: adminApiAccessToken,
-          },
+          data: updateData,
           where: {
             id: id,
             status: 1,

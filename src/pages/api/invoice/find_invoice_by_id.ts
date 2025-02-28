@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           AND invoices.status = 1;
       `;
 
-        if (!invoice) {
+        if (!invoice || invoice.length !== 1) {
           return res.status(200).json({ message: 'Something wrong', result: false, data: null });
         }
 
@@ -28,30 +28,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           message: '',
           result: true,
           data: {
-            order_id: invoice.order_id,
-            amount: invoice.amount,
-            buyer_email: invoice.buyer_email,
-            crypto: invoice.crypto,
-            currency: invoice.currency,
-            description: invoice.description,
-            destination_address: invoice.destination_address,
-            metadata: invoice.metadata,
-            notification_email: invoice.notification_email,
-            notification_url: invoice.notification_url,
-            order_status: invoice.order_status,
-            paid: invoice.paid,
-            payment_method: invoice.payment_method,
-            created_date: invoice.created_date,
-            expiration_date: invoice.expiration_date,
-            rate: invoice.rate,
-            chain_id: invoice.chain_id,
-            crypto_amount: invoice.crypto_amount,
-            from_address: invoice.from_address,
-            to_address: invoice.to_address,
-            hash: invoice.hash,
-            block_timestamp: invoice.block_timestamp,
-            network: invoice.network,
-            source_type: invoice.source_type,
+            order_id: Number(invoice[0].order_id),
+            amount: invoice[0].amount,
+            buyer_email: invoice[0].buyer_email,
+            crypto: invoice[0].crypto,
+            currency: invoice[0].currency,
+            description: invoice[0].description,
+            destination_address: invoice[0].destination_address,
+            metadata: invoice[0].metadata,
+            notification_email: invoice[0].notification_email,
+            notification_url: invoice[0].notification_url,
+            order_status: invoice[0].order_status,
+            paid: invoice[0].paid,
+            payment_method: invoice[0].payment_method,
+            created_at: invoice[0].created_at,
+            expiration_at: invoice[0].expiration_at,
+            rate: invoice[0].rate,
+            chain_id: invoice[0].chain_id,
+            crypto_amount: invoice[0].crypto_amount,
+            from_address: invoice[0].from_address,
+            to_address: invoice[0].to_address,
+            hash: invoice[0].hash,
+            block_timestamp: invoice[0].block_timestamp,
+            network: invoice[0].network,
+            source_type: invoice[0].source_type,
           },
         });
 

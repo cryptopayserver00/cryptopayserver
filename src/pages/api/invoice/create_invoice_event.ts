@@ -12,14 +12,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const invoiceId = req.body.invoice_id;
         const orderId = req.body.order_id;
         const message = req.body.message;
-        const createDate = new Date();
 
         const invoice_event = await prisma.invoice_events.create({
           data: {
             invoice_id: invoiceId,
             order_id: orderId,
             message: message,
-            created_at: createDate,
             status: 1,
           },
         });

@@ -31,7 +31,7 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
             response.data.forEach(async (item: any, index: number) => {
               rt.push({
                 id: index + 1,
-                date: new Date(item.created_date).toLocaleString(),
+                date: new Date(item.created_at).toLocaleString(),
                 message: item.message,
               });
             });

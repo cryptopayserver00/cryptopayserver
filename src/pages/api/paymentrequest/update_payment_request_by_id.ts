@@ -11,26 +11,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const prisma = new PrismaClient();
         const paymentRequestId = req.body.id;
 
-        const title = req.body.title;
-        const amount = req.body.amount;
-        const currency = req.body.currency;
-        const showAllowCustomAmount = req.body.show_allow_custom_amount;
-        const expirationDate = req.body.expiration_date;
-        const email = req.body.email;
-        const requestCustomerData = req.body.request_customer_data;
-        const memo = req.body.memo;
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.title !== undefined) updateData.title = req.body.title;
+        if (req.body.amount !== undefined) updateData.amount = Number(req.body.amount);
+        if (req.body.currency !== undefined) updateData.currency = req.body.currency;
+        if (req.body.show_allow_custom_amount !== undefined)
+          updateData.show_allow_custom_amount = Number(req.body.show_allow_custom_amount);
+        if (req.body.expiration_date !== undefined) updateData.expiration_date = req.body.expiration_date;
+        if (req.body.email !== undefined) updateData.email = req.body.email;
+        if (req.body.request_customer_data !== undefined)
+          updateData.request_customer_data = req.body.request_customer_data;
+        if (req.body.memo !== undefined) updateData.memo = req.body.memo;
 
         const payment_request = await prisma.payment_requests.update({
-          data: {
-            title: title,
-            amount: amount,
-            currency: currency,
-            show_allow_custom_amount: showAllowCustomAmount,
-            expiration_at: expirationDate,
-            email: email,
-            request_customer_data: requestCustomerData,
-            memo: memo,
-          },
+          data: updateData,
           where: {
             payment_request_id: paymentRequestId,
             status: 1,

@@ -11,33 +11,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       case 'PUT':
         const prisma = new PrismaClient();
         const pullPaymentId = req.body.id;
-        const userId = req.body.user_id;
-        const storeId = req.body.store_id;
 
-        const name = req.body.name;
-        const amount = req.body.amount;
-        const currency = req.body.currency;
-        const showAutoApproveClaim = req.body.show_auto_approve_claim;
-        const description = req.body.description;
-        const payoutMethod = req.body.payout_method;
-        const pullPaymentStatus = req.body.pull_payment_status;
-        const updatedDate = new Date();
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.name !== undefined) updateData.name = req.body.name;
+        if (req.body.amount !== undefined) updateData.amount = Number(req.body.amount);
+        if (req.body.currency !== undefined) updateData.currency = req.body.currency;
+        if (req.body.show_auto_approve_claim !== undefined)
+          updateData.show_auto_approve_claim = Number(req.body.show_auto_approve_claim);
+        if (req.body.description !== undefined) updateData.description = req.body.description;
+        if (req.body.payout_method !== undefined) updateData.payout_method = req.body.payout_method;
+        if (req.body.pull_payment_status !== undefined) updateData.pull_payment_status = req.body.pull_payment_status;
 
         const pull_payment = await prisma.pull_payments.update({
-          data: {
-            name: name,
-            amount: amount,
-            currency: currency,
-            show_auto_approve_claim: showAutoApproveClaim,
-            description: description,
-            payout_method: payoutMethod,
-            pull_payment_status: pullPaymentStatus,
-            updated_at: updatedDate,
-          },
+          data: updateData,
           where: {
             pull_payment_id: pullPaymentId,
-            user_id: userId,
-            store_id: storeId,
             status: 1,
           },
         });
@@ -46,12 +35,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(500).json({ message: '', result: false, data: null });
         }
 
-        switch (pullPaymentStatus) {
+        switch (req.body.pull_payment_status) {
           case PULL_PAYMENT_STATUS.Archived:
             const payouts = await prisma.payouts.updateMany({
               data: {
                 payout_status: PAYOUT_STATUS.Cancelled,
-                updated_at: new Date(),
               },
               where: {
                 external_payment_id: pullPaymentId,

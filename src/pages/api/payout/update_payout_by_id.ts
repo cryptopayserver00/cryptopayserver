@@ -10,24 +10,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       case 'PUT':
         const prisma = new PrismaClient();
         const payoutId = req.body.id;
-        const userId = req.body.user_id;
-        const storeId = req.body.store_id;
-        const payoutStatus = req.body.payout_status;
-        const tx = req.body.tx;
-        const cryptoAmount = req.body.crypto_amount;
-        const updatedDate = new Date();
+
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.payout_status !== undefined) updateData.payout_status = req.body.payout_status;
+        if (req.body.tx !== undefined) updateData.tx = req.body.tx;
+        if (req.body.crypto_amount !== undefined) updateData.crypto_amount = Number(req.body.crypto_amount);
 
         const payout = await prisma.payouts.update({
-          data: {
-            payout_status: payoutStatus,
-            tx: tx,
-            crypto_amount: cryptoAmount,
-            updated_at: updatedDate,
-          },
+          data: updateData,
           where: {
             payout_id: payoutId,
-            user_id: userId,
-            store_id: storeId,
             status: 1,
           },
         });

@@ -177,8 +177,6 @@ export default function PayoutDataGrid(props: GridType) {
     try {
       const response: any = await axios.put(Http.update_payout_by_id, {
         id: row.payoutId,
-        user_id: getUserId(),
-        store_id: getStoreId(),
         payout_status: PAYOUT_STATUS.AwaitingPayment,
       });
       if (response.result) {
@@ -204,8 +202,6 @@ export default function PayoutDataGrid(props: GridType) {
     try {
       const response: any = await axios.put(Http.update_payout_by_id, {
         id: row.payoutId,
-        user_id: getUserId(),
-        store_id: getStoreId(),
         payout_status: PAYOUT_STATUS.AwaitingApproval,
       });
       if (response.result) {
@@ -279,8 +275,6 @@ export default function PayoutDataGrid(props: GridType) {
     try {
       const response: any = await axios.put(Http.update_payout_by_id, {
         id: row.payoutId,
-        user_id: getUserId(),
-        store_id: getStoreId(),
         payout_status: PAYOUT_STATUS.Cancelled,
       });
       if (response.result) {
@@ -305,8 +299,6 @@ export default function PayoutDataGrid(props: GridType) {
     try {
       const response: any = await axios.put(Http.update_payout_by_id, {
         id: row.payoutId,
-        user_id: getUserId(),
-        store_id: getStoreId(),
         payout_status: PAYOUT_STATUS.Completed,
       });
       if (response.result) {
@@ -346,7 +338,7 @@ export default function PayoutDataGrid(props: GridType) {
               payoutId: item.payout_id,
               chainId: item.chain_id,
               address: item.address,
-              createdDate: new Date(item.created_date).toLocaleString(),
+              createdDate: new Date(item.created_at).toLocaleString(),
               refunded: item.amount + ' ' + item.currency,
               crypto: item.crypto,
               sourceType: item.source_type,

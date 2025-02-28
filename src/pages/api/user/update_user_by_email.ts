@@ -11,20 +11,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const prisma = new PrismaClient();
         const email = req.body.email;
 
-        const username = req.body.username;
-        const profilePictureUrl = req.body.profile_picture_url;
-        const authenticator = req.body.authenticator;
-        const emptyAuthenticator = req.body.empty_authenticator;
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.username !== undefined) updateData.username = req.body.username;
+        if (req.body.profile_picture_url !== undefined) updateData.profile_picture_url = req.body.profile_picture_url;
+        if (req.body.authenticator !== undefined) updateData.authenticator = req.body.authenticator;
 
         const user = await prisma.users.update({
+          data: updateData,
           where: {
             email: email,
             status: 1,
-          },
-          data: {
-            username: username,
-            profile_picture_url: profilePictureUrl,
-            authenticator: emptyAuthenticator === 1 ? '' : authenticator,
           },
         });
 

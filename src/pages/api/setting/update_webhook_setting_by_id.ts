@@ -11,20 +11,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const prisma = new PrismaClient();
         const id = req.body.id;
 
-        const payloadUrl = req.body.payload_url;
-        const secret = req.body.secret;
-        const showAutomaticRedelivery = req.body.automatic_redelivery;
-        const showEnabled = req.body.enabled;
-        const eventType = req.body.event_type;
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.payload_url !== undefined) updateData.payload_url = req.body.payload_url;
+        if (req.body.secret !== undefined) updateData.secret = req.body.secret;
+        if (req.body.automatic_redelivery !== undefined)
+          updateData.automatic_redelivery = Number(req.body.automatic_redelivery);
+        if (req.body.enabled !== undefined) updateData.enabled = Number(req.body.enabled);
+        if (req.body.event_type !== undefined) updateData.event_type = Number(req.body.event_type);
 
         const webhook_setting = await prisma.webhook_settings.update({
-          data: {
-            payload_url: payloadUrl,
-            secret: secret,
-            automatic_redelivery: showAutomaticRedelivery,
-            enabled: showEnabled,
-            event_type: eventType,
-          },
+          data: updateData,
           where: {
             id: id,
             status: 1,

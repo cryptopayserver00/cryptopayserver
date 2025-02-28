@@ -27,7 +27,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             message: message,
             url: url,
             is_seen: isSeen,
-            created_at: new Date(),
             status: 1,
           },
         });

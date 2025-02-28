@@ -154,9 +154,9 @@ const PullPaymentsDetails = () => {
           currency: response.data.currency,
           description: response.data.description,
           showAutoApproveClaim: response.data.show_auto_approve_claim === 1 ? true : false,
-          createdDate: new Date(response.data.created_date).toLocaleString(),
-          updateDate: new Date(response.data.created_date).toLocaleString(),
-          expirationDate: new Date(response.data.expiration_date).toLocaleString(),
+          createdDate: new Date(response.data.created_at).toLocaleString(),
+          updateDate: new Date(response.data.updated_at).toLocaleString(),
+          expirationDate: new Date(response.data.expiration_at).toLocaleString(),
           pullPaymentStatus: response.data.pull_payment_status,
         });
 
