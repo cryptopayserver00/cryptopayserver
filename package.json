@@ -10,6 +10,7 @@
     "dev": "concurrently \"next dev -p 8888\" \"node task.js\"",
     "build": "next build",
     "start": "concurrently \"next start -p 8888\" \"node task.js\"",
+    "start-base": "next start -p 8888",
     "lint": "next lint"
   },
   "dependencies": {
