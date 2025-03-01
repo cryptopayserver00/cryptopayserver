@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const chainIds = GetAllMainnetChainIds();
         const formattedChainIds = chainIds.map((id) => `'${id}'`).join(',');
 
-        let node_own_transactions;
+        let node_own_transactions: any;
 
         if (Number(network) === 1) {
           node_own_transactions = await prisma.$queryRaw`
@@ -60,11 +60,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         `;
         }
 
-        if (!node_own_transactions) {
+        if (!node_own_transactions || node_own_transactions.length !== 1) {
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({ message: '', result: true, data: node_own_transactions });
+        return res.status(200).json({ message: '', result: true, data: node_own_transactions[0] });
 
       default:
         throw 'no support the method of api';

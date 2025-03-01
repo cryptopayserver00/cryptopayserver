@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           message: '',
           result: true,
           data: {
-            order_id: Number(invoice[0].order_id),
+            order_id: invoice[0].order_id,
             amount: invoice[0].amount,
             buyer_email: invoice[0].buyer_email,
             crypto: invoice[0].crypto,
