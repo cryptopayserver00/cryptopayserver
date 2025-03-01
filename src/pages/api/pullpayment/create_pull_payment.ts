@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             network: network,
             pull_payment_id: pullPaymentId,
             name: name,
-            amount: amount,
+            amount: Number(amount),
             currency: currency,
             show_auto_approve_claim: showAutoApproveClaim,
             description: description,

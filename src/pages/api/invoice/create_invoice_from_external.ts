@@ -22,10 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const crypto_amount = req.body.crypto_amount;
         const rate = req.body.rate;
 
-        const description = '';
-        const buyerEmail = '';
-        const metadata = '';
-        const notificationUrl = '';
         const notificationEmail = req.body.email;
 
         const orderId = GenerateOrderIDByTime();
@@ -86,17 +82,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             order_id: orderId,
             external_payment_id: externalPaymentId,
             source_type: sourceType,
-            amount: amount,
+            amount: Number(amount),
             crypto: crypto,
-            crypto_amount: crypto_amount,
+            crypto_amount: Number(crypto_amount),
             currency: currency,
-            rate: rate,
-            description: description,
-            buyer_email: buyerEmail,
+            rate: Number(rate),
+            description: null,
+            buyer_email: null,
             destination_address: address.address,
             paid: paid,
-            metadata: metadata,
-            notification_url: notificationUrl,
+            metadata: null,
+            notification_url: null,
             notification_email: notificationEmail,
             order_status: orderStatus,
             expiration_at: expirationDate,

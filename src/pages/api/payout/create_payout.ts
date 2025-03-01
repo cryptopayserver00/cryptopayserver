@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             address: address,
             source_type: sourceType,
             currency: currency,
-            amount: amount,
+            amount: Number(amount),
             crypto: crypto,
             external_payment_id: externalPaymentId,
             payout_status: status,

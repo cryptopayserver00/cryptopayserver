@@ -3,6 +3,7 @@ import { WEB3 } from 'packages/web3';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { GetSecureRandomString } from 'utils/strings';
 import { PrismaClient } from '@prisma/client';
+import { ETHEREUM_CATEGORY_CHAINS } from 'packages/constants/blockchain';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -52,6 +53,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
             if (!address) {
               return res.status(200).json({ message: '', result: false, data: null });
+            }
+
+            if (ETHEREUM_CATEGORY_CHAINS.includes(Number(address.chain_id))) {
+              ETHEREUM_CATEGORY_CHAINS.map(async (item) => {
+                const payment_setting = await prisma.payment_settings.findFirst({
+                  where: {
+                    chain_id: Number(item),
+                    network: address.network,
+                    store_id: storeId,
+                    status: 1,
+                  },
+                });
+
+                if (!payment_setting) {
+                  return res.status(200).json({ message: '', result: false, data: null });
+                }
+
+                const update_payment_setting = await prisma.payment_settings.update({
+                  data: {
+                    current_used_address_id: address.id,
+                  },
+                  where: {
+                    id: payment_setting.id,
+                    status: 1,
+                  },
+                });
+                if (!update_payment_setting) {
+                  return res.status(200).json({ message: '', result: false, data: null });
+                }
+              });
+            } else {
+              const payment_setting = await prisma.payment_settings.findFirst({
+                where: {
+                  chain_id: address.chain_id,
+                  network: address.network,
+                  store_id: storeId,
+                  status: 1,
+                },
+              });
+
+              if (!payment_setting) {
+                return res.status(200).json({ message: '', result: false, data: null });
+              }
+              const update_payment_setting = await prisma.payment_settings.update({
+                data: {
+                  current_used_address_id: address.id,
+                },
+                where: {
+                  id: payment_setting.id,
+                  status: 1,
+                },
+              });
+
+              if (!update_payment_setting) {
+                return res.status(200).json({ message: '', result: false, data: null });
+              }
             }
           });
 

@@ -33,7 +33,7 @@ model addresses {
   user_id Int
   wallet_id Int
   address String
-  private_key String
+  private_key String @db.LongText
   note String
   chain_id Int
   network Int
@@ -94,7 +94,7 @@ model email_rule_settings {
   recipients String
   show_send_to_buyer Int
   subject String
-  body Json
+  body String @db.LongText
   status Int
   created_at DateTime @default(now()) 
   updated_at DateTime @updatedAt 
@@ -121,7 +121,7 @@ model invoice_events {
   id Int @id @default(autoincrement())
   invoice_id Int
   order_id BigInt
-  message Json
+  message String @db.LongText
   status Int
   created_at DateTime @default(now()) 
   updated_at DateTime @updatedAt 
@@ -139,15 +139,15 @@ model invoices {
   crypto String
   crypto_amount Float
   rate Float
-  description Json
-  buyer_email String
+  description String? @db.LongText
+  buyer_email String?
   order_status String
   payment_method String?
   destination_address String
   paid Int
-  metadata Json
-  notification_url String
-  notification_email String
+  metadata String? @db.LongText
+  notification_url String?
+  notification_email String?
   match_tx_id Int?
   external_payment_id BigInt
   source_type String
@@ -175,7 +175,7 @@ model notifications {
   store_id Int
   network Int
   label String
-  message Json
+  message String @db.LongText
   url String
   is_seen Int
   status Int
@@ -204,7 +204,7 @@ model payment_requests {
   show_allow_custom_amount Int
   email String
   request_customer_data String
-  memo Json
+  memo String @db.LongText
   payment_request_status String
   status Int
   created_at DateTime @default(now())
@@ -286,7 +286,7 @@ model pull_payments {
   currency String
   show_auto_approve_claim Int
   payout_method String?
-  description Json
+  description String @db.LongText
   pull_payment_status String
   status Int
   created_at DateTime @default(now())
