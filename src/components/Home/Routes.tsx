@@ -32,7 +32,7 @@ import InvoicesDetails from 'components/Invoices/id';
 import BlockScan from 'components/Wallets/BlockScan';
 import Security from 'components/Wallets/Security';
 import EthereumSend from 'components/Wallets/Ethereum/Send';
-import EthereumReceive from 'components/Wallets/Ethereum/Receive';
+import WalletsReceive from 'components/Wallets/Receive';
 import SolanaSend from 'components/Wallets/Solana/Send';
 import SolanaReceive from 'components/Wallets/Solana/Receive';
 import BscSend from 'components/Wallets/Bsc/Send';
@@ -203,10 +203,10 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/ethereum/receive',
-    name: 'EthereumReceive',
-    title: 'EthereumReceive',
-    component: <EthereumReceive />,
+    path: '/wallets/receive',
+    name: 'WalletsReceive',
+    title: 'WalletsReceive',
+    component: <WalletsReceive />,
     enableSidebar: false,
     needLogin: false,
     enableInnerFooter: true,

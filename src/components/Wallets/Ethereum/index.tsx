@@ -8,29 +8,22 @@ import {
   InputAdornment,
   MenuItem,
   OutlinedInput,
-  Paper,
   Select,
   Stack,
   Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
 import Image from 'next/image';
-import Link from 'next/link';
 import { CHAINS } from 'packages/constants/blockchain';
 import { EthereumTransactionDetail } from 'packages/web3/types';
 import { useEffect, useState } from 'react';
-import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/eth';
+import { GetBlockchainAddressUrl } from 'utils/chain/eth';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { WeiToGwei } from 'utils/number';
 import EthereumSVG from 'assets/chain/ethereum.svg';
+import TransactionsTab from 'components/Tab/TransactionTab';
 
 type walletType = {
   id: number;
@@ -407,55 +400,3 @@ const Ethereum = () => {
 };
 
 export default Ethereum;
-
-function TransactionsTab({ rows }: { rows: EthereumTransactionDetail[] }) {
-  const { getNetwork } = useUserPresistStore((state) => state);
-
-  return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="simple table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Hash</TableCell>
-            <TableCell>Value</TableCell>
-            <TableCell>Asset</TableCell>
-            <TableCell>Contract Address</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Block Timestamp</TableCell>
-            <TableCell>Status</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows && rows.length > 0 ? (
-            <>
-              {rows.map((row, index) => (
-                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                  <TableCell component="th" scope="row">
-                    <Link
-                      href={GetBlockchainTxUrl(getNetwork() === 'mainnet' ? true : false, row.hash)}
-                      target={'_blank'}
-                    >
-                      {row.hash}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{row.amount}</TableCell>
-                  <TableCell>{row.asset}</TableCell>
-                  <TableCell>{row.contractAddress}</TableCell>
-                  <TableCell>{row.type}</TableCell>
-                  <TableCell>{new Date((row.blockTimestamp as number) * 1000).toLocaleString()}</TableCell>
-                  <TableCell>{row.status}</TableCell>
-                </TableRow>
-              ))}
-            </>
-          ) : (
-            <TableRow>
-              <TableCell colSpan={100} align="center">
-                No rows
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-}

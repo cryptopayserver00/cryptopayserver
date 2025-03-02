@@ -10,14 +10,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const prisma = new PrismaClient();
-        const userId = req.query.user_id;
         const storeId = req.query.store_id;
         const chainId = req.query.chain_id;
         const network = req.query.network;
 
         const payment_setting = await prisma.payment_settings.findFirst({
           where: {
-            user_id: Number(userId),
             store_id: Number(storeId),
             chain_id: Number(chainId),
             network: Number(network),

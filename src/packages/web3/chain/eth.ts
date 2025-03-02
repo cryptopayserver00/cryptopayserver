@@ -302,7 +302,7 @@ export class ETH {
       const response = await this.axiosInstance.get(url);
 
       if (response.data.code === 10200 && response.data.data) {
-        const txs = response.data.data;
+        let txs = response.data.data;
 
         return txs;
       } else {

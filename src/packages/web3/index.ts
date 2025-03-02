@@ -382,38 +382,63 @@ export class WEB3 {
   }
 
   static async getTransactions(isMainnet: boolean, chain: CHAINS, address: string, token?: COIN): Promise<any[]> {
+    let txs;
+
     switch (chain) {
       case CHAINS.BITCOIN:
-        return await BTC.getTransactions(isMainnet, address);
+        txs = await BTC.getTransactions(isMainnet, address);
+        break;
       case CHAINS.LITECOIN:
-        return await LTC.getTransactions(isMainnet, address);
+        txs = await LTC.getTransactions(isMainnet, address);
+        break;
       case CHAINS.XRP:
-        return await XRP.getTransactions(isMainnet, address);
+        txs = await XRP.getTransactions(isMainnet, address);
+        break;
       case CHAINS.BITCOINCASH:
-        return await BITCOINCASH.getTransactions(isMainnet, address);
+        txs = await BITCOINCASH.getTransactions(isMainnet, address);
+        break;
       case CHAINS.ETHEREUM:
-        return await ETH.getTransactions(isMainnet, address, token?.symbol);
+        txs = await ETH.getTransactions(isMainnet, address, token?.symbol);
+        break;
       case CHAINS.TRON:
-        return await TRON.getTransactions(isMainnet, address, token?.symbol);
+        txs = await TRON.getTransactions(isMainnet, address, token?.symbol);
+        break;
       case CHAINS.SOLANA:
-        return await SOLANA.getTransactions(isMainnet, address);
+        txs = await SOLANA.getTransactions(isMainnet, address);
+        break;
       case CHAINS.BSC:
-        return await BSC.getTransactions(isMainnet, address, token?.symbol);
+        txs = await BSC.getTransactions(isMainnet, address, token?.symbol);
+        break;
       case CHAINS.ARBITRUM:
-        return await ARB.getTransactions(isMainnet, address, token?.symbol);
+        txs = await ARB.getTransactions(isMainnet, address, token?.symbol);
+        break;
       case CHAINS.AVALANCHE:
-        return await AVAX.getTransactions(isMainnet, address, token?.symbol);
+        txs = await AVAX.getTransactions(isMainnet, address, token?.symbol);
+        break;
       case CHAINS.POLYGON:
-        return await POL.getTransactions(isMainnet, address, token?.symbol);
+        txs = await POL.getTransactions(isMainnet, address, token?.symbol);
+        break;
       case CHAINS.BASE:
-        return await BASE.getTransactions(isMainnet, address, token?.symbol);
+        txs = await BASE.getTransactions(isMainnet, address, token?.symbol);
+        break;
       case CHAINS.OPTIMISM:
-        return await OP.getTransactions(isMainnet, address, token?.symbol);
+        txs = await OP.getTransactions(isMainnet, address, token?.symbol);
+        break;
       case CHAINS.TON:
-        return await TON.getTransactions(isMainnet, address, token?.symbol);
+        txs = await TON.getTransactions(isMainnet, address, token?.symbol);
+        break;
       default:
         return [];
     }
+
+    txs = txs.map((item: any) => {
+      return {
+        ...item,
+        chainId: WEB3.getChains(item.chainId),
+      };
+    });
+
+    return txs;
   }
 
   static async sendTransaction(isMainnet: boolean, req: SendTransaction): Promise<string> {
