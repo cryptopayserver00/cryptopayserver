@@ -26,6 +26,7 @@ type RowType = {
 
 type GridType = {
   source: 'dashboard' | 'none';
+  chain?: CHAINS;
 };
 
 export default function TransactionDataGrid(props: GridType) {
@@ -109,20 +110,21 @@ export default function TransactionDataGrid(props: GridType) {
     },
   ];
 
-  const init = async () => {
+  const init = async (chain?: CHAINS) => {
     try {
-      const response: any = await axios.get(Http.find_transaction_by_store_id, {
+      const response: any = await axios.get(Http.find_transaction, {
         params: {
           store_id: getStoreId(),
+          chain_id: chain,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
       if (response.result) {
-        if (response.data.length > 0) {
+        if (response.data.transactions.length > 0) {
           let rt: RowType[] = [];
-          response.data.forEach(async (item: any, index: number) => {
+          response.data.transactions.forEach(async (item: any, index: number) => {
             rt.push({
-              id: item.id,
+              id: index + 1,
               chainId: item.chain_id,
               chainName: FindChainNamesByChains(item.chain_id),
               hash: item.hash,
@@ -153,9 +155,9 @@ export default function TransactionDataGrid(props: GridType) {
   };
 
   useEffect(() => {
-    init();
+    init(props.chain);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [props.chain]);
 
   return (
     <Box>

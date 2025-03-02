@@ -25,6 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             address: true,
             network: true,
             chain_id: true,
+            note: true,
           },
         });
 

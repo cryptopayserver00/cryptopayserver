@@ -37,6 +37,7 @@ type walletType = {
   address: string;
   type: string;
   balance: any;
+  txUrl: string;
   transactions: EthereumTransactionDetail[];
 };
 
@@ -89,6 +90,7 @@ const Ethereum = () => {
               address: item.address,
               type: item.note,
               balance: item.balance,
+              txUrl: item.tx_url,
               transactions: item.transactions,
             });
           });
@@ -375,7 +377,11 @@ const Ethereum = () => {
                           ))}
                       </Box>
                       <Box>
+                        <Button style={{ marginRight: 10 }} variant={'outlined'} href={item.txUrl} target={'_blank'}>
+                          Check transactions
+                        </Button>
                         <Button
+                          variant={'outlined'}
                           href={GetBlockchainAddressUrl(getNetwork() === 'mainnet' ? true : false, item.address)}
                           target={'_blank'}
                         >

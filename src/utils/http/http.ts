@@ -89,7 +89,7 @@ export class Http {
   static find_max_priorty_fee = this.httpPath + '/ethereum/find_max_priorty_fee';
 
   // transaction
-  static find_transaction_by_store_id = this.httpPath + '/transaction/find_transaction_by_store_id';
+  static find_transaction = this.httpPath + '/transaction/find_transaction';
   static send_transaction = this.httpPath + '/transaction/send_transaction';
 
   // invoice

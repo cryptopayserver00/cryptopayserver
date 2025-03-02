@@ -15,6 +15,7 @@ import { AVAX } from './chain/avalanche';
 import { POL } from './chain/pol';
 import { BASE } from './chain/base';
 import { OP } from './chain/op';
+import { BLOCKSCAN } from './block_scan';
 
 export class WEB3 {
   // support: Import and generate wallet
@@ -199,6 +200,47 @@ export class WEB3 {
       default:
         return CHAINIDS.NONE;
     }
+  }
+
+  static getChains(nodeChain: CHAINIDS): CHAINS {
+    switch (nodeChain) {
+      case (CHAINIDS.BITCOIN, CHAINIDS.BITCOIN_TESTNET):
+        return CHAINS.BITCOIN;
+      case (CHAINIDS.LITECOIN, CHAINIDS.LITECOIN_TESTNET):
+        return CHAINS.LITECOIN;
+      case (CHAINIDS.XRP, CHAINIDS.XRP_TESTNET):
+        return CHAINS.XRP;
+      case (CHAINIDS.BITCOINCASH, CHAINIDS.BITCOINCASH_TESTNET):
+        return CHAINS.BITCOINCASH;
+      case (CHAINIDS.ETHEREUM, CHAINIDS.ETHEREUM_SEPOLIA):
+        return CHAINS.ETHEREUM;
+      case (CHAINIDS.TRON, CHAINIDS.TRON_NILE):
+        return CHAINS.TRON;
+      case (CHAINIDS.SOLANA, CHAINIDS.SOLANA_DEVNET):
+        return CHAINS.SOLANA;
+      case (CHAINIDS.BSC, CHAINIDS.BSC_TESTNET):
+        return CHAINS.BSC;
+      case (CHAINIDS.ARBITRUM_ONE, CHAINIDS.ARBITRUM_SEPOLIA):
+        return CHAINS.ARBITRUM;
+      case (CHAINIDS.AVALANCHE, CHAINIDS.AVALANCHE_TESTNET):
+        return CHAINS.AVALANCHE;
+      case (CHAINIDS.POLYGON, CHAINIDS.POLYGON_TESTNET):
+        return CHAINS.POLYGON;
+      case (CHAINIDS.BASE, CHAINIDS.BASE_SEPOLIA):
+        return CHAINS.BASE;
+      case (CHAINIDS.OPTIMISM, CHAINIDS.OPTIMISM_SEPOLIA):
+        return CHAINS.OPTIMISM;
+      case (CHAINIDS.TON, CHAINIDS.TON_TESTNET):
+        return CHAINS.TON;
+      default:
+        return CHAINS.BITCOIN;
+    }
+  }
+
+  static getBlockchainAddressTransactionUrl(isMainnet: boolean, chain: CHAINS, address: string): string {
+    const realChainId = this.getChainIds(isMainnet, chain);
+
+    return BLOCKSCAN.getBlockchainAddressTransactionUrl(realChainId, address);
   }
 
   static async getAssetBalance(isMainnet: boolean, chain: CHAINS, address: string): Promise<AssetBalance> {

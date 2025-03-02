@@ -7,7 +7,7 @@ export type BlockScanWalletType = {
 };
 
 export class BLOCKSCAN {
-  static baseUrl = IS_DEVELOPMENT ? 'http://127.0.0.1:7777/api' : 'https://api.cryptopayserver.xyz/api';
+  static baseUrl = 'https://api.cryptopayserver.xyz/api';
 
   static axiosInstance = axios.create({
     timeout: 10000,
@@ -62,6 +62,45 @@ export class BLOCKSCAN {
     } catch (e) {
       console.error(e);
       return '';
+    }
+  }
+
+  static getBlockchainAddressTransactionUrl(chainId: number, address: string): string {
+    const url = this.baseUrl + '/getTransactionsByChainAndAddress';
+    const page = 0;
+    const pageSize = 10;
+    return `${url}/?chain_id=${chainId}&address=${address}&page=${page}&page_size=${pageSize}`;
+  }
+
+  static async getTransactionsByChainAndAddress(
+    chainId?: number,
+    address?: string,
+    page?: number,
+    pageSize?: number,
+  ): Promise<any> {
+    try {
+      let findData: { [key: string]: any } = {};
+
+      if (chainId !== undefined) findData.chain_id = chainId;
+      if (address !== undefined) findData.address = address;
+      if (page === undefined) findData.page = 1;
+      if (pageSize === undefined) findData.page_size = 10;
+
+      const url = this.baseUrl + '/getTransactionsByChainAndAddress';
+      const response: any = await this.axiosInstance.get(url, {
+        headers: {
+          accept: 'application/json',
+        },
+        params: findData,
+      });
+      if (response && response.data && response.data.code === 10200) {
+        return response.data.data;
+      }
+
+      return null;
+    } catch (e) {
+      console.error(e);
+      return null;
     }
   }
 }

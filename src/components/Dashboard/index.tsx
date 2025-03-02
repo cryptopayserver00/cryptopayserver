@@ -154,7 +154,7 @@ const Dashboard = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12}>
+          {/* <Grid item xs={12}>
             <Card variant="outlined">
               <CardContent>
                 <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
@@ -173,7 +173,7 @@ const Dashboard = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid> */}
 
           <Grid item xs={12}>
             <Card variant="outlined">

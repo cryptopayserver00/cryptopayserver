@@ -15,6 +15,7 @@ import TransactionDataGrid from '../../DataList/TransactionDataGrid';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { CHAINNAMES } from 'packages/constants/blockchain';
+import { FindChainIdsByChainNames } from 'utils/web3';
 
 const PaymentTransactions = () => {
   const ALL_CHAINS = 'All Chains' as const;
@@ -72,8 +73,11 @@ const PaymentTransactions = () => {
             </FormControl>
           </Stack>
 
-          <Box mt={5}>
-            <TransactionDataGrid source="none" />
+          <Box mt={2}>
+            <TransactionDataGrid
+              source="none"
+              chain={txChain === ALL_CHAINS ? undefined : FindChainIdsByChainNames(txChain)}
+            />
           </Box>
         </Box>
       </Container>

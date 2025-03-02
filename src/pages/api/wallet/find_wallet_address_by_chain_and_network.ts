@@ -56,6 +56,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 Number(chainId),
                 item.address,
               ),
+              tx_url: WEB3.getBlockchainAddressTransactionUrl(
+                Number(network) === 1 ? true : false,
+                Number(chainId),
+                item.address,
+              ),
               transactions: await WEB3.getTransactions(
                 Number(network) === 1 ? true : false,
                 Number(chainId),
