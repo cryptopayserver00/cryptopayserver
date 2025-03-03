@@ -23,58 +23,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: true, data: null });
         }
 
-        invoices.forEach(async (item) => {
-          const node_own_transactions = await prisma.node_own_transactions.findFirst({
-            where: {
-              address: item.destination_address,
-              transact_type: 'receive',
-              token: item.crypto,
-              amount: item.crypto_amount.toString(),
-              block_timestamp: {
-                gte: item.created_at.getTime(),
-              },
-              status: 1,
-            },
-          });
+        // invoices.forEach(async (item) => {
+        //   const node_own_transactions = await prisma.node_own_transactions.findFirst({
+        //     where: {
+        //       address: item.destination_address,
+        //       transact_type: 'receive',
+        //       token: item.crypto,
+        //       amount: item.crypto_amount.toString(),
+        //       block_timestamp: {
+        //         gte: item.created_at.getTime(),
+        //       },
+        //       status: 1,
+        //     },
+        //   });
 
-          if (node_own_transactions) {
-            const invoice = await prisma.invoices.update({
-              data: {
-                order_status: ORDER_STATUS.Settled,
-                paid: 1,
-                match_tx_id: node_own_transactions.id,
-              },
-              where: {
-                id: item.id,
-                order_status: ORDER_STATUS.Processing,
-                status: 1,
-              },
-            });
+        //   if (node_own_transactions) {
+        //     const invoice = await prisma.invoices.update({
+        //       data: {
+        //         order_status: ORDER_STATUS.Settled,
+        //         paid: 1,
+        //         match_tx_id: node_own_transactions.id,
+        //       },
+        //       where: {
+        //         id: item.id,
+        //         order_status: ORDER_STATUS.Processing,
+        //         status: 1,
+        //       },
+        //     });
 
-            if (invoice) {
-              let invoice_events = await prisma.invoice_events.createMany({
-                data: [
-                  {
-                    invoice_id: item.id,
-                    order_id: item.order_id,
-                    message: `Monitor the transaction hash: ${node_own_transactions.hash}`,
-                    status: 1,
-                  },
-                  {
-                    invoice_id: item.id,
-                    order_id: item.order_id,
-                    message: `Invoice status is Settled`,
-                    status: 1,
-                  },
-                ],
-              });
+        //     if (invoice) {
+        //       let invoice_events = await prisma.invoice_events.createMany({
+        //         data: [
+        //           {
+        //             invoice_id: item.id,
+        //             order_id: item.order_id,
+        //             message: `Monitor the transaction hash: ${node_own_transactions.hash}`,
+        //             status: 1,
+        //           },
+        //           {
+        //             invoice_id: item.id,
+        //             order_id: item.order_id,
+        //             message: `Invoice status is Settled`,
+        //             status: 1,
+        //           },
+        //         ],
+        //       });
 
-              if (!invoice_events) {
-                return res.status(200).json({ message: '', result: false, data: null });
-              }
-            }
-          }
-        });
+        //       if (!invoice_events) {
+        //         return res.status(200).json({ message: '', result: false, data: null });
+        //       }
+        //     }
+        //   }
+        // });
 
         return res.status(200).json({ message: '', result: true, data: null });
 
