@@ -65,15 +65,15 @@ export class BLOCKSCAN {
     }
   }
 
-  static getBlockchainAddressTransactionUrl(chainId: number, address: string): string {
+  static getBlockchainAddressTransactionUrl(chainids: string, address: string): string {
     const url = this.baseUrl + '/getTransactionsByChainAndAddress';
     const page = 0;
     const pageSize = 10;
-    return `${url}/?chain_id=${chainId}&address=${address}&page=${page}&page_size=${pageSize}`;
+    return `${url}/?chainids=${chainids}&address=${address}&page=${page}&page_size=${pageSize}`;
   }
 
   static async getTransactionsByChainAndAddress(
-    chainId?: number,
+    chainids?: string,
     address?: string,
     page?: number,
     pageSize?: number,
@@ -81,7 +81,7 @@ export class BLOCKSCAN {
     try {
       let findData: { [key: string]: any } = {};
 
-      if (chainId !== undefined) findData.chain_id = chainId;
+      if (chainids !== undefined) findData.chainids = chainids;
       if (address !== undefined) findData.address = address;
       if (page === undefined) findData.page = 1;
       if (pageSize === undefined) findData.page_size = 10;

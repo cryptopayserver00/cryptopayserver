@@ -16,12 +16,15 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { CHAINNAMES } from 'packages/constants/blockchain';
 import { FindChainIdsByChainNames } from 'utils/web3';
+import { useUserPresistStore } from 'lib/store';
 
 const PaymentTransactions = () => {
   const ALL_CHAINS = 'All Chains' as const;
 
   const [search, setSearch] = useState<string>('');
   const [txChain, setTxChain] = useState<CHAINNAMES | typeof ALL_CHAINS>(ALL_CHAINS);
+
+  const { getNetwork } = useUserPresistStore((state) => state);
 
   return (
     <Box>
@@ -77,6 +80,7 @@ const PaymentTransactions = () => {
             <TransactionDataGrid
               source="none"
               chain={txChain === ALL_CHAINS ? undefined : FindChainIdsByChainNames(txChain)}
+              network={getNetwork()}
             />
           </Box>
         </Box>

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { GetAllMainnetChainIds } from 'utils/web3';
+import { GetAllMainnetChainIds, GetAllTestnetChainIds } from 'utils/web3';
 import { PrismaClient } from '@prisma/client';
 import { BLOCKSCAN } from 'packages/web3/block_scan';
 import { WEB3 } from 'packages/web3';
@@ -29,8 +29,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         //   return res.status(200).json({ message: '', result: false, data: null });
         // }
 
+        const chainIds = Number(network) === 1 ? GetAllMainnetChainIds() : GetAllTestnetChainIds();
+        const formattedChainIds = chainIds.map((id) => `${id}`).join(',');
+
         let txs = await BLOCKSCAN.getTransactionsByChainAndAddress(
-          chain_id ? WEB3.getChainIds(Number(network) === 1 ? true : false, Number(chain_id)) : undefined,
+          chain_id
+            ? WEB3.getChainIds(Number(network) === 1 ? true : false, Number(chain_id)).toString()
+            : formattedChainIds,
           address ? String(address) : undefined,
         );
 

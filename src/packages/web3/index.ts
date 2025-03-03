@@ -240,7 +240,7 @@ export class WEB3 {
   static getBlockchainAddressTransactionUrl(isMainnet: boolean, chain: CHAINS, address: string): string {
     const realChainId = this.getChainIds(isMainnet, chain);
 
-    return BLOCKSCAN.getBlockchainAddressTransactionUrl(realChainId, address);
+    return BLOCKSCAN.getBlockchainAddressTransactionUrl(realChainId.toString(), address);
   }
 
   static async getAssetBalance(isMainnet: boolean, chain: CHAINS, address: string): Promise<AssetBalance> {
