@@ -11,32 +11,53 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'GET':
+        const prisma = new PrismaClient();
+        const chainId = req.query.chain_id;
+        const storeId = req.query.store_id;
         const network = req.query.network;
-        const chain_id = req.query.chain_id;
         const address = req.query.address;
 
-        // const wallet = await prisma.wallets.findFirst({
-        //   where: {
-        //     store_id: Number(storeId),
-        //     status: 1,
-        //   },
-        //   select: {
-        //     id: true,
-        //   },
-        // });
+        const wallet = await prisma.wallets.findFirst({
+          where: {
+            store_id: Number(storeId),
+            status: 1,
+          },
+          select: {
+            id: true,
+          },
+        });
 
-        // if (!wallet) {
-        //   return res.status(200).json({ message: '', result: false, data: null });
-        // }
+        if (!wallet) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        }
+
+        const addresses = await prisma.addresses.findMany({
+          where: {
+            wallet_id: wallet.id,
+            network: Number(network),
+            status: 1,
+          },
+          select: {
+            address: true,
+          },
+        });
+
+        if (!addresses) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        }
 
         const chainIds = Number(network) === 1 ? GetAllMainnetChainIds() : GetAllTestnetChainIds();
         const formattedChainIds = chainIds.map((id) => `${id}`).join(',');
 
+        const formattedAddresses = addresses.map((item) => `${item.address}`).join(',');
+
+        console.log(111, formattedAddresses);
+
         let txs = await BLOCKSCAN.getTransactionsByChainAndAddress(
-          chain_id
-            ? WEB3.getChainIds(Number(network) === 1 ? true : false, Number(chain_id)).toString()
+          chainId
+            ? WEB3.getChainIds(Number(network) === 1 ? true : false, Number(chainId)).toString()
             : formattedChainIds,
-          address ? String(address) : undefined,
+          address ? String(address) : formattedAddresses,
         );
 
         if (!txs) {

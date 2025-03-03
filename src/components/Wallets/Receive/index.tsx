@@ -101,6 +101,7 @@ const WalletsReceive = () => {
                 chain={Number(chainId)}
                 storeId={Number(storeId)}
                 network={String(network)}
+                address={address}
               />
             )}
           </Box>

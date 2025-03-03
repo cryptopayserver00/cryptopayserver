@@ -29,6 +29,7 @@ type GridType = {
   chain?: CHAINS;
   storeId?: number;
   network: string;
+  address?: string;
 };
 
 export default function TransactionDataGrid(props: GridType) {
@@ -112,13 +113,14 @@ export default function TransactionDataGrid(props: GridType) {
     },
   ];
 
-  const init = async (chain: number, storeId: number, network: string) => {
+  const init = async (chain: number, storeId: number, network: string, address?: string) => {
     try {
       const response: any = await axios.get(Http.find_transaction, {
         params: {
           chain_id: chain ? chain : '',
           store_id: storeId ? storeId : getStoreId(),
           network: network ? (network === 'mainnet' ? 1 : 2) : getNetwork() === 'mainnet' ? 1 : 2,
+          address: address ? address : '',
         },
       });
       if (response.result) {
@@ -157,9 +159,9 @@ export default function TransactionDataGrid(props: GridType) {
   };
 
   useEffect(() => {
-    init(Number(props.chain), Number(props.storeId), props.network);
+    init(Number(props.chain), Number(props.storeId), props.network, props.address);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.chain, props.storeId, props.network]);
+  }, [props.chain, props.storeId, props.network, props.address]);
 
   return (
     <Box>
