@@ -223,7 +223,9 @@ const Optimism = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/optimism/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.OPTIMISM
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

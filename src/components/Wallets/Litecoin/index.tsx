@@ -225,7 +225,9 @@ const Litecoin = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/litecoin/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.LITECOIN
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

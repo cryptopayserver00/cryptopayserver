@@ -223,7 +223,9 @@ const Base = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/base/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.BASE
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

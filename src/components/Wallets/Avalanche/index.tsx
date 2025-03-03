@@ -223,7 +223,9 @@ const Avalanche = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/avalanche/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.AVALANCHE
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

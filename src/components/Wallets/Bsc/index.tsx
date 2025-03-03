@@ -223,7 +223,9 @@ const Bsc = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/bsc/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.BSC
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

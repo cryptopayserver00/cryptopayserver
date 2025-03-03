@@ -191,7 +191,9 @@ const Ton = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/ton/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.TON
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

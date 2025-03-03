@@ -193,7 +193,9 @@ const XRP = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/xrp/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.XRP
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

@@ -113,7 +113,6 @@ const PolygonSend = () => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
-          user_id: getUserId(),
           chain_id: CHAINS.POLYGON,
           store_id: getStoreId(),
           network: getNetwork() === 'mainnet' ? 1 : 2,

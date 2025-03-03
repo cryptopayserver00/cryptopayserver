@@ -61,7 +61,6 @@ const TronSend = () => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
-          user_id: getUserId(),
           chain_id: CHAINS.TRON,
           store_id: getStoreId(),
           network: getNetwork() === 'mainnet' ? 1 : 2,

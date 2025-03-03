@@ -216,7 +216,9 @@ const Tron = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/tron/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.TRON
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

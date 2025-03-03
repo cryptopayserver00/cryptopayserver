@@ -185,7 +185,9 @@ const Solana = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/solana/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.SOLANA
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

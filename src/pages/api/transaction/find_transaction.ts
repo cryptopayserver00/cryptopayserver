@@ -11,8 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'GET':
-        const prisma = new PrismaClient();
-        const storeId = req.query.store_id;
         const network = req.query.network;
         const chain_id = req.query.chain_id;
         const address = req.query.address;

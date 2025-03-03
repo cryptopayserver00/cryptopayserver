@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { WEB3 } from 'packages/web3';
 import { PrismaClient } from '@prisma/client';
+import { BLOCKCHAINNAMES } from 'packages/constants/blockchain';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -50,12 +51,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           address.address,
         );
 
+        const coins = BLOCKCHAINNAMES.find(
+          (item) => item.chainId === WEB3.getChainIds(network === 'mainnet' ? true : false, Number(chainId)),
+        )?.coins;
+
+        const mainCoin = coins?.find((item) => item.isMainCoin);
+
         return res.status(200).json({
           message: '',
           result: true,
           data: {
             address: address.address,
             balance: balance,
+            main_coin: mainCoin,
           },
         });
 

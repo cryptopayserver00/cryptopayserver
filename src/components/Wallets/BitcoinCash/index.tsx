@@ -191,7 +191,9 @@ const BitcoinCash = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/bitcoincash/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.BITCOINCASH
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

@@ -27,22 +27,16 @@ import Ton from 'components/Wallets/Ton';
 import Tron from 'components/Wallets/Tron';
 import Bsc from 'components/Wallets/Bsc';
 import BitcoinSend from 'components/Wallets/Bitcoin/Send';
-import BitcoinReceive from 'components/Wallets/Bitcoin/Receive';
 import InvoicesDetails from 'components/Invoices/id';
 import BlockScan from 'components/Wallets/BlockScan';
 import Security from 'components/Wallets/Security';
 import EthereumSend from 'components/Wallets/Ethereum/Send';
 import WalletsReceive from 'components/Wallets/Receive';
 import SolanaSend from 'components/Wallets/Solana/Send';
-import SolanaReceive from 'components/Wallets/Solana/Receive';
 import BscSend from 'components/Wallets/Bsc/Send';
-import BscReceive from 'components/Wallets/Bsc/Receive';
 import LitecoinSend from 'components/Wallets/Litecoin/Send';
-import LitecoinReceive from 'components/Wallets/Litecoin/Receive';
 import TronSend from 'components/Wallets/Tron/Send';
-import TronReceive from 'components/Wallets/Tron/Receive';
 import TonSend from 'components/Wallets/Ton/Send';
-import TonReceive from 'components/Wallets/Ton/Receive';
 import PaymentTransactions from 'components/Payments/Transactions';
 import PaymentInvoices from 'components/Payments/Invoices';
 import PaymentInvoiceDetails from 'components/Payments/Invoices/id';
@@ -57,25 +51,18 @@ import Welcome from 'components/Welcome';
 import React from 'react';
 import XRP from 'components/Wallets/Xrp';
 import XrpSend from 'components/Wallets/Xrp/Send';
-import XrpReceive from 'components/Wallets/Xrp/Receive';
 import BitcoinCash from 'components/Wallets/BitcoinCash';
 import BitcoinCashSend from 'components/Wallets/BitcoinCash/Send';
-import BitcoinCashReceive from 'components/Wallets/BitcoinCash/Receive';
 import Arbitrum from 'components/Wallets/Arbitrum';
 import ArbitrumSend from 'components/Wallets/Arbitrum/Send';
-import ArbitrumReceive from 'components/Wallets/Arbitrum/Receive';
 import Avalanche from 'components/Wallets/Avalanche';
 import AvalancheSend from 'components/Wallets/Avalanche/Send';
-import AvalancheReceive from 'components/Wallets/Avalanche/Receive';
 import Polygon from 'components/Wallets/Polygon';
 import PolygonSend from 'components/Wallets/Polygon/Send';
-import PolygonReceive from 'components/Wallets/Polygon/Receive';
 import Base from 'components/Wallets/Base';
 import BaseSend from 'components/Wallets/Base/Send';
-import BaseReceive from 'components/Wallets/Base/Receive';
 import Optimism from 'components/Wallets/Optimism';
 import OptimismSend from 'components/Wallets/Optimism/Send';
-import OptimismReceive from 'components/Wallets/Optimism/Receive';
 import SecurityPassword from 'components/Wallets/Security/Password';
 import SecurityPrivateKey from 'components/Wallets/Security/PrivateKey';
 import SecurityAudit from 'components/Wallets/Security/Audit';
@@ -167,15 +154,6 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/bitcoin/receive',
-    name: 'BitcoinReceive',
-    title: 'BitcoinReceive',
-    component: <BitcoinReceive />,
-    enableSidebar: false,
-    needLogin: false,
-    enableInnerFooter: true,
-  },
-  {
     path: '/wallets/bitcoin/lightning',
     name: 'Lightning',
     title: 'Lightning',
@@ -230,15 +208,6 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/solana/receive',
-    name: 'SolanaReceive',
-    title: 'SolanaReceive',
-    component: <SolanaReceive />,
-    enableSidebar: false,
-    needLogin: false,
-    enableInnerFooter: true,
-  },
-  {
     path: '/wallets/bsc',
     name: 'Bsc',
     title: 'Bsc',
@@ -254,15 +223,6 @@ export const routes: RouteType[] = [
     component: <BscSend />,
     enableSidebar: true,
     needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
-    path: '/wallets/bsc/receive',
-    name: 'BscReceive',
-    title: 'BscReceive',
-    component: <BscReceive />,
-    enableSidebar: false,
-    needLogin: false,
     enableInnerFooter: true,
   },
   {
@@ -284,15 +244,6 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/litecoin/receive',
-    name: 'LitecoinReceive',
-    title: 'LitecoinReceive',
-    component: <LitecoinReceive />,
-    enableSidebar: false,
-    needLogin: false,
-    enableInnerFooter: true,
-  },
-  {
     path: '/wallets/tron',
     name: 'Tron',
     title: 'Tron',
@@ -308,15 +259,6 @@ export const routes: RouteType[] = [
     component: <TronSend />,
     enableSidebar: true,
     needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
-    path: '/wallets/tron/receive',
-    name: 'TronReceive',
-    title: 'TronReceive',
-    component: <TronReceive />,
-    enableSidebar: false,
-    needLogin: false,
     enableInnerFooter: true,
   },
   {
@@ -338,15 +280,6 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/ton/receive',
-    name: 'TonReceive',
-    title: 'TonReceive',
-    component: <TonReceive />,
-    enableSidebar: false,
-    needLogin: false,
-    enableInnerFooter: true,
-  },
-  {
     path: '/wallets/xrp',
     name: 'Xrp',
     title: 'Xrp',
@@ -362,15 +295,6 @@ export const routes: RouteType[] = [
     component: <XrpSend />,
     enableSidebar: true,
     needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
-    path: '/wallets/xrp/receive',
-    name: 'XrpReceive',
-    title: 'XrpReceive',
-    component: <XrpReceive />,
-    enableSidebar: false,
-    needLogin: false,
     enableInnerFooter: true,
   },
   {
@@ -392,15 +316,6 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/bitcoincash/receive',
-    name: 'BitcoinCashReceive',
-    title: 'BitcoinCashReceive',
-    component: <BitcoinCashReceive />,
-    enableSidebar: false,
-    needLogin: false,
-    enableInnerFooter: true,
-  },
-  {
     path: '/wallets/arbitrum',
     name: 'Arbitrum',
     title: 'Arbitrum',
@@ -416,15 +331,6 @@ export const routes: RouteType[] = [
     component: <ArbitrumSend />,
     enableSidebar: true,
     needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
-    path: '/wallets/arbitrum/receive',
-    name: 'ArbitrumReceive',
-    title: 'ArbitrumReceive',
-    component: <ArbitrumReceive />,
-    enableSidebar: false,
-    needLogin: false,
     enableInnerFooter: true,
   },
   {
@@ -446,15 +352,6 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/avalanche/receive',
-    name: 'AvalancheReceive',
-    title: 'AvalancheReceive',
-    component: <AvalancheReceive />,
-    enableSidebar: false,
-    needLogin: false,
-    enableInnerFooter: true,
-  },
-  {
     path: '/wallets/polygon',
     name: 'Polygon',
     title: 'Polygon',
@@ -470,15 +367,6 @@ export const routes: RouteType[] = [
     component: <PolygonSend />,
     enableSidebar: true,
     needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
-    path: '/wallets/polygon/receive',
-    name: 'PolygonReceive',
-    title: 'PolygonReceive',
-    component: <PolygonReceive />,
-    enableSidebar: false,
-    needLogin: false,
     enableInnerFooter: true,
   },
   {
@@ -500,15 +388,6 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/base/receive',
-    name: 'BaseReceive',
-    title: 'BaseReceive',
-    component: <BaseReceive />,
-    enableSidebar: false,
-    needLogin: false,
-    enableInnerFooter: true,
-  },
-  {
     path: '/wallets/optimism',
     name: 'Optimism',
     title: 'Optimism',
@@ -524,15 +403,6 @@ export const routes: RouteType[] = [
     component: <OptimismSend />,
     enableSidebar: true,
     needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
-    path: '/wallets/optimism/receive',
-    name: 'OptimismReceive',
-    title: 'OptimismReceive',
-    component: <OptimismReceive />,
-    enableSidebar: false,
-    needLogin: false,
     enableInnerFooter: true,
   },
   {

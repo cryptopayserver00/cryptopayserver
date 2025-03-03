@@ -223,7 +223,9 @@ const Arbitrum = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/arbitrum/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.ARBITRUM
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive

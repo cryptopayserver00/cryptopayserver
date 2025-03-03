@@ -223,7 +223,9 @@ const Polygon = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/polygon/receive';
+                  window.location.href = `/wallets/receive?chainId=${
+                    CHAINS.POLYGON
+                  }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
                 Receive
