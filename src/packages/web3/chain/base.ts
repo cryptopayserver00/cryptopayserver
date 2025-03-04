@@ -25,7 +25,7 @@ export class BASE {
   static chain = CHAINS.BASE;
 
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static getChainIds(isMainnet: boolean): CHAINIDS {

@@ -25,7 +25,7 @@ export class OP {
   static chain = CHAINS.OPTIMISM;
 
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static getChainIds(isMainnet: boolean): CHAINIDS {

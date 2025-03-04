@@ -23,7 +23,7 @@ export class LTC {
   static chain = CHAINS.LITECOIN;
 
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static getNetwork(isMainnet: boolean): bitcoin.Network {

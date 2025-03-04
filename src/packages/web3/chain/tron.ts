@@ -22,7 +22,7 @@ export class TRON {
   static chain = CHAINS.TRON;
 
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static getChainIds(isMainnet: boolean): CHAINIDS {
@@ -269,8 +269,6 @@ export class TRON {
     address: string,
     symbol?: string,
   ): Promise<EthereumTransactionDetail[]> {
-    return []
-    
     try {
       symbol = symbol ? symbol : '';
 

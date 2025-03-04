@@ -5,7 +5,7 @@ export class CRYPTOPRICE {
   static coinGeckoUrl = 'https://api.coingecko.com/api/v3';
 
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static async getCryptoPriceByCoinGecko(ids: string, currency: string): Promise<any> {

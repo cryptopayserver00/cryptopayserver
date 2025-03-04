@@ -24,7 +24,7 @@ export class BTC {
   static chain = CHAINS.BITCOIN;
 
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static getNetwork(isMainnet: boolean): bitcoin.Network {

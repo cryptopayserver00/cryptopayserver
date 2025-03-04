@@ -10,7 +10,7 @@ export class BLOCKSCAN {
   static baseUrl = 'https://api.cryptopayserver.xyz/api';
 
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static async bulkStoreUserWallet(bulk_storage: BlockScanWalletType[]): Promise<boolean> {

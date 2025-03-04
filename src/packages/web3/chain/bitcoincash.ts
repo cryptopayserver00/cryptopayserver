@@ -7,7 +7,7 @@ export class BITCOINCASH {
   static chain = CHAINS.BITCOINCASH;
 
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static getChainIds(isMainnet: boolean): CHAINIDS {

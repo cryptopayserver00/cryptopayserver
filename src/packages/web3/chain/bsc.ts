@@ -24,7 +24,7 @@ export class BSC {
   static chain = CHAINS.BSC;
 
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static getChainIds(isMainnet: boolean): CHAINIDS {

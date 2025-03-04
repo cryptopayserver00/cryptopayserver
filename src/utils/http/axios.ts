@@ -12,7 +12,7 @@ axios.interceptors.request.use(
 
     // auth
 
-    config.timeout = 10000;
+    config.timeout = 50000;
     return config;
   },
   (error) => {

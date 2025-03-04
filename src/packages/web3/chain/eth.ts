@@ -28,7 +28,7 @@ export class ETH {
   static chain = CHAINS.ETHEREUM;
 
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static getChainIds(isMainnet: boolean): CHAINIDS {

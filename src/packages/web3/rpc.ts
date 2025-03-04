@@ -3,7 +3,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 
 export class RPC {
   static axiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 50000,
   });
 
   static async callRPC(chainIds: CHAINIDS, method: string, params: any): Promise<any> {
