@@ -1,4 +1,4 @@
-import { Settings } from '@mui/icons-material';
+import { AccountCircle, Settings } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -19,9 +19,13 @@ import {
   Paper,
   TableRow,
   Typography,
+  Card,
+  CardContent,
+  Chip,
+  Grid,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import { CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
@@ -30,12 +34,14 @@ import { TransactionDetail } from 'packages/web3/types';
 import Link from 'next/link';
 import BitcoinSVG from 'assets/chain/bitcoin.svg';
 import Image from 'next/image';
+import { GetImgSrcByCrypto } from 'utils/qrcode';
 
 type walletType = {
   id: number;
   address: string;
   type: string;
   balance: any;
+  txUrl: string;
   transactions: TransactionDetail[];
 };
 
@@ -106,6 +112,7 @@ const Bitcoin = () => {
               address: item.address,
               type: item.note,
               balance: item.balance,
+              txUrl: item.tx_url,
               transactions: item.transactions,
             });
           });
@@ -259,38 +266,58 @@ const Bitcoin = () => {
         </Stack>
 
         <Box mt={8}>
-          <Typography variant="h6">Transaction fee</Typography>
-          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-around'} mt={2}>
-            <Box>
-              <Typography>Minimum</Typography>
-              <Typography mt={2} fontWeight={'bold'}>
-                {feeObj?.minimum} sat/vB
-              </Typography>
-            </Box>
-            <Box>
-              <Typography>Economy</Typography>
-              <Typography mt={2} fontWeight={'bold'}>
-                {feeObj?.economy} sat/vB
-              </Typography>
-            </Box>
-            <Box>
-              <Typography>Hour</Typography>
-              <Typography mt={2} fontWeight={'bold'}>
-                {feeObj?.hour} sat/vB
-              </Typography>
-            </Box>
-            <Box>
-              <Typography>HalfHour</Typography>
-              <Typography mt={2} fontWeight={'bold'}>
-                {feeObj?.halfHour} sat/vB
-              </Typography>
-            </Box>
-            <Box>
-              <Typography>Fastest</Typography>
-              <Typography mt={2} fontWeight={'bold'}>
-                {feeObj?.fastest} sat/vB
-              </Typography>
-            </Box>
+          <Typography variant="h6">Transaction Fee</Typography>
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-around'} mt={4} textAlign={'center'}>
+            <Card>
+              <CardContent>
+                <Box px={6}>
+                  <Typography>Minimum</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {feeObj?.minimum} sat/vB
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <Box px={6}>
+                  <Typography>Economy</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {feeObj?.economy} sat/vB
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <Box px={6}>
+                  <Typography>Hour</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {feeObj?.hour} sat/vB
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <Box px={6}>
+                  <Typography>HalfHour</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {feeObj?.halfHour} sat/vB
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <Box px={6}>
+                  <Typography>Fastest</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {feeObj?.fastest} sat/vB
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
           </Stack>
         </Box>
 
@@ -552,21 +579,50 @@ const Bitcoin = () => {
                   <Box key={index} mb={10}>
                     <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                       <Box>
-                        <Typography fontWeight={'bold'} fontSize={14}>
+                        <Typography fontWeight={'bold'} fontSize={18}>
                           {item.type}
                         </Typography>
-                        <Typography mt={1}>{item.address}</Typography>
-                        {item.balance &&
-                          Object.entries(item.balance).map(([coin, amount], balanceIndex) => (
-                            <Typography mt={1} fontWeight={'bold'} key={balanceIndex}>
-                              {amount as string} {coin}
-                            </Typography>
-                          ))}
+                        <Box mt={2}>
+                          <Chip
+                            icon={<AccountCircle />}
+                            label={item.address}
+                            component="a"
+                            variant="outlined"
+                            clickable
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(item.address);
+
+                              setSnackMessage('Successfully copy');
+                              setSnackSeverity('success');
+                              setSnackOpen(true);
+                            }}
+                          />
+                        </Box>
+
+                        <Grid mt={2} container gap={2}>
+                          {item.balance &&
+                            Object.entries(item.balance).map(([coin, amount], balanceIndex) => (
+                              <Grid item key={balanceIndex}>
+                                <Chip
+                                  size={'medium'}
+                                  label={String(amount) + ' ' + coin}
+                                  icon={
+                                    <Image src={GetImgSrcByCrypto(coin as COINS)} alt="logo" width={20} height={20} />
+                                  }
+                                  variant={'outlined'}
+                                />
+                              </Grid>
+                            ))}
+                        </Grid>
                       </Box>
                       <Box>
+                        <Button style={{ marginRight: 10 }} variant={'outlined'} href={item.txUrl} target={'_blank'}>
+                          Check transactions
+                        </Button>
                         <Button
                           href={GetBlockchainAddressUrl(getNetwork() === 'mainnet' ? true : false, item.address)}
                           target={'_blank'}
+                          variant={'outlined'}
                         >
                           Check onChain
                         </Button>

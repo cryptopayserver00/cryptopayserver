@@ -337,9 +337,9 @@ export class BSC {
 
       if (gasPrice && gasPrice.gt(0)) {
         return {
-          slow: gasPrice.toString(),
-          normal: gasPrice.mul(150).div(100).toString(),
-          fast: gasPrice.mul(2).toString(),
+          slow: gasPrice.mul(0.95).toString(),
+          normal: gasPrice.toString(),
+          fast: gasPrice.mul(1.2).toString(),
         };
       }
 

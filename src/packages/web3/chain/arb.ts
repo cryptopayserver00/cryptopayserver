@@ -280,9 +280,9 @@ export class ARB {
 
       if (gasPrice && gasPrice.gt(0)) {
         return {
-          slow: gasPrice.toString(),
-          normal: gasPrice.mul(150).div(100).toString(),
-          fast: gasPrice.mul(2).toString(),
+          slow: gasPrice.mul(0.95).toString(),
+          normal: gasPrice.toString(),
+          fast: gasPrice.mul(1.2).toString(),
         };
       }
 
@@ -304,9 +304,9 @@ export class ARB {
 
       if (maxPriorityFeePerGas) {
         return {
-          slow: maxPriorityFeePerGas.toString(),
-          normal: maxPriorityFeePerGas.mul(150).div(100).toString(),
-          fast: maxPriorityFeePerGas.mul(2).toString(),
+          slow: maxPriorityFeePerGas.mul(0.95).toString(),
+          normal: maxPriorityFeePerGas.toString(),
+          fast: maxPriorityFeePerGas.mul(1.2).toString(),
         };
       }
 

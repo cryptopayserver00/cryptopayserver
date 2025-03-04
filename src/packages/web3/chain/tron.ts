@@ -269,6 +269,8 @@ export class TRON {
     address: string,
     symbol?: string,
   ): Promise<EthereumTransactionDetail[]> {
+    return []
+    
     try {
       symbol = symbol ? symbol : '';
 

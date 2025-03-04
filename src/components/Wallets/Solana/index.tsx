@@ -1,9 +1,13 @@
-import { Settings } from '@mui/icons-material';
+import { AccountCircle, Settings } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Card,
+  CardContent,
+  Chip,
   Container,
   FormControl,
+  Grid,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -22,7 +26,7 @@ import {
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
 import Link from 'next/link';
-import { CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { SolanaTransactionDetail } from 'packages/web3/types';
 import { useEffect, useState } from 'react';
 import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/solana';
@@ -30,12 +34,14 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import SolanaSVG from 'assets/chain/solana.svg';
 import Image from 'next/image';
+import { GetImgSrcByCrypto } from 'utils/qrcode';
 
 type walletType = {
   id: number;
   address: string;
   type: string;
   balance: any;
+  txUrl: string;
   transactions: SolanaTransactionDetail[];
 };
 
@@ -80,6 +86,7 @@ const Solana = () => {
               address: item.address,
               type: item.note,
               balance: item.balance,
+              txUrl: item.tx_url,
               transactions: item.transactions,
             });
           });
@@ -194,6 +201,16 @@ const Solana = () => {
               </Button>
             </Box>
             <Box>
+              <Button
+                variant={'contained'}
+                onClick={() => {
+                  window.location.href = '/wallets/security/privatekey';
+                }}
+              >
+                Private Key
+              </Button>
+            </Box>
+            <Box>
               <Button variant={'contained'} onClick={onClickRescanAddress}>
                 Rescan address
               </Button>
@@ -270,21 +287,50 @@ const Solana = () => {
                 wallet.length > 0 &&
                 wallet.map((item, index) => (
                   <Box key={index} mb={10}>
-                    <Stack direction={'row'} justifyContent={'space-between'}>
+                    <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
                       <Box>
                         <Typography fontWeight={'bold'} fontSize={18}>
                           {item.type}
                         </Typography>
-                        <Typography mt={1}>{item.address}</Typography>
-                        {item.balance &&
-                          Object.entries(item.balance).map(([coin, amount], balanceIndex) => (
-                            <Typography mt={1} fontWeight={'bold'} key={balanceIndex}>
-                              {amount as string} {coin}
-                            </Typography>
-                          ))}
+                        <Box mt={2}>
+                          <Chip
+                            icon={<AccountCircle />}
+                            label={item.address}
+                            component="a"
+                            variant="outlined"
+                            clickable
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(item.address);
+
+                              setSnackMessage('Successfully copy');
+                              setSnackSeverity('success');
+                              setSnackOpen(true);
+                            }}
+                          />
+                        </Box>
+
+                        <Grid mt={2} container gap={2}>
+                          {item.balance &&
+                            Object.entries(item.balance).map(([coin, amount], balanceIndex) => (
+                              <Grid item key={balanceIndex}>
+                                <Chip
+                                  size={'medium'}
+                                  label={String(amount) + ' ' + coin}
+                                  icon={
+                                    <Image src={GetImgSrcByCrypto(coin as COINS)} alt="logo" width={20} height={20} />
+                                  }
+                                  variant={'outlined'}
+                                />
+                              </Grid>
+                            ))}
+                        </Grid>
                       </Box>
                       <Box>
+                        <Button style={{ marginRight: 10 }} variant={'outlined'} href={item.txUrl} target={'_blank'}>
+                          Check transactions
+                        </Button>
                         <Button
+                          variant={'outlined'}
                           href={GetBlockchainAddressUrl(getNetwork() === 'mainnet' ? true : false, item.address)}
                           target={'_blank'}
                         >

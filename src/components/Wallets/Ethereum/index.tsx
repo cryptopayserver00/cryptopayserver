@@ -1,9 +1,13 @@
-import { Settings } from '@mui/icons-material';
+import { AccountCircle, ContentCopy, Settings, Wallet } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Card,
+  CardContent,
+  Chip,
   Container,
   FormControl,
+  Grid,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -15,7 +19,7 @@ import {
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
 import Image from 'next/image';
-import { CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { EthereumTransactionDetail } from 'packages/web3/types';
 import { useEffect, useState } from 'react';
 import { GetBlockchainAddressUrl } from 'utils/chain/eth';
@@ -24,6 +28,7 @@ import { Http } from 'utils/http/http';
 import { WeiToGwei } from 'utils/number';
 import EthereumSVG from 'assets/chain/ethereum.svg';
 import TransactionsTab from 'components/Tab/TransactionTab';
+import { GetImgSrcByCrypto } from 'utils/qrcode';
 
 type walletType = {
   id: number;
@@ -226,6 +231,16 @@ const Ethereum = () => {
               </Button>
             </Box>
             <Box>
+              <Button
+                variant={'contained'}
+                onClick={() => {
+                  window.location.href = '/wallets/security/privatekey';
+                }}
+              >
+                Private Key
+              </Button>
+            </Box>
+            <Box>
               <Button variant={'contained'} onClick={onClickRescanAddress}>
                 Rescan address
               </Button>
@@ -242,25 +257,39 @@ const Ethereum = () => {
 
         <Box mt={8}>
           <Typography variant="h6">Ethereum Gas Tracker</Typography>
-          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-around'} mt={2}>
-            <Box>
-              <Typography>Low</Typography>
-              <Typography mt={2} fontWeight={'bold'}>
-                {WeiToGwei(feeObj?.low as number)} Gwei
-              </Typography>
-            </Box>
-            <Box>
-              <Typography>Average</Typography>
-              <Typography mt={2} fontWeight={'bold'}>
-                {WeiToGwei(feeObj?.average as number)} Gwei
-              </Typography>
-            </Box>
-            <Box>
-              <Typography>High</Typography>
-              <Typography mt={2} fontWeight={'bold'}>
-                {WeiToGwei(feeObj?.high as number)} Gwei
-              </Typography>
-            </Box>
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-around'} mt={4} textAlign={'center'}>
+            <Card>
+              <CardContent>
+                <Box px={10}>
+                  <Typography>Low</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {WeiToGwei(Number(feeObj?.low)).toFixed(3)} gwei
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <Box px={10}>
+                  <Typography>Average</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {WeiToGwei(Number(feeObj?.average)).toFixed(3)} gwei
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <Box px={10}>
+                  <Typography>High</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {WeiToGwei(Number(feeObj?.high)).toFixed(3)} gwei
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
           </Stack>
         </Box>
 
@@ -358,18 +387,43 @@ const Ethereum = () => {
                 wallet.length > 0 &&
                 wallet.map((item, index) => (
                   <Box key={index} mb={10}>
-                    <Stack direction={'row'} justifyContent={'space-between'}>
+                    <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
                       <Box>
                         <Typography fontWeight={'bold'} fontSize={18}>
                           {item.type}
                         </Typography>
-                        <Typography mt={1}>{item.address}</Typography>
-                        {item.balance &&
-                          Object.entries(item.balance).map(([coin, amount], balanceIndex) => (
-                            <Typography mt={1} fontWeight={'bold'} key={balanceIndex}>
-                              {amount as string} {coin}
-                            </Typography>
-                          ))}
+                        <Box mt={2}>
+                          <Chip
+                            icon={<AccountCircle />}
+                            label={item.address}
+                            component="a"
+                            variant="outlined"
+                            clickable
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(item.address);
+
+                              setSnackMessage('Successfully copy');
+                              setSnackSeverity('success');
+                              setSnackOpen(true);
+                            }}
+                          />
+                        </Box>
+
+                        <Grid mt={2} container gap={2}>
+                          {item.balance &&
+                            Object.entries(item.balance).map(([coin, amount], balanceIndex) => (
+                              <Grid item key={balanceIndex}>
+                                <Chip
+                                  size={'medium'}
+                                  label={String(amount) + ' ' + coin}
+                                  icon={
+                                    <Image src={GetImgSrcByCrypto(coin as COINS)} alt="logo" width={20} height={20} />
+                                  }
+                                  variant={'outlined'}
+                                />
+                              </Grid>
+                            ))}
+                        </Grid>
                       </Box>
                       <Box>
                         <Button style={{ marginRight: 10 }} variant={'outlined'} href={item.txUrl} target={'_blank'}>
