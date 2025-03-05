@@ -167,7 +167,7 @@ export default function TransactionDataGrid(props: GridType) {
     }
 
     setTxCount(rows.length);
-  }, [rows]);
+  }, [txCount, rows, setSnackSeverity, setSnackMessage, setSnackOpen]);
 
   useEffect(() => {
     const activeInit = setInterval(() => {

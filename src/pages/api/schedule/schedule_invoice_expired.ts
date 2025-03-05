@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'GET':
-        console.log('Schduler Task: Checkout status of order');
+        console.log('Schedule Invoice Expired');
         const prisma = new PrismaClient();
         const now = new Date();
 
@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!invoices) {
-          return res.status(200).json({ message: '', result: true, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         invoices.forEach(async (item) => {
@@ -70,8 +70,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         return res.status(200).json({ message: '', result: true, data: null });
 
-      case 'POST':
-        break;
       default:
         throw 'no support the method of api';
     }

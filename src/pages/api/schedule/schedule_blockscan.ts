@@ -9,6 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'GET':
+        console.log('Schedule Blockscan');
         const prisma = new PrismaClient();
         const now = new Date();
 
@@ -20,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!invoices) {
-          return res.status(200).json({ message: '', result: true, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         // invoices.forEach(async (item) => {
