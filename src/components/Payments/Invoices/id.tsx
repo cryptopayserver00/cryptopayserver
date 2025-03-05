@@ -104,7 +104,7 @@ const PaymentInvoiceDetails = () => {
           fromAddress: response.data.from_address,
           toAddress: response.data.to_address,
           hash: response.data.hash,
-          blockTimestamp: response.data.block_timestamp,
+          blockTimestamp: Number(response.data.block_timestamp),
           network: response.data.network,
           chainId: response.data.chain_id,
         });

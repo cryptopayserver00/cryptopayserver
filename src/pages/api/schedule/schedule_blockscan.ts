@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { ORDER_STATUS } from 'packages/constants';
 import { PrismaClient } from '@prisma/client';
+import { BLOCKSCAN } from 'packages/web3/block_scan';
+import { WEB3 } from 'packages/web3';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -24,58 +26,71 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        // invoices.forEach(async (item) => {
-        //   const node_own_transactions = await prisma.node_own_transactions.findFirst({
-        //     where: {
-        //       address: item.destination_address,
-        //       transact_type: 'receive',
-        //       token: item.crypto,
-        //       amount: item.crypto_amount.toString(),
-        //       block_timestamp: {
-        //         gte: item.created_at.getTime(),
-        //       },
-        //       status: 1,
-        //     },
-        //   });
+        for (const item of invoices) {
+          const txs = await BLOCKSCAN.getTransactionsByChainAndAddress(
+            WEB3.getChainIds(Number(item.network) === 1 ? true : false, Number(item.chain_id)).toString(),
+            item.destination_address,
+          );
 
-        //   if (node_own_transactions) {
-        //     const invoice = await prisma.invoices.update({
-        //       data: {
-        //         order_status: ORDER_STATUS.Settled,
-        //         paid: 1,
-        //         match_tx_id: node_own_transactions.id,
-        //       },
-        //       where: {
-        //         id: item.id,
-        //         order_status: ORDER_STATUS.Processing,
-        //         status: 1,
-        //       },
-        //     });
+          if (!txs) {
+            continue;
+          }
 
-        //     if (invoice) {
-        //       let invoice_events = await prisma.invoice_events.createMany({
-        //         data: [
-        //           {
-        //             invoice_id: item.id,
-        //             order_id: item.order_id,
-        //             message: `Monitor the transaction hash: ${node_own_transactions.hash}`,
-        //             status: 1,
-        //           },
-        //           {
-        //             invoice_id: item.id,
-        //             order_id: item.order_id,
-        //             message: `Invoice status is Settled`,
-        //             status: 1,
-        //           },
-        //         ],
-        //       });
+          if (txs.transactions && txs.transactions.length > 0) {
+            for (const txItem of txs.transactions) {
+              if (
+                String(txItem.address).toLowerCase() === String(item.destination_address).toLowerCase() &&
+                String(txItem.transact_type) === 'receive' &&
+                String(txItem.token) === String(item.crypto) &&
+                Number(txItem.amount) === Number(item.crypto_amount) &&
+                new Date(txItem.block_timestamp).getTime() > item.created_at.getTime()
+              ) {
+                const invoice = await prisma.invoices.update({
+                  data: {
+                    hash: txItem.hash,
+                    from_address: txItem.from_address,
+                    to_address: txItem.to_address,
+                    order_status: ORDER_STATUS.Settled,
+                    block_timestamp: txItem.block_timestamp,
+                    paid: 1,
+                  },
+                  where: {
+                    id: item.id,
+                    order_status: ORDER_STATUS.Processing,
+                    status: 1,
+                  },
+                });
 
-        //       if (!invoice_events) {
-        //         return res.status(200).json({ message: '', result: false, data: null });
-        //       }
-        //     }
-        //   }
-        // });
+                if (!invoice) {
+                  continue;
+                }
+
+                let invoice_events = await prisma.invoice_events.createMany({
+                  data: [
+                    {
+                      invoice_id: item.id,
+                      order_id: item.order_id,
+                      message: `Monitor the transaction hash: ${txItem.hash}`,
+                      status: 1,
+                    },
+                    {
+                      invoice_id: item.id,
+                      order_id: item.order_id,
+                      message: `Invoice status is Settled`,
+                      status: 1,
+                    },
+                  ],
+                });
+
+                if (!invoice_events) {
+                  continue;
+                }
+
+                break;
+              }
+            }
+          }
+        }
 
         return res.status(200).json({ message: '', result: true, data: null });
 

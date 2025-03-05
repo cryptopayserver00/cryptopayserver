@@ -150,6 +150,10 @@ model invoices {
   notification_email String?
   match_tx_id Int?
   external_payment_id BigInt
+  hash String?
+  from_address String?
+  to_address String?
+  block_timestamp BigInt?
   source_type String
   status Int
   created_at DateTime @default(now())
