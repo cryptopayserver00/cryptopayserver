@@ -313,7 +313,6 @@ export class TON {
 
       // const deploy = wallet.deploy(Buffer.from(request.privateKey)); // deploy method
       // /*  */
-      // console.log(111);
       // const deployFee = await deploy.estimateFee(); // get estimate fee of deploy
       // console.log(deployFee);
 

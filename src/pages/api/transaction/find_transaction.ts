@@ -51,8 +51,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const formattedAddresses = addresses.map((item) => `${item.address}`).join(',');
 
-        console.log(111, formattedAddresses);
-
         let txs = await BLOCKSCAN.getTransactionsByChainAndAddress(
           chainId
             ? WEB3.getChainIds(Number(network) === 1 ? true : false, Number(chainId)).toString()

@@ -43,6 +43,7 @@ export default function TransactionDataGrid(props: GridType) {
 
   const [open, setOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState<RowType>();
+  const [txCount, setTxCount] = useState<number>(0);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -159,7 +160,21 @@ export default function TransactionDataGrid(props: GridType) {
   };
 
   useEffect(() => {
-    init(Number(props.chain), Number(props.storeId), props.network, props.address);
+    if (txCount !== 0 && rows.length > txCount) {
+      setSnackSeverity('info');
+      setSnackMessage('A new transaction has been found');
+      setSnackOpen(true);
+    }
+
+    setTxCount(rows.length);
+  }, [rows]);
+
+  useEffect(() => {
+    const activeInit = setInterval(() => {
+      init(Number(props.chain), Number(props.storeId), props.network, props.address);
+    }, 10 * 1000);
+
+    return () => clearInterval(activeInit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.chain, props.storeId, props.network, props.address]);
 
