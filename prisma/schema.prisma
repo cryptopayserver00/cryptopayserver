@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,364 +7,341 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// address books
 model address_books {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  chain_id Int
-  name String
-  address String
-  network Int
-  status Int
-  created_at DateTime @default(now()) 
-  updated_at DateTime @updatedAt 
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  store_id   Int
+  chain_id   Int
+  name       String
+  address    String
+  network    Int
+  status     Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
-// addresses
 model addresses {
-  id Int @id @default(autoincrement())
-  user_id Int
-  wallet_id Int
-  address String
-  private_key String @db.LongText
-  note String
-  chain_id Int
-  network Int
-  status Int
-  created_at DateTime @default(now()) 
-  updated_at DateTime @updatedAt 
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  wallet_id   Int
+  address     String
+  private_key String   @db.LongText
+  note        String
+  chain_id    Int
+  network     Int
+  status      Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }
 
-// api key settings
 model api_key_settings {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  label String
-  api_key String
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  store_id    Int
+  label       String
+  api_key     String
   permissions String
-  status Int
-  created_at DateTime @default(now()) 
-  updated_at DateTime @updatedAt 
+  status      Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }
 
-// checkout settings
 model checkout_settings {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  show_payment_confetti Int
-  show_sound Int
+  id                        Int      @id @default(autoincrement())
+  user_id                   Int
+  store_id                  Int
+  show_payment_confetti     Int
+  show_sound                Int
   show_pay_in_wallet_button Int
-  show_detect_language Int
-  language String
-  custom_html_title String
-  support_url String
-  show_payment_method Int
-  show_redirect_url Int
-  show_public_receipt_page Int
-  show_payment_list Int
-  show_qrcode_receipt Int
-  show_header Int
-  status Int
-  created_at DateTime @default(now()) 
-  updated_at DateTime @updatedAt 
+  show_detect_language      Int
+  language                  String
+  custom_html_title         String
+  support_url               String
+  show_payment_method       Int
+  show_redirect_url         Int
+  show_public_receipt_page  Int
+  show_payment_list         Int
+  show_qrcode_receipt       Int
+  show_header               Int
+  status                    Int
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
 }
 
-// crowdfunds
 model crowdfunds {
-  id Int @id @default(autoincrement())
-  created_at DateTime @default(now()) 
-  updated_at DateTime @updatedAt 
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
-// email rule settings
 model email_rule_settings {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  tigger Int
-  recipients String
+  id                 Int      @id @default(autoincrement())
+  user_id            Int
+  store_id           Int
+  tigger             Int
+  recipients         String
   show_send_to_buyer Int
-  subject String
-  body String @db.LongText
-  status Int
-  created_at DateTime @default(now()) 
-  updated_at DateTime @updatedAt 
+  subject            String
+  body               String   @db.LongText
+  status             Int
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
 }
 
-// email settings
 model email_settings {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  smtp_server String
-  port Int
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  store_id     Int
+  smtp_server  String
+  port         Int
   sender_email String
-  login String
-  password String
-  show_tls Int
-  status Int
-  created_at DateTime @default(now()) 
-  updated_at DateTime @updatedAt 
+  login        String
+  password     String
+  show_tls     Int
+  status       Int
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 }
 
-// invoice events
 model invoice_events {
-  id Int @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   invoice_id Int
-  order_id BigInt
-  message String @db.LongText
-  status Int
-  created_at DateTime @default(now()) 
-  updated_at DateTime @updatedAt 
+  order_id   BigInt
+  message    String   @db.LongText
+  status     Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
-// invoices
 model invoices {
-  id Int @id @default(autoincrement())
-  store_id Int
-  chain_id Int
-  network Int
-  order_id BigInt @unique
-  currency String
-  amount Float
-  crypto String
-  crypto_amount Float
-  rate Float
-  description String? @db.LongText
-  buyer_email String?
-  order_status String
-  payment_method String?
+  id                  Int      @id @default(autoincrement())
+  store_id            Int
+  chain_id            Int
+  network             Int
+  order_id            BigInt   @unique
+  currency            String
+  amount              Float
+  crypto              String
+  crypto_amount       Float
+  rate                Float
+  description         String?  @db.LongText
+  buyer_email         String?
+  order_status        String
+  payment_method      String?
   destination_address String
-  paid Int
-  metadata String? @db.LongText
-  notification_url String?
-  notification_email String?
-  match_tx_id Int?
+  paid                Int
+  metadata            String?  @db.LongText
+  notification_url    String?
+  notification_email  String?
+  match_tx_id         Int?
   external_payment_id BigInt
-  hash String?
-  from_address String?
-  to_address String?
-  block_timestamp BigInt?
-  source_type String
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  expiration_at DateTime @updatedAt
+  source_type         String
+  status              Int
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  expiration_at       DateTime @updatedAt
+  hash                String?
+  from_address        String?
+  to_address          String?
+  block_timestamp     BigInt?
 }
 
-// notification settings
 model notification_settings {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
+  id            Int      @id @default(autoincrement())
+  user_id       Int
+  store_id      Int
   notifications String
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  status        Int
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 }
 
-// notification
 model notifications {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  network Int
-  label String
-  message String @db.LongText
-  url String
-  is_seen Int
-  status Int
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  store_id   Int
+  network    Int
+  label      String
+  message    String   @db.LongText
+  url        String
+  is_seen    Int
+  status     Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
 
-// pay buttons
 model pay_buttons {
-  id Int @id @default(autoincrement())
-  status Int
+  id         Int      @id @default(autoincrement())
+  status     Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
 
-// payment requests
 model payment_requests {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  network Int
-  payment_request_id BigInt @unique
-  title String
-  amount Float
-  currency String
+  id                       Int      @id @default(autoincrement())
+  user_id                  Int
+  store_id                 Int
+  network                  Int
+  payment_request_id       BigInt   @unique
+  title                    String
+  amount                   Float
+  currency                 String
   show_allow_custom_amount Int
-  email String
-  request_customer_data String
-  memo String @db.LongText
-  payment_request_status String
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  expiration_at DateTime @updatedAt
+  email                    String
+  request_customer_data    String
+  memo                     String   @db.LongText
+  payment_request_status   String
+  status                   Int
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
+  expiration_at            DateTime @updatedAt
 }
 
-// payment settings
 model payment_settings {
-  id Int @id @default(autoincrement())
-  user_id Int
-  chain_id Int
-  store_id Int
-  payment_expire Int
-  confirm_block Int
-  show_recommended_fee Int
+  id                      Int      @id @default(autoincrement())
+  user_id                 Int
+  chain_id                Int
+  store_id                Int
+  payment_expire          Int
+  confirm_block           Int
+  show_recommended_fee    Int
   current_used_address_id Int
-  network Int
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  network                 Int
+  status                  Int
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
 }
 
-// payout settings
 model payout_settings {
-  id Int @id @default(autoincrement())
-  user_id Int
-  chain_id Int
-  store_id Int
+  id                          Int      @id @default(autoincrement())
+  user_id                     Int
+  chain_id                    Int
+  store_id                    Int
   show_approve_payout_process Int
-  interval Int
-  fee_block_target Int
-  threshold Int
-  network Int
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  interval                    Int
+  fee_block_target            Int
+  threshold                   Int
+  network                     Int
+  status                      Int
+  created_at                  DateTime @default(now())
+  updated_at                  DateTime @updatedAt
 }
 
-// payouts
 model payouts {
-  id Int @id @default(autoincrement())
-  user_id Int
-  chain_id Int
-  store_id Int
-  payout_id BigInt @unique
+  id                  Int      @id @default(autoincrement())
+  user_id             Int
+  chain_id            Int
+  store_id            Int
+  payout_id           BigInt   @unique
   external_payment_id BigInt
-  address String
-  source_type String
-  currency String
-  amount Float
-  crypto String
-  crypto_amount Float?
-  payout_status String
-  tx String?
-  network Int
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  address             String
+  source_type         String
+  currency            String
+  amount              Float
+  crypto              String
+  crypto_amount       Float?
+  payout_status       String
+  tx                  String?
+  network             Int
+  status              Int
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
 }
 
-// point of sales
 model point_of_sales {
-  id Int @id @default(autoincrement())
-  status Int
+  id         Int      @id @default(autoincrement())
+  status     Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
 
-// pull payments
 model pull_payments {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  network Int
-  pull_payment_id BigInt @unique
-  name String
-  amount Float
-  currency String
+  id                      Int      @id @default(autoincrement())
+  user_id                 Int
+  store_id                Int
+  network                 Int
+  pull_payment_id         BigInt   @unique
+  name                    String
+  amount                  Float
+  currency                String
   show_auto_approve_claim Int
-  payout_method String?
-  description String @db.LongText
-  pull_payment_status String
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  expiration_at DateTime @updatedAt
+  payout_method           String?
+  description             String   @db.LongText
+  pull_payment_status     String
+  status                  Int
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  expiration_at           DateTime @updatedAt
 }
 
-// shopify settings
 model shopify_settings {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  shop_name String
-  api_key String
+  id                     Int      @id @default(autoincrement())
+  user_id                Int
+  store_id               Int
+  shop_name              String
+  api_key                String
   admin_api_access_token String
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  status                 Int
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
 }
 
-// stores
 model stores {
-  id Int @id @default(autoincrement())
-  user_id Int
-  name String
-  currency String
-  price_source String
-  brand_color String
-  logo_url String
-  website String
-  custom_css_url String
-  allow_anyone_create_invoice Int
-  add_additional_fee_to_invoice Int
+  id                                      Int      @id @default(autoincrement())
+  user_id                                 Int
+  name                                    String
+  currency                                String
+  price_source                            String
+  brand_color                             String
+  logo_url                                String
+  website                                 String
+  custom_css_url                          String
+  allow_anyone_create_invoice             Int
+  add_additional_fee_to_invoice           Int
   invoice_expires_if_not_paid_full_amount Int
-  invoice_paid_less_than_precent Int
-  minimum_expiraion_time_for_refund Int
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  invoice_paid_less_than_precent          Int
+  minimum_expiraion_time_for_refund       Int
+  status                                  Int
+  created_at                              DateTime @default(now())
+  updated_at                              DateTime @updatedAt
 }
 
-// users
 model users {
-  id Int @id @default(autoincrement())
-  email String @unique
-  password String
-  username String
+  id                  Int      @id @default(autoincrement())
+  email               String   @unique
+  password            String
+  username            String
   profile_picture_url String
-  authenticator String
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  authenticator       String
+  status              Int
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
 }
 
-// wallets
 model wallets {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  name String
-  mnemonic String
-  is_backup Int
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  store_id    Int
+  name        String
+  mnemonic    String
+  is_backup   Int
   is_generate Int
-  password String
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  password    String
+  status      Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }
 
-// webhook settings
 model webhook_settings {
-  id Int @id @default(autoincrement())
-  user_id Int
-  store_id Int
-  payload_url String
-  secret String
+  id                   Int      @id @default(autoincrement())
+  user_id              Int
+  store_id             Int
+  payload_url          String
+  secret               String
   automatic_redelivery Int
-  enabled Int
-  event_type Int
-  status Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  enabled              Int
+  event_type           Int
+  status               Int
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
 }
