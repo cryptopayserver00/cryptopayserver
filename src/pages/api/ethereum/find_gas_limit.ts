@@ -18,15 +18,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         let value = req.query.value;
 
         if (!to || to === '') {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         if (!value || value === '') {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         if (!coin || coin === '') {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         const token = FindTokenByChainIdsAndSymbol(

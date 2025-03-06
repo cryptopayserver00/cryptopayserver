@@ -19,6 +19,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const notifications = await prisma.notifications.findMany({
           where: findData,
+          orderBy: {
+            id: 'desc',
+          },
         });
 
         if (!notifications) {
@@ -27,8 +30,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         return res.status(200).json({ message: '', result: true, data: notifications });
 
-      case 'POST':
-        break;
       default:
         throw 'no support the method of api';
     }

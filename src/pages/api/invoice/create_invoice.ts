@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { GenerateOrderIDByTime } from 'utils/number';
-import { INVOICE_SOURCE_TYPE, ORDER_STATUS } from 'packages/constants';
+import { INVOICE_SOURCE_TYPE, NOTIFICATION_TYPE, ORDER_STATUS } from 'packages/constants';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (!payment_setting) {
           return res.status(200).json({
-            message: 'something wrong',
+            message: '',
             result: false,
             data: null,
           });
@@ -61,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (!address) {
           return res.status(200).json({
-            message: 'something wrong',
+            message: '',
             result: false,
             data: null,
           });
@@ -77,6 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const invoice = await prisma.invoices.create({
           data: {
+            user_id: userId,
             store_id: storeId,
             chain_id: chainId,
             network: network,
@@ -103,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (!invoice) {
           return res.status(200).json({
-            message: 'something wrong',
+            message: '',
             result: false,
             data: null,
           });
@@ -141,7 +142,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (!invoice_events) {
           return res.status(200).json({
-            message: 'something wrong',
+            message: '',
+            result: false,
+            data: null,
+          });
+        }
+
+        // create notification
+        const notification = await prisma.notifications.create({
+          data: {
+            user_id: userId,
+            store_id: storeId,
+            network: network,
+            label: NOTIFICATION_TYPE.Invoice,
+            message: `You have a new invoice in progress: ${orderId}`,
+            url: `/payments/invoices/${orderId}`,
+            is_seen: 2,
+            status: 1,
+          },
+        });
+
+        if (!notification) {
+          return res.status(200).json({
+            message: '',
             result: false,
             data: null,
           });

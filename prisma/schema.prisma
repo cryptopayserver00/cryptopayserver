@@ -115,6 +115,7 @@ model invoice_events {
 
 model invoices {
   id                  Int      @id @default(autoincrement())
+  user_id             Int?
   store_id            Int
   chain_id            Int
   network             Int

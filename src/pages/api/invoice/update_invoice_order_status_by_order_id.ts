@@ -28,7 +28,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
           });
 
           if (!invoice) {
-            return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+            return res.status(200).json({ message: '', result: false, data: null });
           }
 
           let invoiceEventMessage = `Invoice ${orderId} new event: invoice_invalid`;

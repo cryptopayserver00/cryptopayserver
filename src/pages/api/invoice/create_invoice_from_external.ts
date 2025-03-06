@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (!payment_setting) {
           return res.status(200).json({
-            message: 'something wrong',
+            message: '',
             result: false,
             data: null,
           });
@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (!address) {
           return res.status(200).json({
-            message: 'something wrong',
+            message: '',
             result: false,
             data: null,
           });
@@ -102,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (!invoice) {
           return res.status(200).json({
-            message: 'something wrong',
+            message: '',
             result: false,
             data: null,
           });

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { ORDER_STATUS } from 'packages/constants';
+import { NOTIFICATION_TYPE, ORDER_STATUS } from 'packages/constants';
 import { PrismaClient } from '@prisma/client';
 import { BLOCKSCAN } from 'packages/web3/block_scan';
 import { WEB3 } from 'packages/web3';
@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   continue;
                 }
 
-                let invoice_events = await prisma.invoice_events.createMany({
+                const invoice_events = await prisma.invoice_events.createMany({
                   data: [
                     {
                       invoice_id: item.id,
@@ -83,6 +83,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 });
 
                 if (!invoice_events) {
+                  continue;
+                }
+
+                // create settled notification
+                const notification = await prisma.notifications.create({
+                  data: {
+                    user_id: Number(item.user_id),
+                    store_id: item.store_id,
+                    network: item.network,
+                    label: NOTIFICATION_TYPE.Invoice,
+                    message: `You have a transaction completed: ${item.order_id}`,
+                    url: `/payments/invoices/${item.order_id}`,
+                    is_seen: 2,
+                    status: 1,
+                  },
+                });
+
+                if (!notification) {
                   continue;
                 }
 

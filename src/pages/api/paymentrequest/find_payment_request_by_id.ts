@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!payment_requests) {
-          return res.status(200).json({ message: 'Something wrong', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
         return res.status(200).json({
