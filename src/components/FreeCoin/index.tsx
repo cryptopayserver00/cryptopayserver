@@ -6,7 +6,12 @@ import {
   Button,
   Card,
   CardContent,
+  Chip,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   Grid,
   Icon,
@@ -16,7 +21,7 @@ import {
   Typography,
 } from '@mui/material';
 import Image from 'next/image';
-import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from 'packages/constants/blockchain';
+import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINS, COIN } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { FindChainNamesByChains, GetBlockchainTxUrlByChainIds } from 'utils/web3';
@@ -128,11 +133,21 @@ type SelectType = {
   onClickCoin: (item: COIN, address: string, amount: number) => Promise<void>;
 };
 
+type RowType = {
+  id: number;
+  chainId: number;
+  isMainnet: boolean;
+  name: string;
+  address: string;
+};
+
 const SelectChainAndCrypto = (props: SelectType) => {
   const [expanded, setExpanded] = useState<string | false>(false);
   const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>([]);
   const [selectCoinItem, setSelectCoinItem] = useState<COIN>();
+  const [rows, setRows] = useState<RowType[]>([]);
 
+  const [open, setOpen] = useState<boolean>(false);
   const [address, setAddress] = useState<string>('');
   const [amount, setAmount] = useState<number>(0);
 
@@ -144,6 +159,43 @@ const SelectChainAndCrypto = (props: SelectType) => {
     const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
     setBlcokchain(value);
   }, [props.network]);
+
+  const handleOpen = async (chainId: number) => {
+    try {
+      const response: any = await axios.get(Http.find_address_book, {
+        params: {
+          network: props.network,
+          chain_id: chainId,
+        },
+      });
+      if (response.result && response.data.length > 0) {
+        let rt: RowType[] = [];
+        response.data.forEach((item: any) => {
+          rt.push({
+            id: item.id,
+            chainId: item.chain_id,
+            isMainnet: item.network === 1 ? true : false,
+            name: item.name,
+            address: item.address,
+          });
+        });
+
+        setRows(rt);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setAddress('');
+    setAmount(0);
+    setRows([]);
+
+    setOpen(false);
+  };
 
   return (
     <Box>
@@ -160,7 +212,9 @@ const SelectChainAndCrypto = (props: SelectType) => {
           blockchain.map((item, index) => (
             <Accordion expanded={expanded === item.name} onChange={handleChange(item.name)} key={index}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1bh-content">
-                <Typography sx={{ width: '33%', flexShrink: 0 }}>{item.name}</Typography>
+                <Typography sx={{ width: '33%', flexShrink: 0 }} fontWeight={'bold'}>
+                  {item.name.toUpperCase()}
+                </Typography>
                 <Typography sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
               </AccordionSummary>
               {item.coins &&
@@ -171,6 +225,8 @@ const SelectChainAndCrypto = (props: SelectType) => {
                       fullWidth
                       onClick={async () => {
                         setSelectCoinItem(coinItem);
+
+                        await handleOpen(coinItem.chainId);
                       }}
                     >
                       <Image src={coinItem.icon} alt="icon" width={50} height={50} />
@@ -182,7 +238,89 @@ const SelectChainAndCrypto = (props: SelectType) => {
           ))}
       </Box>
 
-      {selectCoinItem && (
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        fullWidth
+      >
+        <DialogTitle id="alert-dialog-title">Claim free funds</DialogTitle>
+        <DialogContent>
+          <Box mb={2}>
+            <FormControl variant="outlined" fullWidth size={'small'}>
+              <OutlinedInput
+                type="text"
+                endAdornment={
+                  <InputAdornment position="end">
+                    {FindChainNamesByChains(selectCoinItem?.chainId as CHAINS)}
+                  </InputAdornment>
+                }
+                aria-describedby="outlined-weight-helper-text"
+                inputProps={{
+                  'aria-label': 'weight',
+                }}
+                value={address}
+                onChange={(e: any) => {
+                  setAddress(e.target.value);
+                }}
+                placeholder="Enter your address"
+              />
+            </FormControl>
+          </Box>
+
+          <Box>
+            {rows &&
+              rows.length > 0 &&
+              rows.map((item, index) => (
+                <Box mb={2}>
+                  <Chip
+                    key={index}
+                    label={item.address}
+                    variant="outlined"
+                    onClick={() => {
+                      setAddress(item.address);
+                    }}
+                  />
+                </Box>
+              ))}
+          </Box>
+
+          <Box mb={2}>
+            <FormControl variant="outlined" fullWidth size={'small'}>
+              <OutlinedInput
+                type="number"
+                endAdornment={<InputAdornment position="end">{props.currency}</InputAdornment>}
+                aria-describedby="outlined-weight-helper-text"
+                inputProps={{
+                  'aria-label': 'weight',
+                }}
+                value={amount}
+                onChange={(e: any) => {
+                  setAmount(e.target.value);
+                }}
+                placeholder='Enter you amount'
+              />
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button variant={'outlined'} onClick={handleClose}>
+            Close
+          </Button>
+          <Button
+            variant={'contained'}
+            onClick={async () => {
+              await props.onClickCoin(selectCoinItem as COIN, address, amount);
+              handleClose();
+            }}
+          >
+            Claim Funds
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* {selectCoinItem && (
         <Box mt={2}>
           <Card>
             <CardContent>
@@ -238,7 +376,7 @@ const SelectChainAndCrypto = (props: SelectType) => {
             </CardContent>
           </Card>
         </Box>
-      )}
+      )} */}
     </Box>
   );
 };

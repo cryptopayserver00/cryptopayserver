@@ -9,15 +9,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'GET':
         const prisma = new PrismaClient();
-        const storeId = req.query.store_id;
-        const network = req.query.network;
+
+        let findData: { [key: string]: any } = {};
+
+        if (req.query.store_id !== undefined) findData.store_id = Number(req.query.store_id);
+        if (req.query.network !== undefined) findData.network = Number(req.query.network);
+        if (req.query.chain_id !== undefined) findData.chain_id = Number(req.query.chain_id);
+        findData.status = 1;
 
         const address_books = await prisma.address_books.findMany({
-          where: {
-            store_id: Number(storeId),
-            network: Number(network),
-            status: 1,
-          },
+          where: findData,
           orderBy: {
             id: 'desc',
           },
