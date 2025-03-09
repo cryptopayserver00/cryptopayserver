@@ -45,6 +45,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 Number(txItem.amount) === Number(item.crypto_amount) &&
                 new Date(txItem.block_timestamp).getTime() > item.created_at.getTime()
               ) {
+                // Does db have this hash of invoice
+                const same_invoice = await prisma.invoices.findFirst({
+                  where: {
+                    hash: txItem.hash,
+                    status: 1,
+                  },
+                });
+
+                if (same_invoice) {
+                  continue;
+                }
+
                 const invoice = await prisma.invoices.update({
                   data: {
                     hash: txItem.hash,
