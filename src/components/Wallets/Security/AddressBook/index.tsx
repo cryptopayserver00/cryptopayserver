@@ -116,6 +116,7 @@ const SecurityAddressBook = () => {
           name: name,
           address: address,
           chain_id: FindChainIdsByChainNames(network),
+          network: getNetwork() === 'mainnet' ? 1 : 2,
         });
 
         if (response.result) {
@@ -128,7 +129,7 @@ const SecurityAddressBook = () => {
           setSnackOpen(true);
         } else {
           setSnackSeverity('error');
-          setSnackMessage('Creation failed, please check the validity of the address');
+          setSnackMessage('creation failed, incorrect address or already exists');
           setSnackOpen(true);
         }
       } else {
@@ -151,7 +152,7 @@ const SecurityAddressBook = () => {
           setSnackOpen(true);
         } else {
           setSnackSeverity('error');
-          setSnackMessage('Creation failed, please check the validity of the address');
+          setSnackMessage('creation failed, incorrect address or already exists');
           setSnackOpen(true);
         }
       }

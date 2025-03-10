@@ -24,6 +24,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
+        const find_address_book = await prisma.address_books.findFirst({
+          where: {
+            user_id: userId,
+            store_id: storeId,
+            chain_id: chainId,
+            address: address,
+            network: network,
+            status: 1,
+          },
+        });
+
+        if (find_address_book) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        }
+
         const address_book = await prisma.address_books.create({
           data: {
             user_id: userId,

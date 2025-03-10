@@ -16,6 +16,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         if (req.body.name !== undefined) updateData.name = req.body.name;
         if (req.body.address !== undefined) updateData.address = req.body.address;
         if (req.body.chain_id !== undefined) updateData.chain_id = Number(req.body.chain_id);
+        if (req.body.network !== undefined) updateData.network = Number(req.body.network);
+
+        const find_address_books = await prisma.address_books.findMany({
+          where: {
+            chain_id: updateData.chain_id,
+            address: updateData.address,
+            network: updateData.network,
+            status: 1,
+          },
+        });
+
+        if (find_address_books.length >= 2) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        }
 
         const address_book = await prisma.address_books.update({
           data: updateData,
