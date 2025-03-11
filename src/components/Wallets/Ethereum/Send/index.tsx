@@ -1,9 +1,11 @@
 import {
   Box,
   Button,
+  Chip,
   Container,
   FormControl,
   FormControlLabel,
+  Grid,
   Icon,
   InputAdornment,
   OutlinedInput,
@@ -29,6 +31,7 @@ import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import Link from 'next/link';
 import { COINGECKO_IDS, PAYOUT_STATUS } from 'packages/constants';
 import { useRouter } from 'next/router';
+import { GetImgSrcByCrypto } from 'utils/qrcode';
 
 type feeType = {
   high: number;
@@ -46,6 +49,14 @@ type Coin = {
   [currency: string]: string;
 };
 
+type AddressBookRowType = {
+  id: number;
+  chainId: number;
+  isMainnet: boolean;
+  name: string;
+  address: string;
+};
+
 const EthereumSend = () => {
   const router = useRouter();
   const { payoutId } = router.query;
@@ -54,6 +65,7 @@ const EthereumSend = () => {
   const [maxPriortyFeeAlignment, setMaxPriortyFeeAlignment] = useState<'fast' | 'normal' | 'slow'>('normal');
   const [feeObj, setFeeObj] = useState<feeType>();
   const [maxPriortyFeeObj, setMaxPriortyFeeObj] = useState<maxPriortyFeeType>();
+  const [addressBookrows, setAddressBookrows] = useState<AddressBookRowType[]>([]);
 
   const [page, setPage] = useState<number>(1);
   const [fromAddress, setFromAddress] = useState<string>('');
@@ -202,6 +214,33 @@ const EthereumSend = () => {
       setSnackSeverity('error');
       setSnackMessage('The network error occurred. Please try again later.');
       setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const getAddressBook = async () => {
+    try {
+      const response: any = await axios.get(Http.find_address_book, {
+        params: {
+          chain_id: CHAINS.ETHEREUM,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      if (response.result && response.data.length > 0) {
+        let rt: AddressBookRowType[] = [];
+        response.data.forEach((item: any) => {
+          rt.push({
+            id: item.id,
+            chainId: item.chain_id,
+            isMainnet: item.network === 1 ? true : false,
+            name: item.name,
+            address: item.address,
+          });
+        });
+
+        setAddressBookrows(rt);
+      }
+    } catch (e) {
       console.error(e);
     }
   };
@@ -379,7 +418,14 @@ const EthereumSend = () => {
       if (coin === 'ETH') {
         if (!networkFee || !amount || parseFloat(networkFee) * 2 + parseFloat(amount) > parseFloat(balance['ETH'])) {
           setSnackSeverity('error');
-          setSnackMessage('Insufficient balance or input error');
+          setSnackMessage('Insufficient balance or Insufficient gas fee');
+          setSnackOpen(true);
+          return;
+        }
+      } else {
+        if (!networkFee || !amount || parseFloat(networkFee) * 2 > parseFloat(balance['ETH'])) {
+          setSnackSeverity('error');
+          setSnackMessage('Insufficient balance or Insufficient gas fee');
           setSnackOpen(true);
           return;
         }
@@ -451,6 +497,7 @@ const EthereumSend = () => {
     await getEthereum();
     await getEthereumFeeRate();
     await getEthereumMaxPriortyFee();
+    await getAddressBook();
 
     if (payoutId) {
       await getPayoutInfo(payoutId);
@@ -464,7 +511,7 @@ const EthereumSend = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" mb={10}>
-      <Typography variant="h4" mt={4}>
+      <Typography variant="h4" my={4}>
         Send Coin on Ethereum
       </Typography>
       <Container>
@@ -511,29 +558,43 @@ const EthereumSend = () => {
               </Box>
             </Box>
 
+            {addressBookrows && addressBookrows.length > 0 && (
+              <Box mt={4}>
+                <Typography mb={2}>Address Books</Typography>
+                <Grid container spacing={2}>
+                  {addressBookrows.map((item, index) => (
+                    <Grid item key={index}>
+                      <Chip
+                        label={OmitMiddleString(item.address)}
+                        variant="outlined"
+                        onClick={() => {
+                          setDestinationAddress(item.address);
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+
             <Box mt={4}>
               <Typography>Coin</Typography>
-              <Box mt={1}>
-                <FormControl>
-                  <RadioGroup
-                    value={coin}
-                    onChange={(e: any) => {
-                      setCoin(e.target.value);
-                    }}
-                  >
-                    {balance &&
-                      Object.entries(balance).map((item, index) => (
-                        <FormControlLabel
-                          value={item[0]}
-                          control={<Radio />}
-                          label={`${item[0].toUpperCase()} => Balance: ${item[1]}`}
-                          key={index}
-                          labelPlacement={'end'}
-                        />
-                      ))}
-                  </RadioGroup>
-                </FormControl>
-              </Box>
+              <Grid mt={2} container gap={2}>
+                {balance &&
+                  Object.entries(balance).map(([token, amount], balanceIndex) => (
+                    <Grid item key={balanceIndex}>
+                      <Chip
+                        size={'medium'}
+                        label={String(amount) + ' ' + token}
+                        icon={<Image src={GetImgSrcByCrypto(token as COINS)} alt="logo" width={20} height={20} />}
+                        variant={token === coin ? 'filled' : 'outlined'}
+                        onClick={() => {
+                          setCoin(token);
+                        }}
+                      />
+                    </Grid>
+                  ))}
+              </Grid>
             </Box>
 
             <Box mt={4}>
@@ -606,7 +667,7 @@ const EthereumSend = () => {
             </Box>
 
             <Stack mt={4} direction={'row'} alignItems={'center'}>
-              <Typography>Confirm in the next</Typography>
+              <Typography>Select the maxFee</Typography>
               <Box ml={2}>
                 <ToggleButtonGroup
                   color="primary"
@@ -643,7 +704,7 @@ const EthereumSend = () => {
             </Box>
 
             <Stack mt={4} direction={'row'} alignItems={'center'}>
-              <Typography>Confirm in the next</Typography>
+              <Typography>Select the maxPriortyFee</Typography>
               <Box ml={2}>
                 <ToggleButtonGroup
                   color="primary"
@@ -698,141 +759,157 @@ const EthereumSend = () => {
 
         {page === 2 && (
           <>
-            <Box textAlign={'center'}>
+            <Container maxWidth="sm">
               <Stack direction={'row'} alignItems={'center'} justifyContent={'center'} mt={4}>
-                <Image src={EthereumSVG} alt="" width={25} height={25} />
-                <Typography ml={1}>
+                <Image src={EthereumSVG} alt="" width={50} height={50} />
+                <Typography ml={1} variant={'h6'}>
                   {getNetwork() === 'mainnet' ? 'Ethereum Mainnet' : 'Ethereum Sepolia Testnet'}
                 </Typography>
               </Stack>
 
-              <Box mt={4}>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                 <Typography>Send to</Typography>
-                <Typography mt={1}>{OmitMiddleString(destinationAddress)}</Typography>
-              </Box>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={OmitMiddleString(destinationAddress)}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                 <Typography>Spend Amount</Typography>
-                <Stack direction={'row'} alignItems={'baseline'} justifyContent={'center'}>
-                  <Typography mt={1} variant={'h4'}>
-                    {amount}
-                  </Typography>
-                  <Typography ml={1}>{coin}</Typography>
-                </Stack>
-                <Stack direction={'row'} alignItems={'baseline'} justifyContent={'center'}>
-                  <Typography mt={1}>{networkFee}</Typography>
-                  <Typography ml={1}>ETH</Typography>
-                  <Typography ml={1}>(network fee)</Typography>
-                </Stack>
-              </Box>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">{coin}</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={amount}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Network Fee</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">ETH</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={networkFee}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
+
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                 <Typography>Coin:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={coin}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={coin}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                 <Typography>Nonce:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={nonce}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={nonce}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
-                <Typography>Max Fee:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={maxFee}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Max Fee</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={maxFee}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
-                <Typography>Max Priorty Fee:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={maxPriortyFee}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Max Priorty Fee</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={maxPriortyFee}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                 <Typography>Gas Limit:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={gasLimit}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={gasLimit}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
-                <Typography>Network Fee:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      endAdornment={<InputAdornment position="end">ETH</InputAdornment>}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={networkFee}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Network Fee</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">ETH</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={networkFee}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Stack mt={8} direction={'row'} alignItems={'center'} justifyContent={'center'}>
+              <Stack mt={8} direction={'row'} alignItems={'center'} justifyContent={'right'}>
                 <Button
+                  color={'error'}
                   variant={'contained'}
                   onClick={() => {
                     setPage(1);
@@ -841,12 +918,12 @@ const EthereumSend = () => {
                   Reject
                 </Button>
                 <Box ml={2}>
-                  <Button variant={'contained'} onClick={onClickSignAndPay}>
+                  <Button variant={'contained'} onClick={onClickSignAndPay} color={'success'}>
                     Sign & Pay
                   </Button>
                 </Box>
               </Stack>
-            </Box>
+            </Container>
           </>
         )}
 

@@ -31,6 +31,7 @@ import { useSnackPresistStore } from 'lib/store';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import Link from 'next/link';
+import { OmitMiddleString } from 'utils/strings';
 
 const FreeCoin = () => {
   const [page, setPage] = useState<number>(1);
@@ -269,22 +270,24 @@ const SelectChainAndCrypto = (props: SelectType) => {
             </FormControl>
           </Box>
 
-          <Box>
-            {rows &&
-              rows.length > 0 &&
-              rows.map((item, index) => (
-                <Box mb={2}>
-                  <Chip
-                    key={index}
-                    label={item.address}
-                    variant="outlined"
-                    onClick={() => {
-                      setAddress(item.address);
-                    }}
-                  />
-                </Box>
-              ))}
-          </Box>
+          {rows && rows.length > 0 && (
+            <Box mb={2}>
+              <Typography mb={2}>Address Books</Typography>
+              <Grid container spacing={2}>
+                {rows.map((item, index) => (
+                  <Grid item key={index}>
+                    <Chip
+                      label={OmitMiddleString(item.address)}
+                      variant="outlined"
+                      onClick={() => {
+                        setAddress(item.address);
+                      }}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
 
           <Box mb={2}>
             <FormControl variant="outlined" fullWidth size={'small'}>
@@ -299,7 +302,7 @@ const SelectChainAndCrypto = (props: SelectType) => {
                 onChange={(e: any) => {
                   setAmount(e.target.value);
                 }}
-                placeholder='Enter you amount'
+                placeholder="Enter you amount"
               />
             </FormControl>
           </Box>
@@ -319,64 +322,6 @@ const SelectChainAndCrypto = (props: SelectType) => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* {selectCoinItem && (
-        <Box mt={2}>
-          <Card>
-            <CardContent>
-              <Grid container mt={2} gap={1} justifyContent={'space-between'} alignItems={'center'}>
-                <Grid item xs={5}>
-                  <FormControl variant="outlined" fullWidth>
-                    <OutlinedInput
-                      type="text"
-                      endAdornment={
-                        <InputAdornment position="end">{FindChainNamesByChains(selectCoinItem.chainId)}</InputAdornment>
-                      }
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={address}
-                      onChange={(e: any) => {
-                        setAddress(e.target.value);
-                      }}
-                      placeholder="Enter your address"
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={3}>
-                  <FormControl variant="outlined" fullWidth>
-                    <OutlinedInput
-                      type="number"
-                      endAdornment={<InputAdornment position="end">{props.currency}</InputAdornment>}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={amount}
-                      onChange={(e: any) => {
-                        setAmount(e.target.value);
-                      }}
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={3}>
-                  <Button
-                    size={'large'}
-                    variant={'contained'}
-                    fullWidth
-                    onClick={async () => {
-                      await props.onClickCoin(selectCoinItem, address, amount);
-                    }}
-                  >
-                    Claim Funds
-                  </Button>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Box>
-      )} */}
     </Box>
   );
 };

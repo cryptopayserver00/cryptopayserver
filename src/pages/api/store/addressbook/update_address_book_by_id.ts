@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (find_address_books.length >= 2) {
+        if (find_address_books.length >= 1) {
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
