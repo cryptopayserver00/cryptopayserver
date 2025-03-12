@@ -4,13 +4,10 @@ import {
   Chip,
   Container,
   FormControl,
-  FormControlLabel,
   Grid,
   Icon,
   InputAdornment,
   OutlinedInput,
-  Radio,
-  RadioGroup,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -121,7 +118,7 @@ const EthereumSend = () => {
     setMaxPriortyFeeAlignment(e.target.value);
   };
 
-  const getEthereum = async () => {
+  const getBalance = async () => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
@@ -134,7 +131,7 @@ const EthereumSend = () => {
         setFromAddress(response.data.address);
         setBalance(response.data.balance);
 
-        await getEthereumNonce(response.data.address);
+        await getNonce(response.data.address);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -144,7 +141,7 @@ const EthereumSend = () => {
     }
   };
 
-  const getEthereumGasLimit = async (from: string): Promise<boolean> => {
+  const getGasLimit = async (from: string): Promise<boolean> => {
     try {
       const response: any = await axios.get(Http.find_gas_limit, {
         params: {
@@ -170,7 +167,7 @@ const EthereumSend = () => {
     }
   };
 
-  const getEthereumFeeRate = async () => {
+  const getFeeRate = async () => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
         params: {
@@ -194,7 +191,7 @@ const EthereumSend = () => {
     }
   };
 
-  const getEthereumMaxPriortyFee = async () => {
+  const getMaxPriortyFee = async () => {
     try {
       const response: any = await axios.get(Http.find_max_priorty_fee, {
         params: {
@@ -245,7 +242,7 @@ const EthereumSend = () => {
     }
   };
 
-  const getEthereumNonce = async (address: string) => {
+  const getNonce = async (address: string) => {
     if (address && address != '') {
       try {
         const response: any = await axios.get(Http.find_nonce, {
@@ -366,7 +363,7 @@ const EthereumSend = () => {
       return true;
     }
 
-    return await getEthereumGasLimit(fromAddress);
+    return await getGasLimit(fromAddress);
   };
 
   const onClickSignTransaction = async () => {
@@ -494,9 +491,9 @@ const EthereumSend = () => {
   }, [maxFee, gasLimit]);
 
   const init = async (payoutId: any) => {
-    await getEthereum();
-    await getEthereumFeeRate();
-    await getEthereumMaxPriortyFee();
+    await getBalance();
+    await getFeeRate();
+    await getMaxPriortyFee();
     await getAddressBook();
 
     if (payoutId) {
@@ -749,7 +746,7 @@ const EthereumSend = () => {
               </>
             )}
 
-            <Box mt={8}>
+            <Box mt={4}>
               <Button variant={'contained'} onClick={onClickSignTransaction}>
                 {displaySign ? 'Sign Transaction' : 'Calculate Gas Fee'}
               </Button>
@@ -767,7 +764,7 @@ const EthereumSend = () => {
                 </Typography>
               </Stack>
 
-              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+              <Stack mt={10} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                 <Typography>Send to</Typography>
                 <FormControl variant="outlined">
                   <OutlinedInput
@@ -799,23 +796,7 @@ const EthereumSend = () => {
               </Stack>
 
               <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>Network Fee</Typography>
-                <FormControl variant="outlined">
-                  <OutlinedInput
-                    size={'small'}
-                    endAdornment={<InputAdornment position="end">ETH</InputAdornment>}
-                    aria-describedby="outlined-weight-helper-text"
-                    inputProps={{
-                      'aria-label': 'weight',
-                    }}
-                    value={networkFee}
-                    disabled
-                  />
-                </FormControl>
-              </Stack>
-
-              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>Coin:</Typography>
+                <Typography>Gas Limit</Typography>
                 <FormControl variant="outlined">
                   <OutlinedInput
                     size={'small'}
@@ -823,22 +804,7 @@ const EthereumSend = () => {
                     inputProps={{
                       'aria-label': 'weight',
                     }}
-                    value={coin}
-                    disabled
-                  />
-                </FormControl>
-              </Stack>
-
-              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>Nonce:</Typography>
-                <FormControl variant="outlined">
-                  <OutlinedInput
-                    size={'small'}
-                    aria-describedby="outlined-weight-helper-text"
-                    inputProps={{
-                      'aria-label': 'weight',
-                    }}
-                    value={nonce}
+                    value={gasLimit}
                     disabled
                   />
                 </FormControl>
@@ -877,21 +843,6 @@ const EthereumSend = () => {
               </Stack>
 
               <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>Gas Limit:</Typography>
-                <FormControl variant="outlined">
-                  <OutlinedInput
-                    size={'small'}
-                    aria-describedby="outlined-weight-helper-text"
-                    inputProps={{
-                      'aria-label': 'weight',
-                    }}
-                    value={gasLimit}
-                    disabled
-                  />
-                </FormControl>
-              </Stack>
-
-              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                 <Typography>Network Fee</Typography>
                 <FormControl variant="outlined">
                   <OutlinedInput
@@ -902,6 +853,21 @@ const EthereumSend = () => {
                       'aria-label': 'weight',
                     }}
                     value={networkFee}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
+
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Nonce:</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={nonce}
                     disabled
                   />
                 </FormControl>

@@ -6,6 +6,7 @@ import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
 import { BTC } from 'packages/web3/chain/btc';
 import { GweiToWei } from 'utils/number';
 import { PrismaClient } from '@prisma/client';
+import { NOTIFICATION_TYPE } from 'packages/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -64,6 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
           select: {
             mnemonic: true,
+            store_id: true,
           },
         });
 
@@ -89,6 +91,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (!hash) {
           return res.status(200).json({ message: '', result: false, data: null });
+        }
+
+        const notification = await prisma.notifications.create({
+          data: {
+            user_id: userId,
+            store_id: wallet.store_id,
+            network: network,
+            label: NOTIFICATION_TYPE.Transaction,
+            message: `You have a new transaction in progress: ${hash}`,
+            url: `payments/transactions`,
+            is_seen: 2,
+            status: 1,
+          },
+        });
+
+        if (!notification) {
+          return res.status(200).json({
+            message: '',
+            result: false,
+            data: null,
+          });
         }
 
         return res.status(200).json({

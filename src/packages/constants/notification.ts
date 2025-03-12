@@ -54,6 +54,7 @@ export const NOTIFICATIONS: NOTIFICATION[] = [
 export const NOTIFICATION_TYPE = {
   Invoice: 'Invoice',
   Payouts: 'Payouts',
+  Transaction: 'Transaction',
   NewVersion: 'New Version',
   PluginUpdates: 'Plugin Updates',
   UserUpdates: 'User Updates',
