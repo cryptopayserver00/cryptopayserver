@@ -19,7 +19,6 @@ import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { BigDiv, BigMul, GweiToEther, WeiToGwei } from 'utils/number';
-import EthereumSVG from 'assets/chain/ethereum.svg';
 import Image from 'next/image';
 import { OmitMiddleString } from 'utils/strings';
 import { GetBlockchainTxUrl } from 'utils/chain/eth';
@@ -28,7 +27,7 @@ import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import Link from 'next/link';
 import { COINGECKO_IDS, PAYOUT_STATUS } from 'packages/constants';
 import { useRouter } from 'next/router';
-import { GetImgSrcByCrypto } from 'utils/qrcode';
+import { GetImgSrcByChain, GetImgSrcByCrypto } from 'utils/qrcode';
 
 type feeType = {
   high: number;
@@ -57,6 +56,8 @@ type AddressBookRowType = {
 const EthereumSend = () => {
   const router = useRouter();
   const { payoutId } = router.query;
+
+  const [chain, setChain] = useState<CHAINS>(CHAINS.ETHEREUM);
 
   const [alignment, setAlignment] = useState<'high' | 'average' | 'low'>('average');
   const [maxPriortyFeeAlignment, setMaxPriortyFeeAlignment] = useState<'fast' | 'normal' | 'slow'>('normal');
@@ -122,7 +123,7 @@ const EthereumSend = () => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
-          chain_id: CHAINS.ETHEREUM,
+          chain_id: chain,
           store_id: getStoreId(),
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
@@ -145,7 +146,7 @@ const EthereumSend = () => {
     try {
       const response: any = await axios.get(Http.find_gas_limit, {
         params: {
-          chain_id: CHAINS.ETHEREUM,
+          chain_id: chain,
           network: getNetwork() === 'mainnet' ? 1 : 2,
           coin: coin,
           from: from,
@@ -171,7 +172,7 @@ const EthereumSend = () => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
         params: {
-          chain_id: CHAINS.ETHEREUM,
+          chain_id: chain,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
@@ -195,7 +196,7 @@ const EthereumSend = () => {
     try {
       const response: any = await axios.get(Http.find_max_priorty_fee, {
         params: {
-          chain_id: CHAINS.ETHEREUM,
+          chain_id: chain,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
@@ -219,7 +220,7 @@ const EthereumSend = () => {
     try {
       const response: any = await axios.get(Http.find_address_book, {
         params: {
-          chain_id: CHAINS.ETHEREUM,
+          chain_id: chain,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
@@ -247,7 +248,7 @@ const EthereumSend = () => {
       try {
         const response: any = await axios.get(Http.find_nonce, {
           params: {
-            chain_id: CHAINS.ETHEREUM,
+            chain_id: chain,
             network: getNetwork() === 'mainnet' ? 1 : 2,
             address: address,
           },
@@ -311,7 +312,7 @@ const EthereumSend = () => {
     try {
       const response: any = await axios.get(Http.checkout_chain_address, {
         params: {
-          chain_id: CHAINS.ETHEREUM,
+          chain_id: chain,
           address: destinationAddress,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
@@ -437,7 +438,7 @@ const EthereumSend = () => {
   const onClickSignAndPay = async () => {
     try {
       const response: any = await axios.post(Http.send_transaction, {
-        chain_id: CHAINS.ETHEREUM,
+        chain_id: chain,
         from_address: fromAddress,
         to_address: destinationAddress,
         network: getNetwork() === 'mainnet' ? 1 : 2,
@@ -758,7 +759,7 @@ const EthereumSend = () => {
           <>
             <Container maxWidth="sm">
               <Stack direction={'row'} alignItems={'center'} justifyContent={'center'} mt={4}>
-                <Image src={EthereumSVG} alt="" width={50} height={50} />
+                <Image src={GetImgSrcByChain(chain)} alt="chain" width={50} height={50} />
                 <Typography ml={1} variant={'h6'}>
                   {getNetwork() === 'mainnet' ? 'Ethereum Mainnet' : 'Ethereum Sepolia Testnet'}
                 </Typography>
