@@ -62,6 +62,23 @@ export enum CHAINNAMES {
   TON = 'Ton',
 }
 
+export enum CHAINPATHNAMES {
+  BITCOIN = 'bitcoin',
+  LITECOIN = 'litecoin',
+  XRP = 'xrp',
+  BITCOINCASH = 'bitcoincash',
+  ETHEREUM = 'ethereum',
+  TRON = 'tron',
+  SOLANA = 'solana',
+  BSC = 'bsc',
+  ARBITRUM = 'arbitrum',
+  AVALANCHE = 'avalanche',
+  POLYGON = 'polygon',
+  BASE = 'base',
+  OPTIMISM = 'optimism',
+  TON = 'ton',
+}
+
 export enum CHAINS {
   BITCOIN = 1,
   LITECOIN = 2,

@@ -213,7 +213,7 @@ const Avalanche = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/avalanche/send';
+                  window.location.href = `/wallets/send?chainId=${CHAINS.AVALANCHE}`;
                 }}
               >
                 Send

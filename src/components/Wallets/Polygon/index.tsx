@@ -213,7 +213,7 @@ const Polygon = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/polygon/send';
+                  window.location.href = `/wallets/send?chainId=${CHAINS.POLYGON}`;
                 }}
               >
                 Send

@@ -212,7 +212,7 @@ const Ethereum = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/ethereum/send';
+                  window.location.href = `/wallets/send?chainId=${CHAINS.ETHEREUM}`;
                 }}
               >
                 Send

@@ -30,8 +30,8 @@ import BitcoinSend from 'components/Wallets/Bitcoin/Send';
 import InvoicesDetails from 'components/Invoices/id';
 import BlockScan from 'components/Wallets/BlockScan';
 import Security from 'components/Wallets/Security';
-import EthereumSend from 'components/Wallets/Ethereum/Send';
 import WalletsReceive from 'components/Wallets/Receive';
+import WalletsSend from 'components/Wallets/Send';
 import SolanaSend from 'components/Wallets/Solana/Send';
 import BscSend from 'components/Wallets/Bsc/Send';
 import LitecoinSend from 'components/Wallets/Litecoin/Send';
@@ -54,15 +54,10 @@ import XrpSend from 'components/Wallets/Xrp/Send';
 import BitcoinCash from 'components/Wallets/BitcoinCash';
 import BitcoinCashSend from 'components/Wallets/BitcoinCash/Send';
 import Arbitrum from 'components/Wallets/Arbitrum';
-import ArbitrumSend from 'components/Wallets/Arbitrum/Send';
 import Avalanche from 'components/Wallets/Avalanche';
-import AvalancheSend from 'components/Wallets/Avalanche/Send';
 import Polygon from 'components/Wallets/Polygon';
-import PolygonSend from 'components/Wallets/Polygon/Send';
 import Base from 'components/Wallets/Base';
-import BaseSend from 'components/Wallets/Base/Send';
 import Optimism from 'components/Wallets/Optimism';
-import OptimismSend from 'components/Wallets/Optimism/Send';
 import SecurityPassword from 'components/Wallets/Security/Password';
 import SecurityPrivateKey from 'components/Wallets/Security/PrivateKey';
 import SecurityAudit from 'components/Wallets/Security/Audit';
@@ -172,10 +167,10 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/ethereum/send',
-    name: 'EthereumSend',
-    title: 'EthereumSend',
-    component: <EthereumSend />,
+    path: '/wallets/send',
+    name: 'WalletsSend',
+    title: 'WalletsSend',
+    component: <WalletsSend />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,
@@ -325,28 +320,10 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/arbitrum/send',
-    name: 'ArbitrumSend',
-    title: 'ArbitrumSend',
-    component: <ArbitrumSend />,
-    enableSidebar: true,
-    needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
     path: '/wallets/avalanche',
     name: 'Avalanche',
     title: 'Avalanche',
     component: <Avalanche />,
-    enableSidebar: true,
-    needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
-    path: '/wallets/avalanche/send',
-    name: 'AvalancheSend',
-    title: 'AvalancheSend',
-    component: <AvalancheSend />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,
@@ -361,15 +338,6 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/polygon/send',
-    name: 'PolygonSend',
-    title: 'PolygonSend',
-    component: <PolygonSend />,
-    enableSidebar: true,
-    needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
     path: '/wallets/base',
     name: 'Base',
     title: 'Base',
@@ -379,28 +347,10 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/base/send',
-    name: 'BaseSend',
-    title: 'BaseSend',
-    component: <BaseSend />,
-    enableSidebar: true,
-    needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
     path: '/wallets/optimism',
     name: 'Optimism',
     title: 'Optimism',
     component: <Optimism />,
-    enableSidebar: true,
-    needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
-    path: '/wallets/optimism/send',
-    name: 'OptimismSend',
-    title: 'OptimismSend',
-    component: <OptimismSend />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,

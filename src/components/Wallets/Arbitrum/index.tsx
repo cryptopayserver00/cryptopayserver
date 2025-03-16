@@ -213,7 +213,7 @@ const Arbitrum = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/arbitrum/send';
+                  window.location.href = `/wallets/send?chainId=${CHAINS.ARBITRUM}`;
                 }}
               >
                 Send

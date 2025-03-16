@@ -20,7 +20,7 @@ const WalletsReceive = () => {
   const [address, setAddress] = useState<string>('');
   const [mainCoin, setMainCoin] = useState<COIN>();
 
-  const getEthereum = async (chainId: number, storeId: number, network: string) => {
+  const getWallet = async (chainId: number, storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
@@ -43,11 +43,16 @@ const WalletsReceive = () => {
   };
 
   const init = async (chainId: number, storeId: number, network: string) => {
-    await getEthereum(chainId, storeId, network);
+    await getWallet(chainId, storeId, network);
   };
 
   useEffect(() => {
-    if (!chainId || !storeId || !network) return;
+    if (!chainId || !storeId || !network) {
+      setSnackSeverity('warning');
+      setSnackMessage('No information was found');
+      setSnackOpen(true);
+      return;
+    }
     init(Number(chainId), Number(storeId), String(network));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chainId, storeId, network]);

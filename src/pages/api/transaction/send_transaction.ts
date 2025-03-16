@@ -15,10 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     switch (req.method) {
       case 'POST':
         const prisma = new PrismaClient();
-        const walletId = req.body.wallet_id;
-        const userId = req.body.user_id;
-        const chainId = req.body.chain_id;
-        const network = req.body.network;
+        const walletId = Number(req.body.wallet_id);
+        const userId = Number(req.body.user_id);
+        const chainId = Number(req.body.chain_id);
+        const network = Number(req.body.network);
         const fromAddress = req.body.from_address;
         const toAddress = req.body.to_address;
         const feeRate = req.body.fee_rate;
@@ -73,6 +73,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
+        console.log(1111)
+
         const hash = await WEB3.sendTransaction(address.network === 1 ? true : false, {
           coin: FindTokenByChainIdsAndSymbol(WEB3.getChainIds(address.network === 1 ? true : false, chainId), coin),
           value: value,
@@ -93,6 +95,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
+        console.log(1111, hash)
+
         const notification = await prisma.notifications.create({
           data: {
             user_id: userId,
@@ -105,6 +109,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             status: 1,
           },
         });
+
+        console.log(1111, notification)
 
         if (!notification) {
           return res.status(200).json({

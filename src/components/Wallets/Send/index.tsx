@@ -1,26 +1,24 @@
 import {
   Box,
   Button,
+  Chip,
   Container,
   FormControl,
-  FormControlLabel,
+  Grid,
   Icon,
   InputAdornment,
   OutlinedInput,
-  Radio,
-  RadioGroup,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import { CHAINS, COINS } from 'packages/constants/blockchain';
+import { CHAINS, COIN, COINS } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { BigDiv, BigMul, GweiToEther, WeiToGwei } from 'utils/number';
-import OptimismSVG from 'assets/chain/optimism.svg';
 import Image from 'next/image';
 import { OmitMiddleString } from 'utils/strings';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -28,7 +26,8 @@ import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import Link from 'next/link';
 import { COINGECKO_IDS, PAYOUT_STATUS } from 'packages/constants';
 import { useRouter } from 'next/router';
-import { GetBlockchainTxUrl } from 'utils/chain/op';
+import { GetImgSrcByChain, GetImgSrcByCrypto } from 'utils/qrcode';
+import { FindChainNamesByChains, FindChainPathNamesByChains, GetBlockchainTxUrlByChainIds } from 'utils/web3';
 
 type feeType = {
   high: number;
@@ -46,14 +45,25 @@ type Coin = {
   [currency: string]: string;
 };
 
-const OptimismSend = () => {
+type AddressBookRowType = {
+  id: number;
+  chainId: number;
+  isMainnet: boolean;
+  name: string;
+  address: string;
+};
+
+const WalletsSend = () => {
   const router = useRouter();
-  const { payoutId } = router.query;
+  const { chainId, payoutId } = router.query;
+
+  const [mainCoin, setMainCoin] = useState<COINS>();
 
   const [alignment, setAlignment] = useState<'high' | 'average' | 'low'>('average');
   const [maxPriortyFeeAlignment, setMaxPriortyFeeAlignment] = useState<'fast' | 'normal' | 'slow'>('normal');
   const [feeObj, setFeeObj] = useState<feeType>();
   const [maxPriortyFeeObj, setMaxPriortyFeeObj] = useState<maxPriortyFeeType>();
+  const [addressBookrows, setAddressBookrows] = useState<AddressBookRowType[]>([]);
 
   const [page, setPage] = useState<number>(1);
   const [fromAddress, setFromAddress] = useState<string>('');
@@ -67,7 +77,7 @@ const OptimismSend = () => {
   const [networkFee, setNetworkFee] = useState<string>('');
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('');
   const [nonce, setNonce] = useState<number>(0);
-  const [coin, setCoin] = useState<string>('ETH');
+  const [coin, setCoin] = useState<COINS>();
   const [displaySign, setDisplaySign] = useState<boolean>(false);
   const [amountRed, setAmountRed] = useState<boolean>(false);
 
@@ -82,13 +92,13 @@ const OptimismSend = () => {
   const handleChangeFees = (e: any) => {
     switch (e.target.value) {
       case 'high':
-        setMaxFee(WeiToGwei(feeObj?.high as number));
+        setMaxFee(WeiToGwei(Number(feeObj?.high)));
         break;
       case 'average':
-        setMaxFee(WeiToGwei(feeObj?.average as number));
+        setMaxFee(WeiToGwei(Number(feeObj?.average)));
         break;
       case 'low':
-        setMaxFee(WeiToGwei(feeObj?.low as number));
+        setMaxFee(WeiToGwei(Number(feeObj?.low)));
         break;
     }
     setAlignment(e.target.value);
@@ -97,23 +107,23 @@ const OptimismSend = () => {
   const handleChangeMaxPriortyFee = (e: any) => {
     switch (e.target.value) {
       case 'fast':
-        setMaxPriortyFee(WeiToGwei(maxPriortyFeeObj?.fast as number));
+        setMaxPriortyFee(WeiToGwei(Number(maxPriortyFeeObj?.fast)));
         break;
       case 'normal':
-        setMaxPriortyFee(WeiToGwei(maxPriortyFeeObj?.normal as number));
+        setMaxPriortyFee(WeiToGwei(Number(maxPriortyFeeObj?.normal)));
         break;
       case 'slow':
-        setMaxPriortyFee(WeiToGwei(maxPriortyFeeObj?.slow as number));
+        setMaxPriortyFee(WeiToGwei(Number(maxPriortyFeeObj?.slow)));
         break;
     }
     setMaxPriortyFeeAlignment(e.target.value);
   };
 
-  const getOp = async () => {
+  const getBalance = async (chainId: number) => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
-          chain_id: CHAINS.OPTIMISM,
+          chain_id: chainId,
           store_id: getStoreId(),
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
@@ -121,8 +131,9 @@ const OptimismSend = () => {
       if (response.result) {
         setFromAddress(response.data.address);
         setBalance(response.data.balance);
+        setMainCoin(response.data.main_coin.name);
 
-        await getOpNonce(response.data.address);
+        await getNonce(chainId, response.data.address);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -132,11 +143,11 @@ const OptimismSend = () => {
     }
   };
 
-  const getOpGasLimit = async (from: string): Promise<boolean> => {
+  const getGasLimit = async (from: string): Promise<boolean> => {
     try {
       const response: any = await axios.get(Http.find_gas_limit, {
         params: {
-          chain_id: CHAINS.OPTIMISM,
+          chain_id: chainId,
           network: getNetwork() === 'mainnet' ? 1 : 2,
           coin: coin,
           from: from,
@@ -158,11 +169,11 @@ const OptimismSend = () => {
     }
   };
 
-  const getOpFeeRate = async () => {
+  const getFeeRate = async (chainId: number) => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
         params: {
-          chain_id: CHAINS.OPTIMISM,
+          chain_id: chainId,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
@@ -182,11 +193,11 @@ const OptimismSend = () => {
     }
   };
 
-  const getOpMaxPriortyFee = async () => {
+  const getMaxPriortyFee = async (chainId: number) => {
     try {
       const response: any = await axios.get(Http.find_max_priorty_fee, {
         params: {
-          chain_id: CHAINS.OPTIMISM,
+          chain_id: chainId,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
@@ -206,12 +217,39 @@ const OptimismSend = () => {
     }
   };
 
-  const getOpNonce = async (address: string) => {
+  const getAddressBook = async (chainId: number) => {
+    try {
+      const response: any = await axios.get(Http.find_address_book, {
+        params: {
+          chain_id: chainId,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      if (response.result && response.data.length > 0) {
+        let rt: AddressBookRowType[] = [];
+        response.data.forEach((item: any) => {
+          rt.push({
+            id: item.id,
+            chainId: item.chain_id,
+            isMainnet: item.network === 1 ? true : false,
+            name: item.name,
+            address: item.address,
+          });
+        });
+
+        setAddressBookrows(rt);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const getNonce = async (chainId: number, address: string) => {
     if (address && address != '') {
       try {
         const response: any = await axios.get(Http.find_nonce, {
           params: {
-            chain_id: CHAINS.OPTIMISM,
+            chain_id: chainId,
             network: getNetwork() === 'mainnet' ? 1 : 2,
             address: address,
           },
@@ -228,6 +266,41 @@ const OptimismSend = () => {
     }
   };
 
+  const getPayoutInfo = async (id: any) => {
+    try {
+      const response: any = await axios.get(Http.find_payout_by_id, {
+        params: {
+          id: id,
+        },
+      });
+
+      if (response.result) {
+        setDestinationAddress(response.data.address);
+
+        const ids = COINGECKO_IDS[response.data.crypto as COINS];
+        const rate_response: any = await axios.get(Http.find_crypto_price, {
+          params: {
+            ids: ids,
+            currency: response.data.currency,
+          },
+        });
+
+        const rate = rate_response.data[ids][response.data.currency.toLowerCase()];
+        const totalPrice = parseFloat(BigDiv(Number(response.data.amount).toString(), rate)).toFixed(4);
+        setAmount(totalPrice);
+        setCoin(response.data.crypto);
+
+        setIsDisableDestinationAddress(true);
+        setIsDisableAmount(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
   const checkAddress = async (): Promise<boolean> => {
     if (destinationAddress === fromAddress) {
       return false;
@@ -240,7 +313,7 @@ const OptimismSend = () => {
     try {
       const response: any = await axios.get(Http.checkout_chain_address, {
         params: {
-          chain_id: CHAINS.OPTIMISM,
+          chain_id: chainId,
           address: destinationAddress,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
@@ -256,7 +329,7 @@ const OptimismSend = () => {
   };
 
   const checkAmount = (): boolean => {
-    if (amount && parseFloat(amount) != 0 && parseFloat(balance[coin]) >= parseFloat(amount)) {
+    if (amount && parseFloat(amount) != 0 && parseFloat(balance[String(coin)]) >= parseFloat(amount)) {
       return true;
     }
 
@@ -292,7 +365,7 @@ const OptimismSend = () => {
       return true;
     }
 
-    return await getOpGasLimit(fromAddress);
+    return await getGasLimit(fromAddress);
   };
 
   const onClickSignTransaction = async () => {
@@ -341,10 +414,21 @@ const OptimismSend = () => {
     }
 
     if (displaySign) {
-      if (coin === 'ETH') {
-        if (!networkFee || !amount || parseFloat(networkFee) * 2 + parseFloat(amount) > parseFloat(balance['ETH'])) {
+      if (coin === mainCoin) {
+        if (
+          !networkFee ||
+          !amount ||
+          parseFloat(networkFee) * 2 + parseFloat(amount) > parseFloat(balance[String(mainCoin)])
+        ) {
           setSnackSeverity('error');
-          setSnackMessage('Insufficient balance or input error');
+          setSnackMessage('Insufficient balance or Insufficient gas fee');
+          setSnackOpen(true);
+          return;
+        }
+      } else {
+        if (!networkFee || !amount || parseFloat(networkFee) * 2 > parseFloat(balance[String(mainCoin)])) {
+          setSnackSeverity('error');
+          setSnackMessage('Insufficient balance or Insufficient gas fee');
           setSnackOpen(true);
           return;
         }
@@ -356,45 +440,10 @@ const OptimismSend = () => {
     }
   };
 
-  const getPayoutInfo = async (id: any) => {
-    try {
-      const response: any = await axios.get(Http.find_payout_by_id, {
-        params: {
-          id: id,
-        },
-      });
-
-      if (response.result) {
-        setDestinationAddress(response.data.address);
-
-        const ids = COINGECKO_IDS[response.data.crypto as COINS];
-        const rate_response: any = await axios.get(Http.find_crypto_price, {
-          params: {
-            ids: ids,
-            currency: response.data.currency,
-          },
-        });
-
-        const rate = rate_response.data[ids][response.data.currency.toLowerCase()];
-        const totalPrice = parseFloat(BigDiv((response.data.amount as number).toString(), rate)).toFixed(4);
-        setAmount(totalPrice);
-        setCoin(response.data.crypto);
-
-        setIsDisableDestinationAddress(true);
-        setIsDisableAmount(true);
-      }
-    } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
-    }
-  };
-
   const onClickSignAndPay = async () => {
     try {
       const response: any = await axios.post(Http.send_transaction, {
-        chain_id: CHAINS.OPTIMISM,
+        chain_id: chainId,
         from_address: fromAddress,
         to_address: destinationAddress,
         network: getNetwork() === 'mainnet' ? 1 : 2,
@@ -426,7 +475,13 @@ const OptimismSend = () => {
           }
         }
 
-        setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', response.data.hash));
+        setSnackSeverity('success');
+        setSnackMessage('Successful creation!');
+        setSnackOpen(true);
+
+        setBlockExplorerLink(
+          GetBlockchainTxUrlByChainIds(getNetwork() === 'mainnet', Number(chainId), response.data.hash),
+        );
         setPage(3);
       }
     } catch (e) {
@@ -443,10 +498,12 @@ const OptimismSend = () => {
     }
   }, [maxFee, gasLimit]);
 
-  const init = async (payoutId: any) => {
-    await getOp();
-    await getOpFeeRate();
-    await getOpMaxPriortyFee();
+  const init = async (chainId: number, payoutId: number) => {
+    // setChain(chainId);
+    await getBalance(chainId);
+    await getFeeRate(chainId);
+    await getMaxPriortyFee(chainId);
+    await getAddressBook(chainId);
 
     if (payoutId) {
       await getPayoutInfo(payoutId);
@@ -454,15 +511,24 @@ const OptimismSend = () => {
   };
 
   useEffect(() => {
-    init(payoutId);
+    if (!chainId) {
+      return;
+    }
+    init(Number(chainId), Number(payoutId));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payoutId]);
+  }, [chainId, payoutId]);
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" mb={10}>
-      <Typography variant="h4" mt={4}>
-        Send Coin on Optimism
-      </Typography>
+      <Stack direction={'row'} alignItems={'center'} justifyContent={'center'}>
+        <Image src={GetImgSrcByChain(Number(chainId))} alt="chain" width={50} height={50} />
+        <Typography variant="h4" my={4} ml={2}>
+          Send Coin on{' '}
+          {getNetwork() === 'mainnet'
+            ? FindChainNamesByChains(Number(chainId)) + ' Mainnet'
+            : FindChainNamesByChains(Number(chainId)) + ' Testnet'}
+        </Typography>
+      </Stack>
       <Container>
         {page === 1 && (
           <>
@@ -507,29 +573,43 @@ const OptimismSend = () => {
               </Box>
             </Box>
 
+            {addressBookrows && addressBookrows.length > 0 && (
+              <Box mt={4}>
+                <Typography mb={2}>Address Books</Typography>
+                <Grid container spacing={2}>
+                  {addressBookrows.map((item, index) => (
+                    <Grid item key={index}>
+                      <Chip
+                        label={OmitMiddleString(item.address)}
+                        variant="outlined"
+                        onClick={() => {
+                          setDestinationAddress(item.address);
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+
             <Box mt={4}>
               <Typography>Coin</Typography>
-              <Box mt={1}>
-                <FormControl>
-                  <RadioGroup
-                    value={coin}
-                    onChange={(e: any) => {
-                      setCoin(e.target.value);
-                    }}
-                  >
-                    {balance &&
-                      Object.entries(balance).map((item, index) => (
-                        <FormControlLabel
-                          value={item[0]}
-                          control={<Radio />}
-                          label={`${item[0].toUpperCase()} => Balance: ${item[1]}`}
-                          key={index}
-                          labelPlacement={'end'}
-                        />
-                      ))}
-                  </RadioGroup>
-                </FormControl>
-              </Box>
+              <Grid mt={2} container gap={2}>
+                {balance &&
+                  Object.entries(balance).map(([token, amount], balanceIndex) => (
+                    <Grid item key={balanceIndex}>
+                      <Chip
+                        size={'medium'}
+                        label={String(amount) + ' ' + token}
+                        icon={<Image src={GetImgSrcByCrypto(token as COINS)} alt="logo" width={20} height={20} />}
+                        variant={token === coin ? 'filled' : 'outlined'}
+                        onClick={() => {
+                          setCoin(token as COINS);
+                        }}
+                      />
+                    </Grid>
+                  ))}
+              </Grid>
             </Box>
 
             <Box mt={4}>
@@ -546,7 +626,7 @@ const OptimismSend = () => {
                     value={amount}
                     onChange={(e: any) => {
                       setAmount(e.target.value);
-                      if (parseFloat(e.target.value) > parseFloat(balance[coin])) {
+                      if (parseFloat(e.target.value) > parseFloat(balance[String(coin)])) {
                         setAmountRed(true);
                       } else {
                         setAmountRed(false);
@@ -556,9 +636,11 @@ const OptimismSend = () => {
                   />
                 </FormControl>
               </Box>
-              <Typography mt={1} color={amountRed ? 'red' : 'none'} fontWeight={'bold'}>
-                Your available balance is {balance[coin]} {coin}
-              </Typography>
+              {balance[String(coin)] && (
+                <Typography mt={1} color={amountRed ? 'red' : 'none'} fontWeight={'bold'}>
+                  Your available balance is {balance[String(coin)]} {coin}
+                </Typography>
+              )}
             </Box>
 
             <Box mt={4}>
@@ -602,7 +684,7 @@ const OptimismSend = () => {
             </Box>
 
             <Stack mt={4} direction={'row'} alignItems={'center'}>
-              <Typography>Confirm in the next</Typography>
+              <Typography>Select the maxFee</Typography>
               <Box ml={2}>
                 <ToggleButtonGroup
                   color="primary"
@@ -639,7 +721,7 @@ const OptimismSend = () => {
             </Box>
 
             <Stack mt={4} direction={'row'} alignItems={'center'}>
-              <Typography>Confirm in the next</Typography>
+              <Typography>Select the maxPriortyFee</Typography>
               <Box ml={2}>
                 <ToggleButtonGroup
                   color="primary"
@@ -678,13 +760,13 @@ const OptimismSend = () => {
                 </Box>
                 <Box mt={4}>
                   <Typography>
-                    Miner Fee: {networkFee} ETH = MaxFee({maxFee}) * Gas({gasLimit})
+                    Miner Fee: {networkFee} {mainCoin} = MaxFee({maxFee}) * Gas({gasLimit})
                   </Typography>
                 </Box>
               </>
             )}
 
-            <Box mt={8}>
+            <Box mt={4}>
               <Button variant={'contained'} onClick={onClickSignTransaction}>
                 {displaySign ? 'Sign Transaction' : 'Calculate Gas Fee'}
               </Button>
@@ -694,139 +776,119 @@ const OptimismSend = () => {
 
         {page === 2 && (
           <>
-            <Box textAlign={'center'}>
-              <Stack direction={'row'} alignItems={'center'} justifyContent={'center'} mt={4}>
-                <Image src={OptimismSVG} alt="" width={25} height={25} />
-                <Typography ml={1}>{getNetwork() === 'mainnet' ? 'Optimism Mainnet' : 'Optimism Sepolia'}</Typography>
+            <Container maxWidth="sm">
+              <Stack mt={10} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Send to</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={OmitMiddleString(destinationAddress)}
+                    disabled
+                  />
+                </FormControl>
               </Stack>
 
-              <Box mt={4}>
-                <Typography>Send to</Typography>
-                <Typography mt={1}>{OmitMiddleString(destinationAddress)}</Typography>
-              </Box>
-
-              <Box mt={4}>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                 <Typography>Spend Amount</Typography>
-                <Stack direction={'row'} alignItems={'baseline'} justifyContent={'center'}>
-                  <Typography mt={1} variant={'h4'}>
-                    {amount}
-                  </Typography>
-                  <Typography ml={1}>{coin}</Typography>
-                </Stack>
-                <Stack direction={'row'} alignItems={'baseline'} justifyContent={'center'}>
-                  <Typography mt={1}>{networkFee}</Typography>
-                  <Typography ml={1}>ETH</Typography>
-                  <Typography ml={1}>(network fee)</Typography>
-                </Stack>
-              </Box>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">{coin}</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={amount}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
-                <Typography>Coin:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={coin}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Gas Limit</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={gasLimit}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Max Fee</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={maxFee}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
+
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Max Priorty Fee</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={maxPriortyFee}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
+
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Network Fee</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">{mainCoin}</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={networkFee}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
+
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                 <Typography>Nonce:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={nonce}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={nonce}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
-                <Typography>Max Fee:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={maxFee}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
-
-              <Box mt={4}>
-                <Typography>Max Priorty Fee:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={maxPriortyFee}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
-
-              <Box mt={4}>
-                <Typography>Gas Limit:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={gasLimit}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
-
-              <Box mt={4}>
-                <Typography>Network Fee:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      endAdornment={<InputAdornment position="end">ETH</InputAdornment>}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={networkFee}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
-
-              <Stack mt={8} direction={'row'} alignItems={'center'} justifyContent={'center'}>
+              <Stack mt={8} direction={'row'} alignItems={'center'} justifyContent={'right'}>
                 <Button
+                  color={'error'}
                   variant={'contained'}
                   onClick={() => {
                     setPage(1);
@@ -835,12 +897,12 @@ const OptimismSend = () => {
                   Reject
                 </Button>
                 <Box ml={2}>
-                  <Button variant={'contained'} onClick={onClickSignAndPay}>
+                  <Button variant={'contained'} onClick={onClickSignAndPay} color={'success'}>
                     Sign & Pay
                   </Button>
                 </Box>
               </Stack>
-            </Box>
+            </Container>
           </>
         )}
 
@@ -864,7 +926,7 @@ const OptimismSend = () => {
                   variant={'contained'}
                   style={{ width: 500 }}
                   onClick={() => {
-                    window.location.href = '/wallets/optimism';
+                    window.location.href = '/wallets/' + FindChainPathNamesByChains(Number(chainId));
                   }}
                 >
                   Done
@@ -878,4 +940,4 @@ const OptimismSend = () => {
   );
 };
 
-export default OptimismSend;
+export default WalletsSend;

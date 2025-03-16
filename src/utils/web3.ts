@@ -1,4 +1,12 @@
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINNAMES, CHAINS, COIN, COINS } from 'packages/constants/blockchain';
+import {
+  BLOCKCHAINNAMES,
+  CHAINIDS,
+  CHAINNAMES,
+  CHAINPATHNAMES,
+  CHAINS,
+  COIN,
+  COINS,
+} from 'packages/constants/blockchain';
 import {
   GetBlockchainAddressUrl as GetBTCBlockchainAddressUrl,
   GetBlockchainTxUrl as GetBTCBlockchainTxUrl,
@@ -145,6 +153,39 @@ export function FindChainNamesByChains(chains: CHAINS): CHAINNAMES {
       return CHAINNAMES.OPTIMISM;
     case CHAINS.TON:
       return CHAINNAMES.TON;
+  }
+}
+
+export function FindChainPathNamesByChains(chains: CHAINS): CHAINPATHNAMES {
+  switch (chains) {
+    case CHAINS.BITCOIN:
+      return CHAINPATHNAMES.BITCOIN;
+    case CHAINS.LITECOIN:
+      return CHAINPATHNAMES.LITECOIN;
+    case CHAINS.XRP:
+      return CHAINPATHNAMES.XRP;
+    case CHAINS.BITCOINCASH:
+      return CHAINPATHNAMES.BITCOINCASH;
+    case CHAINS.ETHEREUM:
+      return CHAINPATHNAMES.ETHEREUM;
+    case CHAINS.TRON:
+      return CHAINPATHNAMES.TRON;
+    case CHAINS.SOLANA:
+      return CHAINPATHNAMES.SOLANA;
+    case CHAINS.BSC:
+      return CHAINPATHNAMES.BSC;
+    case CHAINS.ARBITRUM:
+      return CHAINPATHNAMES.ARBITRUM;
+    case CHAINS.AVALANCHE:
+      return CHAINPATHNAMES.AVALANCHE;
+    case CHAINS.POLYGON:
+      return CHAINPATHNAMES.POLYGON;
+    case CHAINS.BASE:
+      return CHAINPATHNAMES.BASE;
+    case CHAINS.OPTIMISM:
+      return CHAINPATHNAMES.OPTIMISM;
+    case CHAINS.TON:
+      return CHAINPATHNAMES.TON;
   }
 }
 
