@@ -1,4 +1,5 @@
 import * as bitcoin from 'bitcoinjs-lib';
+import { toXOnly } from 'bitcoinjs-lib/src/psbt/bip371';
 import { CHAINIDS, CHAINS, COINS } from 'packages/constants/blockchain';
 import {
   AssetBalance,
@@ -18,7 +19,7 @@ import axios from 'axios';
 import { BigAdd, BigSub, BigDiv, BigMul } from 'utils/number';
 import { ethers } from 'ethers';
 import Big from 'big.js';
-import { GetBlockchainTxUrl, GetNodeApi } from 'utils/chain/btc';
+import { GetBlockchainTxUrl, GetBlockstreamApi, GetNodeApi } from 'utils/chain/btc';
 
 export class BTC {
   static chain = CHAINS.BITCOIN;
@@ -324,6 +325,22 @@ export class BTC {
     }
   }
 
+  static async getRawTransaction(isMainnet: boolean, tx: string): Promise<string> {
+    try {
+      const url = `${GetBlockstreamApi(isMainnet)}/tx/${tx}/hex`;
+      const response = await this.axiosInstance.get(url);
+
+      if (response.data) {
+        return response.data;
+      }
+
+      throw new Error('can not get the raw tx of btc');
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not get the raw tx of btc');
+    }
+  }
+
   static async getCurrentFeeRate(isMainnet: boolean): Promise<BTCFeeRate> {
     try {
       const url = `${GetNodeApi(isMainnet)}/v1/fees/recommended`;
@@ -518,15 +535,21 @@ export class BTC {
 
   static async sendTransaction(isMainnet: boolean, req: SendTransaction): Promise<string> {
     try {
+      bitcoin.initEccLib(ecc);
+
       const ECPair = ECPairFactory(ecc);
       const keyPair = ECPair.fromWIF(this.toWifStaring(isMainnet, req.privateKey), this.getNetwork(isMainnet));
 
-      let script, redeemScript: Buffer;
+      console.log(111, req.btcType);
+      let script: Buffer,
+        redeemScript: Buffer = Buffer.from(''),
+        internalKey: Buffer = Buffer.from('');
+
       switch (req.btcType) {
         case BTCTYPE.NATIVESEGWIT:
           const p2wpkh = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: this.getNetwork(isMainnet) });
           script = p2wpkh.output as Buffer;
-          redeemScript = p2wpkh.redeem?.output as Buffer;
+          break;
         case BTCTYPE.NESTEDSEGWIT:
           const p2 = bitcoin.payments.p2sh({
             redeem: bitcoin.payments.p2wpkh({ m: 2, pubkey: keyPair.publicKey, network: this.getNetwork(isMainnet) }),
@@ -536,17 +559,19 @@ export class BTC {
           redeemScript = p2.redeem?.output as Buffer;
           break;
         case BTCTYPE.TAPROOT:
+          internalKey = keyPair.publicKey.slice(1);
+          // internalKey = toXOnly(keyPair.publicKey);
           const p2tr = bitcoin.payments.p2tr({
-            internalPubkey: keyPair.publicKey.subarray(1, 33),
+            internalPubkey: internalKey,
             network: this.getNetwork(isMainnet),
           });
           script = p2tr.output as Buffer;
-          redeemScript = p2tr.redeem?.output as Buffer;
+          console.log(111, script, internalKey);
           break;
         case BTCTYPE.LEGACY:
           const p2pkh = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: this.getNetwork(isMainnet) });
           script = p2pkh.output as Buffer;
-          redeemScript = p2pkh.redeem?.output as Buffer;
+          // redeemScript = p2pkh.redeem?.output as Buffer;
           break;
         default:
           throw new Error('can not create the transactions of btc');
@@ -558,23 +583,115 @@ export class BTC {
 
       let totalBalance = '0';
       const utxos = await this.getAddressUtxo(isMainnet, req.from);
-      utxos &&
-        utxos.length > 0 &&
-        utxos.forEach((item, index) => {
+
+      if (utxos && utxos.length > 0) {
+        for (const item of utxos) {
           totalBalance = BigAdd(totalBalance, item.value.toString());
-          txb.addInput({
-            hash: item.txid,
-            index: item.vout,
-            witnessUtxo: {
-              script: script,
-              value: item.value,
-            },
-            redeemScript: redeemScript,
-            // tapScriptSig: undefined,
-            // finalScriptSig: undefined
-            // witnessScript: undefined,
-          });
-        });
+          switch (req.btcType) {
+            case BTCTYPE.NATIVESEGWIT:
+              txb.addInput({
+                hash: item.txid,
+                index: item.vout,
+                witnessUtxo: {
+                  script: script,
+                  value: item.value,
+                },
+              });
+              break;
+            case BTCTYPE.NESTEDSEGWIT:
+              txb.addInput({
+                hash: item.txid,
+                index: item.vout,
+                witnessUtxo: {
+                  script: script,
+                  value: item.value,
+                },
+                redeemScript: redeemScript,
+              });
+              break;
+            case BTCTYPE.TAPROOT:
+              txb.addInput({
+                hash: item.txid,
+                index: item.vout,
+                witnessUtxo: {
+                  script: script,
+                  value: item.value,
+                },
+                tapInternalKey: internalKey,
+              });
+              break;
+            case BTCTYPE.LEGACY:
+              const rawTx = await this.getRawTransaction(isMainnet, item.txid);
+              txb.addInput({
+                hash: item.txid,
+                index: item.vout,
+                nonWitnessUtxo: Buffer.from(rawTx, 'hex'),
+              });
+              break;
+          }
+        }
+      }
+      // utxos &&
+      //   utxos.length > 0 &&
+      //   utxos.forEach(async (item, index) => {
+      //     totalBalance = BigAdd(totalBalance, item.value.toString());
+      //     switch (req.btcType) {
+      //       case BTCTYPE.NATIVESEGWIT:
+      //         txb.addInput({
+      //           hash: item.txid,
+      //           index: item.vout,
+      //           witnessUtxo: {
+      //             script: script,
+      //             value: item.value,
+      //           },
+      //         });
+      //         break;
+      //       case BTCTYPE.NESTEDSEGWIT:
+      //         txb.addInput({
+      //           hash: item.txid,
+      //           index: item.vout,
+      //           witnessUtxo: {
+      //             script: script,
+      //             value: item.value,
+      //           },
+      //           redeemScript: redeemScript,
+      //         });
+      //         break;
+      //       case BTCTYPE.TAPROOT:
+      //         txb.addInput({
+      //           hash: item.txid,
+      //           index: item.vout,
+      //           witnessUtxo: {
+      //             script: script,
+      //             value: item.value,
+      //           },
+      //           tapInternalKey: internalKey,
+      //         });
+      //         break;
+      //       case BTCTYPE.LEGACY:
+      //         const rawTx = await this.getRawTransaction(isMainnet, item.txid);
+      //         console.log("rawTx", rawTx)
+      //         txb.addInput({
+      //           hash: item.txid,
+      //           index: item.vout,
+      //           nonWitnessUtxo: Buffer.from(rawTx.toString(), 'hex'),
+      //         });
+      //         break;
+      //     }
+      //   });
+
+      // txb.addInput({
+      //   hash: item.txid,
+      //   index: item.vout,
+      //   witnessUtxo: {
+      //     script: script,
+      //     value: item.value,
+      //   },
+      //   redeemScript: redeemScript,
+      //   // tapScriptSig: undefined,
+      //   // finalScriptSig: undefined
+      //   // witnessScript: undefined,
+      // });
 
       const sendBalance = new Big(ethers.parseUnits(req.value, 8).toString()).toNumber();
       txb.addOutput({

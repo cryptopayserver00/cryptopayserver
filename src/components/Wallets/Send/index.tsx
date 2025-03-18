@@ -266,7 +266,7 @@ const WalletsSend = () => {
     }
   };
 
-  const getPayoutInfo = async (id: any) => {
+  const getPayoutInfo = async (id: number) => {
     try {
       const response: any = await axios.get(Http.find_payout_by_id, {
         params: {

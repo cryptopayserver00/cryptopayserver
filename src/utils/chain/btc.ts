@@ -9,3 +9,7 @@ export function GetBlockchainAddressUrl(isMainnet: boolean, address: string): st
 export function GetNodeApi(isMainnet: boolean): string {
   return isMainnet ? 'https://mempool.space/api' : 'https://mempool.space/testnet/api';
 }
+
+export function GetBlockstreamApi(isMainnet: boolean): string {
+  return isMainnet ? 'https://blockstream.info/api' : 'https://blockstream.info/testnet/api';
+}
