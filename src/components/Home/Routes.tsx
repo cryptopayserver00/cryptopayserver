@@ -33,7 +33,6 @@ import Security from 'components/Wallets/Security';
 import WalletsReceive from 'components/Wallets/Receive';
 import WalletsSend from 'components/Wallets/Send';
 import SolanaSend from 'components/Wallets/Solana/Send';
-import BscSend from 'components/Wallets/Bsc/Send';
 import LitecoinSend from 'components/Wallets/Litecoin/Send';
 import TronSend from 'components/Wallets/Tron/Send';
 import TonSend from 'components/Wallets/Ton/Send';
@@ -207,15 +206,6 @@ export const routes: RouteType[] = [
     name: 'Bsc',
     title: 'Bsc',
     component: <Bsc />,
-    enableSidebar: true,
-    needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
-    path: '/wallets/bsc/send',
-    name: 'BscSend',
-    title: 'BscSend',
-    component: <BscSend />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,

@@ -48,9 +48,6 @@ const WalletsReceive = () => {
 
   useEffect(() => {
     if (!chainId || !storeId || !network) {
-      setSnackSeverity('warning');
-      setSnackMessage('No information was found');
-      setSnackOpen(true);
       return;
     }
     init(Number(chainId), Number(storeId), String(network));

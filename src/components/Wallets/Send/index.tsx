@@ -329,7 +329,7 @@ const WalletsSend = () => {
   };
 
   const checkAmount = (): boolean => {
-    if (amount && parseFloat(amount) != 0 && parseFloat(balance[String(coin)]) >= parseFloat(amount)) {
+    if (amount && parseFloat(amount) > 0 && parseFloat(balance[String(coin)]) >= parseFloat(amount)) {
       return true;
     }
 
@@ -397,11 +397,13 @@ const WalletsSend = () => {
       return;
     }
 
-    if (!checkMaxPriortyFee()) {
-      setSnackSeverity('error');
-      setSnackMessage('Incorrect max priorty fee');
-      setSnackOpen(true);
-      return;
+    if (Number(chainId) !== CHAINS.BSC) {
+      if (!checkMaxPriortyFee()) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect max priorty fee');
+        setSnackOpen(true);
+        return;
+      }
     }
 
     if (!(await checkGasLimit())) {
@@ -458,7 +460,6 @@ const WalletsSend = () => {
       });
 
       if (response.result) {
-        // update payout order
         if (payoutId) {
           const update_payout_resp: any = await axios.put(Http.update_payout_by_id, {
             id: payoutId,
@@ -499,10 +500,11 @@ const WalletsSend = () => {
   }, [maxFee, gasLimit]);
 
   const init = async (chainId: number, payoutId: number) => {
-    // setChain(chainId);
     await getBalance(chainId);
     await getFeeRate(chainId);
-    await getMaxPriortyFee(chainId);
+    if (chainId !== CHAINS.BSC) {
+      await getMaxPriortyFee(chainId);
+    }
     await getAddressBook(chainId);
 
     if (payoutId) {
@@ -523,10 +525,10 @@ const WalletsSend = () => {
       <Stack direction={'row'} alignItems={'center'} justifyContent={'center'}>
         <Image src={GetImgSrcByChain(Number(chainId))} alt="chain" width={50} height={50} />
         <Typography variant="h4" my={4} ml={2}>
-          Send Coin on{' '}
+          Send coin on{' '}
           {getNetwork() === 'mainnet'
-            ? FindChainNamesByChains(Number(chainId)) + ' Mainnet'
-            : FindChainNamesByChains(Number(chainId)) + ' Testnet'}
+            ? FindChainNamesByChains(Number(chainId)) + ' mainnet'
+            : FindChainNamesByChains(Number(chainId)) + ' testnet'}
         </Typography>
       </Stack>
       <Container>
@@ -534,7 +536,7 @@ const WalletsSend = () => {
           <>
             <Box mt={4}>
               <Stack mt={2} direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
-                <Typography>From Address</Typography>
+                <Typography>From address</Typography>
               </Stack>
               <Box mt={1}>
                 <FormControl fullWidth variant="outlined">
@@ -553,7 +555,7 @@ const WalletsSend = () => {
 
             <Box mt={4}>
               <Stack mt={2} direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
-                <Typography>Destination Address</Typography>
+                <Typography>Destination address</Typography>
               </Stack>
               <Box mt={1}>
                 <FormControl fullWidth variant="outlined">
@@ -575,7 +577,7 @@ const WalletsSend = () => {
 
             {addressBookrows && addressBookrows.length > 0 && (
               <Box mt={4}>
-                <Typography mb={2}>Address Books</Typography>
+                <Typography mb={2}>Address books</Typography>
                 <Grid container spacing={2}>
                   {addressBookrows.map((item, index) => (
                     <Grid item key={index}>
@@ -664,7 +666,7 @@ const WalletsSend = () => {
             </Box>
 
             <Box mt={4}>
-              <Typography>MaxFee (Gwei)</Typography>
+              <Typography>{Number(chainId) === CHAINS.BSC ? 'Gas price' : 'Max fee'} (gwei)</Typography>
               <Box mt={1}>
                 <FormControl sx={{ width: '25ch' }} variant="outlined">
                   <OutlinedInput
@@ -684,7 +686,7 @@ const WalletsSend = () => {
             </Box>
 
             <Stack mt={4} direction={'row'} alignItems={'center'}>
-              <Typography>Select the maxFee</Typography>
+              <Typography>Select the {Number(chainId) === CHAINS.BSC ? 'gas price' : 'max fee'}</Typography>
               <Box ml={2}>
                 <ToggleButtonGroup
                   color="primary"
@@ -700,42 +702,46 @@ const WalletsSend = () => {
               </Box>
             </Stack>
 
-            <Box mt={4}>
-              <Typography>MaxPriortyFee (Gwei)</Typography>
-              <Box mt={1}>
-                <FormControl sx={{ width: '25ch' }} variant="outlined">
-                  <OutlinedInput
-                    size={'small'}
-                    type="number"
-                    aria-describedby="outlined-weight-helper-text"
-                    inputProps={{
-                      'aria-label': 'weight',
-                    }}
-                    value={maxPriortyFee}
-                    onChange={(e: any) => {
-                      setMaxPriortyFee(e.target.value);
-                    }}
-                  />
-                </FormControl>
-              </Box>
-            </Box>
+            {Number(chainId) !== CHAINS.BSC && (
+              <>
+                <Box mt={4}>
+                  <Typography>Max priorty fee (gwei)</Typography>
+                  <Box mt={1}>
+                    <FormControl sx={{ width: '25ch' }} variant="outlined">
+                      <OutlinedInput
+                        size={'small'}
+                        type="number"
+                        aria-describedby="outlined-weight-helper-text"
+                        inputProps={{
+                          'aria-label': 'weight',
+                        }}
+                        value={maxPriortyFee}
+                        onChange={(e: any) => {
+                          setMaxPriortyFee(e.target.value);
+                        }}
+                      />
+                    </FormControl>
+                  </Box>
+                </Box>
 
-            <Stack mt={4} direction={'row'} alignItems={'center'}>
-              <Typography>Select the maxPriortyFee</Typography>
-              <Box ml={2}>
-                <ToggleButtonGroup
-                  color="primary"
-                  value={maxPriortyFeeAlignment}
-                  exclusive
-                  onChange={handleChangeMaxPriortyFee}
-                  aria-label="type"
-                >
-                  <ToggleButton value="fast">Fast</ToggleButton>
-                  <ToggleButton value="normal">Normal</ToggleButton>
-                  <ToggleButton value="slow">Slow</ToggleButton>
-                </ToggleButtonGroup>
-              </Box>
-            </Stack>
+                <Stack mt={4} direction={'row'} alignItems={'center'}>
+                  <Typography>Select the max priorty fee</Typography>
+                  <Box ml={2}>
+                    <ToggleButtonGroup
+                      color="primary"
+                      value={maxPriortyFeeAlignment}
+                      exclusive
+                      onChange={handleChangeMaxPriortyFee}
+                      aria-label="type"
+                    >
+                      <ToggleButton value="fast">Fast</ToggleButton>
+                      <ToggleButton value="normal">Normal</ToggleButton>
+                      <ToggleButton value="slow">Slow</ToggleButton>
+                    </ToggleButtonGroup>
+                  </Box>
+                </Stack>
+              </>
+            )}
 
             {displaySign && (
               <>
@@ -760,7 +766,8 @@ const WalletsSend = () => {
                 </Box>
                 <Box mt={4}>
                   <Typography>
-                    Miner Fee: {networkFee} {mainCoin} = MaxFee({maxFee}) * Gas({gasLimit})
+                    Miner fee: {networkFee} {mainCoin} = {Number(chainId) === CHAINS.BSC ? 'gas price' : 'max fee'}(
+                    {maxFee}) * gas({gasLimit})
                   </Typography>
                 </Box>
               </>
@@ -793,7 +800,7 @@ const WalletsSend = () => {
               </Stack>
 
               <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>Spend Amount</Typography>
+                <Typography>Spend amount</Typography>
                 <FormControl variant="outlined">
                   <OutlinedInput
                     size={'small'}
@@ -809,22 +816,7 @@ const WalletsSend = () => {
               </Stack>
 
               <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>Gas Limit</Typography>
-                <FormControl variant="outlined">
-                  <OutlinedInput
-                    size={'small'}
-                    aria-describedby="outlined-weight-helper-text"
-                    inputProps={{
-                      'aria-label': 'weight',
-                    }}
-                    value={gasLimit}
-                    disabled
-                  />
-                </FormControl>
-              </Stack>
-
-              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>Max Fee</Typography>
+                <Typography>{Number(chainId) === CHAINS.BSC ? 'Gas price' : 'Max fee'}</Typography>
                 <FormControl variant="outlined">
                   <OutlinedInput
                     size={'small'}
@@ -839,24 +831,41 @@ const WalletsSend = () => {
                 </FormControl>
               </Stack>
 
+              {Number(chainId) !== CHAINS.BSC && (
+                <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                  <Typography>Max priorty fee</Typography>
+                  <FormControl variant="outlined">
+                    <OutlinedInput
+                      size={'small'}
+                      endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
+                      aria-describedby="outlined-weight-helper-text"
+                      inputProps={{
+                        'aria-label': 'weight',
+                      }}
+                      value={maxPriortyFee}
+                      disabled
+                    />
+                  </FormControl>
+                </Stack>
+              )}
+
               <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>Max Priorty Fee</Typography>
+                <Typography>Gas limit</Typography>
                 <FormControl variant="outlined">
                   <OutlinedInput
                     size={'small'}
-                    endAdornment={<InputAdornment position="end">Gwei</InputAdornment>}
                     aria-describedby="outlined-weight-helper-text"
                     inputProps={{
                       'aria-label': 'weight',
                     }}
-                    value={maxPriortyFee}
+                    value={gasLimit}
                     disabled
                   />
                 </FormControl>
               </Stack>
 
               <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>Network Fee</Typography>
+                <Typography>Network fee</Typography>
                 <FormControl variant="outlined">
                   <OutlinedInput
                     size={'small'}
@@ -872,7 +881,7 @@ const WalletsSend = () => {
               </Stack>
 
               <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>Nonce:</Typography>
+                <Typography>Nonce</Typography>
                 <FormControl variant="outlined">
                   <OutlinedInput
                     size={'small'}
