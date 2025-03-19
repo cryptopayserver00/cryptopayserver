@@ -540,10 +540,9 @@ export class BTC {
       const ECPair = ECPairFactory(ecc);
       const keyPair = ECPair.fromWIF(this.toWifStaring(isMainnet, req.privateKey), this.getNetwork(isMainnet));
 
-      console.log(111, req.btcType);
-      let script: Buffer,
+      let script: Buffer = Buffer.from(''),
         redeemScript: Buffer = Buffer.from(''),
-        internalKey: Buffer = Buffer.from('');
+        tapInternalKey: Buffer = Buffer.from('');
 
       switch (req.btcType) {
         case BTCTYPE.NATIVESEGWIT:
@@ -559,19 +558,14 @@ export class BTC {
           redeemScript = p2.redeem?.output as Buffer;
           break;
         case BTCTYPE.TAPROOT:
-          internalKey = keyPair.publicKey.slice(1);
-          // internalKey = toXOnly(keyPair.publicKey);
+          tapInternalKey = keyPair.publicKey.subarray(1, 33);
           const p2tr = bitcoin.payments.p2tr({
-            internalPubkey: internalKey,
+            internalPubkey: tapInternalKey,
             network: this.getNetwork(isMainnet),
           });
           script = p2tr.output as Buffer;
-          console.log(111, script, internalKey);
           break;
         case BTCTYPE.LEGACY:
-          const p2pkh = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: this.getNetwork(isMainnet) });
-          script = p2pkh.output as Buffer;
-          // redeemScript = p2pkh.redeem?.output as Buffer;
           break;
         default:
           throw new Error('can not create the transactions of btc');
@@ -617,7 +611,7 @@ export class BTC {
                   script: script,
                   value: item.value,
                 },
-                tapInternalKey: internalKey,
+                tapInternalKey: tapInternalKey,
               });
               break;
             case BTCTYPE.LEGACY:
@@ -631,79 +625,12 @@ export class BTC {
           }
         }
       }
-      // utxos &&
-      //   utxos.length > 0 &&
-      //   utxos.forEach(async (item, index) => {
-      //     totalBalance = BigAdd(totalBalance, item.value.toString());
-      //     switch (req.btcType) {
-      //       case BTCTYPE.NATIVESEGWIT:
-      //         txb.addInput({
-      //           hash: item.txid,
-      //           index: item.vout,
-      //           witnessUtxo: {
-      //             script: script,
-      //             value: item.value,
-      //           },
-      //         });
-      //         break;
-      //       case BTCTYPE.NESTEDSEGWIT:
-      //         txb.addInput({
-      //           hash: item.txid,
-      //           index: item.vout,
-      //           witnessUtxo: {
-      //             script: script,
-      //             value: item.value,
-      //           },
-      //           redeemScript: redeemScript,
-      //         });
-      //         break;
-      //       case BTCTYPE.TAPROOT:
-      //         txb.addInput({
-      //           hash: item.txid,
-      //           index: item.vout,
-      //           witnessUtxo: {
-      //             script: script,
-      //             value: item.value,
-      //           },
-      //           tapInternalKey: internalKey,
-      //         });
-      //         break;
-      //       case BTCTYPE.LEGACY:
-      //         const rawTx = await this.getRawTransaction(isMainnet, item.txid);
-      //         console.log("rawTx", rawTx)
-      //         txb.addInput({
-      //           hash: item.txid,
-      //           index: item.vout,
-      //           nonWitnessUtxo: Buffer.from(rawTx.toString(), 'hex'),
-      //         });
-      //         break;
-      //     }
-      //   });
-
-      // txb.addInput({
-      //   hash: item.txid,
-      //   index: item.vout,
-      //   witnessUtxo: {
-      //     script: script,
-      //     value: item.value,
-      //   },
-      //   redeemScript: redeemScript,
-      //   // tapScriptSig: undefined,
-      //   // finalScriptSig: undefined
-      //   // witnessScript: undefined,
-      // });
 
       const sendBalance = new Big(ethers.parseUnits(req.value, 8).toString()).toNumber();
-      txb.addOutput({
-        address: req.to,
-        value: sendBalance,
-      });
-
-      // feeRate * vSize
       const feeRate = req.feeRate ? req.feeRate : (await this.getCurrentFeeRate(isMainnet)).fastest;
-      // const size = txb.extractTransaction().virtualSize() + 90;
-      // const size = 200 + 90;
-      const size = 1000;
+      const numInputs = utxos.length;
+      const numOutputs = 2;
+      const size = this.estimateVirtualSize(numInputs, numOutputs);
       const feeBalance = BigMul(size.toString(), feeRate.toString());
 
       const remainValue = parseFloat(BigSub(BigSub(totalBalance, sendBalance.toString()), feeBalance));
@@ -712,11 +639,30 @@ export class BTC {
       }
 
       txb.addOutput({
-        address: req.from,
-        value: remainValue,
+        address: req.to,
+        value: sendBalance,
       });
 
-      txb.signAllInputs(keyPair);
+      if (remainValue > 0) {
+        txb.addOutput({
+          address: req.from,
+          value: remainValue,
+        });
+      }
+
+      switch (req.btcType) {
+        case BTCTYPE.TAPROOT:
+          const tweakedKeyPair = keyPair.tweak(bitcoin.crypto.taggedHash('TapTweak', tapInternalKey));
+
+          for (let i = 0; i < utxos.length; i++) {
+            txb.signInput(i, tweakedKeyPair, [bitcoin.Transaction.SIGHASH_DEFAULT]);
+          }
+
+          break;
+        default:
+          txb.signAllInputs(keyPair);
+      }
+
       txb.finalizeAllInputs();
 
       const tx = txb.extractTransaction();
@@ -726,5 +672,18 @@ export class BTC {
       console.error(e);
       throw new Error('can not send the transactions of btc');
     }
+  }
+
+  static estimateVirtualSize(numInputs: number, numOutputs: number): number {
+    // Fixed part (version, input count, output count, lock time): approx. 10.5 v Bytes
+    const baseSize = 10.5;
+
+    // Each input: txid (32) + vout (4) + sequence (4) + witness data (1 + 64) ≈ 41 vBytes + 16.25 vBytes (witness discount)
+    const inputSize = numInputs * (41 + 16.25); // 约 57.25 vBytes
+
+    // Each output: Amount (8) + script length (1) + script (32 for P2 TR) ≈ 43 v Bytes
+    const outputSize = numOutputs * 43;
+
+    return Math.ceil(baseSize + inputSize + outputSize);
   }
 }

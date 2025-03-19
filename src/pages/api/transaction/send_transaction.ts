@@ -73,8 +73,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        console.log(1111)
-
         const hash = await WEB3.sendTransaction(address.network === 1 ? true : false, {
           coin: FindTokenByChainIdsAndSymbol(WEB3.getChainIds(address.network === 1 ? true : false, chainId), coin),
           value: value,
@@ -95,8 +93,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        console.log(1111, hash)
-
         const notification = await prisma.notifications.create({
           data: {
             user_id: userId,
@@ -109,8 +105,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             status: 1,
           },
         });
-
-        console.log(1111, notification)
 
         if (!notification) {
           return res.status(200).json({
