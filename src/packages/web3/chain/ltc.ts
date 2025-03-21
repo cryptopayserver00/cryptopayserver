@@ -410,9 +410,12 @@ export class LTC {
 
   static async sendTransaction(isMainnet: boolean, req: SendTransaction): Promise<string> {
     try {
+      bitcoin.initEccLib(ecc);
+
       const ECPair = ECPairFactory(ecc);
       const keyPair = ECPair.fromWIF(this.toWifStaring(isMainnet, req.privateKey), this.getNetwork(isMainnet));
 
+      // only support NATIVESEGWIT right now
       const p2wpkh = bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network: this.getNetwork(isMainnet) });
       let script = p2wpkh.output as Buffer;
 
@@ -422,10 +425,11 @@ export class LTC {
 
       let totalBalance = '0';
       const utxos = await this.getAddressUtxo(isMainnet, req.from);
-      utxos &&
-        utxos.length > 0 &&
-        utxos.forEach((item, index) => {
+
+      if (utxos && utxos.length > 0) {
+        for (const item of utxos) {
           totalBalance = BigAdd(totalBalance, item.value.toString());
+
           txb.addInput({
             hash: item.txid,
             index: item.vout,
@@ -434,16 +438,14 @@ export class LTC {
               value: item.value,
             },
           });
-        });
+        }
+      }
 
       const sendBalance = new Big(ethers.parseUnits(req.value, 8).toString()).toNumber();
-      txb.addOutput({
-        address: req.to,
-        value: sendBalance,
-      });
-
       const feeRate = req.feeRate ? req.feeRate : (await this.getCurrentFeeRate(isMainnet)).fastest;
-      const size = 1000;
+      const numInputs = utxos.length;
+      const numOutputs = 2;
+      const size = this.estimateVirtualSize(numInputs, numOutputs);
       const feeBalance = BigMul(size.toString(), feeRate.toString());
 
       const remainValue = parseFloat(BigSub(BigSub(totalBalance, sendBalance.toString()), feeBalance));
@@ -452,9 +454,16 @@ export class LTC {
       }
 
       txb.addOutput({
-        address: req.from,
-        value: remainValue,
+        address: req.to,
+        value: sendBalance,
       });
+
+      if (remainValue > 0) {
+        txb.addOutput({
+          address: req.from,
+          value: remainValue,
+        });
+      }
 
       txb.signAllInputs(keyPair);
       txb.finalizeAllInputs();
@@ -466,5 +475,18 @@ export class LTC {
       console.error(e);
       throw new Error('can not create the transactions of ltc');
     }
+  }
+
+  static estimateVirtualSize(numInputs: number, numOutputs: number): number {
+    // Fixed part (version, input count, output count, lock time): approx. 10.5 v Bytes
+    const baseSize = 10.5;
+
+    // Each input: txid (32) + vout (4) + sequence (4) + witness data (1 + 64) ≈ 41 vBytes + 16.25 vBytes (witness discount)
+    const inputSize = numInputs * (41 + 16.25); // about 57.25 vBytes
+
+    // Each output: Amount (8) + script length (1) + script (32 for P2 TR) ≈ 43 v Bytes
+    const outputSize = numOutputs * 43;
+
+    return Math.ceil(baseSize + inputSize + outputSize);
   }
 }

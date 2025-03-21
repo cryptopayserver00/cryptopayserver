@@ -14,7 +14,6 @@ import {
   Chip,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import BitcoinSVG from 'assets/chain/bitcoin.svg';
 import Image from 'next/image';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
@@ -69,8 +68,6 @@ const BitcoinSend = () => {
   const [destinationAddress, setDestinationAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [feeRate, setFeeRate] = useState<number>(0);
-
-  // const [balance, setBalance] = useState<string>('');
 
   const [networkFee, setNetworkFee] = useState<number>(0);
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('');
@@ -397,10 +394,6 @@ const BitcoinSend = () => {
             <Box mt={4}>
               <Stack mt={2} direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
                 <Typography>Destination address</Typography>
-                {/* <Stack direction={'row'} alignItems={'center'}>
-                  <Icon component={Add} fontSize={'small'} />
-                  <Typography pl={1}>Add another destination</Typography>
-                </Stack> */}
               </Stack>
               <Box mt={1}>
                 <FormControl fullWidth variant="outlined">
@@ -491,7 +484,7 @@ const BitcoinSend = () => {
               </Typography>
               {balance[String(coin)] && (
                 <Typography mt={1} color={amountRed ? 'red' : 'none'} fontWeight={'bold'}>
-                  Your available balance is {balance[String(coin)]} BTC.
+                  Your available balance is {balance[String(coin)]} {mainCoin}.
                 </Typography>
               )}
             </Box>

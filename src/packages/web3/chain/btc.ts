@@ -679,7 +679,7 @@ export class BTC {
     const baseSize = 10.5;
 
     // Each input: txid (32) + vout (4) + sequence (4) + witness data (1 + 64) ≈ 41 vBytes + 16.25 vBytes (witness discount)
-    const inputSize = numInputs * (41 + 16.25); // 约 57.25 vBytes
+    const inputSize = numInputs * (41 + 16.25); // about 57.25 vBytes
 
     // Each output: Amount (8) + script length (1) + script (32 for P2 TR) ≈ 43 v Bytes
     const outputSize = numOutputs * 43;
