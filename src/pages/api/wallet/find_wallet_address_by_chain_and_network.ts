@@ -66,6 +66,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 Number(chainId),
                 item.address,
               ),
+              resource: await WEB3.getAccountResource(
+                Number(network) === 1 ? true : false,
+                Number(chainId),
+                item.address,
+              ),
               // transactions: [],
             };
           });

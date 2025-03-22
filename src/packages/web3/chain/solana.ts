@@ -47,7 +47,7 @@ export class SOLANA {
         chain: this.chain,
         address: address,
         privateKey: privateKey,
-        note: 'Solana',
+        note: 'SOLANA',
         isMainnet: isMainnet,
       };
     } catch (e) {
@@ -65,7 +65,7 @@ export class SOLANA {
         chain: this.chain,
         address: address,
         privateKey: privateKey,
-        note: 'Solana',
+        note: 'SOLANA',
         isMainnet: isMainnet,
       };
     } catch (e) {

@@ -53,7 +53,7 @@ export class ETH {
         chain: this.chain,
         address: address,
         privateKey: privateKey,
-        note: 'Ethereum',
+        note: 'ETHEREUM',
         isMainnet: isMainnet,
       };
     } catch (e) {
@@ -71,7 +71,7 @@ export class ETH {
         chain: this.chain,
         address: address,
         privateKey: privateKey,
-        note: 'Ethereum',
+        note: 'ETHEREUM',
         isMainnet: isMainnet,
       };
     } catch (e) {

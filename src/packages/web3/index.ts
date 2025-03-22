@@ -132,23 +132,23 @@ export class WEB3 {
   static async getFeeRate(isMainnet: boolean, chain: CHAINS): Promise<any> {
     switch (chain) {
       case CHAINS.BITCOIN:
-        return BTC.getCurrentFeeRate(isMainnet);
+        return await BTC.getCurrentFeeRate(isMainnet);
       case CHAINS.LITECOIN:
-        return LTC.getCurrentFeeRate(isMainnet);
+        return await LTC.getCurrentFeeRate(isMainnet);
       case CHAINS.ETHEREUM:
-        return ETH.getGasPrice(isMainnet);
+        return await ETH.getGasPrice(isMainnet);
       case CHAINS.BSC:
-        return BSC.getGasPrice(isMainnet);
+        return await BSC.getGasPrice(isMainnet);
       case CHAINS.ARBITRUM:
-        return ARB.getGasPrice(isMainnet);
+        return await ARB.getGasPrice(isMainnet);
       case CHAINS.BASE:
-        return BASE.getGasPrice(isMainnet);
+        return await BASE.getGasPrice(isMainnet);
       case CHAINS.OPTIMISM:
-        return OP.getGasPrice(isMainnet);
+        return await OP.getGasPrice(isMainnet);
       case CHAINS.POLYGON:
-        return POL.getGasPrice(isMainnet);
+        return await POL.getGasPrice(isMainnet);
       case CHAINS.AVALANCHE:
-        return AVAX.getGasPrice(isMainnet);
+        return await AVAX.getGasPrice(isMainnet);
       case CHAINS.SOLANA:
         return null;
       case CHAINS.TON:
@@ -473,6 +473,15 @@ export class WEB3 {
         return await TON.sendTransaction(isMainnet, req);
       default:
         return '';
+    }
+  }
+
+  static async getAccountResource(isMainnet: boolean, chain: CHAINS, address: string): Promise<any> {
+    switch (chain) {
+      case CHAINS.TRON:
+        return await TRON.getAccountResource(isMainnet, address);
+      default:
+        return null;
     }
   }
 }

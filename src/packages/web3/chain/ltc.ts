@@ -75,7 +75,7 @@ export class LTC {
         chain: this.chain,
         address: nativeSegwitAddress as string,
         privateKey: nativeSegwitPrivateKey,
-        note: 'Litecoin',
+        note: 'LITECOIN',
         isMainnet: isMainnet,
       };
     } catch (e) {
@@ -93,7 +93,7 @@ export class LTC {
         chain: this.chain,
         address: nativeSegwitAddress as string,
         privateKey: privateKey,
-        note: 'Native Segwit',
+        note: 'NATIVESEGWIT',
         isMainnet: isMainnet,
       };
     } catch (e) {

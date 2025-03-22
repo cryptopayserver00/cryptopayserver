@@ -17,6 +17,7 @@ import { TRC20Abi } from '../abi/trc20';
 import { GetBlockchainTxUrl } from 'utils/chain/tron';
 import { BLOCKSCAN } from '../block_scan';
 import { SignedTransaction } from 'tronweb/lib/esm/types';
+import { BigAdd } from 'utils/number';
 
 export class TRON {
   static chain = CHAINS.TRON;
@@ -51,7 +52,7 @@ export class TRON {
         chain: this.chain,
         address: address,
         privateKey: privateKey,
-        note: 'Tron',
+        note: 'TRON',
         isMainnet: isMainnet,
       };
     } catch (e) {
@@ -68,7 +69,7 @@ export class TRON {
         chain: this.chain,
         address: address,
         privateKey: privateKey,
-        note: 'Tron',
+        note: 'TRON',
         isMainnet: isMainnet,
       };
     } catch (e) {
@@ -310,6 +311,26 @@ export class TRON {
       const tronWeb = await this.getTronClient(isMainnet);
       const tronAddress = tronWeb.address.fromHex(address);
       return tronAddress;
+    } catch (e) {
+      console.error(e);
+      return '';
+    }
+  }
+
+  static async getAccountResource(isMainnet: boolean, address: string): Promise<any> {
+    try {
+      const tronWeb = await this.getTronClient(isMainnet);
+
+      const tronAccountResource = await tronWeb.trx.getAccountResources(address);
+
+      const freeNetLimit = tronAccountResource.freeNetLimit ? tronAccountResource.freeNetLimit : 0;
+      const netLimit = tronAccountResource.NetLimit ? tronAccountResource.NetLimit : 0;
+      const energyLimit = tronAccountResource.EnergyLimit ? tronAccountResource.EnergyLimit : 0;
+
+      return {
+        bandwidth: BigAdd(String(freeNetLimit), String(netLimit)),
+        energy: energyLimit,
+      };
     } catch (e) {
       console.error(e);
       return '';

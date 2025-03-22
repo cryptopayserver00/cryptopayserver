@@ -30,7 +30,7 @@ export class BITCOINCASH {
         chain: this.chain,
         address: wallet.address as string,
         privateKey: wallet.privateKeyWif,
-        note: 'BitcoinCash',
+        note: 'BITCOINCASH',
         isMainnet: isMainnet,
       };
     } catch (e) {
@@ -53,7 +53,7 @@ export class BITCOINCASH {
         chain: this.chain,
         address: wallet.address as string,
         privateKey: privateKey,
-        note: 'BitcoinCash',
+        note: 'BITCOINCASH',
         isMainnet: isMainnet,
       };
     } catch (e) {

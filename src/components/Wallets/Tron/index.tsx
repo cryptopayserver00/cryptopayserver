@@ -2,6 +2,8 @@ import { AccountCircle, Settings } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Card,
+  CardContent,
   Chip,
   Container,
   FormControl,
@@ -23,7 +25,6 @@ import {
   Typography,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import Link from 'next/link';
 import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { EthereumTransactionDetail } from 'packages/web3/types';
 import { useEffect, useState } from 'react';
@@ -42,6 +43,10 @@ type walletType = {
   balance: any;
   txUrl: string;
   transactions: EthereumTransactionDetail[];
+  resource: {
+    bandwidth: number;
+    energy: number;
+  };
 };
 
 const Tron = () => {
@@ -89,6 +94,10 @@ const Tron = () => {
               balance: item.balance,
               txUrl: item.tx_url,
               transactions: item.transactions,
+              resource: {
+                bandwidth: item.resource.bandwidth,
+                energy: item.resource.energy,
+              },
             });
           });
           setWallet(ws);
@@ -423,6 +432,37 @@ const Tron = () => {
                         </Button>
                       </Box>
                     </Stack>
+                    <Box mt={2}>
+                      <Stack
+                        direction={'row'}
+                        alignItems={'center'}
+                        justifyContent={'space-around'}
+                        mt={4}
+                        textAlign={'center'}
+                      >
+                        <Card>
+                          <CardContent>
+                            <Box px={10}>
+                              <Typography>Energy</Typography>
+                              <Typography mt={2} fontWeight={'bold'}>
+                                {item.resource.energy}
+                              </Typography>
+                            </Box>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardContent>
+                            <Box px={10}>
+                              <Typography>Bandwidth</Typography>
+                              <Typography mt={2} fontWeight={'bold'}>
+                                {item.resource.bandwidth}
+                              </Typography>
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      </Stack>
+                    </Box>
                     <Box mt={5}>
                       {item.transactions && item.transactions.length > 0 ? (
                         <TransactionsTab rows={item.transactions} />

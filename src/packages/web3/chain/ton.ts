@@ -55,7 +55,7 @@ export class TON {
         chain: this.chain,
         address: walletAddress,
         privateKey: privateKey,
-        note: 'Ton',
+        note: 'TON',
         isMainnet: isMainnet,
       };
     } catch (e) {
@@ -80,7 +80,7 @@ export class TON {
         chain: this.chain,
         address: walletAddress,
         privateKey: privateKey,
-        note: 'Ton',
+        note: 'TON',
         isMainnet: isMainnet,
       };
     } catch (e) {

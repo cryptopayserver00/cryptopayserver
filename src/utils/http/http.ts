@@ -88,6 +88,9 @@ export class Http {
   static find_gas_limit = this.httpPath + '/ethereum/find_gas_limit';
   static find_max_priorty_fee = this.httpPath + '/ethereum/find_max_priorty_fee';
 
+  // tron
+  static find_account_resource = this.httpPath + '/tron/find_account_resource';
+
   // transaction
   static find_transaction = this.httpPath + '/transaction/find_transaction';
   static send_transaction = this.httpPath + '/transaction/send_transaction';
