@@ -1186,7 +1186,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://solana.com',
     isMainnet: true,
     coins: SOLANA_COINS,
-    rpc: ['https://api.mainnet-beta.solana.com', 'https://rpc.ankr.com/solana'],
+    rpc: ['https://api.mainnet-beta.solana.com'],
     icon: require('assets/chain/solana.svg'),
   },
   {
@@ -1197,7 +1197,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://solana.com',
     isMainnet: false,
     coins: SOLANA_DEVNET_COINS,
-    rpc: ['https://api.devnet.solana.com', 'https://rpc.ankr.com/solana_devnet'],
+    rpc: ['https://api.devnet.solana.com'],
     icon: require('assets/chain/solana.svg'),
   },
   {
@@ -1300,7 +1300,6 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
       'https://ava-testnet.public.blastapi.io/ext/bc/C/rpc',
       // 'https://endpoints.omniatech.io/v1/avax/fuji/public',
       'https://api.avax-test.network/ext/bc/C/rpc',
-      'https://rpc.ankr.com/avalanche_fuji',
     ],
     icon: require('assets/chain/avalanche.svg'),
   },

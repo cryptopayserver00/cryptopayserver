@@ -1,10 +1,12 @@
 import {
   Box,
   Button,
+  Chip,
   Container,
   FormControl,
-  FormControlLabel,
+  Grid,
   Icon,
+  InputAdornment,
   OutlinedInput,
   Radio,
   RadioGroup,
@@ -16,7 +18,6 @@ import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import SolanaSVG from 'assets/chain/solana.svg';
 import Image from 'next/image';
 import { OmitMiddleString } from 'utils/strings';
 import { GetBlockchainTxUrl } from 'utils/chain/solana';
@@ -26,14 +27,28 @@ import Link from 'next/link';
 import { COINGECKO_IDS, PAYOUT_STATUS } from 'packages/constants';
 import { useRouter } from 'next/router';
 import { BigDiv } from 'utils/number';
+import { GetImgSrcByChain, GetImgSrcByCrypto } from 'utils/qrcode';
+import { FindChainNamesByChains } from 'utils/web3';
 
 type Coin = {
   [currency: string]: string;
 };
 
+type AddressBookRowType = {
+  id: number;
+  chainId: number;
+  isMainnet: boolean;
+  name: string;
+  address: string;
+};
+
 const SolanaSend = () => {
   const router = useRouter();
   const { payoutId } = router.query;
+
+  const [mainCoin, setMainCoin] = useState<COINS>();
+
+  const [addressBookrows, setAddressBookrows] = useState<AddressBookRowType[]>([]);
 
   const [page, setPage] = useState<number>(1);
   const [fromAddress, setFromAddress] = useState<string>('');
@@ -41,8 +56,9 @@ const SolanaSend = () => {
   const [destinationAddress, setDestinationAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
 
+  const [networkFee, setNetworkFee] = useState<number>(0.000005);
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('');
-  const [coin, setCoin] = useState<string>('SOL');
+  const [coin, setCoin] = useState<COINS>();
   const [amountRed, setAmountRed] = useState<boolean>(false);
 
   const [isDisableDestinationAddress, setIsDisableDestinationAddress] = useState<boolean>(false);
@@ -53,7 +69,7 @@ const SolanaSend = () => {
   const { getStoreId } = useStorePresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
-  const getSolana = async () => {
+  const getBalance = async () => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
@@ -65,6 +81,88 @@ const SolanaSend = () => {
       if (response.result) {
         setFromAddress(response.data.address);
         setBalance(response.data.balance);
+        setMainCoin(response.data.main_coin.name);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const getFeeRate = async () => {
+    try {
+      const response: any = await axios.get(Http.find_fee_rate, {
+        params: {
+          chain_id: CHAINS.SOLANA,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      if (response.result) {
+        setNetworkFee(response.data);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const getAddressBook = async () => {
+    try {
+      const response: any = await axios.get(Http.find_address_book, {
+        params: {
+          chain_id: CHAINS.SOLANA,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      if (response.result && response.data.length > 0) {
+        let rt: AddressBookRowType[] = [];
+        response.data.forEach((item: any) => {
+          rt.push({
+            id: item.id,
+            chainId: item.chain_id,
+            isMainnet: item.network === 1 ? true : false,
+            name: item.name,
+            address: item.address,
+          });
+        });
+
+        setAddressBookrows(rt);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const getPayoutInfo = async (id: any) => {
+    try {
+      const response: any = await axios.get(Http.find_payout_by_id, {
+        params: {
+          id: id,
+        },
+      });
+
+      if (response.result) {
+        setDestinationAddress(response.data.address);
+
+        const ids = COINGECKO_IDS[response.data.crypto as COINS];
+        const rate_response: any = await axios.get(Http.find_crypto_price, {
+          params: {
+            ids: ids,
+            currency: response.data.currency,
+          },
+        });
+
+        const rate = rate_response.data[ids][response.data.currency.toLowerCase()];
+        const totalPrice = parseFloat(BigDiv((response.data.amount as number).toString(), rate)).toFixed(4);
+        setAmount(totalPrice);
+        setCoin(response.data.crypto);
+
+        setIsDisableDestinationAddress(true);
+        setIsDisableAmount(true);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -102,7 +200,7 @@ const SolanaSend = () => {
   };
 
   const checkAmount = (): boolean => {
-    if (amount && parseFloat(amount) != 0 && parseFloat(balance[coin]) >= parseFloat(amount)) {
+    if (amount && parseFloat(amount) > 0 && parseFloat(balance[String(coin)]) >= parseFloat(amount)) {
       return true;
     }
 
@@ -124,41 +222,24 @@ const SolanaSend = () => {
       return;
     }
 
-    setPage(2);
-  };
-
-  const getPayoutInfo = async (id: any) => {
-    try {
-      const response: any = await axios.get(Http.find_payout_by_id, {
-        params: {
-          id: id,
-        },
-      });
-
-      if (response.result) {
-        setDestinationAddress(response.data.address);
-
-        const ids = COINGECKO_IDS[response.data.crypto as COINS];
-        const rate_response: any = await axios.get(Http.find_crypto_price, {
-          params: {
-            ids: ids,
-            currency: response.data.currency,
-          },
-        });
-
-        const rate = rate_response.data[ids][response.data.currency.toLowerCase()];
-        const totalPrice = parseFloat(BigDiv((response.data.amount as number).toString(), rate)).toFixed(4);
-        setAmount(totalPrice);
-        setCoin(response.data.crypto);
-
-        setIsDisableDestinationAddress(true);
-        setIsDisableAmount(true);
+    if (coin === mainCoin) {
+      if (!networkFee || !amount || networkFee + parseFloat(amount) > parseFloat(balance[String(mainCoin)])) {
+        setSnackSeverity('error');
+        setSnackMessage('Insufficient balance or Insufficient gas fee');
+        setSnackOpen(true);
+        return;
       }
-    } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+    } else {
+      if (!networkFee || !amount || networkFee > parseFloat(balance[String(mainCoin)])) {
+        setSnackSeverity('error');
+        setSnackMessage('Insufficient balance or Insufficient gas fee');
+        setSnackOpen(true);
+        return;
+      }
+    }
+
+    if (networkFee && networkFee > 0) {
+      setPage(2);
     }
   };
 
@@ -210,7 +291,9 @@ const SolanaSend = () => {
   };
 
   const init = async (payoutId: any) => {
-    await getSolana();
+    await getBalance();
+    await getFeeRate();
+    await getAddressBook();
 
     if (payoutId) {
       await getPayoutInfo(payoutId);
@@ -224,9 +307,15 @@ const SolanaSend = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" mb={10}>
-      <Typography variant="h4" mt={4}>
-        Send Coin on Solana
-      </Typography>
+      <Stack direction={'row'} alignItems={'center'} justifyContent={'center'}>
+        <Image src={GetImgSrcByChain(CHAINS.SOLANA)} alt="chain" width={50} height={50} />
+        <Typography variant="h4" my={4} ml={2}>
+          Send coin on{' '}
+          {getNetwork() === 'mainnet'
+            ? FindChainNamesByChains(CHAINS.SOLANA) + ' mainnet'
+            : FindChainNamesByChains(CHAINS.SOLANA) + ' testnet'}
+        </Typography>
+      </Stack>
       <Container>
         {page === 1 && (
           <>
@@ -271,29 +360,43 @@ const SolanaSend = () => {
               </Box>
             </Box>
 
+            {addressBookrows && addressBookrows.length > 0 && (
+              <Box mt={4}>
+                <Typography mb={2}>Address books</Typography>
+                <Grid container spacing={2}>
+                  {addressBookrows.map((item, index) => (
+                    <Grid item key={index}>
+                      <Chip
+                        label={OmitMiddleString(item.address)}
+                        variant="outlined"
+                        onClick={() => {
+                          setDestinationAddress(item.address);
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+
             <Box mt={4}>
               <Typography>Coin</Typography>
-              <Box mt={1}>
-                <FormControl>
-                  <RadioGroup
-                    value={coin}
-                    onChange={(e: any) => {
-                      setCoin(e.target.value);
-                    }}
-                  >
-                    {balance &&
-                      Object.entries(balance).map((item, index) => (
-                        <FormControlLabel
-                          value={item[0]}
-                          control={<Radio />}
-                          label={`${item[0].toUpperCase()} => Balance: ${item[1]}`}
-                          key={index}
-                          labelPlacement={'end'}
-                        />
-                      ))}
-                  </RadioGroup>
-                </FormControl>
-              </Box>
+              <Grid mt={2} container gap={2}>
+                {balance &&
+                  Object.entries(balance).map(([token, amount], balanceIndex) => (
+                    <Grid item key={balanceIndex}>
+                      <Chip
+                        size={'medium'}
+                        label={String(amount) + ' ' + token}
+                        icon={<Image src={GetImgSrcByCrypto(token as COINS)} alt="logo" width={20} height={20} />}
+                        variant={token === coin ? 'filled' : 'outlined'}
+                        onClick={() => {
+                          setCoin(token as COINS);
+                        }}
+                      />
+                    </Grid>
+                  ))}
+              </Grid>
             </Box>
 
             <Box mt={4}>
@@ -310,7 +413,7 @@ const SolanaSend = () => {
                     value={amount}
                     onChange={(e: any) => {
                       setAmount(e.target.value);
-                      if (parseFloat(e.target.value) > parseFloat(balance[coin])) {
+                      if (parseFloat(e.target.value) > parseFloat(balance[String(coin)])) {
                         setAmountRed(true);
                       } else {
                         setAmountRed(false);
@@ -320,8 +423,17 @@ const SolanaSend = () => {
                   />
                 </FormControl>
               </Box>
-              <Typography mt={1} color={amountRed ? 'red' : 'none'} fontWeight={'bold'}>
-                Your available balance is {balance[coin]} {coin}
+              {balance[String(coin)] && (
+                <Typography mt={1} color={amountRed ? 'red' : 'none'} fontWeight={'bold'}>
+                  Your available balance is {balance[String(coin)]} {coin}
+                </Typography>
+              )}
+            </Box>
+
+            <Box mt={4}>
+              <Typography>Network Fee</Typography>
+              <Typography mt={2} fontWeight={'bold'}>
+                {networkFee} {mainCoin}
               </Typography>
             </Box>
 
@@ -335,46 +447,57 @@ const SolanaSend = () => {
 
         {page === 2 && (
           <>
-            <Box textAlign={'center'}>
-              <Stack direction={'row'} alignItems={'center'} justifyContent={'center'} mt={4}>
-                <Image src={SolanaSVG} alt="" width={25} height={25} />
-                <Typography ml={1}>{getNetwork() === 'mainnet' ? 'Solana Mainnet' : 'Solana Devnet'}</Typography>
+            <Container maxWidth="sm">
+              <Stack mt={10} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Send to</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={OmitMiddleString(destinationAddress)}
+                    disabled
+                  />
+                </FormControl>
               </Stack>
 
-              <Box mt={4}>
-                <Typography>Send to</Typography>
-                <Typography mt={1}>{OmitMiddleString(destinationAddress)}</Typography>
-              </Box>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Spend amount</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">{coin}</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={amount}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
-                <Typography>Spend Amount</Typography>
-                <Stack direction={'row'} alignItems={'baseline'} justifyContent={'center'}>
-                  <Typography mt={1} variant={'h4'}>
-                    {amount}
-                  </Typography>
-                  <Typography ml={1}>{coin}</Typography>
-                </Stack>
-              </Box>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Network fee</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">{mainCoin}</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={networkFee}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
-                <Typography>Coin:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={coin}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
-
-              <Stack mt={8} direction={'row'} alignItems={'center'} justifyContent={'center'}>
+              <Stack mt={8} direction={'row'} alignItems={'center'} justifyContent={'right'}>
                 <Button
+                  color={'error'}
                   variant={'contained'}
                   onClick={() => {
                     setPage(1);
@@ -383,12 +506,12 @@ const SolanaSend = () => {
                   Reject
                 </Button>
                 <Box ml={2}>
-                  <Button variant={'contained'} onClick={onClickSignAndPay}>
+                  <Button variant={'contained'} onClick={onClickSignAndPay} color={'success'}>
                     Sign & Pay
                   </Button>
                 </Box>
               </Stack>
-            </Box>
+            </Container>
           </>
         )}
 

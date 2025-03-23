@@ -9,7 +9,16 @@ import {
   TransactionRequest,
   TRANSACTIONSTATUS,
 } from '../types';
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction, TransactionSignature } from '@solana/web3.js';
+import {
+  ComputeBudgetProgram,
+  Connection,
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransactionSignature,
+} from '@solana/web3.js';
 import { ethers } from 'ethers';
 import { RPC } from '../rpc';
 import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from 'utils/web3';
@@ -492,14 +501,39 @@ export class SOLANA {
     }
   }
 
-  static async getFeePerSignature(isMainnet: boolean): Promise<number> {
+  static async getFeePerSignature(isMainnet: boolean, from?: PublicKey, to?: PublicKey): Promise<number> {
     try {
+      from = from ? from : Keypair.generate().publicKey;
+      to = to ? to : Keypair.generate().publicKey;
+
       const connection = await this.getConnection(isMainnet);
       const { blockhash } = await connection.getLatestBlockhash();
-      const feeCalculator = await connection.getFeeCalculatorForBlockhash(blockhash);
 
-      if (feeCalculator && feeCalculator.value) {
-        return feeCalculator.value.lamportsPerSignature;
+      const transaction = new Transaction({
+        recentBlockhash: blockhash,
+        feePayer: from,
+      });
+
+      transaction.add(
+        SystemProgram.transfer({
+          fromPubkey: from,
+          toPubkey: to,
+          lamports: LAMPORTS_PER_SOL / 100,
+        }),
+      );
+
+      const priorityFeePerUnit = 100;
+      transaction.add(
+        ComputeBudgetProgram.setComputeUnitPrice({
+          microLamports: priorityFeePerUnit,
+        }),
+      );
+
+      const message = transaction.compileMessage();
+      const response = await connection.getFeeForMessage(message, 'confirmed');
+
+      if (response && response.value) {
+        return Number(ethers.formatUnits(response.value, 9));
       }
 
       throw new Error('can not get the fee per signature of solana');

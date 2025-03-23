@@ -52,6 +52,7 @@ const Solana = () => {
 
   const [isSettings, setIsSettings] = useState<boolean>(false);
   const [wallet, setWallet] = useState<walletType[]>([]);
+  const [feeRate, setFeeRate] = useState<number>(0);
 
   const [settingId, setSettingId] = useState<number>(0);
   const [currentUsedAddressId, setCurrentUsedAddressId] = useState<number>(0);
@@ -135,6 +136,25 @@ const Solana = () => {
     }
   };
 
+  const getSolanaFeeRate = async () => {
+    try {
+      const response: any = await axios.get(Http.find_fee_rate, {
+        params: {
+          chain_id: CHAINS.SOLANA,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      if (response.result) {
+        setFeeRate(response.data);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
   const updatePaymentSetting = async () => {
     try {
       const response: any = await axios.put(Http.update_payment_setting_by_id, {
@@ -160,6 +180,7 @@ const Solana = () => {
   const init = async () => {
     await getSolanaWalletAddress();
     await getSolanaPaymentSetting();
+    await getSolanaFeeRate();
   };
 
   useEffect(() => {
@@ -224,6 +245,21 @@ const Solana = () => {
             </IconButton>
           </Stack>
         </Stack>
+
+        <Box mt={8}>
+          <Stack direction={'row'} alignItems={'center'} mt={4} textAlign={'center'}>
+            <Card>
+              <CardContent>
+                <Box px={10}>
+                  <Typography>Fee Per Signature</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {feeRate} Sol
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Box>
 
         <Box mt={8}>
           {isSettings ? (

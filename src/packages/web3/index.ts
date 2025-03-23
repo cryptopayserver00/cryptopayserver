@@ -150,7 +150,7 @@ export class WEB3 {
       case CHAINS.AVALANCHE:
         return await AVAX.getGasPrice(isMainnet);
       case CHAINS.SOLANA:
-        return null;
+        return await SOLANA.getFeePerSignature(true);
       case CHAINS.TON:
         return null;
       default:
