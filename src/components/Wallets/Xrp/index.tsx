@@ -11,16 +11,11 @@ import {
   Select,
   Stack,
   Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  Paper,
-  TableRow,
   Typography,
   Chip,
   Grid,
+  Card,
+  CardContent,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
 import { CHAINS, COINS } from 'packages/constants/blockchain';
@@ -45,6 +40,13 @@ type walletType = {
   transactions: EthereumTransactionDetail[];
 };
 
+type feeType = {
+  baseFee: number;
+  medianFee: number;
+  minimumFee: number;
+  openLedgerFee: number;
+};
+
 const XRP = () => {
   const { getWalletId } = useWalletPresistStore((state) => state);
   const { getNetwork, getUserId } = useUserPresistStore((state) => state);
@@ -53,6 +55,7 @@ const XRP = () => {
 
   const [isSettings, setIsSettings] = useState<boolean>(false);
   const [wallet, setWallet] = useState<walletType[]>([]);
+  const [feeObj, setFeeObj] = useState<feeType>();
 
   const [settingId, setSettingId] = useState<number>(0);
   const [paymentExpire, setPaymentExpire] = useState<number>(0);
@@ -139,6 +142,30 @@ const XRP = () => {
     }
   };
 
+  const getSolanaFeeRate = async () => {
+    try {
+      const response: any = await axios.get(Http.find_fee_rate, {
+        params: {
+          chain_id: CHAINS.XRP,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      if (response.result) {
+        setFeeObj({
+          baseFee: response.data.base_fee,
+          medianFee: response.data.median_fee,
+          minimumFee: response.data.minimum_fee,
+          openLedgerFee: response.data.open_ledger_fee,
+        });
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
   const updatePaymentSetting = async () => {
     try {
       const response: any = await axios.put(Http.update_payment_setting_by_id, {
@@ -166,6 +193,7 @@ const XRP = () => {
   const init = async () => {
     await getXrpWalletAddress();
     await getXrpPaymentSetting();
+    await getSolanaFeeRate();
   };
 
   useEffect(() => {
@@ -230,6 +258,52 @@ const XRP = () => {
             </IconButton>
           </Stack>
         </Stack>
+
+        <Box mt={8}>
+          <Typography variant="h6">Transaction Fee</Typography>
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-around'} mt={4} textAlign={'center'}>
+            <Card>
+              <CardContent>
+                <Box px={6}>
+                  <Typography>Base Fee</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {feeObj?.baseFee} XRP
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <Box px={6}>
+                  <Typography>Median Fee</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {feeObj?.medianFee} XRP
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <Box px={6}>
+                  <Typography>Minimum Fee</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {feeObj?.minimumFee} XRP
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <Box px={6}>
+                  <Typography>Open Ledger Fee</Typography>
+                  <Typography mt={2} fontWeight={'bold'}>
+                    {feeObj?.openLedgerFee} XRP
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Box>
 
         <Box mt={8}>
           {isSettings ? (
@@ -331,7 +405,7 @@ const XRP = () => {
                           {item.type}
                         </Typography>
                         <Box mt={2}>
-                          <Stack direction={'row'} alignItems={'center'} mt={1}>
+                          <Stack direction={'row'} alignItems={'center'} mt={1} gap={1}>
                             <Chip
                               icon={<AccountCircle />}
                               label={item.address}
@@ -348,9 +422,7 @@ const XRP = () => {
                             />
 
                             {item.status === 2 && (
-                              <Typography color={'red'} ml={2}>
-                                INACTIVE
-                              </Typography>
+                              <Chip size={'medium'} label={'INACTIVE'} variant={'outlined'} color={'error'} />
                             )}
                           </Stack>
                         </Box>

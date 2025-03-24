@@ -157,7 +157,7 @@ const SolanaSend = () => {
         });
 
         const rate = rate_response.data[ids][response.data.currency.toLowerCase()];
-        const totalPrice = parseFloat(BigDiv((response.data.amount as number).toString(), rate)).toFixed(4);
+        const totalPrice = parseFloat(BigDiv(Number(response.data.amount).toString(), rate)).toFixed(4);
         setAmount(totalPrice);
         setCoin(response.data.crypto);
 

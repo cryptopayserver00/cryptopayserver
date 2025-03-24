@@ -1,10 +1,7 @@
 import axios from 'axios';
 import { CHAINIDS, CHAINS } from 'packages/constants/blockchain';
 import { AssetBalance, ChainAccountType, SendTransaction, TransactionDetail } from '../types';
-import { Client, convertHexToString, isValidAddress, Wallet, xrpToDrops } from 'xrpl';
-import bitcoin from 'bitcoinjs-lib';
-import crypto from 'crypto';
-import CryptoJS from 'crypto-js';
+import { Client, convertHexToString, dropsToXrp, isValidAddress, Wallet, xrpToDrops } from 'xrpl';
 
 export class XRP {
   static chain = CHAINS.XRP;
@@ -157,6 +154,30 @@ export class XRP {
     }
   }
 
+  static async getFee(isMainnet: boolean): Promise<any> {
+    const client = this.getXrpClient(isMainnet);
+
+    try {
+      await client.connect();
+
+      const response = await client.request({
+        command: 'fee',
+      });
+
+      return {
+        base_fee: dropsToXrp(response.result.drops.base_fee),
+        median_fee: dropsToXrp(response.result.drops.median_fee),
+        minimum_fee: dropsToXrp(response.result.drops.minimum_fee),
+        open_ledger_fee: dropsToXrp(response.result.drops.open_ledger_fee),
+      };
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not get the fee of xrp');
+    } finally {
+      await client.disconnect();
+    }
+  }
+
   static async sendTransaction(isMainnet: boolean, req: SendTransaction): Promise<string> {
     if (!req.mnemonic || req.mnemonic === '') {
       throw new Error('can not get the mnemonic of xrp');
@@ -173,6 +194,7 @@ export class XRP {
         Account: wallet.address,
         Amount: xrpToDrops(req.value),
         Destination: req.to,
+        Fee: xrpToDrops(Number(req.feeRate)),
       });
 
       const signed = wallet.sign(transaction);
