@@ -46,6 +46,58 @@ export const XRP_COINS: COIN[] = [
     displayDecimals: 8,
     icon: require('assets/coin/xrp.svg'),
   },
+  {
+    chainId: CHAINS.XRP,
+    name: COINS.USDT,
+    isMainCoin: false,
+    symbol: COINS.USDT,
+    decimals: 6,
+    displayDecimals: 2,
+    contractAddress: 'rcvxE9PS9YBwxtGg1qNeewV6ZB3wGubZq',
+    icon: require('assets/coin/usdt.svg'),
+  },
+  {
+    chainId: CHAINS.XRP,
+    name: COINS.USDC,
+    isMainCoin: false,
+    symbol: COINS.USDC,
+    decimals: 6,
+    displayDecimals: 2,
+    contractAddress: 'rcEGREd8NmkKRE8GE424sksyt1tJVFZwu',
+    icon: require('assets/coin/usdc.svg'),
+  },
+  {
+    chainId: CHAINS.XRP,
+    name: COINS.BTC,
+    isMainCoin: false,
+    symbol: COINS.BTC,
+    decimals: 8,
+    displayDecimals: 8,
+    contractAddress: 'rchGBxcD1A1C2tdxF6papQYZ8kjRKMYcL',
+    icon: require('assets/coin/btc.svg'),
+  },
+];
+
+export const XRP_TESTNET_COINS: COIN[] = [
+  {
+    chainId: CHAINS.XRP,
+    name: COINS.XRP,
+    isMainCoin: true,
+    symbol: COINS.XRP,
+    decimals: 18,
+    displayDecimals: 8,
+    icon: require('assets/coin/xrp.svg'),
+  },
+  {
+    chainId: CHAINS.XRP,
+    name: COINS.USD,
+    isMainCoin: false,
+    symbol: COINS.USD,
+    decimals: 6,
+    displayDecimals: 2,
+    contractAddress: 'rLRinWiaLFyZ9dr53h6JsVJg6LxUAxjLjP',
+    icon: require('assets/coin/usdt.svg'),
+  },
 ];
 
 export const BITCOINCASH_COINS: COIN[] = [
@@ -1108,7 +1160,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     explorerUrl: 'https://testnet.xrpl.org/',
     websiteUrl: 'https://xrpl.org',
     isMainnet: false,
-    coins: XRP_COINS,
+    coins: XRP_TESTNET_COINS,
     rpc: [],
     icon: require('assets/chain/xrp.svg'),
   },

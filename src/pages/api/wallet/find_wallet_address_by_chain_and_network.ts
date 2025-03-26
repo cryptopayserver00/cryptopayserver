@@ -71,6 +71,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 Number(chainId),
                 item.address,
               ),
+              trust_line: await WEB3.getTokenTrustLine(
+                Number(network) === 1 ? true : false,
+                Number(chainId),
+                item.address,
+              ),
               // transactions: [],
             };
           });

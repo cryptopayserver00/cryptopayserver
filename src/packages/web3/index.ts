@@ -486,4 +486,13 @@ export class WEB3 {
         return null;
     }
   }
+
+  static async getTokenTrustLine(isMainnet: boolean, chain: CHAINS, address: string): Promise<any> {
+    switch (chain) {
+      case CHAINS.XRP:
+        return await XRP.getTokenTrustline(isMainnet, address);
+      default:
+        return null;
+    }
+  }
 }

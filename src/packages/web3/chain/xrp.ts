@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { CHAINIDS, CHAINS } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS } from 'packages/constants/blockchain';
 import { AssetBalance, ChainAccountType, SendTransaction, TransactionDetail } from '../types';
 import { Client, convertHexToString, dropsToXrp, isValidAddress, Wallet, xrpToDrops } from 'xrpl';
 
@@ -114,12 +114,50 @@ export class XRP {
   }
 
   static async getAssetBalance(isMainnet: boolean, address: string, toXRP: boolean = true): Promise<AssetBalance> {
-    let items = {} as AssetBalance;
-    items.XRP = await this.getBalance(isMainnet, address, toXRP);
-    return items;
+    const client = this.getXrpClient(isMainnet);
+
+    try {
+      await client.connect();
+
+      let items = {} as AssetBalance;
+      items.XRP = await this.getXrpBalance(isMainnet, address, toXRP);
+
+      const coins = BLOCKCHAINNAMES.find((item) => item.chainId === this.getChainIds(isMainnet))?.coins;
+      if (coins && coins.length > 0) {
+        const tokens = coins.filter((item) => !item.isMainCoin);
+
+        const balances = await client.request({
+          command: 'account_lines',
+          account: address,
+          ledger_index: 'validated',
+        });
+
+        const promises = tokens.map(async (token) => {
+          if (token.contractAddress && token.contractAddress !== '') {
+            let balance = '0';
+            balances.result.lines &&
+              balances.result.lines.length > 0 &&
+              balances.result.lines.map((lineItem) => {
+                if (lineItem.account == token.contractAddress) {
+                  balance = lineItem.balance;
+                }
+              });
+            items[token.symbol] = balance;
+          }
+        });
+
+        await Promise.all(promises);
+      }
+      return items;
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not get the asset balance of xrp');
+    } finally {
+      await client.disconnect();
+    }
   }
 
-  static async getBalance(isMainnet: boolean, address: string, toXRP: boolean = true): Promise<string> {
+  static async getXrpBalance(isMainnet: boolean, address: string, toXRP: boolean = true): Promise<string> {
     const client = this.getXrpClient(isMainnet);
 
     try {
@@ -130,6 +168,27 @@ export class XRP {
     } catch (e) {
       console.error(e);
       return '0';
+    } finally {
+      await client.disconnect();
+    }
+  }
+
+  static async getTokenTrustline(isMainnet: boolean, address: string): Promise<any> {
+    const client = this.getXrpClient(isMainnet);
+
+    try {
+      await client.connect();
+
+      const balances = await client.request({
+        command: 'account_lines',
+        account: address,
+        ledger_index: 'validated',
+      });
+
+      return balances.result.lines;
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not get the trust line of xrp');
     } finally {
       await client.disconnect();
     }

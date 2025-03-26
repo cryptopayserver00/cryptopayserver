@@ -40,6 +40,18 @@ type AddressBookRowType = {
   address: string;
 };
 
+type trustLineType = {
+  account: string;
+  balance: string;
+  currency: string;
+  limit: string;
+  limitPeer: string;
+  noRipple: boolean;
+  noRipplePeer: boolean;
+  qualityIn: number;
+  qualityOut: number;
+};
+
 const XrpSend = () => {
   const router = useRouter();
   const { payoutId } = router.query;
@@ -54,6 +66,7 @@ const XrpSend = () => {
   const [destinationAddress, setDestinationAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
 
+  const [trustLines, setTrustLines] = useState<trustLineType[]>([]);
   const [networkFee, setNetworkFee] = useState<number>(0);
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('');
   const [coin, setCoin] = useState<COINS>();
@@ -80,12 +93,52 @@ const XrpSend = () => {
         setFromAddress(response.data.address);
         setBalance(response.data.balance);
         setMainCoin(response.data.main_coin.name);
+
+        await getTokenTrustLine(response.data.address);
       }
     } catch (e) {
       setSnackSeverity('error');
       setSnackMessage('The network error occurred. Please try again later.');
       setSnackOpen(true);
       console.error(e);
+    }
+  };
+
+  const getTokenTrustLine = async (address: string) => {
+    try {
+      const response: any = await axios.get(Http.find_token_trust_line, {
+        params: {
+          chain_id: CHAINS.XRP,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+          address: address,
+        },
+      });
+      if (response.result) {
+        console.log('111', response.data);
+        let tl: trustLineType[] = [];
+        response.data &&
+          response.data.length > 0 &&
+          response.data.forEach(async (item: any) => {
+            tl.push({
+              account: item.account,
+              balance: item.balance,
+              currency: item.currency,
+              limit: item.limit,
+              limitPeer: item.limit_peer,
+              noRipple: item.no_ripple,
+              noRipplePeer: item.no_ripple_peer,
+              qualityIn: item.quality_in,
+              qualityOut: item.quality_out,
+            });
+          });
+        setTrustLines(tl);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+      return false;
     }
   };
 
@@ -398,6 +451,15 @@ const XrpSend = () => {
                   ))}
               </Grid>
             </Box>
+            
+            {coin !== mainCoin && (
+              <Box mt={4}>
+                <Typography>Trust Line</Typography>
+                <Box mt={2}>
+                  {/* <Typography>{trustLines.find(item => item.currency === coin)?.account}</Typography> */}
+                </Box>
+              </Box>
+            )}
 
             <Box mt={4}>
               <Typography>Amount</Typography>

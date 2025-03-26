@@ -91,6 +91,9 @@ export class Http {
   // tron
   static find_account_resource = this.httpPath + '/tron/find_account_resource';
 
+  // xrp
+  static find_token_trust_line = this.httpPath + '/xrp/find_token_trust_line';
+
   // transaction
   static find_transaction = this.httpPath + '/transaction/find_transaction';
   static send_transaction = this.httpPath + '/transaction/send_transaction';

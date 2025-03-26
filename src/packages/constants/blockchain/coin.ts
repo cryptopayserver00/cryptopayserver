@@ -43,6 +43,7 @@ export enum COINS {
   WBTC = 'WBTC',
   WETH = 'WETH',
   WSOL = 'WSOL',
+  USD = 'USD',
 }
 
 export const STABLE_COINS = [COINS.USDT, COINS.USDC, COINS.BUSD, COINS.FDUSD];

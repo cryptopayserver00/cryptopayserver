@@ -38,6 +38,7 @@ type walletType = {
   status: number;
   txUrl: string;
   transactions: EthereumTransactionDetail[];
+  trustLine: trustLineType[];
 };
 
 type feeType = {
@@ -45,6 +46,18 @@ type feeType = {
   medianFee: number;
   minimumFee: number;
   openLedgerFee: number;
+};
+
+type trustLineType = {
+  account: string;
+  balance: string;
+  currency: string;
+  limit: string;
+  limitPeer: string;
+  noRipple: boolean;
+  noRipplePeer: boolean;
+  qualityIn: number;
+  qualityOut: number;
 };
 
 const XRP = () => {
@@ -85,6 +98,24 @@ const XRP = () => {
         if (response.data.length > 0) {
           let ws: walletType[] = [];
           response.data.forEach(async (item: any) => {
+            let tl: trustLineType[] = [];
+
+            item.trust_line &&
+              item.trust_line.length > 0 &&
+              item.trust_line.map((trustItem: any) => {
+                tl.push({
+                  account: trustItem.account,
+                  balance: trustItem.balance,
+                  currency: trustItem.currency,
+                  limit: trustItem.limit,
+                  limitPeer: trustItem.limit_peer,
+                  noRipple: trustItem.no_ripple,
+                  noRipplePeer: trustItem.no_ripple_peer,
+                  qualityIn: trustItem.quality_in,
+                  qualityOut: trustItem.quality_out,
+                });
+              });
+
             ws.push({
               id: item.id,
               address: item.address,
@@ -93,6 +124,7 @@ const XRP = () => {
               status: item.status,
               txUrl: item.tx_url,
               transactions: item.transactions,
+              trustLine: tl,
             });
           });
           setWallet(ws);
@@ -456,6 +488,65 @@ const XRP = () => {
                         </Button>
                       </Box>
                     </Stack>
+                    {item.trustLine && item.trustLine.length > 0 && (
+                      <Box mt={5}>
+                        <Typography fontWeight={'bold'} fontSize={18}>
+                          Trust Line
+                        </Typography>
+
+                        <Box mt={2}>
+                          {item.trustLine.map((trustItem: trustLineType, trustIndex) => (
+                            <Box mb={2} key={trustIndex}>
+                              <Stack direction={'row'} gap={2}>
+                                <Typography>Account:</Typography>
+                                <Link
+                                  href={GetBlockchainAddressUrl(
+                                    getNetwork() === 'mainnet' ? true : false,
+                                    trustItem.account,
+                                  )}
+                                  target={'_blank'}
+                                >
+                                  {trustItem.account}
+                                </Link>
+                              </Stack>
+                              <Stack direction={'row'} gap={2}>
+                                <Typography>Balance:</Typography>
+                                <Typography>{trustItem.balance}</Typography>
+                              </Stack>
+                              <Stack direction={'row'} gap={2}>
+                                <Typography>Currency:</Typography>
+                                <Typography>{trustItem.currency}</Typography>
+                              </Stack>
+                              <Stack direction={'row'} gap={2}>
+                                <Typography>Limit:</Typography>
+                                <Typography>{trustItem.limit}</Typography>
+                              </Stack>
+                              <Stack direction={'row'} gap={2}>
+                                <Typography>Limit peer:</Typography>
+                                <Typography>{trustItem.limitPeer}</Typography>
+                              </Stack>
+                              <Stack direction={'row'} gap={2}>
+                                <Typography>No ripple:</Typography>
+                                <Typography>{trustItem.noRipple ? 'TRUE' : 'FALSE'}</Typography>
+                              </Stack>
+                              <Stack direction={'row'} gap={2}>
+                                <Typography>No ripple peer:</Typography>
+                                <Typography>{trustItem.noRipplePeer ? 'TRUE' : 'FALSE'}</Typography>
+                              </Stack>
+                              <Stack direction={'row'} gap={2}>
+                                <Typography>Quality in:</Typography>
+                                <Typography>{trustItem.qualityIn}</Typography>
+                              </Stack>
+                              <Stack direction={'row'} gap={2}>
+                                <Typography>Quality out:</Typography>
+                                <Typography>{trustItem.qualityOut}</Typography>
+                              </Stack>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+
                     <Box mt={5}>
                       {item.transactions && item.transactions.length > 0 ? (
                         <TransactionsTab rows={item.transactions} />
