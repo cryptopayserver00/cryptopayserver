@@ -18,8 +18,8 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { BigDiv } from 'utils/number';
 import Image from 'next/image';
-import { OmitMiddleString } from 'utils/strings';
-import { GetBlockchainTxUrl } from 'utils/chain/xrp';
+import { DecodeNonstandardCurrencyCode, OmitMiddleString } from 'utils/strings';
+import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/xrp';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import Link from 'next/link';
@@ -114,15 +114,13 @@ const XrpSend = () => {
         },
       });
       if (response.result) {
-        console.log('111', response.data);
-        let tl: trustLineType[] = [];
-        response.data &&
-          response.data.length > 0 &&
-          response.data.forEach(async (item: any) => {
+        if (response.data && response.data.length > 0) {
+          let tl: trustLineType[] = [];
+          response.data.forEach((item: any) => {
             tl.push({
               account: item.account,
               balance: item.balance,
-              currency: item.currency,
+              currency: DecodeNonstandardCurrencyCode(item.currency),
               limit: item.limit,
               limitPeer: item.limit_peer,
               noRipple: item.no_ripple,
@@ -131,7 +129,8 @@ const XrpSend = () => {
               qualityOut: item.quality_out,
             });
           });
-        setTrustLines(tl);
+          setTrustLines(tl);
+        }
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -451,14 +450,41 @@ const XrpSend = () => {
                   ))}
               </Grid>
             </Box>
-            
+
             {coin !== mainCoin && (
-              <Box mt={4}>
-                <Typography>Trust Line</Typography>
-                <Box mt={2}>
-                  {/* <Typography>{trustLines.find(item => item.currency === coin)?.account}</Typography> */}
-                </Box>
-              </Box>
+              <>
+                <Typography mt={4}>Trust Line</Typography>
+                {trustLines && trustLines.length > 0 ? (
+                  <Box mt={2}>
+                    <Box mt={2}>
+                      <Stack direction={'row'} gap={2}>
+                        <Typography>Issuer:</Typography>
+                        <Link
+                          href={GetBlockchainAddressUrl(
+                            getNetwork() === 'mainnet' ? true : false,
+                            String(trustLines.find((item) => item.currency === coin)?.account),
+                          )}
+                          target={'_blank'}
+                        >
+                          {trustLines.find((item) => item.currency === coin)?.account}
+                        </Link>
+                      </Stack>
+                      <Stack direction={'row'} gap={2}>
+                        <Typography>Token:</Typography>
+                        <Typography>{trustLines.find((item) => item.currency === coin)?.currency}</Typography>
+                      </Stack>
+                      <Stack direction={'row'} gap={2}>
+                        <Typography>Limit:</Typography>
+                        <Typography>{trustLines.find((item) => item.currency === coin)?.limit}</Typography>
+                      </Stack>
+                    </Box>
+                  </Box>
+                ) : (
+                  <Box mt={2}>
+                    <Typography>No support for any trust line.</Typography>
+                  </Box>
+                )}
+              </>
             )}
 
             <Box mt={4}>

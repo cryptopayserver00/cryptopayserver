@@ -1,4 +1,11 @@
-import { WalletAccountType, ChainAccountType, AssetBalance, TransactionDetail, SendTransaction } from './types';
+import {
+  WalletAccountType,
+  ChainAccountType,
+  AssetBalance,
+  TransactionDetail,
+  SendTransaction,
+  CreateXrpTrustLineTransaction,
+} from './types';
 import { Bip39 } from './bip39';
 import { BTC } from './chain/btc';
 import { ETH } from './chain/eth';
@@ -491,6 +498,19 @@ export class WEB3 {
     switch (chain) {
       case CHAINS.XRP:
         return await XRP.getTokenTrustline(isMainnet, address);
+      default:
+        return null;
+    }
+  }
+
+  static async createTokenTrustLine(
+    isMainnet: boolean,
+    chain: CHAINS,
+    req: CreateXrpTrustLineTransaction,
+  ): Promise<any> {
+    switch (chain) {
+      case CHAINS.XRP:
+        return await XRP.createTokenTrustline(isMainnet, req);
       default:
         return null;
     }

@@ -18,7 +18,7 @@ import {
   CardContent,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import { CHAINS, COINS } from 'packages/constants/blockchain';
+import { CHAINNAMES, CHAINS, COINS } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
@@ -29,6 +29,8 @@ import XrpSVG from 'assets/chain/xrp.svg';
 import Image from 'next/image';
 import TransactionsTab from 'components/Tab/TransactionTab';
 import { GetImgSrcByCrypto } from 'utils/qrcode';
+import { FindCoinsByMainnetAndName } from 'utils/web3';
+import { DecodeNonstandardCurrencyCode } from 'utils/strings';
 
 type walletType = {
   id: number;
@@ -76,6 +78,11 @@ const XRP = () => {
   const [showRecommendedFee, setShowRecommendedFee] = useState<boolean>(false);
   const [currentUsedAddressId, setCurrentUsedAddressId] = useState<number>(0);
 
+  const [trustLineToken, setTrustLineToken] = useState<COINS>();
+  const [trustLineLimit, setTrustLineLimit] = useState<number>(0);
+
+  const coinNames = FindCoinsByMainnetAndName(getNetwork() === 'mainnet' ? true : false, CHAINNAMES.XRP);
+
   const onClickRescanAddress = async () => {
     await getXrpWalletAddress();
 
@@ -106,7 +113,7 @@ const XRP = () => {
                 tl.push({
                   account: trustItem.account,
                   balance: trustItem.balance,
-                  currency: trustItem.currency,
+                  currency: DecodeNonstandardCurrencyCode(trustItem.currency),
                   limit: trustItem.limit,
                   limitPeer: trustItem.limit_peer,
                   noRipple: trustItem.no_ripple,
@@ -210,6 +217,33 @@ const XRP = () => {
       if (response.result) {
         setSnackSeverity('success');
         setSnackMessage('Successful update!');
+        setSnackOpen(true);
+
+        await init();
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const onClickAddTrustLine = async (address: string) => {
+    try {
+      const response: any = await axios.post(Http.create_token_trust_line, {
+        wallet_id: getWalletId(),
+        user_id: getUserId(),
+        chain_id: CHAINS.XRP,
+        network: getNetwork() === 'mainnet' ? 1 : 2,
+        address: address,
+        coin: trustLineToken,
+        limit: trustLineLimit,
+      });
+
+      if (response.result) {
+        setSnackSeverity('success');
+        setSnackMessage('Successful creation!');
         setSnackOpen(true);
 
         await init();
@@ -488,17 +522,71 @@ const XRP = () => {
                         </Button>
                       </Box>
                     </Stack>
-                    {item.trustLine && item.trustLine.length > 0 && (
-                      <Box mt={5}>
-                        <Typography fontWeight={'bold'} fontSize={18}>
-                          Trust Line
-                        </Typography>
+                    <Box mt={5}>
+                      <Typography fontWeight={'bold'} fontSize={18}>
+                        Token TrustLine
+                      </Typography>
 
+                      <Typography fontWeight={'bold'} mt={2} mb={1}>
+                        ADD
+                      </Typography>
+                      <Box mt={1}>
+                        <FormControl variant="outlined" fullWidth>
+                          <Select
+                            size={'small'}
+                            inputProps={{ 'aria-label': 'Without label' }}
+                            onChange={(e) => {
+                              setTrustLineToken(e.target.value as COINS);
+                            }}
+                            value={trustLineToken}
+                          >
+                            {coinNames &&
+                              Object.entries(coinNames).length > 0 &&
+                              Object.entries(coinNames).map((item, index) => (
+                                <MenuItem value={item[1]} key={index}>
+                                  {item[1]}
+                                </MenuItem>
+                              ))}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                      <Box mt={1}>
+                        <FormControl variant="outlined" fullWidth>
+                          <OutlinedInput
+                            size={'small'}
+                            aria-describedby="outlined-weight-helper-text"
+                            inputProps={{
+                              'aria-label': 'weight',
+                            }}
+                            type={'number'}
+                            value={trustLineLimit}
+                            onChange={(e: any) => {
+                              setTrustLineLimit(e.target.value);
+                            }}
+                            placeholder="Limit"
+                          />
+                        </FormControl>
+                      </Box>
+                      <Box mt={2}>
+                        <Button
+                          variant={'contained'}
+                          onClick={() => {
+                            onClickAddTrustLine(item.address);
+                          }}
+                        >
+                          Add trustline
+                        </Button>
+                      </Box>
+
+                      <Typography fontWeight={'bold'} mt={2} mb={1}>
+                        VIEW
+                      </Typography>
+                      {item.trustLine && item.trustLine.length > 0 ? (
                         <Box mt={2}>
                           {item.trustLine.map((trustItem: trustLineType, trustIndex) => (
                             <Box mb={2} key={trustIndex}>
                               <Stack direction={'row'} gap={2}>
-                                <Typography>Account:</Typography>
+                                <Typography>Issuer:</Typography>
                                 <Link
                                   href={GetBlockchainAddressUrl(
                                     getNetwork() === 'mainnet' ? true : false,
@@ -510,42 +598,20 @@ const XRP = () => {
                                 </Link>
                               </Stack>
                               <Stack direction={'row'} gap={2}>
-                                <Typography>Balance:</Typography>
-                                <Typography>{trustItem.balance}</Typography>
-                              </Stack>
-                              <Stack direction={'row'} gap={2}>
-                                <Typography>Currency:</Typography>
+                                <Typography>Token:</Typography>
                                 <Typography>{trustItem.currency}</Typography>
                               </Stack>
                               <Stack direction={'row'} gap={2}>
                                 <Typography>Limit:</Typography>
                                 <Typography>{trustItem.limit}</Typography>
                               </Stack>
-                              <Stack direction={'row'} gap={2}>
-                                <Typography>Limit peer:</Typography>
-                                <Typography>{trustItem.limitPeer}</Typography>
-                              </Stack>
-                              <Stack direction={'row'} gap={2}>
-                                <Typography>No ripple:</Typography>
-                                <Typography>{trustItem.noRipple ? 'TRUE' : 'FALSE'}</Typography>
-                              </Stack>
-                              <Stack direction={'row'} gap={2}>
-                                <Typography>No ripple peer:</Typography>
-                                <Typography>{trustItem.noRipplePeer ? 'TRUE' : 'FALSE'}</Typography>
-                              </Stack>
-                              <Stack direction={'row'} gap={2}>
-                                <Typography>Quality in:</Typography>
-                                <Typography>{trustItem.qualityIn}</Typography>
-                              </Stack>
-                              <Stack direction={'row'} gap={2}>
-                                <Typography>Quality out:</Typography>
-                                <Typography>{trustItem.qualityOut}</Typography>
-                              </Stack>
                             </Box>
                           ))}
                         </Box>
-                      </Box>
-                    )}
+                      ) : (
+                        <Typography>No TrustLine Setup.</Typography>
+                      )}
+                    </Box>
 
                     <Box mt={5}>
                       {item.transactions && item.transactions.length > 0 ? (

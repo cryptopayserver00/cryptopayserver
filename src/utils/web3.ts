@@ -80,8 +80,15 @@ export function FindTokensByMainnetAndName(isMainnet: boolean, name: CHAINNAMES)
   return BLOCKCHAINNAMES.find((item) => item.name === name && item.isMainnet == isMainnet)?.coins as COIN[];
 }
 
-export function FindTokensByChainIds(chainIds: CHAINIDS): COIN[] {
-  return BLOCKCHAINNAMES.find((item) => item.chainId === chainIds)?.coins as COIN[];
+export function FindCoinsByMainnetAndName(isMainnet: boolean, name: CHAINNAMES): COINS[] {
+  let coins = BLOCKCHAINNAMES.find((item) => item.name === name && item.isMainnet == isMainnet)?.coins as COIN[];
+  coins = coins.filter((item) => !item.isMainCoin);
+  let coinName: COINS[] = [];
+  coins.map((item) => {
+    coinName.push(item.name);
+  });
+
+  return coinName;
 }
 
 export function FindDecimalsByChainIdsAndContractAddress(chainIds: CHAINIDS, contractAddress: string): number {

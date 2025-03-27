@@ -90,9 +90,9 @@ export const XRP_TESTNET_COINS: COIN[] = [
   },
   {
     chainId: CHAINS.XRP,
-    name: COINS.USD,
+    name: COINS.USDT,
     isMainCoin: false,
-    symbol: COINS.USD,
+    symbol: COINS.USDT,
     decimals: 6,
     displayDecimals: 2,
     contractAddress: 'rLRinWiaLFyZ9dr53h6JsVJg6LxUAxjLjP',

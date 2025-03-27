@@ -48,3 +48,40 @@ export function GetSecureRandomString(length: number): string {
 
   return result;
 }
+
+export function NonstandardCurrencyCode(coin: string): string {
+  const asciiBytes = new TextEncoder().encode(coin);
+
+  const buffer = new Uint8Array(20);
+
+  for (let i = 0; i < 20; i++) {
+    buffer[i] = i < asciiBytes.length ? asciiBytes[i] : 0;
+  }
+
+  if (buffer[0] === 0x00) {
+    buffer[0] = 0x01;
+  }
+
+  return Array.from(buffer)
+    .map((byte) => byte.toString(16).padStart(2, '0').toUpperCase())
+    .join('');
+}
+
+export function DecodeNonstandardCurrencyCode(hex: string): string {
+  if (hex.length !== 40) {
+    throw new Error('Invalid nonstandard currency code: must be 40 characters');
+  }
+
+  const bytes = new Uint8Array(20);
+  for (let i = 0; i < 20; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+
+  let result = '';
+  for (let i = 0; i < bytes.length; i++) {
+    if (bytes[i] === 0x00) break;
+    result += String.fromCharCode(bytes[i]);
+  }
+
+  return result;
+}

@@ -1,7 +1,16 @@
 import axios from 'axios';
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS } from 'packages/constants/blockchain';
-import { AssetBalance, ChainAccountType, SendTransaction, TransactionDetail } from '../types';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS } from 'packages/constants/blockchain';
+import {
+  AssetBalance,
+  ChainAccountType,
+  CreateXrpTransaction,
+  CreateXrpTrustLineTransaction,
+  SendTransaction,
+  TransactionDetail,
+} from '../types';
 import { Client, convertHexToString, dropsToXrp, isValidAddress, Wallet, xrpToDrops } from 'xrpl';
+import { NonstandardCurrencyCode, DecodeNonstandardCurrencyCode } from 'utils/strings';
+import { FindTokenByChainIdsAndContractAddress } from 'utils/web3';
 
 export class XRP {
   static chain = CHAINS.XRP;
@@ -194,6 +203,45 @@ export class XRP {
     }
   }
 
+  static async createTokenTrustline(isMainnet: boolean, req: CreateXrpTrustLineTransaction): Promise<string> {
+    if (!req.mnemonic || req.mnemonic === '') {
+      throw new Error('can not get the mnemonic of xrp');
+    }
+
+    const client = this.getXrpClient(isMainnet);
+
+    try {
+      await client.connect();
+
+      const wallet = Wallet.fromMnemonic(req.mnemonic);
+
+      const transaction = await client.autofill({
+        TransactionType: 'TrustSet',
+        Account: req.address,
+        LimitAmount: {
+          currency: NonstandardCurrencyCode(req.coin),
+          issuer: req.issuer,
+          value: req.limit,
+        },
+      });
+
+      const signed = wallet.sign(transaction);
+
+      const tx = await client.submitAndWait(signed.tx_blob);
+
+      if (tx.result.hash) {
+        return tx.result.hash;
+      }
+
+      throw new Error('can not create the trust line of xrp');
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not create the trust line of xrp');
+    } finally {
+      await client.disconnect();
+    }
+  }
+
   static async getTransactions(isMainnet: boolean, address: string): Promise<TransactionDetail[]> {
     try {
       return [];
@@ -237,23 +285,42 @@ export class XRP {
     }
   }
 
-  static async sendTransaction(isMainnet: boolean, req: SendTransaction): Promise<string> {
-    if (!req.mnemonic || req.mnemonic === '') {
+  static async createTransaction(isMainnet: boolean, request: CreateXrpTransaction): Promise<string> {
+    if (request.contractAddress) {
+      return await this.createTokenTransaction(isMainnet, request);
+    } else {
+      return await this.createXrpTransaction(isMainnet, request);
+    }
+  }
+
+  static async createTokenTransaction(isMainnet: boolean, request: CreateXrpTransaction): Promise<string> {
+    if (!request.mnemonic || request.mnemonic === '') {
       throw new Error('can not get the mnemonic of xrp');
     }
+
+    if (!request.contractAddress || request.contractAddress === '') {
+      throw new Error('can not get the contract address of xrp');
+    }
+
+    const token = FindTokenByChainIdsAndContractAddress(this.getChainIds(isMainnet), request.contractAddress);
 
     const client = this.getXrpClient(isMainnet);
 
     try {
-      const wallet = Wallet.fromMnemonic(req.mnemonic);
+      const wallet = Wallet.fromMnemonic(request.mnemonic);
 
       await client.connect();
       const transaction = await client.autofill({
         TransactionType: 'Payment',
         Account: wallet.address,
-        Amount: xrpToDrops(req.value),
-        Destination: req.to,
-        Fee: xrpToDrops(Number(req.feeRate)),
+        Amount: {
+          currency: NonstandardCurrencyCode(token.name),
+          value: request.value,
+          issuer: request.contractAddress,
+        },
+        Destination: request.to,
+        DestinationTag: 1,
+        Fee: xrpToDrops(Number(request.feeRate)),
       });
 
       const signed = wallet.sign(transaction);
@@ -271,5 +338,58 @@ export class XRP {
     } finally {
       await client.disconnect();
     }
+  }
+
+  static async createXrpTransaction(isMainnet: boolean, request: CreateXrpTransaction): Promise<string> {
+    if (!request.mnemonic || request.mnemonic === '') {
+      throw new Error('can not get the mnemonic of xrp');
+    }
+
+    const client = this.getXrpClient(isMainnet);
+
+    try {
+      const wallet = Wallet.fromMnemonic(request.mnemonic);
+
+      await client.connect();
+      const transaction = await client.autofill({
+        TransactionType: 'Payment',
+        Account: wallet.address,
+        Amount: xrpToDrops(request.value),
+        Destination: request.to,
+        Fee: xrpToDrops(Number(request.feeRate)),
+      });
+
+      const signed = wallet.sign(transaction);
+
+      const tx = await client.submitAndWait(signed.tx_blob);
+
+      if (tx.result.hash) {
+        return tx.result.hash;
+      }
+
+      throw new Error('can not send the transaction of xrp');
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not send the transactions of xrp');
+    } finally {
+      await client.disconnect();
+    }
+  }
+
+  static async sendTransaction(isMainnet: boolean, request: SendTransaction): Promise<string> {
+    const cRequest: CreateXrpTransaction = {
+      mnemonic: String(request.mnemonic),
+      from: request.from,
+      to: request.to,
+      value: request.value,
+      contractAddress: request.coin.contractAddress,
+      feeRate: request.feeRate,
+    };
+
+    const tx = await this.createTransaction(isMainnet, cRequest);
+    if (tx) {
+      return tx;
+    }
+    throw new Error('can not send the transaction of xrp');
   }
 }

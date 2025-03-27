@@ -93,6 +93,7 @@ export class Http {
 
   // xrp
   static find_token_trust_line = this.httpPath + '/xrp/find_token_trust_line';
+  static create_token_trust_line = this.httpPath + '/xrp/create_token_trust_line';
 
   // transaction
   static find_transaction = this.httpPath + '/transaction/find_transaction';

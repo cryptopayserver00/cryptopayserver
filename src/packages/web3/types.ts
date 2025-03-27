@@ -200,3 +200,20 @@ export type CreateTonTransaction = {
   value: string;
   contractAddress?: string;
 };
+
+export type CreateXrpTransaction = {
+  mnemonic: string;
+  from: string;
+  to: string;
+  value: string;
+  contractAddress?: string;
+  feeRate?: number;
+};
+
+export type CreateXrpTrustLineTransaction = {
+  mnemonic: string;
+  address: string;
+  issuer: string;
+  coin: COINS;
+  limit: string;
+};

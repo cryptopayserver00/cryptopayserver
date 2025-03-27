@@ -214,7 +214,6 @@ export const COINGECKO_IDS: { [key in COINS]: string } = {
   [COINS.WSOL]: 'wrapped-solana',
   [COINS.SAND]: 'sand',
   [COINS.CRO]: 'cro',
-  [COINS.USD]: 'tether',
 };
 
 type Language = {
