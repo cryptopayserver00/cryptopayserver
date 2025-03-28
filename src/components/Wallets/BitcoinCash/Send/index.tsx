@@ -1,17 +1,14 @@
 import {
   Box,
   Button,
+  Chip,
   Container,
   FormControl,
-  FormControlLabel,
+  Grid,
   Icon,
   InputAdornment,
   OutlinedInput,
-  Radio,
-  RadioGroup,
   Stack,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
@@ -20,7 +17,6 @@ import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { BigDiv } from 'utils/number';
-import BitcoincashSVG from 'assets/chain/bitcoincash.svg';
 import Image from 'next/image';
 import { OmitMiddleString } from 'utils/strings';
 import { GetBlockchainTxUrl } from 'utils/chain/bch';
@@ -29,14 +25,28 @@ import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import Link from 'next/link';
 import { COINGECKO_IDS, PAYOUT_STATUS } from 'packages/constants';
 import { useRouter } from 'next/router';
+import { GetImgSrcByChain, GetImgSrcByCrypto } from 'utils/qrcode';
+import { FindChainNamesByChains } from 'utils/web3';
 
 type Coin = {
   [currency: string]: string;
 };
 
+type AddressBookRowType = {
+  id: number;
+  chainId: number;
+  isMainnet: boolean;
+  name: string;
+  address: string;
+};
+
 const BitcoinCashSend = () => {
   const router = useRouter();
   const { payoutId } = router.query;
+
+  const [mainCoin, setMainCoin] = useState<COINS>();
+
+  const [addressBookrows, setAddressBookrows] = useState<AddressBookRowType[]>([]);
 
   const [page, setPage] = useState<number>(1);
   const [fromAddress, setFromAddress] = useState<string>('');
@@ -44,9 +54,12 @@ const BitcoinCashSend = () => {
   const [destinationAddress, setDestinationAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
 
-  const [networkFee, setNetworkFee] = useState<string>('0.001');
+  const [networkFee, setNetworkFee] = useState<number>(0);
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('');
-  const [coin, setCoin] = useState<string>('BCH');
+  const [coin, setCoin] = useState<COINS>();
+
+  const [addressAlert, setAddressAlert] = useState<boolean>(false);
+  const [amountAlert, setAmountAlert] = useState<boolean>(false);
   const [amountRed, setAmountRed] = useState<boolean>(false);
 
   const [isDisableDestinationAddress, setIsDisableDestinationAddress] = useState<boolean>(false);
@@ -57,7 +70,7 @@ const BitcoinCashSend = () => {
   const { getStoreId } = useStorePresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
-  const getBch = async () => {
+  const getBalance = async () => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
@@ -69,11 +82,39 @@ const BitcoinCashSend = () => {
       if (response.result) {
         setFromAddress(response.data.address);
         setBalance(response.data.balance);
+        setMainCoin(response.data.main_coin.name);
       }
     } catch (e) {
       setSnackSeverity('error');
       setSnackMessage('The network error occurred. Please try again later.');
       setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const getAddressBook = async () => {
+    try {
+      const response: any = await axios.get(Http.find_address_book, {
+        params: {
+          chain_id: CHAINS.BITCOINCASH,
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      if (response.result && response.data.length > 0) {
+        let rt: AddressBookRowType[] = [];
+        response.data.forEach((item: any) => {
+          rt.push({
+            id: item.id,
+            chainId: item.chain_id,
+            isMainnet: item.network === 1 ? true : false,
+            name: item.name,
+            address: item.address,
+          });
+        });
+
+        setAddressBookrows(rt);
+      }
+    } catch (e) {
       console.error(e);
     }
   };
@@ -98,9 +139,8 @@ const BitcoinCashSend = () => {
         });
 
         const rate = rate_response.data[ids][response.data.currency.toLowerCase()];
-        const totalPrice = parseFloat(BigDiv((response.data.amount as number).toString(), rate)).toFixed(4);
+        const totalPrice = parseFloat(BigDiv(Number(response.data.amount).toString(), rate)).toFixed(4);
         setAmount(totalPrice);
-        setCoin(response.data.crypto);
 
         setIsDisableDestinationAddress(true);
         setIsDisableAmount(true);
@@ -144,8 +184,8 @@ const BitcoinCashSend = () => {
     if (
       amount &&
       networkFee &&
-      parseFloat(amount) != 0 &&
-      parseFloat(balance[coin]) >= parseFloat(amount) + parseFloat(networkFee)
+      parseFloat(amount) > 0 &&
+      parseFloat(balance[String(coin)]) >= parseFloat(amount) + networkFee
     ) {
       return true;
     }
@@ -168,20 +208,25 @@ const BitcoinCashSend = () => {
       return;
     }
 
-    // if (coin === 'BCH') {
-    //   if (!networkFee || !amount || parseFloat(networkFee) * 2 + parseFloat(amount) > parseFloat(balance['BCH'])) {
-    //     setSnackSeverity('error');
-    //     setSnackMessage('Insufficient balance or input error');
-    //     setSnackOpen(true);
-    //     return;
-    //   }
-    // }
+    if (coin === mainCoin) {
+      if (!networkFee || !amount || networkFee + parseFloat(amount) > parseFloat(balance[String(mainCoin)])) {
+        setSnackSeverity('error');
+        setSnackMessage('Insufficient balance or Insufficient gas fee');
+        setSnackOpen(true);
+        return;
+      }
+    } else {
+      if (!networkFee || !amount || networkFee > parseFloat(balance[String(mainCoin)])) {
+        setSnackSeverity('error');
+        setSnackMessage('Insufficient balance or Insufficient gas fee');
+        setSnackOpen(true);
+        return;
+      }
+    }
 
-    // if (networkFee && networkFee != '') {
-    //   setPage(2);
-    // }
-
-    setPage(2);
+    if (networkFee && networkFee > 0) {
+      setPage(2);
+    }
   };
 
   const onClickSignAndPay = async () => {
@@ -232,7 +277,8 @@ const BitcoinCashSend = () => {
   };
 
   const init = async (payoutId: any) => {
-    await getBch();
+    await getBalance();
+    await getAddressBook();
 
     if (payoutId) {
       await getPayoutInfo(payoutId);
@@ -246,9 +292,15 @@ const BitcoinCashSend = () => {
 
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" mb={10}>
-      <Typography variant="h4" mt={4}>
-        Send Coin on Bitcoin Cash
-      </Typography>
+      <Stack direction={'row'} alignItems={'center'} justifyContent={'center'}>
+        <Image src={GetImgSrcByChain(CHAINS.BITCOINCASH)} alt="chain" width={50} height={50} />
+        <Typography variant="h4" my={4} ml={2}>
+          Send coin on{' '}
+          {getNetwork() === 'mainnet'
+            ? FindChainNamesByChains(CHAINS.BITCOINCASH) + ' mainnet'
+            : FindChainNamesByChains(CHAINS.BITCOINCASH) + ' testnet'}
+        </Typography>
+      </Stack>
       <Container>
         {page === 1 && (
           <>
@@ -293,29 +345,43 @@ const BitcoinCashSend = () => {
               </Box>
             </Box>
 
+            {addressBookrows && addressBookrows.length > 0 && (
+              <Box mt={4}>
+                <Typography mb={2}>Address books</Typography>
+                <Grid container spacing={2}>
+                  {addressBookrows.map((item, index) => (
+                    <Grid item key={index}>
+                      <Chip
+                        label={OmitMiddleString(item.address)}
+                        variant="outlined"
+                        onClick={() => {
+                          setDestinationAddress(item.address);
+                        }}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+
             <Box mt={4}>
               <Typography>Coin</Typography>
-              <Box mt={1}>
-                <FormControl>
-                  <RadioGroup
-                    value={coin}
-                    onChange={(e: any) => {
-                      setCoin(e.target.value);
-                    }}
-                  >
-                    {balance &&
-                      Object.entries(balance).map((item, index) => (
-                        <FormControlLabel
-                          value={item[0]}
-                          control={<Radio />}
-                          label={`${item[0].toUpperCase()} => Balance: ${item[1]}`}
-                          key={index}
-                          labelPlacement={'end'}
-                        />
-                      ))}
-                  </RadioGroup>
-                </FormControl>
-              </Box>
+              <Grid mt={2} container gap={2}>
+                {balance &&
+                  Object.entries(balance).map(([token, amount], balanceIndex) => (
+                    <Grid item key={balanceIndex}>
+                      <Chip
+                        size={'medium'}
+                        label={String(amount) + ' ' + token}
+                        icon={<Image src={GetImgSrcByCrypto(token as COINS)} alt="logo" width={20} height={20} />}
+                        variant={token === coin ? 'filled' : 'outlined'}
+                        onClick={() => {
+                          setCoin(token as COINS);
+                        }}
+                      />
+                    </Grid>
+                  ))}
+              </Grid>
             </Box>
 
             <Box mt={4}>
@@ -332,7 +398,7 @@ const BitcoinCashSend = () => {
                     value={amount}
                     onChange={(e: any) => {
                       setAmount(e.target.value);
-                      if (parseFloat(e.target.value) > parseFloat(balance[coin])) {
+                      if (parseFloat(e.target.value) > parseFloat(balance[String(coin)])) {
                         setAmountRed(true);
                       } else {
                         setAmountRed(false);
@@ -342,8 +408,17 @@ const BitcoinCashSend = () => {
                   />
                 </FormControl>
               </Box>
-              <Typography mt={1} color={amountRed ? 'red' : 'none'} fontWeight={'bold'}>
-                Your available balance is {balance[coin]} {coin}
+              {balance[String(coin)] && (
+                <Typography mt={1} color={amountRed ? 'red' : 'none'} fontWeight={'bold'}>
+                  Your available balance is {balance[String(coin)]} {coin}
+                </Typography>
+              )}
+            </Box>
+
+            <Box mt={4}>
+              <Typography>Network Fee</Typography>
+              <Typography mt={2} fontWeight={'bold'}>
+                {networkFee} {mainCoin}
               </Typography>
             </Box>
 
@@ -357,48 +432,57 @@ const BitcoinCashSend = () => {
 
         {page === 2 && (
           <>
-            <Box textAlign={'center'}>
-              <Stack direction={'row'} alignItems={'center'} justifyContent={'center'} mt={4}>
-                <Image src={BitcoincashSVG} alt="" width={25} height={25} />
-                <Typography ml={1}>
-                  {getNetwork() === 'mainnet' ? 'BitcoinCash Mainnet' : 'BitcoinCash Testnet'}
-                </Typography>
+            <Container maxWidth="sm">
+              <Stack mt={10} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Send to</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={OmitMiddleString(destinationAddress)}
+                    disabled
+                  />
+                </FormControl>
               </Stack>
 
-              <Box mt={4}>
-                <Typography>Send to</Typography>
-                <Typography mt={1}>{OmitMiddleString(destinationAddress)}</Typography>
-              </Box>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Spend amount</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">{coin}</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={amount}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
-                <Typography>Spend Amount</Typography>
-                <Stack direction={'row'} alignItems={'baseline'} justifyContent={'center'}>
-                  <Typography mt={1} variant={'h4'}>
-                    {amount}
-                  </Typography>
-                  <Typography ml={1}>{coin}</Typography>
-                </Stack>
-              </Box>
+              <Stack mt={4} direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                <Typography>Network fee</Typography>
+                <FormControl variant="outlined">
+                  <OutlinedInput
+                    size={'small'}
+                    endAdornment={<InputAdornment position="end">{mainCoin}</InputAdornment>}
+                    aria-describedby="outlined-weight-helper-text"
+                    inputProps={{
+                      'aria-label': 'weight',
+                    }}
+                    value={networkFee}
+                    disabled
+                  />
+                </FormControl>
+              </Stack>
 
-              <Box mt={4}>
-                <Typography>Coin:</Typography>
-                <Box mt={1}>
-                  <FormControl variant="outlined">
-                    <OutlinedInput
-                      size={'small'}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={coin}
-                      disabled
-                    />
-                  </FormControl>
-                </Box>
-              </Box>
-
-              <Stack mt={8} direction={'row'} alignItems={'center'} justifyContent={'center'}>
+              <Stack mt={8} direction={'row'} alignItems={'center'} justifyContent={'right'}>
                 <Button
+                  color={'error'}
                   variant={'contained'}
                   onClick={() => {
                     setPage(1);
@@ -407,12 +491,12 @@ const BitcoinCashSend = () => {
                   Reject
                 </Button>
                 <Box ml={2}>
-                  <Button variant={'contained'} onClick={onClickSignAndPay}>
+                  <Button variant={'contained'} onClick={onClickSignAndPay} color={'success'}>
                     Sign & Pay
                   </Button>
                 </Box>
               </Stack>
-            </Box>
+            </Container>
           </>
         )}
 

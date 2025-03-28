@@ -283,7 +283,25 @@ const BitcoinSend = () => {
       return;
     }
 
-    setPage(2);
+    if (coin === mainCoin) {
+      if (!networkFee || !amount || networkFee + parseFloat(amount) > parseFloat(balance[String(mainCoin)])) {
+        setSnackSeverity('error');
+        setSnackMessage('Insufficient balance or Insufficient gas fee');
+        setSnackOpen(true);
+        return;
+      }
+    } else {
+      if (!networkFee || !amount || networkFee > parseFloat(balance[String(mainCoin)])) {
+        setSnackSeverity('error');
+        setSnackMessage('Insufficient balance or Insufficient gas fee');
+        setSnackOpen(true);
+        return;
+      }
+    }
+
+    if (networkFee && networkFee > 0) {
+      setPage(2);
+    }
   };
 
   const onClickSignAndPay = async () => {
