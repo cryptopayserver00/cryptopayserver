@@ -13,9 +13,19 @@ import { ethers } from 'ethers';
 import { FindDecimalsByChainIdsAndContractAddress } from 'utils/web3';
 import { GetBlockchainTxUrl } from 'utils/chain/ton';
 import { BLOCKSCAN } from '../block_scan';
-import TonWeb from 'tonweb';
-import { keyPairFromSecretKey } from 'ton-crypto';
 import { HDKey } from 'ethereum-cryptography/hdkey';
+import { keyPairFromSeed, mnemonicToPrivateKey, mnemonicToWalletKey } from '@ton/crypto';
+import {
+  Address,
+  beginCell,
+  fromNano,
+  internal,
+  SendMode,
+  toNano,
+  TonClient,
+  WalletContractV4,
+  WalletContractV5R1,
+} from '@ton/ton';
 
 export class TON {
   static chain = CHAINS.TON;
@@ -28,33 +38,39 @@ export class TON {
     return isMainnet ? CHAINIDS.TON : CHAINIDS.TON_TESTNET;
   }
 
-  static getTonClient(isMainnet: boolean): TonWeb {
+  static getTonClient(isMainnet: boolean): TonClient {
     const url = isMainnet ? 'https://toncenter.com/api/v2/jsonRPC' : 'https://testnet.toncenter.com/api/v2/jsonRPC';
-    return new TonWeb(new TonWeb.HttpProvider(url, { apiKey: process.env.TON_API_KEY }));
+    return new TonClient({
+      endpoint: url,
+      apiKey: process.env.TON_API_KEY,
+    });
+    // return new TonWeb(new TonWeb.HttpProvider(url, { apiKey: process.env.TON_API_KEY }));
   }
 
-  static async createAccountBySeed(isMainnet: boolean, seed: Buffer): Promise<ChainAccountType> {
+  static async createAccountBySeed(isMainnet: boolean, seed: Buffer, mnemonic: string): Promise<ChainAccountType> {
     const path = `m/44'/607'/0'/0/0`;
 
     try {
-      const hdkey = HDKey.fromMasterSeed(Uint8Array.from(seed)).derive(path);
+      const keyPair = await mnemonicToPrivateKey(mnemonic.split(' '));
+      const publicKey = keyPair.publicKey;
 
-      const privateKey = TonWeb.utils.bytesToHex(hdkey.privateKey as Uint8Array);
-
-      const tonweb = this.getTonClient(isMainnet);
-
-      const keypair = keyPairFromSecretKey(Buffer.from(privateKey));
-
-      const wallet = tonweb.wallet.create({
-        publicKey: keypair.publicKey,
+      const wallet = WalletContractV4.create({
+        publicKey: publicKey,
+        workchain: 0,
       });
 
-      const walletAddress = (await wallet.getAddress()).toString(true, true, false, !isMainnet);
+      const addressOptions = {
+        urlSafe: true,
+        bounceable: false,
+        testOnly: !isMainnet,
+      };
+
+      const address = wallet.address.toString(addressOptions);
 
       return {
         chain: this.chain,
-        address: walletAddress,
-        privateKey: privateKey,
+        address: address,
+        privateKey: keyPair.secretKey.toString('hex'),
         note: 'TON',
         isMainnet: isMainnet,
       };
@@ -66,23 +82,26 @@ export class TON {
 
   static async createAccountByPrivateKey(isMainnet: boolean, privateKey: string): Promise<ChainAccountType> {
     try {
-      const tonweb = this.getTonClient(isMainnet);
+      // const tonweb = this.getTonClient(isMainnet);
 
-      const keypair = keyPairFromSecretKey(Buffer.from(privateKey));
+      // const keypair = keyPairFromSecretKey(Buffer.from(privateKey));
 
-      const wallet = tonweb.wallet.create({
-        publicKey: keypair.publicKey,
-      });
+      // const wallet = tonweb.wallet.create({
+      //   publicKey: keypair.publicKey,
+      // });
 
-      const walletAddress = (await wallet.getAddress()).toString(true, true, false, !isMainnet);
+      // const walletAddress = (await wallet.getAddress()).toString(true, true, false, !isMainnet);
 
-      return {
-        chain: this.chain,
-        address: walletAddress,
-        privateKey: privateKey,
-        note: 'TON',
-        isMainnet: isMainnet,
-      };
+      // return {
+      //   chain: this.chain,
+      //   address: walletAddress,
+      //   privateKey: privateKey,
+      //   note: 'TON',
+      //   isMainnet: isMainnet,
+      // };
+
+      throw new Error('can not create a wallet of ton');
+      /*  */
     } catch (e) {
       console.error(e);
       throw new Error('can not create a wallet of ton');
@@ -90,8 +109,15 @@ export class TON {
   }
 
   static checkAddress(isMainnet: boolean, address: string): boolean {
-    const tonweb = this.getTonClient(isMainnet);
-    return tonweb.Address.isValid(address);
+    // const tonweb = this.getTonClient(isMainnet);
+    // return tonweb.Address.isValid(address);
+
+    try {
+      Address.parse(address);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   static checkQRCodeText(text: string): boolean {
@@ -183,10 +209,11 @@ export class TON {
 
   static async getTONBalance(isMainnet: boolean, address: string): Promise<string> {
     try {
-      const tonweb = this.getTonClient(isMainnet);
-      const balance = await tonweb.provider.getBalance(address);
-      const balanceInTON = TonWeb.utils.fromNano(balance);
-      return balanceInTON;
+      const client = this.getTonClient(isMainnet);
+
+      const balance = await client.getBalance(Address.parse(address));
+
+      return fromNano(balance);
     } catch (e) {
       console.error(e);
       throw new Error('can not get the ton balance of ton');
@@ -291,78 +318,62 @@ export class TON {
   }
 
   static async sendTransaction(isMainnet: boolean, request: SendTransaction): Promise<string> {
-    if (!request.privateKey || request.privateKey === '') {
-      throw new Error('can not get the private key of ton');
+    if (!request.mnemonic || request.mnemonic === '') {
+      throw new Error('can not get the mnemonic of ton');
     }
 
     try {
-      const tonweb = this.getTonClient(isMainnet);
-      const wallet = tonweb.wallet.create({
-        address: request.from,
+      const client = this.getTonClient(isMainnet);
+
+      const keyPair = await mnemonicToPrivateKey(request.mnemonic.split(' '));
+
+      const wallet = WalletContractV4.create({
+        workchain: 0,
+        publicKey: keyPair.publicKey,
       });
 
-      const seqno = (await wallet.methods.seqno().call()) || 0;
-      const transfer = wallet.methods.transfer({
-        secretKey: new Uint8Array(Buffer.from(request.privateKey)),
-        toAddress: request.to,
-        amount: TonWeb.utils.toNano(request.value),
+      const walletContract = client.open(wallet);
+
+      const balance = await walletContract.getBalance();
+      if (balance < toNano(request.value) + toNano('0.05')) {
+        throw new Error('Insufficient balance for transfer and gas');
+      }
+
+      const seqno = await walletContract.getSeqno();
+
+      const transfer = walletContract.createTransfer({
         seqno: seqno,
-        payload: request.memo,
-        expireAt: Math.floor(Date.now() / 1000) + 60,
+        secretKey: keyPair.secretKey,
+        messages: [
+          internal({
+            to: request.to,
+            value: toNano(request.value),
+            body: request.memo,
+          }),
+        ],
+        sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
       });
 
-      // const deploy = wallet.deploy(Buffer.from(request.privateKey)); // deploy method
-      // /*  */
-      // const deployFee = await deploy.estimateFee(); // get estimate fee of deploy
-      // console.log(deployFee);
+      await walletContract.send(transfer);
 
-      // const deploySended = await deploy.send(); // deploy wallet contract to blockchain
-      // console.log(deploySended);
+      const maxAttempts = 30;
+      const delayMs = 1000;
 
-      // const deployQuery = await deploy.getQuery(); // get deploy query Cell
-      // console.log(deployQuery);
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        setTimeout(() => {}, delayMs);
 
-      const transferFee = await transfer.estimateFee(); // get estimate fee of transfer
-      console.log(transferFee);
+        const newSeqno = await walletContract.getSeqno();
+        if (newSeqno > seqno) {
+          const transactions = await client.getTransactions(wallet.address, {
+            limit: 1,
+          });
 
-      const transferSended = await transfer.send(); // send transfer query to blockchain
-      console.log(transferSended);
-
-      const transferQuery = await transfer.getQuery(); // get transfer query Cell
-      console.log(transferQuery);
-
-      // const keypair = keyPairFromSecretKey(Buffer.from(request.privateKey));
-
-      // const wallet = tonweb.wallet.create({
-      //   publicKey: keypair.publicKey,
-      // });
-
-      // await wallet.createInitExternalMessage(keypair.publicKey);
-      // await wallet.createTransferMessage(keypair.secretKey, request.from, TonWeb.utils.toNano(request.value), seqno);
-
-      // const deploy = wallet.deploy(keypair.secretKey); // deploy method
-
-      // const deployFee = await deploy.estimateFee(); // get estimate fee of deploy
-
-      // const deploySended = await deploy.send(); // deploy wallet contract to blockchain
-
-      // const deployQuery = await deploy.getQuery(); // get deploy query Cell
-
-      // const transfer = wallet.methods.transfer({
-      //   secretKey: new Uint8Array(keypair.secretKey),
-      //   toAddress: request.to,
-      //   amount: TonWeb.utils.toNano(request.value),
-      //   seqno,
-      //   payload: 'send transaction',
-      //   sendMode: 3,
-      // });
-
-      // const transferSended = await transfer.send();
-
-      // console.log('transferSended', transferSended);
-      // if (transferSended) {
-      //   return transferSended;
-      // }
+          if (transactions.length > 0) {
+            const tx = transactions[0];
+            return tx.hash().toString('hex');
+          }
+        }
+      }
 
       throw new Error('can not send the transaction of ton');
     } catch (e) {
@@ -377,27 +388,29 @@ export class TON {
     }
 
     try {
-      const tonweb = this.getTonClient(isMainnet);
+      // const tonweb = this.getTonClient(isMainnet);
 
-      const keypair = keyPairFromSecretKey(Buffer.from(request.privateKey));
+      // const keypair = keyPairFromSecretKey(Buffer.from(request.privateKey));
 
-      const wallet = tonweb.wallet.create({
-        publicKey: keypair.publicKey,
-      });
+      // const wallet = tonweb.wallet.create({
+      //   publicKey: keypair.publicKey,
+      // });
 
-      const seqno = (await wallet.methods.seqno().call()) || 0;
+      // const seqno = (await wallet.methods.seqno().call()) || 0;
 
-      const fee = await wallet.methods
-        .transfer({
-          secretKey: new Uint8Array(keypair.secretKey),
-          toAddress: request.to,
-          amount: TonWeb.utils.toNano(request.value),
-          seqno,
-          payload: 'estimate gas fee',
-        })
-        .estimateFee();
+      // const fee = await wallet.methods
+      //   .transfer({
+      //     secretKey: new Uint8Array(keypair.secretKey),
+      //     toAddress: request.to,
+      //     amount: TonWeb.utils.toNano(request.value),
+      //     seqno,
+      //     payload: 'estimate gas fee',
+      //   })
+      //   .estimateFee();
 
-      return TonWeb.utils.fromNano(fee.source_fees.gas_fee.toString());
+      // return TonWeb.utils.fromNano(fee.source_fees.gas_fee.toString());
+
+      return '';
     } catch (e) {
       console.error(e);
       throw new Error('can not estimate gas fee of ton');

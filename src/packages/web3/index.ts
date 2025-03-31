@@ -58,7 +58,7 @@ export class WEB3 {
       SOLANA.createAccountBySeed(isMainnet, seed),
       LTC.createAccountBySeed(isMainnet, seed),
       TRON.createAccountBySeed(isMainnet, seed),
-      await TON.createAccountBySeed(isMainnet, seed),
+      await TON.createAccountBySeed(isMainnet, seed, mnemonic),
       await BITCOINCASH.createAccountBySeed(isMainnet, seed, mnemonic),
       XRP.createAccountBySeed(isMainnet, seed, mnemonic),
     ]);

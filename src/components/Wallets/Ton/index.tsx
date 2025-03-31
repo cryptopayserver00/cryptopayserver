@@ -18,7 +18,6 @@ import {
   Typography,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import Link from 'next/link';
 import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { EthereumTransactionDetail } from 'packages/web3/types';
 import { useEffect, useState } from 'react';
