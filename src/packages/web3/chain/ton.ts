@@ -14,12 +14,13 @@ import { FindDecimalsByChainIdsAndContractAddress } from 'utils/web3';
 import { GetBlockchainTxUrl } from 'utils/chain/ton';
 import { BLOCKSCAN } from '../block_scan';
 import { HDKey } from 'ethereum-cryptography/hdkey';
-import { keyPairFromSeed, mnemonicToPrivateKey, mnemonicToWalletKey } from '@ton/crypto';
+import { keyPairFromSecretKey, keyPairFromSeed, mnemonicToPrivateKey, mnemonicToWalletKey } from '@ton/crypto';
 import {
   Address,
   beginCell,
   fromNano,
   internal,
+  JettonWallet,
   SendMode,
   toNano,
   TonClient,
@@ -44,7 +45,6 @@ export class TON {
       endpoint: url,
       apiKey: process.env.TON_API_KEY,
     });
-    // return new TonWeb(new TonWeb.HttpProvider(url, { apiKey: process.env.TON_API_KEY }));
   }
 
   static async createAccountBySeed(isMainnet: boolean, seed: Buffer, mnemonic: string): Promise<ChainAccountType> {
@@ -82,26 +82,28 @@ export class TON {
 
   static async createAccountByPrivateKey(isMainnet: boolean, privateKey: string): Promise<ChainAccountType> {
     try {
-      // const tonweb = this.getTonClient(isMainnet);
+      const keypair = keyPairFromSecretKey(Buffer.from(privateKey));
 
-      // const keypair = keyPairFromSecretKey(Buffer.from(privateKey));
+      const wallet = WalletContractV4.create({
+        publicKey: keypair.publicKey,
+        workchain: 0,
+      });
 
-      // const wallet = tonweb.wallet.create({
-      //   publicKey: keypair.publicKey,
-      // });
+      const addressOptions = {
+        urlSafe: true,
+        bounceable: false,
+        testOnly: !isMainnet,
+      };
 
-      // const walletAddress = (await wallet.getAddress()).toString(true, true, false, !isMainnet);
+      const address = wallet.address.toString(addressOptions);
 
-      // return {
-      //   chain: this.chain,
-      //   address: walletAddress,
-      //   privateKey: privateKey,
-      //   note: 'TON',
-      //   isMainnet: isMainnet,
-      // };
-
-      throw new Error('can not create a wallet of ton');
-      /*  */
+      return {
+        chain: this.chain,
+        address: address,
+        privateKey: privateKey,
+        note: 'TON',
+        isMainnet: isMainnet,
+      };
     } catch (e) {
       console.error(e);
       throw new Error('can not create a wallet of ton');
@@ -109,9 +111,6 @@ export class TON {
   }
 
   static checkAddress(isMainnet: boolean, address: string): boolean {
-    // const tonweb = this.getTonClient(isMainnet);
-    // return tonweb.Address.isValid(address);
-
     try {
       Address.parse(address);
       return true;
@@ -222,6 +221,30 @@ export class TON {
 
   static async getTokenBalance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
     try {
+      const client = this.getTonClient(isMainnet);
+
+      // const jettonMinter = client.open(
+      //   JettonWallet.create(Address.parse(address))
+      // );
+
+      // const jd = await jettonMinter.()
+
+      // // 创建 Jetton 主合约实例
+      // const jettonMinter = client.open(jettonWallet.createFromAddress(Address.parse(jettonMasterAddress)));
+
+      // // 获取用户的 Jetton Wallet 地址
+      // const jettonWalletAddress = await jettonMinter.getWalletAddress(Address.parse(userAddress));
+
+      // // 创建 Jetton Wallet 实例
+      // const jettonWallet = client.open(JettonWallet.createFromAddress(jettonWalletAddress));
+
+      // // 获取余额数据
+      // const jettonData = await jettonWallet.getJettonData();
+
+      // // 返回余额（通常需要根据代币的小数位数进行格式化）
+      // const balance = jettonData.balance.toString();
+      // return balance;
+
       // const tonweb = this.getTonClient(isMainnet);
       // const jettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, {
       //   address: contractAddress,
