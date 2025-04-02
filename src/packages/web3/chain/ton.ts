@@ -10,16 +10,16 @@ import {
   TRANSACTIONSTATUS,
 } from '../types';
 import { ethers } from 'ethers';
-import { FindDecimalsByChainIdsAndContractAddress } from 'utils/web3';
+import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from 'utils/web3';
 import { GetBlockchainTxUrl } from 'utils/chain/ton';
 import { BLOCKSCAN } from '../block_scan';
-import { HDKey } from 'ethereum-cryptography/hdkey';
 import { keyPairFromSecretKey, keyPairFromSeed, mnemonicToPrivateKey, mnemonicToWalletKey } from '@ton/crypto';
 import {
   Address,
   beginCell,
   fromNano,
   internal,
+  JettonMaster,
   JettonWallet,
   SendMode,
   toNano,
@@ -27,6 +27,7 @@ import {
   WalletContractV4,
   WalletContractV5R1,
 } from '@ton/ton';
+import TonWeb from 'tonweb';
 
 export class TON {
   static chain = CHAINS.TON;
@@ -45,6 +46,15 @@ export class TON {
       endpoint: url,
       apiKey: process.env.TON_API_KEY,
     });
+  }
+
+  static getTonWebClient(isMainnet: boolean): TonWeb {
+    const url = isMainnet ? 'https://toncenter.com/api/v2/jsonRPC' : 'https://testnet.toncenter.com/api/v2/jsonRPC';
+    return new TonWeb(
+      new TonWeb.HttpProvider(url, {
+        apiKey: process.env.TON_API_KEY,
+      }),
+    );
   }
 
   static async createAccountBySeed(isMainnet: boolean, seed: Buffer, mnemonic: string): Promise<ChainAccountType> {
@@ -221,38 +231,24 @@ export class TON {
 
   static async getTokenBalance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
     try {
-      const client = this.getTonClient(isMainnet);
+      const tonweb = this.getTonWebClient(isMainnet);
 
-      // const jettonMinter = client.open(
-      //   JettonWallet.create(Address.parse(address))
-      // );
-
-      // const jd = await jettonMinter.()
-
-      // // 创建 Jetton 主合约实例
-      // const jettonMinter = client.open(jettonWallet.createFromAddress(Address.parse(jettonMasterAddress)));
-
-      // // 获取用户的 Jetton Wallet 地址
-      // const jettonWalletAddress = await jettonMinter.getWalletAddress(Address.parse(userAddress));
-
-      // // 创建 Jetton Wallet 实例
-      // const jettonWallet = client.open(JettonWallet.createFromAddress(jettonWalletAddress));
-
-      // // 获取余额数据
-      // const jettonData = await jettonWallet.getJettonData();
-
-      // // 返回余额（通常需要根据代币的小数位数进行格式化）
-      // const balance = jettonData.balance.toString();
-      // return balance;
-
-      // const tonweb = this.getTonClient(isMainnet);
-      // const jettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, {
-      //   address: contractAddress,
+      // const jettonMinter = new TonWeb.token.jetton.JettonMinter(tonweb.provider, {
+      //   adminAddress: new TonWeb.utils.Address(contractAddress),
+      //   jettonContentUri: '',
+      //   jettonWalletCodeHex: '',
       // });
-      // const result = await jettonWallet.provider.getBalance(address);
-      // const tokenDecimals = await this.getTokenDecimals(isMainnet, contractAddress);
-      // return ethers.formatUnits(result, tokenDecimals);
-      return '0';
+      // const jettonWalletAddress = await jettonMinter.getJettonWalletAddress(new TonWeb.utils.Address(address));
+      // const jettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, { address: jettonWalletAddress });
+      // const data = await jettonWallet.getData();
+      // return data.balance;
+
+      const jettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, {
+        address: address,
+      });
+      const result = await jettonWallet.provider.getBalance(contractAddress);
+      const tokenDecimals = await this.getTokenDecimals(isMainnet, contractAddress);
+      return ethers.formatUnits(result, tokenDecimals);
     } catch (e) {
       console.error(e);
       throw new Error('can not get the token balance of ton');
@@ -332,15 +328,39 @@ export class TON {
     }
   }
 
-  static async createTokenTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<any> {
-    return '';
+  static async createTokenTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<string> {
+    if (!request.mnemonic || request.mnemonic === '') {
+      throw new Error('can not get the mnemonic of ton');
+    }
+
+    if (!request.contractAddress || request.contractAddress === '') {
+      throw new Error('can not get the contract address of ton');
+    }
+
+    const token = FindTokenByChainIdsAndContractAddress(this.getChainIds(isMainnet), request.contractAddress);
+
+    try {
+      const client = this.getTonClient(isMainnet);
+
+      const keyPair = await mnemonicToPrivateKey(request.mnemonic.split(' '));
+
+      const wallet = WalletContractV4.create({
+        workchain: 0,
+        publicKey: keyPair.publicKey,
+      });
+
+      const walletContract = client.open(wallet);
+
+      const jettonWallet = JettonWallet.create(wallet.address);
+
+      throw new Error('can not send the transaction of ton');
+    } catch (e) {
+      console.error(e);
+      throw new Error('can not send the transaction of ton');
+    }
   }
 
-  static async createTONTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<any> {
-    return '';
-  }
-
-  static async sendTransaction(isMainnet: boolean, request: SendTransaction): Promise<string> {
+  static async createTONTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<string> {
     if (!request.mnemonic || request.mnemonic === '') {
       throw new Error('can not get the mnemonic of ton');
     }
@@ -403,6 +423,24 @@ export class TON {
       console.error(e);
       throw new Error('can not send the transaction of ton');
     }
+  }
+
+  static async sendTransaction(isMainnet: boolean, request: SendTransaction): Promise<string> {
+    const cRequest: CreateTonTransaction = {
+      mnemonic: String(request.mnemonic),
+      privateKey: request.privateKey,
+      from: request.from,
+      to: request.to,
+      value: request.value,
+      contractAddress: request.coin.contractAddress,
+      memo: String(request.memo),
+    };
+
+    const tx = await this.createTransaction(isMainnet, cRequest);
+    if (tx) {
+      return tx;
+    }
+    throw new Error('can not send the transaction of ton');
   }
 
   static async estimateGasFee(isMainnet: boolean, request: SendTransaction): Promise<any> {

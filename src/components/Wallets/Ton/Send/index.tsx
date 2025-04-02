@@ -61,7 +61,7 @@ const TonSend = () => {
   const [amount, setAmount] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
 
-  const [networkFee, setNetworkFee] = useState<number>(0);
+  const [networkFee, setNetworkFee] = useState<number>(0.0032);
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('');
   const [coin, setCoin] = useState<COINS>();
   const [amountRed, setAmountRed] = useState<boolean>(false);

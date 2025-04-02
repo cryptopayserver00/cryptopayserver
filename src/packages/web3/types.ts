@@ -194,11 +194,13 @@ export type CreateTronTransaction = {
 };
 
 export type CreateTonTransaction = {
+  mnemonic: string;
   privateKey?: string;
   from: string;
   to: string;
   value: string;
   contractAddress?: string;
+  memo: string;
 };
 
 export type CreateXrpTransaction = {

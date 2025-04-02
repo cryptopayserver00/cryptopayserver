@@ -1,4 +1,4 @@
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import Link from 'next/link';
 import { EthereumTransactionDetail } from 'packages/web3/types';
 import { useUserPresistStore } from 'lib/store';
@@ -12,12 +12,12 @@ export default function TransactionsTab({ rows }: { rows: EthereumTransactionDet
       <Table aria-label="simple table">
         <TableHead>
           <TableRow>
-            <TableCell>Chain</TableCell>
+            {/* <TableCell>Chain</TableCell> */}
             <TableCell>Hash</TableCell>
             <TableCell>Value</TableCell>
             <TableCell>Asset</TableCell>
-            <TableCell>Contract Address</TableCell>
             <TableCell>Type</TableCell>
+            {/* <TableCell>Contract Address</TableCell> */}
             <TableCell>Block Timestamp</TableCell>
             <TableCell>Status</TableCell>
           </TableRow>
@@ -27,7 +27,7 @@ export default function TransactionsTab({ rows }: { rows: EthereumTransactionDet
             <>
               {rows.map((row, index) => (
                 <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                  <TableCell>{FindChainNamesByChains(row.chainId)}</TableCell>
+                  {/* <TableCell>{FindChainNamesByChains(row.chainId)}</TableCell> */}
                   <TableCell component="th" scope="row">
                     <Link
                       href={GetBlockchainTxUrlByChainIds(
@@ -42,10 +42,12 @@ export default function TransactionsTab({ rows }: { rows: EthereumTransactionDet
                   </TableCell>
                   <TableCell>{row.amount}</TableCell>
                   <TableCell>{row.asset}</TableCell>
-                  <TableCell>{row.contractAddress}</TableCell>
                   <TableCell>{row.type}</TableCell>
+                  {/* <TableCell>{row.contractAddress}</TableCell> */}
                   <TableCell>{new Date(row.blockTimestamp).toLocaleString()}</TableCell>
-                  <TableCell>{row.status}</TableCell>
+                  <TableCell>
+                    <Typography fontWeight={'bold'}>{row.status}</Typography>
+                  </TableCell>
                 </TableRow>
               ))}
             </>
