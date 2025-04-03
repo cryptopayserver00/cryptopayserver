@@ -189,7 +189,7 @@ const InvoiceDetails = () => {
 
   return (
     <Box mt={4}>
-      <Container maxWidth="sm">
+      <Container>
         <Typography textAlign={'center'}>{order.description}</Typography>
         <Stack direction={'row'} alignItems={'center'} mt={2} justifyContent={'center'}>
           <Typography fontSize={24} fontWeight={'bold'}>

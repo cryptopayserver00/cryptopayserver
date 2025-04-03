@@ -35,6 +35,9 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   transpilePackages: ['@mui/x-charts', '@mui/x-date-pickers'],
+  images: {
+    domains: [''],
+  }
 };
 
 export default nextConfig;

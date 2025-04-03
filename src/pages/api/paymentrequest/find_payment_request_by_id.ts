@@ -22,12 +22,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
+        const store = await prisma.stores.findFirst({
+          where: {
+            id: payment_requests.store_id,
+          },
+        });
+
+        if (!store) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        }
+
         return res.status(200).json({
           message: '',
           result: true,
           data: {
             user_id: payment_requests.user_id,
             store_id: payment_requests.store_id,
+            store_name: store.name,
+            store_logo_url: store.logo_url,
+            store_website: store.website,
             payment_request_id: payment_requests.payment_request_id,
             network: payment_requests.network,
             title: payment_requests.title,

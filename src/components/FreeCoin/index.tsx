@@ -220,7 +220,7 @@ const SelectChainAndCrypto = (props: SelectType) => {
               </AccordionSummary>
               {item.coins &&
                 item.coins.length > 0 &&
-                item.coins.map((coinItem, coinIndex) => (
+                item.coins.map((coinItem: COIN, coinIndex) => (
                   <AccordionDetails key={coinIndex}>
                     <Button
                       fullWidth

@@ -19,6 +19,13 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Link,
+  FormControl,
+  OutlinedInput,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { useSnackPresistStore } from 'lib/store';
 import { useRouter } from 'next/router';
@@ -34,13 +41,16 @@ import { BigDiv } from 'utils/number';
 type paymentRequestType = {
   userId: number;
   storeId: number;
+  storeName: string;
+  storeLogoUrl: string;
+  storeWebsite: string;
   paymentRequestId: number;
   network: number;
   title: string;
   amount: number;
   currency: string;
   memo: string;
-  expirationDate: number;
+  expirationDate: string;
   paymentRequestStatus: string;
   requesCustomerData: string;
   showAllowCustomAmount: boolean;
@@ -126,13 +136,16 @@ const PaymentRequestsDetails = () => {
         setPaymentRequestData({
           userId: response.data.user_id,
           storeId: response.data.store_id,
+          storeName: response.data.store_name,
+          storeLogoUrl: response.data.store_logo_url,
+          storeWebsite: response.data.store_website,
           paymentRequestId: response.data.payment_request_id,
           network: response.data.network,
           title: response.data.title,
           amount: response.data.amount,
           currency: response.data.currency,
           memo: response.data.memo,
-          expirationDate: response.data.expiration_at,
+          expirationDate: new Date(response.data.expiration_date).toLocaleString(),
           paymentRequestStatus: response.data.payment_request_status,
           requesCustomerData: response.data.reques_customer_data,
           showAllowCustomAmount: response.data.show_allow_customAmount === 1 ? true : false,
@@ -193,13 +206,22 @@ const PaymentRequestsDetails = () => {
 
   return (
     <Box mt={4}>
-      <Container maxWidth="sm">
-        <Typography textAlign={'center'} variant="h4">
+      <Container>
+        <Typography textAlign={'center'} variant="h6">
           {paymentRequestData?.title}
         </Typography>
-        <Typography textAlign={'center'} mt={2}>
-          Invoice from store
+        <Typography textAlign={'center'} mt={1} fontWeight={'bold'}>
+          Invoice from{' '}
+          <Link href={paymentRequestData?.storeWebsite} target="_blank">
+            {paymentRequestData?.storeName}
+          </Link>
         </Typography>
+
+        {paymentRequestData?.storeLogoUrl && (
+          <Box textAlign={'center'} mt={2}>
+            <Image alt="logo" src={paymentRequestData?.storeLogoUrl} width={200} height={200} />
+          </Box>
+        )}
 
         {paymentRequestData && paidAmount >= paymentRequestData?.amount && (
           <Box mt={2}>
@@ -210,7 +232,7 @@ const PaymentRequestsDetails = () => {
         )}
 
         {page === 1 && (
-          <Box mt={2}>
+          <Box mt={4}>
             <Card>
               <CardContent>
                 <Stack direction={'row'} alignItems={'center'}>
@@ -218,10 +240,10 @@ const PaymentRequestsDetails = () => {
                     {paymentRequestData?.amount} {paymentRequestData?.currency}
                   </Typography>
                 </Stack>
-                <Box mt={2}>
-                  {paymentRequestData?.memo ? (
+                <Box mt={1}>
+                  {paymentRequestData?.expirationDate ? (
                     <>
-                      <Typography>{paymentRequestData.memo}</Typography>
+                      <Typography>{paymentRequestData.expirationDate}</Typography>
                     </>
                   ) : (
                     <>
@@ -270,48 +292,42 @@ const PaymentRequestsDetails = () => {
                   <Typography variant={'h6'}>Payment History</Typography>
 
                   <Box mt={2}>
-                    <TableContainer component={Paper}>
-                      <Table aria-label="simple table">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Invoice Id</TableCell>
-                            <TableCell>Amount</TableCell>
-                            <TableCell>Status</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {paymentRequestRows && paymentRequestRows.length > 0 ? (
-                            <>
-                              {paymentRequestRows.map((row, index) => (
-                                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                  <TableCell component="th" scope="row">
-                                    <Button
-                                      onClick={() => {
-                                        window.location.href = '/invoices/' + row.orderId;
-                                      }}
-                                    >
-                                      {row.orderId}
-                                    </Button>
-                                  </TableCell>
-                                  <TableCell>
-                                    {row.amount} {row.currency}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Typography fontWeight={'bold'}>{row.orderStatus}</Typography>
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </>
-                          ) : (
+                    {paymentRequestRows && paymentRequestRows.length > 0 ? (
+                      <TableContainer component={Paper}>
+                        <Table aria-label="simple table">
+                          <TableHead>
                             <TableRow>
-                              <TableCell colSpan={100} align="center">
-                                No rows
-                              </TableCell>
+                              <TableCell>Invoice Id</TableCell>
+                              <TableCell>Amount</TableCell>
+                              <TableCell>Status</TableCell>
                             </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
+                          </TableHead>
+                          <TableBody>
+                            {paymentRequestRows.map((row, index) => (
+                              <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                <TableCell component="th" scope="row">
+                                  <Button
+                                    onClick={() => {
+                                      window.location.href = '/invoices/' + row.orderId;
+                                    }}
+                                  >
+                                    {row.orderId}
+                                  </Button>
+                                </TableCell>
+                                <TableCell>
+                                  {row.amount} {row.currency}
+                                </TableCell>
+                                <TableCell>
+                                  <Typography fontWeight={'bold'}>{row.orderStatus}</Typography>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    ) : (
+                      <Typography>No payments have been made yet.</Typography>
+                    )}
                   </Box>
                 </CardContent>
               </Card>
@@ -320,12 +336,24 @@ const PaymentRequestsDetails = () => {
         )}
         {page === 2 && (
           <Box mt={2}>
-            <SelectChainAndCrypto
-              network={paymentRequestData?.network as number}
-              amount={paymentRequestData?.amount as number}
-              currency={paymentRequestData?.currency as string}
-              onClickCoin={onClickCoin}
-            />
+            <Button
+              variant={'outlined'}
+              size="large"
+              onClick={() => {
+                setPage(1);
+              }}
+            >
+              Back
+            </Button>
+
+            <Box mt={1}>
+              <SelectChainAndCrypto
+                network={paymentRequestData?.network as number}
+                amount={paymentRequestData?.amount as number}
+                currency={paymentRequestData?.currency as string}
+                onClickCoin={onClickCoin}
+              />
+            </Box>
           </Box>
         )}
       </Container>
@@ -347,6 +375,7 @@ const SelectChainAndCrypto = (props: SelectType) => {
   const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>([]);
   const [selectCoinItem, setSelectCoinItem] = useState<COIN>();
 
+  const [open, setOpen] = useState<boolean>(false);
   const [rate, setRate] = useState<number>(0);
   const [cryptoAmount, setCryptoAmount] = useState<string>('');
 
@@ -359,9 +388,18 @@ const SelectChainAndCrypto = (props: SelectType) => {
   useEffect(() => {
     const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
     setBlcokchain(value);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.network]);
+
+  const handleOpen = async (chainId: number) => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setRate(0);
+    setCryptoAmount('');
+
+    setOpen(false);
+  };
 
   const updateRate = async () => {
     try {
@@ -411,17 +449,20 @@ const SelectChainAndCrypto = (props: SelectType) => {
           blockchain.map((item, index) => (
             <Accordion expanded={expanded === item.name} onChange={handleChange(item.name)} key={index}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1bh-content">
-                <Typography sx={{ width: '33%', flexShrink: 0 }}>{item.name}</Typography>
+                <Typography sx={{ width: '33%', flexShrink: 0 }} fontWeight={'bold'}>
+                  {item.name.toUpperCase()}
+                </Typography>
                 <Typography sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
               </AccordionSummary>
               {item.coins &&
                 item.coins.length > 0 &&
-                item.coins.map((coinItem, coinIndex) => (
+                item.coins.map((coinItem: COIN, coinIndex) => (
                   <AccordionDetails key={coinIndex}>
                     <Button
                       fullWidth
                       onClick={async () => {
                         setSelectCoinItem(coinItem);
+                        await handleOpen(coinItem.chainId);
                       }}
                     >
                       <Image src={coinItem.icon} alt="icon" width={50} height={50} />
@@ -433,31 +474,39 @@ const SelectChainAndCrypto = (props: SelectType) => {
           ))}
       </Box>
 
-      {selectCoinItem && cryptoAmount && parseFloat(cryptoAmount) > 0 && (
-        <Box mt={2}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">
-                Crypto Rate: 1 {selectCoinItem.name} = {rate} {props.currency}
-              </Typography>
-              <Typography variant="h6">
-                You will pay: {cryptoAmount} {selectCoinItem.name}
-              </Typography>
-              <Box mt={2}>
-                <Button
-                  variant={'contained'}
-                  fullWidth
-                  onClick={async () => {
-                    await props.onClickCoin(selectCoinItem, cryptoAmount, rate);
-                  }}
-                >
-                  Create Invoice
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
-        </Box>
-      )}
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        fullWidth
+      >
+        <DialogTitle id="alert-dialog-title">Create invoice</DialogTitle>
+        <DialogContent>
+          <Box mb={2}>
+            <Typography>
+              Crypto rate: 1 {selectCoinItem?.name} = {rate} {props.currency}
+            </Typography>
+            <Typography>
+              You will pay: {cryptoAmount} {selectCoinItem?.name}
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button variant={'outlined'} onClick={handleClose}>
+            Close
+          </Button>
+          <Button
+            variant={'contained'}
+            onClick={async () => {
+              selectCoinItem && (await props.onClickCoin(selectCoinItem, cryptoAmount, rate));
+              handleClose();
+            }}
+          >
+            Create Invoice
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
