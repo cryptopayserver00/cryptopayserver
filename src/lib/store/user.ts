@@ -9,6 +9,7 @@ type UserPerisistState = {
   userTheme: 'auto' | 'light' | 'dark';
   userHideSensitiveInfo: boolean;
   showSidebar: boolean;
+  showProgress: boolean;
   network: 'mainnet' | 'testnet';
 };
 
@@ -29,6 +30,8 @@ type UserPerisistAction = {
   getNetwork: () => string;
   setShowSidebar: (showSidebar: boolean) => void;
   getShowSidebar: () => boolean;
+  setShowProgress: (showProgress: boolean) => void;
+  getShowProgress: () => boolean;
 
   resetUser: () => void;
 };
@@ -41,6 +44,7 @@ const initialUserState: UserPerisistState = {
   userTheme: 'auto',
   userHideSensitiveInfo: false,
   showSidebar: true,
+  showProgress: false,
   network: 'mainnet',
 };
 
@@ -65,6 +69,8 @@ export const useUserPresistStore = create(
       getShowSidebar: () => get().showSidebar,
       setNetwork: (value) => set(() => ({ network: value })),
       getNetwork: () => get().network,
+      setShowProgress: (value) => set(() => ({ showProgress: value })),
+      getShowProgress: () => get().showProgress,
 
       resetUser: () => {
         set(initialUserState);

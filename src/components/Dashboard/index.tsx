@@ -112,7 +112,6 @@ const Dashboard = () => {
         <Box my={2}>
           <Chip label={getStoreName()} />
         </Box>
-        {/* <Typography variant="h5">{}</Typography> */}
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Card variant="outlined">

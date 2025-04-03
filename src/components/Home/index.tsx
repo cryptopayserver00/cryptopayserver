@@ -2,7 +2,7 @@ import MetaTags from 'components/Common/MetaTags';
 import HomeSidebar from 'components/Sidebar';
 import { useRouter } from 'next/router';
 
-import { Alert, AlertTitle, Box, IconButton, Snackbar, Stack, Typography } from '@mui/material';
+import { Alert, AlertTitle, Box, IconButton, LinearProgress, Snackbar, Stack, Typography } from '@mui/material';
 import Footer from './Footer';
 
 import { useEffect, useState } from 'react';
@@ -18,7 +18,9 @@ const Home = () => {
   const router = useRouter();
 
   const { snackOpen, snackMessage, snackSeverity, setSnackOpen } = useSnackPresistStore((state) => state);
-  const { getIsLogin, getNetwork, setShowSidebar, getShowSidebar } = useUserPresistStore((state) => state);
+  const { getIsLogin, getNetwork, setShowSidebar, getShowSidebar, getShowProgress } = useUserPresistStore(
+    (state) => state,
+  );
   const { getIsWallet } = useWalletPresistStore((state) => state);
   const { getIsStore } = useStorePresistStore((state) => state);
 
@@ -60,6 +62,8 @@ const Home = () => {
           {getShowSidebar() ? <HomeSidebar /> : null}
 
           <Box width={'100%'}>
+            {getShowProgress() ? <LinearProgress /> : null}
+
             <Box m={2}>
               <IconButton
                 onClick={() => {
