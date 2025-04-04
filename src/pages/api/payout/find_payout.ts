@@ -20,6 +20,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             network: Number(network),
             status: 1,
           },
+          orderBy: {
+            updated_at: 'desc',
+          },
         });
 
         if (!payouts) {

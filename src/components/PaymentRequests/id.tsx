@@ -1,4 +1,3 @@
-import { ContentCopy, ExpandMore } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -10,7 +9,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  IconButton,
   Card,
   CardContent,
   TableContainer,
@@ -20,19 +18,18 @@ import {
   TableCell,
   TableBody,
   Link,
-  FormControl,
-  OutlinedInput,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip,
 } from '@mui/material';
 import { useSnackPresistStore } from 'lib/store';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import { COINGECKO_IDS, INVOICE_SOURCE_TYPE, ORDER_STATUS } from 'packages/constants';
+import { COINGECKO_IDS, CURRENCY_SYMBOLS, INVOICE_SOURCE_TYPE, ORDER_STATUS } from 'packages/constants';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from 'packages/constants/blockchain';
 import Image from 'next/image';
@@ -172,6 +169,13 @@ const PaymentRequestsDetails = () => {
   };
 
   const onClickCoin = async (item: COIN, cryptoAmount: string, rate: number) => {
+    if (!item || !cryptoAmount || !rate) {
+      setSnackSeverity('error');
+      setSnackMessage('Incorrect parameters');
+      setSnackOpen(true);
+      return;
+    }
+
     try {
       const response: any = await axios.post(Http.create_invoice_from_external, {
         user_id: paymentRequestData?.userId,
@@ -211,7 +215,7 @@ const PaymentRequestsDetails = () => {
           {paymentRequestData?.title}
         </Typography>
         <Typography textAlign={'center'} mt={1} fontWeight={'bold'}>
-          Invoice from{' '}
+          Payment request from{' '}
           <Link href={paymentRequestData?.storeWebsite} target="_blank">
             {paymentRequestData?.storeName}
           </Link>
@@ -237,7 +241,8 @@ const PaymentRequestsDetails = () => {
               <CardContent>
                 <Stack direction={'row'} alignItems={'center'}>
                   <Typography variant="h5" fontWeight={'bold'}>
-                    {paymentRequestData?.amount} {paymentRequestData?.currency}
+                    {CURRENCY_SYMBOLS[String(paymentRequestData?.currency)]}
+                    {paymentRequestData?.amount}
                   </Typography>
                 </Stack>
                 <Box mt={1}>
@@ -315,10 +320,11 @@ const PaymentRequestsDetails = () => {
                                   </Button>
                                 </TableCell>
                                 <TableCell>
-                                  {row.amount} {row.currency}
+                                  {CURRENCY_SYMBOLS[row.currency]}
+                                  {row.amount}
                                 </TableCell>
                                 <TableCell>
-                                  <Typography fontWeight={'bold'}>{row.orderStatus}</Typography>
+                                  <Chip label={row.orderStatus} variant={'filled'} color={'info'} />
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -348,9 +354,9 @@ const PaymentRequestsDetails = () => {
 
             <Box mt={1}>
               <SelectChainAndCrypto
-                network={paymentRequestData?.network as number}
-                amount={paymentRequestData?.amount as number}
-                currency={paymentRequestData?.currency as string}
+                network={Number(paymentRequestData?.network)}
+                amount={Number(paymentRequestData?.amount)}
+                currency={String(paymentRequestData?.currency)}
                 onClickCoin={onClickCoin}
               />
             </Box>
@@ -485,7 +491,8 @@ const SelectChainAndCrypto = (props: SelectType) => {
         <DialogContent>
           <Box mb={2}>
             <Typography>
-              Crypto rate: 1 {selectCoinItem?.name} = {rate} {props.currency}
+              Crypto rate: 1 {selectCoinItem?.name} = {CURRENCY_SYMBOLS[props.currency]}
+              {rate}
             </Typography>
             <Typography>
               You will pay: {cryptoAmount} {selectCoinItem?.name}

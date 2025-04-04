@@ -1,6 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { NOTIFICATION_TYPE, ORDER_STATUS } from 'packages/constants';
+import {
+  INVOICE_SOURCE_TYPE,
+  NOTIFICATION_TYPE,
+  ORDER_STATUS,
+  PAYMENT_REQUEST_STATUS,
+  PAYOUT_STATUS,
+  PULL_PAYMENT_STATUS,
+} from 'packages/constants';
 import { PrismaClient } from '@prisma/client';
 import { BLOCKSCAN } from 'packages/web3/block_scan';
 import { WEB3 } from 'packages/web3';
@@ -75,6 +82,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
                 if (!invoice) {
                   continue;
+                }
+
+                switch (invoice.source_type) {
+                  case INVOICE_SOURCE_TYPE.Invoice:
+                    break;
+                  case INVOICE_SOURCE_TYPE.PaymentRequest:
+                    const update_payment_request = await prisma.payment_requests.update({
+                      data: {
+                        payment_request_status: PAYMENT_REQUEST_STATUS.Settled,
+                      },
+                      where: {
+                        payment_request_id: invoice.external_payment_id,
+                        status: 1,
+                      },
+                    });
+                    if (!update_payment_request) {
+                      continue;
+                    }
+                    break;
+                  case INVOICE_SOURCE_TYPE.Payout:
+                    const update_payout = await prisma.payouts.update({
+                      data: {
+                        payout_status: PAYOUT_STATUS.Completed,
+                      },
+                      where: {
+                        payout_id: invoice.external_payment_id,
+                        status: 1,
+                      },
+                    });
+                    if (!update_payout) {
+                      continue;
+                    }
+                    break;
+                  case INVOICE_SOURCE_TYPE.PullPayment:
+                    break;
+                  case INVOICE_SOURCE_TYPE.Sales:
+                    break;
+                  case INVOICE_SOURCE_TYPE.Wallets:
+                    break;
                 }
 
                 const invoice_events = await prisma.invoice_events.createMany({

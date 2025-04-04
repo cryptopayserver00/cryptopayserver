@@ -50,7 +50,7 @@ export const CURRENCY = [
   'XDR', // 特别提款权
 ];
 
-export const CURRENCY_SYMBOLS = {
+export const CURRENCY_SYMBOLS: { [key: string]: string } = {
   USD: '$', // 美元
   AED: 'د.إ', // 阿联酋迪拉姆
   ARS: '$', // 阿根廷比索
@@ -139,6 +139,7 @@ export const PAYMENT_REQUEST_STATUS = {
 export const PULL_PAYMENT_STATUS = {
   Active: 'Active',
   Expired: 'Expired',
+  Settled: 'Settled',
   Archived: 'Archived',
   Future: 'Future',
 };

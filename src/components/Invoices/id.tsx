@@ -21,7 +21,7 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { QRCodeSVG } from 'qrcode.react';
 import { OmitMiddleString } from 'utils/strings';
-import { ORDER_STATUS } from 'packages/constants';
+import { CURRENCY_SYMBOLS, ORDER_STATUS } from 'packages/constants';
 import { GetImgSrcByCrypto } from 'utils/qrcode';
 import Link from 'next/link';
 import { FindChainNamesByChains, GetBlockchainAddressUrlByChainIds, GetBlockchainTxUrlByChainIds } from 'utils/web3';
@@ -192,10 +192,10 @@ const InvoiceDetails = () => {
       <Container>
         <Typography textAlign={'center'}>{order.description}</Typography>
         <Stack direction={'row'} alignItems={'center'} mt={2} justifyContent={'center'}>
-          <Typography fontSize={24} fontWeight={'bold'}>
+          <Typography variant="h4" fontWeight={'bold'}>
             {order.totalPrice}
           </Typography>
-          <Typography ml={1} fontSize={24} fontWeight={'bold'}>
+          <Typography ml={1} variant="h4" fontWeight={'bold'}>
             {order.crypto}
           </Typography>
         </Stack>
@@ -206,6 +206,7 @@ const InvoiceDetails = () => {
               <Stack direction={'row'} alignItems={'center'}>
                 <Typography>This invoice will expire in</Typography>
                 <Typography ml={1}>{countdownVal}</Typography>
+                <Typography ml={1}>minutes</Typography>
               </Stack>
             </Alert>
           )}
@@ -259,13 +260,15 @@ const InvoiceDetails = () => {
               <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
                 <Typography>Total Fiat</Typography>
                 <Typography fontWeight={'bold'}>
-                  {order.amount} {order.currency}
+                  {CURRENCY_SYMBOLS[order.currency]}
+                  {order.amount}
                 </Typography>
               </Stack>
               <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
                 <Typography>Exchange Rate</Typography>
                 <Typography fontWeight={'bold'}>
-                  1 {order.crypto} = {order.rate} {order.currency}
+                  1 {order.crypto} = {CURRENCY_SYMBOLS[order.currency]}
+                  {order.rate}
                 </Typography>
               </Stack>
               <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>

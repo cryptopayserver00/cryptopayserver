@@ -2,12 +2,14 @@ import { Button } from '@mui/material';
 import Box from '@mui/material/Box';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
+import { CURRENCY_SYMBOLS, PAYMENT_REQUEST_STATUS } from 'packages/constants';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 
 type RowType = {
   id: number;
+  itemId: number;
   paymentRequestId: number;
   title: string;
   amount: string;
@@ -32,8 +34,30 @@ export default function PaymentRequestDataGrid(props: GridType) {
     window.location.href = '/payment-requests/' + row.paymentRequestId;
   };
 
-  const onClickArchive = (row: any) => {
-    console.log('row', row);
+  const onClickArchive = async (row: RowType) => {
+    try {
+      const response: any = await axios.put(Http.update_payment_request_by_id, {
+        id: row.itemId,
+        payment_request_status: PAYMENT_REQUEST_STATUS.Archived,
+      });
+
+      if (response.result) {
+        setSnackSeverity('success');
+        setSnackMessage('Update successful!');
+        setSnackOpen(true);
+
+        await init();
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Update failed!');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
   };
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
@@ -44,8 +68,8 @@ export default function PaymentRequestDataGrid(props: GridType) {
       width: 200,
     },
     {
-      field: 'expirationDate',
-      headerName: 'Expiry',
+      field: 'amount',
+      headerName: 'Amount',
       width: 200,
     },
     {
@@ -54,8 +78,8 @@ export default function PaymentRequestDataGrid(props: GridType) {
       width: 200,
     },
     {
-      field: 'amount',
-      headerName: 'Amount',
+      field: 'expirationDate',
+      headerName: 'Expiry',
       width: 200,
     },
     {
@@ -64,6 +88,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
       headerName: 'Actions',
       width: 200,
       cellClassName: 'actions',
+      align: 'center',
       getActions: ({ row }) => {
         return [
           <Box key={row.id}>
@@ -74,13 +99,15 @@ export default function PaymentRequestDataGrid(props: GridType) {
             >
               View
             </Button>
-            <Button
-              onClick={() => {
-                onClickArchive(row);
-              }}
-            >
-              Archive
-            </Button>
+            {row.status !== PAYMENT_REQUEST_STATUS.Archived && (
+              <Button
+                onClick={async () => {
+                  await onClickArchive(row);
+                }}
+              >
+                Archive
+              </Button>
+            )}
           </Box>,
         ];
       },
@@ -105,8 +132,9 @@ export default function PaymentRequestDataGrid(props: GridType) {
             }
             rt.push({
               id: index + 1,
+              itemId: item.id,
               paymentRequestId: item.payment_request_id,
-              amount: item.amount + ' ' + item.currency,
+              amount: CURRENCY_SYMBOLS[item.currency] + item.amount,
               title: item.title,
               expirationDate: expiry,
               status: item.payment_request_status,

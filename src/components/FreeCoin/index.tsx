@@ -40,6 +40,13 @@ const FreeCoin = () => {
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state);
 
   const onClickCoin = async (item: COIN, address: string, amount: number) => {
+    if (!item || !address || !amount) {
+      setSnackSeverity('error');
+      setSnackMessage('Incorrect parameters');
+      setSnackOpen(true);
+      return;
+    }
+
     try {
       const checkout_resp: any = await axios.get(Http.checkout_chain_address, {
         params: {

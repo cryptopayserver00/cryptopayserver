@@ -76,6 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const invoice = await prisma.invoices.create({
           data: {
+            user_id: userId,
             store_id: storeId,
             chain_id: chainId,
             network: network,

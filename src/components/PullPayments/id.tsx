@@ -26,17 +26,20 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  Link,
+  DialogActions,
+  Chip,
 } from '@mui/material';
 import { useSnackPresistStore } from 'lib/store';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import { PAYOUT_SOURCE_TYPE, PAYOUT_STATUS, PULL_PAYMENT_STATUS } from 'packages/constants';
+import { CURRENCY_SYMBOLS, PAYOUT_SOURCE_TYPE, PAYOUT_STATUS, PULL_PAYMENT_STATUS } from 'packages/constants';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINS, COIN } from 'packages/constants/blockchain';
 import Image from 'next/image';
-import { FindChainNamesByChains } from 'utils/web3';
+import { FindChainNamesByChains, GetBlockchainTxUrlByChainIds } from 'utils/web3';
 import { QRCodeSVG } from 'qrcode.react';
 import { OmitMiddleString } from 'utils/strings';
 
@@ -46,6 +49,9 @@ type pullPaymentType = {
   pullPaymentId: number;
   network: number;
   name: string;
+  storeName: string;
+  storeLogoUrl: string;
+  storeWebsite: string;
   amount: number;
   currency: string;
   showAutoApproveClaim: boolean;
@@ -58,6 +64,7 @@ type pullPaymentType = {
 
 type PayoutType = {
   address: string;
+  chain: number;
   chainName: string;
   crypto: string;
   cryptoAmount: string;
@@ -98,6 +105,7 @@ const PullPaymentsDetails = () => {
           let paid = 0;
           response.data.forEach((item: any) => {
             rt.push({
+              chain: item.chain_id,
               chainName: FindChainNamesByChains(item.chain_id as CHAINS),
               address: item.address,
               amount: item.amount,
@@ -149,7 +157,10 @@ const PullPaymentsDetails = () => {
           storeId: response.data.store_id,
           network: response.data.network,
           pullPaymentId: response.data.pull_payment_id,
-          name: response.data.title,
+          name: response.data.name,
+          storeName: response.data.store_name,
+          storeLogoUrl: response.data.store_logo_url,
+          storeWebsite: response.data.store_website,
           amount: response.data.amount,
           currency: response.data.currency,
           description: response.data.description,
@@ -180,6 +191,21 @@ const PullPaymentsDetails = () => {
   };
 
   const onClickCoin = async (item: COIN, address: string, amount: number) => {
+    if (!item || !address || !amount) {
+      setSnackSeverity('error');
+      setSnackMessage('Incorrect parameters');
+      setSnackOpen(true);
+      return;
+    }
+
+    const availableClaim = Number(pullPaymentData?.amount) + alreadyClaim;
+    if (amount > availableClaim) {
+      setSnackSeverity('error');
+      setSnackMessage('Available claim is ' + CURRENCY_SYMBOLS[String(pullPaymentData?.currency)] + availableClaim);
+      setSnackOpen(true);
+      return;
+    }
+
     try {
       const response: any = await axios.get(Http.checkout_chain_address, {
         params: {
@@ -229,17 +255,41 @@ const PullPaymentsDetails = () => {
   return (
     <Box mt={4}>
       <Container>
-        {pullPaymentData && alreadyClaim >= pullPaymentData?.amount && (
+        <Typography textAlign={'center'} variant="h6">
+          {pullPaymentData?.name}
+        </Typography>
+        <Typography textAlign={'center'} mt={1} fontWeight={'bold'}>
+          Pull payments from{' '}
+          <Link href={pullPaymentData?.storeWebsite} target="_blank">
+            {pullPaymentData?.storeName}
+          </Link>
+        </Typography>
+
+        {pullPaymentData?.storeLogoUrl && (
+          <Box textAlign={'center'} mt={2}>
+            <Image alt="logo" src={pullPaymentData?.storeLogoUrl} width={200} height={200} />
+          </Box>
+        )}
+        {/* {pullPaymentData && alreadyClaim >= pullPaymentData?.amount && (
           <Box mt={2}>
             <Alert variant="filled" severity="success">
               The pull payment has reached its limit, and you can read the detail of the payout.
             </Alert>
           </Box>
-        )}
+        )} */}
 
         {pullPaymentData && pullPaymentData?.pullPaymentStatus !== PULL_PAYMENT_STATUS.Active && (
           <Box mt={2}>
-            <Alert variant="filled" severity="success">
+            <Alert
+              variant="filled"
+              severity={
+                (pullPaymentData?.pullPaymentStatus === PULL_PAYMENT_STATUS.Archived && 'info') ||
+                (pullPaymentData?.pullPaymentStatus === PULL_PAYMENT_STATUS.Expired && 'warning') ||
+                (pullPaymentData?.pullPaymentStatus === PULL_PAYMENT_STATUS.Future && 'warning') ||
+                (pullPaymentData?.pullPaymentStatus === PULL_PAYMENT_STATUS.Settled && 'success') ||
+                'info'
+              }
+            >
               The pull payment has been {pullPaymentData?.pullPaymentStatus}, and you can read the detail of the payout.
             </Alert>
           </Box>
@@ -263,7 +313,7 @@ const PullPaymentsDetails = () => {
                       <Typography>Expiration Date</Typography>
                       <Typography ml={1}>{pullPaymentData?.expirationDate}</Typography>
                     </Stack>
-                    <Stack direction={'row'} alignItems={'center'} mt={2}>
+                    <Stack direction={'row'} alignItems={'center'} mt={4}>
                       <Button
                         variant={'outlined'}
                         onClick={async () => {
@@ -301,10 +351,8 @@ const PullPaymentsDetails = () => {
                     <Typography variant="h5">Payment Details</Typography>
                     <Stack mt={4} direction={'row'} color={'green'}>
                       <Typography fontWeight={'bold'}>
-                        {((pullPaymentData?.amount as number) - alreadyClaim).toFixed(2)}
-                      </Typography>
-                      <Typography fontWeight={'bold'} ml={1}>
-                        {pullPaymentData?.currency}
+                        {CURRENCY_SYMBOLS[String(pullPaymentData?.currency)]}
+                        {(Number(pullPaymentData?.amount) - alreadyClaim).toFixed(2)}
                       </Typography>
                     </Stack>
                     <Typography mt={1}>Available claim</Typography>
@@ -312,19 +360,19 @@ const PullPaymentsDetails = () => {
                     <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={4}>
                       <Box>
                         <Stack direction={'row'} alignItems={'center'} justifyContent={'left'}>
-                          <Typography fontWeight={'bold'}>{alreadyClaim}</Typography>
-                          <Typography fontWeight={'bold'} ml={1}>
-                            {pullPaymentData?.currency}
+                          <Typography fontWeight={'bold'}>
+                            {CURRENCY_SYMBOLS[String(pullPaymentData?.currency)]}
+                            {alreadyClaim}
                           </Typography>
                         </Stack>
                         <Typography>Already claimed</Typography>
                       </Box>
                       <Box>
                         <Stack direction={'row'} alignItems={'center'} justifyContent={'right'}>
-                          <Typography mr={1} fontWeight={'bold'}>
+                          <Typography mr={1} fontWeight={'bold'} color={'red'}>
+                            {CURRENCY_SYMBOLS[String(pullPaymentData?.currency)]}
                             {pullPaymentData?.amount}
                           </Typography>
-                          <Typography fontWeight={'bold'}>{pullPaymentData?.currency}</Typography>
                         </Stack>
                         <Typography>Claim limit</Typography>
                       </Box>
@@ -339,53 +387,60 @@ const PullPaymentsDetails = () => {
                 <CardContent>
                   <Typography variant="h5">Claims</Typography>
                   <Box mt={4}>
-                    <TableContainer component={Paper}>
-                      <Table aria-label="simple table">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Destination</TableCell>
-                            <TableCell>Chain</TableCell>
-                            <TableCell>Amount requested</TableCell>
-                            <TableCell>Crypto</TableCell>
-                            <TableCell>Crypto Amount</TableCell>
-                            <TableCell>Transaction</TableCell>
-                            <TableCell>Status</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {payoutRows && payoutRows.length > 0 ? (
+                    {payoutRows && payoutRows.length > 0 ? (
+                      <TableContainer component={Paper}>
+                        <Table aria-label="simple table">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Destination</TableCell>
+                              <TableCell>Chain</TableCell>
+                              <TableCell>Amount requested</TableCell>
+                              <TableCell>Crypto</TableCell>
+                              <TableCell align="right">Crypto Amount</TableCell>
+                              <TableCell>Transaction</TableCell>
+                              <TableCell>Status</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
                             <>
                               {payoutRows.map((row, index) => (
                                 <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                   <TableCell>{row.address}</TableCell>
                                   <TableCell>{row.chainName}</TableCell>
                                   <TableCell>
-                                    <Stack direction={'row'} alignItems={'center'} width={150}>
-                                      <Typography>{row.amount}</Typography>
-                                      <Typography ml={1}>{row.currency}</Typography>
-                                    </Stack>
+                                    <Typography align="right" width={120}>
+                                      {CURRENCY_SYMBOLS[row.currency]}
+                                      {row.amount}
+                                    </Typography>
                                   </TableCell>
-                                  <TableCell>{row.crypto}</TableCell>
-                                  <TableCell>
-                                    <Typography width={150}>{row.cryptoAmount}</Typography>
+                                  <TableCell align="right">{row.crypto}</TableCell>
+                                  <TableCell align="right">
+                                    <Typography width={120}>{row.cryptoAmount}</Typography>
                                   </TableCell>
-                                  <TableCell>{row.tx}</TableCell>
                                   <TableCell>
-                                    <Typography width={150}>{row.status}</Typography>
+                                    <Link
+                                      href={GetBlockchainTxUrlByChainIds(
+                                        pullPaymentData?.network === 1 ? true : false,
+                                        row.chain,
+                                        row.tx,
+                                      )}
+                                      target={'blank'}
+                                    >
+                                      {OmitMiddleString(row.tx)}
+                                    </Link>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Chip label={row.status} variant={'filled'} color={'info'} />
                                   </TableCell>
                                 </TableRow>
                               ))}
                             </>
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={100} align="center">
-                                No rows
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    ) : (
+                      <Typography>No payments have been made yet.</Typography>
+                    )}
                   </Box>
                 </CardContent>
               </Card>
@@ -411,12 +466,24 @@ const PullPaymentsDetails = () => {
         )}
         {page === 2 && (
           <Box mt={2}>
-            <SelectChainAndCrypto
-              network={pullPaymentData?.network as number}
-              amount={pullPaymentData?.amount as number}
-              currency={pullPaymentData?.currency as string}
-              onClickCoin={onClickCoin}
-            />
+            <Button
+              variant={'outlined'}
+              size="large"
+              onClick={() => {
+                setPage(1);
+              }}
+            >
+              Back
+            </Button>
+
+            <Box mt={1}>
+              <SelectChainAndCrypto
+                network={Number(pullPaymentData?.network)}
+                amount={Number(pullPaymentData?.amount)}
+                currency={String(pullPaymentData?.currency)}
+                onClickCoin={onClickCoin}
+              />
+            </Box>
           </Box>
         )}
       </Container>
@@ -485,6 +552,7 @@ const SelectChainAndCrypto = (props: SelectType) => {
   const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>([]);
   const [selectCoinItem, setSelectCoinItem] = useState<COIN>();
 
+  const [open, setOpen] = useState<boolean>(false);
   const [address, setAddress] = useState<string>('');
   const [amount, setAmount] = useState<number>(0);
 
@@ -495,8 +563,18 @@ const SelectChainAndCrypto = (props: SelectType) => {
   useEffect(() => {
     const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
     setBlcokchain(value);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.network]);
+
+  const handleOpen = async (chainId: number) => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setAddress('');
+    setAmount(0);
+
+    setOpen(false);
+  };
 
   return (
     <Box>
@@ -513,17 +591,21 @@ const SelectChainAndCrypto = (props: SelectType) => {
           blockchain.map((item, index) => (
             <Accordion expanded={expanded === item.name} onChange={handleChange(item.name)} key={index}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1bh-content">
-                <Typography sx={{ width: '33%', flexShrink: 0 }}>{item.name}</Typography>
+                <Typography sx={{ width: '33%', flexShrink: 0 }} fontWeight={'bold'}>
+                  {item.name.toUpperCase()}
+                </Typography>
                 <Typography sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
               </AccordionSummary>
               {item.coins &&
                 item.coins.length > 0 &&
-                item.coins.map((coinItem, coinIndex) => (
+                item.coins.map((coinItem: COIN, coinIndex) => (
                   <AccordionDetails key={coinIndex}>
                     <Button
                       fullWidth
                       onClick={async () => {
                         setSelectCoinItem(coinItem);
+
+                        await handleOpen(coinItem.chainId);
                       }}
                     >
                       <Image src={coinItem.icon} alt="icon" width={50} height={50} />
@@ -535,62 +617,70 @@ const SelectChainAndCrypto = (props: SelectType) => {
           ))}
       </Box>
 
-      {selectCoinItem && (
-        <Box mt={2}>
-          <Card>
-            <CardContent>
-              <Grid container mt={2} gap={1} justifyContent={'space-between'} alignItems={'center'}>
-                <Grid item xs={5}>
-                  <FormControl variant="outlined" fullWidth>
-                    <OutlinedInput
-                      type="text"
-                      endAdornment={
-                        <InputAdornment position="end">{FindChainNamesByChains(selectCoinItem.chainId)}</InputAdornment>
-                      }
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={address}
-                      onChange={(e: any) => {
-                        setAddress(e.target.value);
-                      }}
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={3}>
-                  <FormControl variant="outlined" fullWidth>
-                    <OutlinedInput
-                      type="number"
-                      endAdornment={<InputAdornment position="end">{props.currency}</InputAdornment>}
-                      aria-describedby="outlined-weight-helper-text"
-                      inputProps={{
-                        'aria-label': 'weight',
-                      }}
-                      value={amount}
-                      onChange={(e: any) => {
-                        setAmount(e.target.value);
-                      }}
-                    />
-                  </FormControl>
-                </Grid>
-                <Grid item xs={3}>
-                  <Button
-                    size={'large'}
-                    variant={'contained'}
-                    fullWidth
-                    onClick={async () => {
-                      await props.onClickCoin(selectCoinItem, address, amount);
-                    }}
-                  >
-                    Claim Funds
-                  </Button>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Box>
-      )}
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        fullWidth
+      >
+        <DialogTitle id="alert-dialog-title">Claim free funds</DialogTitle>
+        <DialogContent>
+          <Box mb={2}>
+            <FormControl variant="outlined" fullWidth size={'small'}>
+              <OutlinedInput
+                type="text"
+                endAdornment={
+                  <InputAdornment position="end">
+                    {FindChainNamesByChains(selectCoinItem?.chainId as CHAINS)}
+                  </InputAdornment>
+                }
+                aria-describedby="outlined-weight-helper-text"
+                inputProps={{
+                  'aria-label': 'weight',
+                }}
+                value={address}
+                onChange={(e: any) => {
+                  setAddress(e.target.value);
+                }}
+                placeholder="Enter your address"
+              />
+            </FormControl>
+          </Box>
+
+          <Box mb={2}>
+            <FormControl variant="outlined" fullWidth size={'small'}>
+              <OutlinedInput
+                type="number"
+                endAdornment={<InputAdornment position="end">{props.currency}</InputAdornment>}
+                aria-describedby="outlined-weight-helper-text"
+                inputProps={{
+                  'aria-label': 'weight',
+                }}
+                value={amount}
+                onChange={(e: any) => {
+                  setAmount(e.target.value);
+                }}
+                placeholder="Enter you amount"
+              />
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button variant={'outlined'} onClick={handleClose}>
+            Close
+          </Button>
+          <Button
+            variant={'contained'}
+            onClick={async () => {
+              await props.onClickCoin(selectCoinItem as COIN, address, amount);
+              handleClose();
+            }}
+          >
+            Claim Funds
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

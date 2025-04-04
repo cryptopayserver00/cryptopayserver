@@ -23,11 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         if (req.body.request_customer_data !== undefined)
           updateData.request_customer_data = req.body.request_customer_data;
         if (req.body.memo !== undefined) updateData.memo = req.body.memo;
+        if (req.body.payment_request_status !== undefined)
+          updateData.payment_request_status = req.body.payment_request_status;
 
         const payment_request = await prisma.payment_requests.update({
           data: updateData,
           where: {
-            payment_request_id: paymentRequestId,
+            id: paymentRequestId,
             status: 1,
           },
         });

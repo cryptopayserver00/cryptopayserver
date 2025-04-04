@@ -274,8 +274,9 @@ const Pullpayments = () => {
                 <Tabs value={value} onChange={handleChange} variant="scrollable" scrollButtons="auto">
                   <Tab label={PULL_PAYMENT_STATUS.Active} {...a11yProps(0)} />
                   <Tab label={PULL_PAYMENT_STATUS.Expired} {...a11yProps(1)} />
-                  <Tab label={PULL_PAYMENT_STATUS.Archived} {...a11yProps(2)} />
-                  <Tab label={PULL_PAYMENT_STATUS.Future} {...a11yProps(3)} />
+                  <Tab label={PULL_PAYMENT_STATUS.Settled} {...a11yProps(2)} />
+                  <Tab label={PULL_PAYMENT_STATUS.Archived} {...a11yProps(3)} />
+                  <Tab label={PULL_PAYMENT_STATUS.Future} {...a11yProps(4)} />
                 </Tabs>
               </Box>
               <CustomTabPanel value={value} index={0}>
@@ -285,9 +286,12 @@ const Pullpayments = () => {
                 <PullPaymentDataGrid status={PULL_PAYMENT_STATUS.Expired} />
               </CustomTabPanel>
               <CustomTabPanel value={value} index={2}>
-                <PullPaymentDataGrid status={PULL_PAYMENT_STATUS.Archived} />
+                <PullPaymentDataGrid status={PULL_PAYMENT_STATUS.Settled} />
               </CustomTabPanel>
               <CustomTabPanel value={value} index={3}>
+                <PullPaymentDataGrid status={PULL_PAYMENT_STATUS.Archived} />
+              </CustomTabPanel>
+              <CustomTabPanel value={value} index={4}>
                 <PullPaymentDataGrid status={PULL_PAYMENT_STATUS.Future} />
               </CustomTabPanel>
             </Box>

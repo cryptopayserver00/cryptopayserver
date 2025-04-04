@@ -14,6 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           where: {
             status: 1,
           },
+          orderBy: {
+            updated_at: 'desc',
+          },
         });
 
         if (!invoices) {

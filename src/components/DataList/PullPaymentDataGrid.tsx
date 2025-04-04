@@ -36,16 +36,22 @@ export default function PullPaymentDataGrid(props: GridType) {
       field: 'createdDate',
       headerName: 'Start',
       width: 200,
+      headerAlign: 'right',
+      align: 'right',
     },
     {
       field: 'expirationDate',
       headerName: 'End',
       width: 200,
+      headerAlign: 'right',
+      align: 'right',
     },
     {
       field: 'name',
       headerName: 'Name',
       width: 100,
+      headerAlign: 'right',
+      align: 'right',
     },
     {
       field: 'showAutoApproveClaim',
@@ -64,8 +70,8 @@ export default function PullPaymentDataGrid(props: GridType) {
       headerName: 'Actions',
       type: 'actions',
       width: actionWidth,
-      align: 'right',
-      headerAlign: 'right',
+      align: 'center',
+      headerAlign: 'center',
       getActions: ({ row }) => {
         switch (props.status) {
           case PULL_PAYMENT_STATUS.Active:
@@ -126,20 +132,46 @@ export default function PullPaymentDataGrid(props: GridType) {
                 >
                   View
                 </Button>
+              </>,
+            ];
+          case PULL_PAYMENT_STATUS.Settled:
+            setActionWidth(200);
+            return [
+              <>
                 <Button
                   onClick={() => {
-                    window.location.href = '/payments/payouts';
+                    window.location.href = '/pull-payments/' + row.pullPaymentId;
                   }}
                 >
-                  Payouts
+                  View
                 </Button>
               </>,
             ];
           case PULL_PAYMENT_STATUS.Future:
             setActionWidth(200);
-            return [<></>];
+            return [
+              <>
+                <Button
+                  onClick={() => {
+                    window.location.href = '/pull-payments/' + row.pullPaymentId;
+                  }}
+                >
+                  View
+                </Button>
+              </>,
+            ];
           default:
-            return [<></>];
+            return [
+              <>
+                <Button
+                  onClick={() => {
+                    window.location.href = '/pull-payments/' + row.pullPaymentId;
+                  }}
+                >
+                  View
+                </Button>
+              </>,
+            ];
         }
       },
     },

@@ -2,7 +2,7 @@ import { Button } from '@mui/material';
 import Box from '@mui/material/Box';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { PAYOUT_STATUS } from 'packages/constants';
+import { CURRENCY_SYMBOLS, PAYOUT_STATUS } from 'packages/constants';
 import { CHAINS } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
@@ -40,11 +40,7 @@ export default function PayoutDataGrid(props: GridType) {
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
     { field: 'id', headerName: 'ID', width: 50 },
-    {
-      field: 'createdDate',
-      headerName: 'Start',
-      width: 200,
-    },
+
     {
       field: 'chainName',
       headerName: 'Chain',
@@ -81,6 +77,11 @@ export default function PayoutDataGrid(props: GridType) {
       headerName: 'Transaction',
       width: 250,
       valueGetter: (value, row) => OmitMiddleString(value, 10),
+    },
+    {
+      field: 'createdDate',
+      headerName: 'Start',
+      width: 200,
     },
     {
       field: 'actions',
@@ -339,7 +340,7 @@ export default function PayoutDataGrid(props: GridType) {
               chainId: item.chain_id,
               address: item.address,
               createdDate: new Date(item.created_at).toLocaleString(),
-              refunded: item.amount + ' ' + item.currency,
+              refunded: CURRENCY_SYMBOLS[item.currency] + item.amount,
               crypto: item.crypto,
               sourceType: item.source_type,
               externalPaymentId: item.external_payment_id,

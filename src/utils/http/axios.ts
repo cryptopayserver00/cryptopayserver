@@ -1,11 +1,11 @@
 import axios from 'axios';
-import { useUserPresistStore } from 'lib/store';
+// import { useUserPresistStore } from 'lib/store';
 
-const { setShowProgress } = useUserPresistStore.getState();
+// const { setShowProgress } = useUserPresistStore.getState();
 
 axios.interceptors.request.use(
   (config) => {
-    setShowProgress(true);
+    // setShowProgress(true);
 
     if (!config.headers.get('Content-Type')) {
       config.headers.set('Content-Type', 'application/json; charset=utf-8');
@@ -21,14 +21,14 @@ axios.interceptors.request.use(
     return config;
   },
   (error) => {
-    setShowProgress(false);
+    // setShowProgress(false);
     return Promise.reject(error);
   },
 );
 
 axios.interceptors.response.use(
   (response) => {
-    setShowProgress(false);
+    // setShowProgress(false);
 
     if (response && response.status === 200) {
       return Promise.resolve(response.data);
@@ -36,7 +36,7 @@ axios.interceptors.response.use(
     return Promise.reject(response);
   },
   (error) => {
-    setShowProgress(false);
+    // setShowProgress(false);
 
     if (error.response && error.response.status === 401) {
       window.location.href = '/';
