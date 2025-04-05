@@ -157,7 +157,6 @@ export const ORDER_TIME = {
   Last24Hours: 'Last 24 hours',
   Last3Days: 'Last 3 days',
   Last7Days: 'Last 7 days',
-  CustomRange: 'Custom Range',
 };
 
 export const REPORT_STATUS = {

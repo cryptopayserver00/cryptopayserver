@@ -326,21 +326,6 @@ const PaymentInvoices = () => {
                 </Box>
               </Stack>
 
-              {/* <Box mt={4}>
-                <Typography>Order Id</Typography>
-                <Box mt={1}>
-                  <TextField
-                    fullWidth
-                    hiddenLabel
-                    size="small"
-                    value={orderId}
-                    onChange={(e: any) => {
-                      setOrderId(e.target.value);
-                    }}
-                  />
-                </Box>
-              </Box> */}
-
               <Box mt={4}>
                 <Typography>* Item Description</Typography>
                 <Box mt={1}>
@@ -476,7 +461,7 @@ const PaymentInvoices = () => {
                   inputProps={{
                     'aria-label': 'weight',
                   }}
-                  placeholder="Search..."
+                  placeholder="Search order id ..."
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
@@ -520,8 +505,8 @@ const PaymentInvoices = () => {
               </FormControl>
             </Stack>
 
-            <Box mt={5}>
-              <InvoiceDataGrid source="none" />
+            <Box mt={2}>
+              <InvoiceDataGrid source="none" orderStatus={orderStatus} orderId={search} time={orderTime} />
             </Box>
           </Box>
         )}

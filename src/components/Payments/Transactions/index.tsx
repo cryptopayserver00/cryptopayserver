@@ -21,7 +21,7 @@ import { useUserPresistStore } from 'lib/store';
 const PaymentTransactions = () => {
   const ALL_CHAINS = 'All Chains' as const;
 
-  const [search, setSearch] = useState<string>('');
+  const [address, setAddress] = useState<string>('');
   const [txChain, setTxChain] = useState<CHAINNAMES | typeof ALL_CHAINS>(ALL_CHAINS);
 
   const { getNetwork } = useUserPresistStore((state) => state);
@@ -49,10 +49,10 @@ const PaymentTransactions = () => {
                 inputProps={{
                   'aria-label': 'weight',
                 }}
-                placeholder="Search..."
-                value={search}
+                placeholder="Search address ..."
+                value={address}
                 onChange={(e) => {
-                  setSearch(e.target.value);
+                  setAddress(e.target.value);
                 }}
               />
             </FormControl>
@@ -81,6 +81,7 @@ const PaymentTransactions = () => {
               source="none"
               chain={txChain === ALL_CHAINS ? undefined : FindChainIdsByChainNames(txChain)}
               network={getNetwork()}
+              address={address}
             />
           </Box>
         </Box>

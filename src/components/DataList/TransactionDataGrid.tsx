@@ -1,4 +1,4 @@
-import { Dialog, DialogTitle, Stack, Typography } from '@mui/material';
+import { Button, Dialog, DialogTitle, FormControl, OutlinedInput, Stack, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
@@ -36,6 +36,9 @@ export default function TransactionDataGrid(props: GridType) {
   const { source } = props;
 
   const [rows, setRows] = useState<RowType[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [rowCount, setRowCount] = useState<number>(0);
 
   const { getNetwork } = useUserPresistStore((state) => state);
   const { getStoreId } = useStorePresistStore((state) => state);
@@ -43,7 +46,6 @@ export default function TransactionDataGrid(props: GridType) {
 
   const [open, setOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState<RowType>();
-  const [txCount, setTxCount] = useState<number>(0);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -60,7 +62,7 @@ export default function TransactionDataGrid(props: GridType) {
   };
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
-    { field: 'id', headerName: 'ID', width: 50 },
+    // { field: 'id', headerName: 'ID', width: 50 },
     {
       field: 'chainName',
       headerName: 'Chain',
@@ -114,7 +116,14 @@ export default function TransactionDataGrid(props: GridType) {
     },
   ];
 
-  const init = async (chain: number, storeId: number, network: string, address?: string) => {
+  const init = async (
+    page: number,
+    pageSize: number,
+    chain: number,
+    storeId: number,
+    network: string,
+    address?: string,
+  ) => {
     try {
       const response: any = await axios.get(Http.find_transaction, {
         params: {
@@ -122,6 +131,8 @@ export default function TransactionDataGrid(props: GridType) {
           store_id: storeId ? storeId : getStoreId(),
           network: network ? (network === 'mainnet' ? 1 : 2) : getNetwork() === 'mainnet' ? 1 : 2,
           address: address ? address : '',
+          page: page,
+          page_size: pageSize,
         },
       });
       if (response.result) {
@@ -143,8 +154,14 @@ export default function TransactionDataGrid(props: GridType) {
             });
           });
           setRows(rt);
+          setPage(Number(response.data.page));
+          setPageSize(Number(response.data.pageSize));
+          setRowCount(Number(response.data.total));
         } else {
           setRows([]);
+          setPage(1);
+          setPageSize(10);
+          setRowCount(0);
         }
       } else {
         setSnackSeverity('error');
@@ -159,24 +176,34 @@ export default function TransactionDataGrid(props: GridType) {
     }
   };
 
-  useEffect(() => {
-    if (txCount !== 0 && rows.length > txCount) {
-      setSnackSeverity('info');
-      setSnackMessage('A new transaction has been found');
-      setSnackOpen(true);
-    }
+  const onClickPreviousPage = async () => {
+    const newPage = page - 1;
+    setPage(newPage);
+    await init(newPage, pageSize, Number(props.chain), Number(props.storeId), props.network, props.address);
+  };
 
-    setTxCount(rows.length);
-  }, [txCount, rows, setSnackSeverity, setSnackMessage, setSnackOpen]);
+  const onClickNextPage = async () => {
+    const newPage = page + 1;
+    setPage(newPage);
+    await init(newPage, pageSize, Number(props.chain), Number(props.storeId), props.network, props.address);
+  };
+
+  const onClickSearch = async () => {
+    await init(page, pageSize, Number(props.chain), Number(props.storeId), props.network, props.address);
+  };
 
   useEffect(() => {
     const activeInit = setInterval(() => {
-      init(Number(props.chain), Number(props.storeId), props.network, props.address);
+      init(page, pageSize, Number(props.chain), Number(props.storeId), props.network, props.address);
     }, 10 * 1000);
 
     return () => clearInterval(activeInit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.chain, props.storeId, props.network, props.address]);
+
+  useEffect(() => {
+    init(page, pageSize, Number(props.chain), Number(props.storeId), props.network, props.address);
+  }, [props.chain, props.network, props.address]);
 
   return (
     <Box>
@@ -187,19 +214,40 @@ export default function TransactionDataGrid(props: GridType) {
         initialState={{
           pagination: {
             paginationModel: {
-              pageSize: 10,
+              pageSize: pageSize,
+              page: page,
             },
           },
         }}
-        pageSizeOptions={[10]}
+        pageSizeOptions={[pageSize]}
         onRowClick={(e: any) => {
           onClickRow(e.row);
         }}
         // checkboxSelection
         // disableRowSelectionOnClick
-        hideFooter={source === 'dashboard' ? true : false}
+        // hideFooter={source === 'dashboard' ? true : false}
+        hideFooter={true}
         disableColumnMenu
       />
+
+      <Stack direction={'row'} alignItems={'center'} justifyContent={'right'} my={2} gap={2}>
+        <Button
+          variant={'contained'}
+          onClick={() => {
+            onClickPreviousPage();
+          }}
+        >
+          Previous page
+        </Button>
+        <Button
+          variant={'contained'}
+          onClick={() => {
+            onClickNextPage();
+          }}
+        >
+          Next page
+        </Button>
+      </Stack>
 
       <TxDialog row={selectedValue as RowType} open={open} onClose={handleClose} />
     </Box>

@@ -19,6 +19,8 @@ type RowType = {
 
 type GridType = {
   source: 'dashboard' | 'none';
+  paymentRequestStatus?: string;
+  paymentRequestId?: string;
 };
 
 export default function PaymentRequestDataGrid(props: GridType) {
@@ -63,8 +65,13 @@ export default function PaymentRequestDataGrid(props: GridType) {
   const columns: GridColDef<(typeof rows)[number]>[] = [
     { field: 'id', headerName: 'ID', width: 50 },
     {
+      field: 'paymentRequestId',
+      headerName: 'Payment Request Id',
+      width: 200,
+    },
+    {
       field: 'title',
-      headerName: 'title',
+      headerName: 'Title',
       width: 200,
     },
     {
@@ -120,6 +127,8 @@ export default function PaymentRequestDataGrid(props: GridType) {
         params: {
           store_id: getStoreId(),
           network: getNetwork() === 'mainnet' ? 1 : 2,
+          payment_request_status: props.paymentRequestStatus,
+          payment_request_id: props.paymentRequestId,
         },
       });
       if (response.result) {
@@ -160,7 +169,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
   useEffect(() => {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [props.paymentRequestStatus, props.paymentRequestId]);
 
   return (
     <Box>

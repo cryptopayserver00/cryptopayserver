@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
+import { CURRENCY_SYMBOLS } from 'packages/constants';
 import { CHAINNAMES } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
@@ -12,10 +13,8 @@ type RowType = {
   chain: CHAINNAMES;
   orderId: number;
   sourceType: string;
-  amount: number;
-  currency: string;
-  cryptoAmount: number;
-  crypto: string;
+  fiatAmount: string;
+  cryptoAmount: string;
   createdDate: string;
   expirationDate: string;
   orderStatus: string;
@@ -23,6 +22,9 @@ type RowType = {
 
 type GridType = {
   source: 'dashboard' | 'none';
+  orderStatus?: string;
+  orderId?: string;
+  time?: string;
 };
 
 export default function InvoiceDataGrid(props: GridType) {
@@ -39,22 +41,16 @@ export default function InvoiceDataGrid(props: GridType) {
     {
       field: 'orderId',
       headerName: 'Order Id',
-      // editable: true,
       width: 200,
     },
     {
-      field: 'sourceType',
-      headerName: 'Source Type',
-      width: 200,
-    },
-    {
-      field: 'amount',
-      headerName: 'Amount',
+      field: 'fiatAmount',
+      headerName: 'Fiat Amount',
       width: 100,
     },
     {
-      field: 'currency',
-      headerName: 'Currency',
+      field: 'chain',
+      headerName: 'Chain',
       width: 100,
     },
     {
@@ -63,14 +59,14 @@ export default function InvoiceDataGrid(props: GridType) {
       width: 150,
     },
     {
-      field: 'crypto',
-      headerName: 'Crypto',
-      width: 100,
+      field: 'sourceType',
+      headerName: 'Source Type',
+      width: 140,
     },
     {
-      field: 'chain',
-      headerName: 'Chain',
-      width: 100,
+      field: 'orderStatus',
+      headerName: 'Order Status',
+      width: 140,
     },
     {
       field: 'createdDate',
@@ -82,11 +78,6 @@ export default function InvoiceDataGrid(props: GridType) {
       headerName: 'Expiration Date',
       width: 200,
     },
-    {
-      field: 'orderStatus',
-      headerName: 'Order Status',
-      width: 200,
-    },
   ];
 
   const init = async () => {
@@ -95,6 +86,9 @@ export default function InvoiceDataGrid(props: GridType) {
         params: {
           store_id: getStoreId(),
           network: getNetwork() === 'mainnet' ? 1 : 2,
+          order_status: props.orderStatus,
+          order_id: props.orderId,
+          time: props.time,
         },
       });
       if (response.result) {
@@ -105,10 +99,8 @@ export default function InvoiceDataGrid(props: GridType) {
               id: index + 1,
               orderId: item.order_id,
               sourceType: item.source_type,
-              amount: item.amount,
-              currency: item.currency,
-              cryptoAmount: item.crypto_amount,
-              crypto: item.crypto,
+              fiatAmount: CURRENCY_SYMBOLS[item.currency] + item.amount,
+              cryptoAmount: item.crypto_amount + ' ' + item.crypto,
               chain: FindChainNamesByChains(item.chain_id),
               createdDate: new Date(item.created_at).toLocaleString(),
               expirationDate: new Date(item.expiration_at).toLocaleString(),
@@ -136,6 +128,10 @@ export default function InvoiceDataGrid(props: GridType) {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    init();
+  }, [props.orderStatus, props.orderId, props.time]);
 
   return (
     <Box>

@@ -40,6 +40,7 @@ const Requests = () => {
   const [requestCustomerData, setRequestCustomerData] = useState<string>(REQUEST_CUSTOMER_DATA[0]);
   const [memo, setMemo] = useState<string>('');
   const [paymentRequestStatus, setPaymentRequestStatus] = useState<string>(PAYMENT_REQUEST_STATUS.AllStatus);
+  const [search, setSearch] = useState<string>('');
 
   const [showTitleAlert, setShowTitleAlert] = useState<boolean>(false);
   const [showAmountAlert, setShowAmountAlert] = useState<boolean>(false);
@@ -363,7 +364,11 @@ const Requests = () => {
                     inputProps={{
                       'aria-label': 'weight',
                     }}
-                    placeholder="Search..."
+                    placeholder="Search payment request id ..."
+                    value={search}
+                    onChange={(e: any) => {
+                      setSearch(e.target.value);
+                    }}
                   />
                 </FormControl>
               </Box>
@@ -389,8 +394,12 @@ const Requests = () => {
               </Box>
             </Stack>
 
-            <Box mt={5}>
-              <PaymentRequestDataGrid source="none" />
+            <Box mt={2}>
+              <PaymentRequestDataGrid
+                source="none"
+                paymentRequestId={search}
+                paymentRequestStatus={paymentRequestStatus}
+              />
             </Box>
           </Box>
         )}

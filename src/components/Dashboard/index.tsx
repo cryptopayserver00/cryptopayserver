@@ -110,7 +110,7 @@ const Dashboard = () => {
 
       <Container>
         <Box my={2}>
-          <Chip label={getStoreName()} />
+          <Chip size={'medium'} variant={'outlined'} label={getStoreName()} />
         </Box>
         <Grid container spacing={2}>
           <Grid item xs={12}>

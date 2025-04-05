@@ -83,8 +83,8 @@ export class BLOCKSCAN {
 
       if (chainids !== undefined) findData.chainids = chainids;
       if (addresses !== undefined) findData.addresses = addresses;
-      if (page === undefined) findData.page = 1;
-      if (pageSize === undefined) findData.page_size = 10;
+      if (page) findData.page = page;
+      if (pageSize) findData.page_size = pageSize;
 
       const url = this.baseUrl + '/getTransactionsByChainAndAddress';
       const response: any = await this.axiosInstance.get(url, {

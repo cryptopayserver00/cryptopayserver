@@ -16,6 +16,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const storeId = req.query.store_id;
         const network = req.query.network;
         const address = req.query.address;
+        const page = req.query.page;
+        const pageSize = req.query.page_size;
 
         const wallet = await prisma.wallets.findFirst({
           where: {
@@ -56,6 +58,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             ? WEB3.getChainIds(Number(network) === 1 ? true : false, Number(chainId)).toString()
             : formattedChainIds,
           address ? String(address) : formattedAddresses,
+          Number(page),
+          Number(pageSize),
         );
 
         if (!txs) {
