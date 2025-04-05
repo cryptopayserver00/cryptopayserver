@@ -3,6 +3,8 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Alert,
+  AlertTitle,
   Box,
   Button,
   Container,
@@ -28,7 +30,7 @@ import { BigDiv } from 'utils/number';
 import { FindChainIdsByChainNames, FindTokensByMainnetAndName } from 'utils/web3';
 
 const PaymentInvoices = () => {
-  const [openInvoiceReport, setOpenInvoiceReport] = useState<boolean>(false);
+  const [openExplain, setOpenExplain] = useState<boolean>(false);
   const [openCreateInvoice, setOpenCreateInvoice] = useState<boolean>(false);
 
   const [amount, setAmount] = useState<number>(0);
@@ -437,7 +439,7 @@ const PaymentInvoices = () => {
                 <Typography variant="h6">Invoices</Typography>
                 <IconButton
                   onClick={() => {
-                    setOpenInvoiceReport(!openInvoiceReport);
+                    setOpenExplain(!openExplain);
                   }}
                 >
                   <ReportGmailerrorred />
@@ -452,6 +454,16 @@ const PaymentInvoices = () => {
                 Create Invoice
               </Button>
             </Stack>
+
+            {openExplain && (
+              <Alert severity="info">
+                <AlertTitle>Info</AlertTitle>
+                Invoices are documents issued by the seller to a buyer to collect payment.
+                <br />
+                An invoice must be paid within a defined time interval at a fixed exchange rate to protect the issuer
+                from price fluctuations.
+              </Alert>
+            )}
 
             <Stack mt={5} direction={'row'} gap={2}>
               <FormControl sx={{ width: 500 }} variant="outlined">

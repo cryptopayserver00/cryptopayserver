@@ -1,5 +1,7 @@
 import { ReportGmailerrorred } from '@mui/icons-material';
 import {
+  Alert,
+  AlertTitle,
   Box,
   Container,
   FormControl,
@@ -12,8 +14,6 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import TransactionDataGrid from '../../DataList/TransactionDataGrid';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
 import { CHAINNAMES } from 'packages/constants/blockchain';
 import { FindChainIdsByChainNames } from 'utils/web3';
 import { useUserPresistStore } from 'lib/store';
@@ -21,6 +21,7 @@ import { useUserPresistStore } from 'lib/store';
 const PaymentTransactions = () => {
   const ALL_CHAINS = 'All Chains' as const;
 
+  const [openExplain, setOpenExplain] = useState<boolean>(false);
   const [address, setAddress] = useState<string>('');
   const [txChain, setTxChain] = useState<CHAINNAMES | typeof ALL_CHAINS>(ALL_CHAINS);
 
@@ -34,12 +35,23 @@ const PaymentTransactions = () => {
             <Typography variant="h6">Transactions</Typography>
             <IconButton
               onClick={() => {
-                // setOpenInvoiceReport(!openInvoiceReport);
+                setOpenExplain(!openExplain);
               }}
             >
               <ReportGmailerrorred />
             </IconButton>
           </Stack>
+
+          {openExplain && (
+            <Alert severity="info">
+              <AlertTitle>Info</AlertTitle>
+              The transaction data here is related to the address used by your store and all comes from a third-party
+              quick-scan platform.
+              <br />
+              You can search for all transactions associated with the address you use, filtering by conditions to find
+              different blockchains, times, and more.
+            </Alert>
+          )}
 
           <Stack mt={5} direction={'row'} gap={2}>
             <FormControl sx={{ width: 500 }} variant="outlined">

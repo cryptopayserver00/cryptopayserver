@@ -3,6 +3,8 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Alert,
+  AlertTitle,
   Box,
   Button,
   Checkbox,
@@ -28,7 +30,7 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import PullPaymentDataGrid from 'components/DataList/PullPaymentDataGrid';
 
 const Pullpayments = () => {
-  const [openPullPayment, setOpenPullPayment] = useState<boolean>(false);
+  const [openExplain, setOpenExplain] = useState<boolean>(false);
   const [openCreatePullPayment, setOpenCreatePullPayment] = useState<boolean>(false);
 
   const [value, setValue] = useState(0);
@@ -253,7 +255,7 @@ const Pullpayments = () => {
                 <Typography variant="h6">Pull payments</Typography>
                 <IconButton
                   onClick={() => {
-                    setOpenPullPayment(!openPullPayment);
+                    setOpenExplain(!openExplain);
                   }}
                 >
                   <ReportGmailerrorred />
@@ -268,6 +270,15 @@ const Pullpayments = () => {
                 Create pull payment
               </Button>
             </Stack>
+
+            {openExplain && (
+              <Alert severity="info">
+                <AlertTitle>Info</AlertTitle>
+                Pull Payments allow receivers to claim specified funds from your wallet at their convenience.
+                <br />
+                Once submitted and approved, the funds will be released.
+              </Alert>
+            )}
 
             <Box mt={5}>
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

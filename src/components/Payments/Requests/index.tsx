@@ -1,5 +1,7 @@
 import { ReportGmailerrorred, WarningAmber } from '@mui/icons-material';
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
   Container,
@@ -28,7 +30,7 @@ import { Http } from 'utils/http/http';
 import PaymentRequestDataGrid from 'components/DataList/PaymentRequestDataGrid';
 
 const Requests = () => {
-  const [openRequest, setOpenRequest] = useState<boolean>(false);
+  const [openExplain, setOpenExplain] = useState<boolean>(false);
   const [openCreateRequest, setOpenCreateRequest] = useState<boolean>(false);
 
   const [title, setTitle] = useState<string>('');
@@ -339,7 +341,7 @@ const Requests = () => {
                 <Typography variant="h6">Payment Requests</Typography>
                 <IconButton
                   onClick={() => {
-                    setOpenRequest(!openRequest);
+                    setOpenExplain(!openExplain);
                   }}
                 >
                   <ReportGmailerrorred />
@@ -354,6 +356,17 @@ const Requests = () => {
                 Create Request
               </Button>
             </Stack>
+
+            {openExplain && (
+              <Alert severity="info">
+                <AlertTitle>Info</AlertTitle>
+                Payment requests are persistent shareable pages that enable the receiver to pay at their convenience.
+                <br />
+                Funds are paid to a payment request at the current exchange rate.
+                <br />
+                Requests may be paid in partial. They will remain valid until time expires or when paid what is due.
+              </Alert>
+            )}
 
             <Stack direction={'row'} mt={5} gap={3}>
               <Box>

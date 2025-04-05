@@ -1,11 +1,11 @@
 import { ReportGmailerrorred } from '@mui/icons-material';
-import { Box, Container, IconButton, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { Alert, AlertTitle, Box, Container, IconButton, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import PayoutDataGrid from '../../DataList/PayoutDataGrid';
 import { PAYOUT_STATUS } from 'packages/constants';
 
 const Payouts = () => {
-  const [openPayout, setOpenPayout] = useState<boolean>(false);
+  const [openExplain, setOpenExplain] = useState<boolean>(false);
 
   const [value, setValue] = useState(0);
 
@@ -23,12 +23,21 @@ const Payouts = () => {
             <Typography variant="h6">Payouts</Typography>
             <IconButton
               onClick={() => {
-                setOpenPayout(!openPayout);
+                setOpenExplain(!openExplain);
               }}
             >
               <ReportGmailerrorred />
             </IconButton>
           </Stack>
+
+          {openExplain && (
+            <Alert severity="info">
+              <AlertTitle>Info</AlertTitle>
+              Payouts allow you to process pull payments, in the form of refunds, salary payouts, or withdrawals.
+              <br />
+              You can also configure payout processors to automate payouts.
+            </Alert>
+          )}
 
           <Box mt={5}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

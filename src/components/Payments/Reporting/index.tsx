@@ -1,5 +1,17 @@
 import { ReportGmailerrorred } from '@mui/icons-material';
-import { Box, Button, Container, FormControl, IconButton, MenuItem, Select, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  Container,
+  FormControl,
+  IconButton,
+  MenuItem,
+  Select,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers-pro';
 import { useState } from 'react';
 import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
@@ -30,7 +42,7 @@ export type RowType = {
 };
 
 const Reporting = () => {
-  const [openReport, setOpenReport] = useState<boolean>(false);
+  const [openExplain, setOpenExplain] = useState<boolean>(false);
   const [reportStatus, setReportStatus] = useState<string>(REPORT_STATUS.All);
   const [startDate, setStartDate] = useState<Dayjs>(dayjs().add(-30, 'day'));
   const [endDate, setEndDate] = useState<Dayjs>(dayjs());
@@ -64,7 +76,7 @@ const Reporting = () => {
             <Typography variant="h6">Reporting</Typography>
             <IconButton
               onClick={() => {
-                setOpenReport(!openReport);
+                setOpenExplain(!openExplain);
               }}
             >
               <ReportGmailerrorred />
@@ -74,6 +86,14 @@ const Reporting = () => {
             Export
           </Button>
         </Stack>
+
+        {openExplain && (
+          <Alert severity="info">
+            <AlertTitle>Info</AlertTitle>
+            Reporting will allow you to visualize and export CSV data of your store.
+            <br />A report consist of table of tabular data along with some useful aggregates.
+          </Alert>
+        )}
 
         <Stack mt={5} direction={'row'} gap={3} alignItems={'baseline'}>
           <FormControl sx={{ minWidth: 120 }}>
