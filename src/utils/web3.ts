@@ -63,6 +63,30 @@ import {
   GetBlockchainAddressUrl as GetTonBlockchainAddressUrl,
   GetBlockchainTxUrl as GetTonBlockchainTxUrl,
 } from './chain/ton';
+import {
+  bitcoin,
+  bitcoinTestnet,
+  xrplevmTestnet,
+  mainnet,
+  sepolia,
+  tron,
+  solana,
+  solanaDevnet,
+  bsc,
+  bscTestnet,
+  arbitrum,
+  arbitrumNova,
+  arbitrumSepolia,
+  avalanche,
+  avalancheFuji,
+  polygon,
+  polygonAmoy,
+  base,
+  baseSepolia,
+  optimism,
+  optimismSepolia,
+  AppKitNetwork,
+} from '@reown/appkit/networks';
 
 export function FindTokenByChainIdsAndContractAddress(chainIds: CHAINIDS, contractAddress: string): COIN {
   const coins = BLOCKCHAINNAMES.find((item) => item.chainId === chainIds)?.coins;
@@ -303,4 +327,98 @@ export function GetAllTestnetChainIds(): CHAINIDS[] {
     CHAINIDS.OPTIMISM_SEPOLIA,
     CHAINIDS.TON_TESTNET,
   ];
+}
+
+export function GetChainIds(isMainnet: boolean, chain: CHAINS): CHAINIDS {
+  switch (chain) {
+    case CHAINS.BITCOIN:
+      return isMainnet ? CHAINIDS.BITCOIN : CHAINIDS.BITCOIN_TESTNET;
+    case CHAINS.LITECOIN:
+      return isMainnet ? CHAINIDS.LITECOIN : CHAINIDS.LITECOIN_TESTNET;
+    case CHAINS.XRP:
+      return isMainnet ? CHAINIDS.XRP : CHAINIDS.XRP_TESTNET;
+    case CHAINS.BITCOINCASH:
+      return isMainnet ? CHAINIDS.BITCOINCASH : CHAINIDS.BITCOINCASH_TESTNET;
+    case CHAINS.ETHEREUM:
+      return isMainnet ? CHAINIDS.ETHEREUM : CHAINIDS.ETHEREUM_SEPOLIA;
+    case CHAINS.TRON:
+      return isMainnet ? CHAINIDS.TRON : CHAINIDS.TRON_NILE;
+    case CHAINS.SOLANA:
+      return isMainnet ? CHAINIDS.SOLANA : CHAINIDS.SOLANA_DEVNET;
+    case CHAINS.BSC:
+      return isMainnet ? CHAINIDS.BSC : CHAINIDS.BSC_TESTNET;
+    case CHAINS.ARBITRUM:
+      return isMainnet ? CHAINIDS.ARBITRUM_ONE : CHAINIDS.ARBITRUM_SEPOLIA;
+    case CHAINS.AVALANCHE:
+      return isMainnet ? CHAINIDS.AVALANCHE : CHAINIDS.AVALANCHE_TESTNET;
+    case CHAINS.POLYGON:
+      return isMainnet ? CHAINIDS.POLYGON : CHAINIDS.POLYGON_TESTNET;
+    case CHAINS.BASE:
+      return isMainnet ? CHAINIDS.BASE : CHAINIDS.BASE_SEPOLIA;
+    case CHAINS.OPTIMISM:
+      return isMainnet ? CHAINIDS.OPTIMISM : CHAINIDS.OPTIMISM_SEPOLIA;
+    case CHAINS.TON:
+      return isMainnet ? CHAINIDS.TON : CHAINIDS.TON_TESTNET;
+    default:
+      return CHAINIDS.NONE;
+  }
+}
+
+export function GetWalletConnectNetwork(chainIds: CHAINIDS): AppKitNetwork | undefined {
+  switch (chainIds) {
+    case CHAINIDS.BITCOIN:
+      return bitcoin;
+    case CHAINIDS.BITCOIN_TESTNET:
+      return bitcoinTestnet;
+    case (CHAINIDS.LITECOIN, CHAINIDS.LITECOIN_TESTNET):
+      break;
+    case CHAINIDS.XRP:
+      break;
+    case CHAINIDS.XRP_TESTNET:
+      return xrplevmTestnet;
+    case (CHAINIDS.BITCOINCASH, CHAINIDS.BITCOINCASH_TESTNET):
+      break;
+    case CHAINIDS.ETHEREUM:
+      return mainnet;
+    case CHAINIDS.ETHEREUM_SEPOLIA:
+      return sepolia;
+    case CHAINIDS.TRON:
+      return tron;
+    case CHAINIDS.TRON_NILE:
+      break;
+    case CHAINIDS.SOLANA:
+      return solana;
+    case CHAINIDS.SOLANA_DEVNET:
+      return solanaDevnet;
+    case CHAINIDS.BSC:
+      return bsc;
+    case CHAINIDS.BSC_TESTNET:
+      return bscTestnet;
+    case CHAINIDS.ARBITRUM_ONE:
+      return arbitrum;
+    case CHAINIDS.ARBITRUM_NOVA:
+      return arbitrumNova;
+    case CHAINIDS.ARBITRUM_SEPOLIA:
+      return arbitrumSepolia;
+    case CHAINIDS.AVALANCHE:
+      return avalanche;
+    case CHAINIDS.AVALANCHE_TESTNET:
+      return avalancheFuji;
+    case CHAINIDS.POLYGON:
+      return polygon;
+    case CHAINIDS.POLYGON_TESTNET:
+      return polygonAmoy;
+    case CHAINIDS.BASE:
+      return base;
+    case CHAINIDS.BASE_SEPOLIA:
+      return baseSepolia;
+    case CHAINIDS.OPTIMISM:
+      return optimism;
+    case CHAINIDS.OPTIMISM_SEPOLIA:
+      return optimismSepolia;
+    case (CHAINIDS.TON, CHAINIDS.TON_TESTNET):
+      break;
+  }
+
+  return undefined;
 }

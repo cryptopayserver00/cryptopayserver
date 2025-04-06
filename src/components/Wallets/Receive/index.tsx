@@ -1,7 +1,7 @@
-import { Box, Container, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { Box, Button, Container, IconButton, Paper, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { ContentCopy } from '@mui/icons-material';
+import { ContentCopy, Send } from '@mui/icons-material';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useSnackPresistStore } from 'lib/store';
@@ -10,6 +10,7 @@ import TransactionDataGrid from 'components/DataList/TransactionDataGrid';
 import { FindChainNamesByChains } from 'utils/web3';
 import { CHAINS, COIN, COINS } from 'packages/constants/blockchain';
 import { useRouter } from 'next/router';
+import WalletConnect from 'components/Button/WalletConnect';
 
 const WalletsReceive = () => {
   const router = useRouter();
@@ -63,6 +64,9 @@ const WalletsReceive = () => {
 
         <Box mt={4} textAlign={'center'}>
           <Typography>Send only {FindChainNamesByChains(Number(chainId))} assets to this address</Typography>
+          <Box textAlign={'right'}>
+            <WalletConnect network={String(network)} chainId={Number(chainId)} />
+          </Box>
           <Paper style={{ padding: 80, marginTop: 20 }}>
             <QRCodeSVG
               value={address}

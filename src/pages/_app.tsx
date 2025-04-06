@@ -10,7 +10,7 @@ import { useEffect } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 
-const MyApp = ({ Component, pageProps }: AppProps) => {
+const MyApp = ({ Component, pageProps, cookies }: AppProps & { cookies: string | null }) => {
   async function test_db_conn() {
     try {
       const response: any = await axios.get(Http.test_db_conn);
@@ -32,7 +32,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
   }, []);
 
   return (
-    <Providers>
+    <Providers cookies={cookies}>
       <Component {...pageProps} />
     </Providers>
   );

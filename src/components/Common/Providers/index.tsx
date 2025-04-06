@@ -6,7 +6,8 @@ import dynamic from 'next/dynamic';
 import { ReactNode } from 'react';
 // import { ThemeProvider } from 'styled-components';
 import ErrorBoundary from '../ErrorBoundary';
-const Web3Provider = dynamic(() => import('./Web3Provider'));
+// const Web3Provider = dynamic(() => import('./Web3Provider'));
+import Web3Provider from './Web3Provider';
 
 // const ChakraConfig = {
 //   initialColorMode: 'light',
@@ -39,16 +40,16 @@ const Web3Provider = dynamic(() => import('./Web3Provider'));
 //   },
 // });
 
-const Providers = ({ children }: { children: ReactNode }) => {
+const Providers = ({ children, cookies }: { children: ReactNode; cookies: string | null }) => {
   return (
     <ErrorBoundary>
-      <Web3Provider>
+      <Web3Provider cookies={cookies}>
         {/* <ChakraProvider resetCSS theme={theme}>
           {children}
         </ChakraProvider> */}
         {/* <ThemeProvider> */}
-          <CssBaseline />
-          {children}
+        <CssBaseline />
+        {children}
         {/* </ThemeProvider> */}
       </Web3Provider>
     </ErrorBoundary>
