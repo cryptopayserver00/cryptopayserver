@@ -53,6 +53,7 @@ import XrpSend from 'components/Wallets/Xrp/Send';
 import BitcoinCash from 'components/Wallets/BitcoinCash';
 import BitcoinCashSend from 'components/Wallets/BitcoinCash/Send';
 import Arbitrum from 'components/Wallets/Arbitrum';
+import ArbitrumNova from 'components/Wallets/ArbitrumNova';
 import Avalanche from 'components/Wallets/Avalanche';
 import Polygon from 'components/Wallets/Polygon';
 import Base from 'components/Wallets/Base';
@@ -305,6 +306,15 @@ export const routes: RouteType[] = [
     name: 'Arbitrum',
     title: 'Arbitrum',
     component: <Arbitrum />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/arbitrumnova',
+    name: 'ArbitrumNova',
+    title: 'ArbitrumNova',
+    component: <ArbitrumNova />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,

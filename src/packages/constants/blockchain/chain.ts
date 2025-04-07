@@ -55,6 +55,7 @@ export enum CHAINNAMES {
   SOLANA = 'Solana',
   BSC = 'Binance smart chain',
   ARBITRUM = 'Arbitrum',
+  ARBITRUMNOVA = 'Arbitrum Nova',
   AVALANCHE = 'Avalanche',
   POLYGON = 'Polygon',
   BASE = 'Base',
@@ -72,6 +73,7 @@ export enum CHAINPATHNAMES {
   SOLANA = 'solana',
   BSC = 'bsc',
   ARBITRUM = 'arbitrum',
+  ARBITRUMNOVA = 'arbitrumnova',
   AVALANCHE = 'avalanche',
   POLYGON = 'polygon',
   BASE = 'base',
@@ -94,6 +96,7 @@ export enum CHAINS {
   BASE = 12,
   OPTIMISM = 13,
   TON = 14,
+  ARBITRUMNOVA = 15,
 }
 
 export const ETHEREUM_CATEGORY_CHAINS: CHAINS[] = [
@@ -101,6 +104,7 @@ export const ETHEREUM_CATEGORY_CHAINS: CHAINS[] = [
   CHAINS.BSC,
   CHAINS.ARBITRUM,
   CHAINS.AVALANCHE,
+  CHAINS.ARBITRUMNOVA,
   CHAINS.POLYGON,
   CHAINS.BASE,
   CHAINS.OPTIMISM,

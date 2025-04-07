@@ -40,6 +40,10 @@ import {
   GetBlockchainTxUrl as GetBscBlockchainTxUrl,
 } from './chain/bsc';
 import {
+  GetBlockchainAddressUrl as GetArbNovaBlockchainAddressUrl,
+  GetBlockchainTxUrl as GetArbNovaBlockchainTxUrl,
+} from './chain/arbnova';
+import {
   GetBlockchainAddressUrl as GetArbBlockchainAddressUrl,
   GetBlockchainTxUrl as GetArbBlockchainTxUrl,
 } from './chain/arb';
@@ -141,6 +145,8 @@ export function FindChainIdsByChainNames(chainName: CHAINNAMES): CHAINS {
       return CHAINS.BSC;
     case CHAINNAMES.ARBITRUM:
       return CHAINS.ARBITRUM;
+    case CHAINNAMES.ARBITRUMNOVA:
+      return CHAINS.ARBITRUMNOVA;
     case CHAINNAMES.AVALANCHE:
       return CHAINS.AVALANCHE;
     case CHAINNAMES.POLYGON:
@@ -174,6 +180,8 @@ export function FindChainNamesByChains(chains: CHAINS): CHAINNAMES {
       return CHAINNAMES.BSC;
     case CHAINS.ARBITRUM:
       return CHAINNAMES.ARBITRUM;
+    case CHAINS.ARBITRUMNOVA:
+      return CHAINNAMES.ARBITRUMNOVA;
     case CHAINS.AVALANCHE:
       return CHAINNAMES.AVALANCHE;
     case CHAINS.POLYGON:
@@ -207,6 +215,8 @@ export function FindChainPathNamesByChains(chains: CHAINS): CHAINPATHNAMES {
       return CHAINPATHNAMES.BSC;
     case CHAINS.ARBITRUM:
       return CHAINPATHNAMES.ARBITRUM;
+    case CHAINS.ARBITRUMNOVA:
+      return CHAINPATHNAMES.ARBITRUMNOVA;
     case CHAINS.AVALANCHE:
       return CHAINPATHNAMES.AVALANCHE;
     case CHAINS.POLYGON:
@@ -240,6 +250,8 @@ export function GetBlockchainTxUrlByChainIds(isMainnet: boolean, chain: CHAINS, 
       return GetBscBlockchainTxUrl(isMainnet, hash);
     case CHAINS.ARBITRUM:
       return GetArbBlockchainTxUrl(isMainnet, hash);
+    case CHAINS.ARBITRUMNOVA:
+      return GetArbNovaBlockchainTxUrl(hash);
     case CHAINS.AVALANCHE:
       return GetAvaxBlockchainTxUrl(isMainnet, hash);
     case CHAINS.POLYGON:
@@ -275,6 +287,8 @@ export function GetBlockchainAddressUrlByChainIds(isMainnet: boolean, chain: CHA
       return GetBscBlockchainAddressUrl(isMainnet, address);
     case CHAINS.ARBITRUM:
       return GetArbBlockchainAddressUrl(isMainnet, address);
+    case CHAINS.ARBITRUMNOVA:
+      return GetArbNovaBlockchainAddressUrl(address);
     case CHAINS.AVALANCHE:
       return GetAvaxBlockchainAddressUrl(isMainnet, address);
     case CHAINS.POLYGON:
@@ -349,6 +363,8 @@ export function GetChainIds(isMainnet: boolean, chain: CHAINS): CHAINIDS {
       return isMainnet ? CHAINIDS.BSC : CHAINIDS.BSC_TESTNET;
     case CHAINS.ARBITRUM:
       return isMainnet ? CHAINIDS.ARBITRUM_ONE : CHAINIDS.ARBITRUM_SEPOLIA;
+    case CHAINS.ARBITRUMNOVA:
+      return CHAINIDS.ARBITRUM_NOVA;
     case CHAINS.AVALANCHE:
       return isMainnet ? CHAINIDS.AVALANCHE : CHAINIDS.AVALANCHE_TESTNET;
     case CHAINS.POLYGON:

@@ -64,30 +64,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const filteredChainValues = chainValues.filter((value) => typeof value === 'number');
         filteredChainValues.forEach(async (item) => {
           const payment_setting = await prisma.payment_settings.createMany({
-            data: [
-              {
-                user_id: userId,
-                chain_id: item,
-                network: 1,
-                store_id: store.id,
-                payment_expire: 30,
-                confirm_block: 1,
-                show_recommended_fee: 1,
-                current_used_address_id: 0,
-                status: 1,
-              },
-              {
-                user_id: userId,
-                chain_id: item,
-                network: 2,
-                store_id: store.id,
-                payment_expire: 30,
-                confirm_block: 1,
-                show_recommended_fee: 1,
-                current_used_address_id: 0,
-                status: 1,
-              },
-            ],
+            data:
+              item === CHAINS.ARBITRUMNOVA
+                ? [
+                    {
+                      user_id: userId,
+                      chain_id: item,
+                      network: 1,
+                      store_id: store.id,
+                      payment_expire: 30,
+                      confirm_block: 1,
+                      show_recommended_fee: 1,
+                      current_used_address_id: 0,
+                      status: 1,
+                    },
+                  ]
+                : [
+                    {
+                      user_id: userId,
+                      chain_id: item,
+                      network: 1,
+                      store_id: store.id,
+                      payment_expire: 30,
+                      confirm_block: 1,
+                      show_recommended_fee: 1,
+                      current_used_address_id: 0,
+                      status: 1,
+                    },
+                    {
+                      user_id: userId,
+                      chain_id: item,
+                      network: 2,
+                      store_id: store.id,
+                      payment_expire: 30,
+                      confirm_block: 1,
+                      show_recommended_fee: 1,
+                      current_used_address_id: 0,
+                      status: 1,
+                    },
+                  ],
           });
 
           if (!payment_setting) {

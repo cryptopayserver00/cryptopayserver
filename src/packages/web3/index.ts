@@ -23,6 +23,7 @@ import { POL } from './chain/pol';
 import { BASE } from './chain/base';
 import { OP } from './chain/op';
 import { BLOCKSCAN } from './block_scan';
+import { ARBNOVA } from './chain/arbnova';
 
 export class WEB3 {
   // support: Import and generate wallet
@@ -82,6 +83,7 @@ export class WEB3 {
       case CHAINS.ETHEREUM:
       case CHAINS.BSC:
       case CHAINS.ARBITRUM:
+      case CHAINS.ARBITRUMNOVA:
       case CHAINS.AVALANCHE:
       case CHAINS.POLYGON:
       case CHAINS.BASE:
@@ -120,6 +122,7 @@ export class WEB3 {
       case CHAINS.ETHEREUM:
       case CHAINS.BSC:
       case CHAINS.ARBITRUM:
+      case CHAINS.ARBITRUMNOVA:
       case CHAINS.AVALANCHE:
       case CHAINS.POLYGON:
       case CHAINS.BASE:
@@ -148,6 +151,8 @@ export class WEB3 {
         return await BSC.getGasPrice(isMainnet);
       case CHAINS.ARBITRUM:
         return await ARB.getGasPrice(isMainnet);
+      case CHAINS.ARBITRUMNOVA:
+        return await ARBNOVA.getGasPrice();
       case CHAINS.BASE:
         return await BASE.getGasPrice(isMainnet);
       case CHAINS.OPTIMISM:
@@ -196,6 +201,8 @@ export class WEB3 {
         return BSC.getChainIds(isMainnet);
       case CHAINS.ARBITRUM:
         return ARB.getChainIds(isMainnet);
+      case CHAINS.ARBITRUMNOVA:
+        return ARBNOVA.getChainIds();
       case CHAINS.AVALANCHE:
         return AVAX.getChainIds(isMainnet);
       case CHAINS.POLYGON:
@@ -231,6 +238,8 @@ export class WEB3 {
         return CHAINS.BSC;
       case (CHAINIDS.ARBITRUM_ONE, CHAINIDS.ARBITRUM_SEPOLIA):
         return CHAINS.ARBITRUM;
+      case CHAINIDS.ARBITRUM_NOVA:
+        return CHAINS.ARBITRUMNOVA;
       case (CHAINIDS.AVALANCHE, CHAINIDS.AVALANCHE_TESTNET):
         return CHAINS.AVALANCHE;
       case (CHAINIDS.POLYGON, CHAINIDS.POLYGON_TESTNET):
@@ -272,6 +281,8 @@ export class WEB3 {
         return await BSC.getAssetBalance(isMainnet, address);
       case CHAINS.ARBITRUM:
         return await ARB.getAssetBalance(isMainnet, address);
+      case CHAINS.ARBITRUMNOVA:
+        return await ARBNOVA.getAssetBalance(address);
       case CHAINS.AVALANCHE:
         return await AVAX.getAssetBalance(isMainnet, address);
       case CHAINS.POLYGON:
@@ -295,6 +306,8 @@ export class WEB3 {
         return await BSC.getNonce(isMainnet, address);
       case CHAINS.ARBITRUM:
         return await ARB.getNonce(isMainnet, address);
+      case CHAINS.ARBITRUMNOVA:
+        return await ARBNOVA.getNonce(address);
       case CHAINS.OPTIMISM:
         return await OP.getNonce(isMainnet, address);
       case CHAINS.BASE:
@@ -323,6 +336,8 @@ export class WEB3 {
         return await BSC.getGasLimit(isMainnet, contractAddress, from, to, value);
       case CHAINS.ARBITRUM:
         return await ARB.getGasLimit(isMainnet, contractAddress, from, to, value);
+      case CHAINS.ARBITRUMNOVA:
+        return await ARBNOVA.getGasLimit(contractAddress, from, to, value);
       case CHAINS.OPTIMISM:
         return await OP.getGasLimit(isMainnet, contractAddress, from, to, value);
       case CHAINS.BASE:
@@ -342,6 +357,8 @@ export class WEB3 {
         return await ETH.getMaxPriorityFeePerGas(isMainnet);
       case CHAINS.ARBITRUM:
         return await ARB.getMaxPriorityFeePerGas(isMainnet);
+      case CHAINS.ARBITRUMNOVA:
+        return await ARBNOVA.getMaxPriorityFeePerGas();
       case CHAINS.OPTIMISM:
         return await OP.getMaxPriorityFeePerGas(isMainnet);
       case CHAINS.BASE:
@@ -375,6 +392,8 @@ export class WEB3 {
         return await BSC.getTransactionDetail(isMainnet, hash);
       case CHAINS.ARBITRUM:
         return await ARB.getTransactionDetail(isMainnet, hash);
+      case CHAINS.ARBITRUMNOVA:
+        return await ARBNOVA.getTransactionDetail(hash);
       case CHAINS.AVALANCHE:
         return await AVAX.getTransactionDetail(isMainnet, hash);
       case CHAINS.POLYGON:
@@ -420,6 +439,9 @@ export class WEB3 {
         break;
       case CHAINS.ARBITRUM:
         txs = await ARB.getTransactions(isMainnet, address, token?.symbol);
+        break;
+      case CHAINS.ARBITRUMNOVA:
+        txs = await ARBNOVA.getTransactions(address, token?.symbol);
         break;
       case CHAINS.AVALANCHE:
         txs = await AVAX.getTransactions(isMainnet, address, token?.symbol);
@@ -470,6 +492,8 @@ export class WEB3 {
         return await BSC.sendTransaction(isMainnet, req);
       case CHAINS.ARBITRUM:
         return await ARB.sendTransaction(isMainnet, req);
+      case CHAINS.ARBITRUMNOVA:
+        return await ARBNOVA.sendTransaction(req);
       case CHAINS.AVALANCHE:
         return await AVAX.sendTransaction(isMainnet, req);
       case CHAINS.POLYGON:

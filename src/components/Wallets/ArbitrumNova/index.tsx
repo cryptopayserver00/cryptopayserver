@@ -18,13 +18,14 @@ import {
   Typography,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import Link from 'next/link';
 import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import { EthereumTransactionDetail } from 'packages/web3/types';
-import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/arb';
+import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/arbnova';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import ArbitrumSVG from 'assets/chain/arbitrum.svg';
+import ArbitrumNovaSVG from 'assets/chain/arbitrumnova.svg';
 import Image from 'next/image';
 import { WeiToGwei } from 'utils/number';
 import TransactionsTab from 'components/Tab/TransactionTab';
@@ -45,7 +46,7 @@ type feeType = {
   low: number;
 };
 
-const Arbitrum = () => {
+const ArbitrumNova = () => {
   const { getWalletId } = useWalletPresistStore((state) => state);
   const { getNetwork, getUserId } = useUserPresistStore((state) => state);
   const { getStoreId } = useStorePresistStore((state) => state);
@@ -62,19 +63,19 @@ const Arbitrum = () => {
   const [currentUsedAddressId, setCurrentUsedAddressId] = useState<number>(0);
 
   const onClickRescanAddress = async () => {
-    await getArbWalletAddress();
+    await getArbNovaWalletAddress();
 
     setSnackSeverity('success');
     setSnackMessage('Successful rescan!');
     setSnackOpen(true);
   };
 
-  const getArbWalletAddress = async () => {
+  const getArbNovaWalletAddress = async () => {
     try {
       const response: any = await axios.get(Http.find_wallet_address_by_chain_and_network, {
         params: {
           wallet_id: getWalletId(),
-          chain_id: CHAINS.ARBITRUM,
+          chain_id: CHAINS.ARBITRUMNOVA,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
@@ -109,12 +110,12 @@ const Arbitrum = () => {
     }
   };
 
-  const getArbPaymentSetting = async () => {
+  const getArbNovaPaymentSetting = async () => {
     try {
       const response: any = await axios.get(Http.find_payment_setting_by_chain_id, {
         params: {
           user_id: getUserId(),
-          chain_id: CHAINS.ARBITRUM,
+          chain_id: CHAINS.ARBITRUMNOVA,
           store_id: getStoreId(),
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
@@ -139,11 +140,11 @@ const Arbitrum = () => {
     }
   };
 
-  const getArbFeeRate = async () => {
+  const getArbNovaFeeRate = async () => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
         params: {
-          chain_id: CHAINS.ARBITRUM,
+          chain_id: CHAINS.ARBITRUMNOVA,
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
       });
@@ -187,9 +188,9 @@ const Arbitrum = () => {
   };
 
   const init = async () => {
-    await getArbWalletAddress();
-    await getArbPaymentSetting();
-    await getArbFeeRate();
+    await getArbNovaWalletAddress();
+    await getArbNovaPaymentSetting();
+    await getArbNovaFeeRate();
   };
 
   useEffect(() => {
@@ -202,9 +203,9 @@ const Arbitrum = () => {
       <Container>
         <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} pt={5}>
           <Stack direction={'row'} alignItems={'center'}>
-            <Image src={ArbitrumSVG} alt="" width={50} height={50} />
+            <Image src={ArbitrumNovaSVG} alt="" width={50} height={50} />
             <Typography variant="h6" pl={1}>
-              Arbitrum Wallet
+              Arbitrum Nova Wallet
             </Typography>
           </Stack>
           <Stack direction={'row'} alignItems={'center'} gap={2}>
@@ -212,7 +213,7 @@ const Arbitrum = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = `/wallets/send?chainId=${CHAINS.ARBITRUM}`;
+                  window.location.href = `/wallets/send?chainId=${CHAINS.ARBITRUMNOVA}`;
                 }}
               >
                 Send
@@ -223,7 +224,7 @@ const Arbitrum = () => {
                 variant={'contained'}
                 onClick={() => {
                   window.location.href = `/wallets/receive?chainId=${
-                    CHAINS.ARBITRUM
+                    CHAINS.ARBITRUMNOVA
                   }&storeId=${getStoreId()}&network=${getNetwork()}`;
                 }}
               >
@@ -256,7 +257,7 @@ const Arbitrum = () => {
         </Stack>
 
         <Box mt={8}>
-          <Typography variant="h6">Arbitrum Gas Tracker</Typography>
+          <Typography variant="h6">Arbitrum Nova Gas Tracker</Typography>
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-around'} mt={4} textAlign={'center'}>
             <Card>
               <CardContent>
@@ -390,7 +391,7 @@ const Arbitrum = () => {
                     <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
                       <Box>
                         <Typography fontWeight={'bold'} fontSize={18}>
-                          Arbitrum
+                          Arbitrum Nova
                         </Typography>
                         <Box mt={2}>
                           <Chip
@@ -429,11 +430,7 @@ const Arbitrum = () => {
                         <Button style={{ marginRight: 10 }} variant={'outlined'} href={item.txUrl} target={'_blank'}>
                           Check transactions
                         </Button>
-                        <Button
-                          variant={'outlined'}
-                          href={GetBlockchainAddressUrl(getNetwork() === 'mainnet' ? true : false, item.address)}
-                          target={'_blank'}
-                        >
+                        <Button variant={'outlined'} href={GetBlockchainAddressUrl(item.address)} target={'_blank'}>
                           Check onChain
                         </Button>
                       </Box>
@@ -455,4 +452,4 @@ const Arbitrum = () => {
   );
 };
 
-export default Arbitrum;
+export default ArbitrumNova;

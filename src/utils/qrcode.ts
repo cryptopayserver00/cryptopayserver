@@ -121,6 +121,8 @@ export function GetImgSrcByChain(chain: CHAINS): string {
       return baseUrl + '/chain/bsc.svg';
     case CHAINS.ARBITRUM:
       return baseUrl + '/chain/arbitrum.svg';
+    case CHAINS.ARBITRUMNOVA:
+      return baseUrl + '/chain/arbitrumnova.svg';
     case CHAINS.AVALANCHE:
       return baseUrl + '/chain/avalanche.svg';
     case CHAINS.POLYGON:

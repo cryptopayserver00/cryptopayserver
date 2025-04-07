@@ -682,6 +682,58 @@ export const ARBITRUM_SEPOLIA_COINS: COIN[] = [
   },
 ];
 
+export const ARBITRUM_NOVA_COINS: COIN[] = [
+  {
+    chainId: CHAINS.ARBITRUMNOVA,
+    name: COINS.ETH,
+    isMainCoin: true,
+    symbol: COINS.ETH,
+    decimals: 18,
+    displayDecimals: 8,
+    icon: require('assets/coin/eth.svg'),
+  },
+  {
+    chainId: CHAINS.ARBITRUMNOVA,
+    name: COINS.USDC,
+    isMainCoin: false,
+    symbol: COINS.USDC,
+    decimals: 6,
+    displayDecimals: 2,
+    contractAddress: '0x750ba8b76187092b0d1e87e28daaf484d1b5273b',
+    icon: require('assets/coin/usdc.svg'),
+  },
+  {
+    chainId: CHAINS.ARBITRUMNOVA,
+    name: COINS.WBTC,
+    isMainCoin: false,
+    symbol: COINS.WBTC,
+    decimals: 8,
+    displayDecimals: 6,
+    contractAddress: '0x1d05e4e72cd994cdf976181cfb0707345763564d',
+    icon: require('assets/coin/wbtc.svg'),
+  },
+  {
+    chainId: CHAINS.ARBITRUMNOVA,
+    name: COINS.DAI,
+    isMainCoin: false,
+    symbol: COINS.DAI,
+    decimals: 18,
+    displayDecimals: 2,
+    contractAddress: '0xda10009cbd5d07dd0cecc66161fc93d7c9000da1',
+    icon: require('assets/coin/dai.svg'),
+  },
+  {
+    chainId: CHAINS.ARBITRUMNOVA,
+    name: COINS.ARB,
+    isMainCoin: false,
+    symbol: COINS.ARB,
+    decimals: 18,
+    displayDecimals: 8,
+    contractAddress: '0xf823c3cd3cebe0a1fa952ba88dc9eef8e0bf46ad',
+    icon: require('assets/coin/arb.svg'),
+  },
+];
+
 export const AVALANCHE_COINS: COIN[] = [
   {
     chainId: CHAINS.AVALANCHE,
@@ -1323,6 +1375,17 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     coins: ARBITRUM_SEPOLIA_COINS,
     rpc: ['https://sepolia-rollup.arbitrum.io/rpc'],
     icon: require('assets/chain/arbitrum.svg'),
+  },
+  {
+    name: CHAINNAMES.ARBITRUMNOVA,
+    desc: 'The list of ERC-20 Tokens and their Prices, Market Capitalizations and the Number of Holders in the Arbitrum Nova Blockchain on Arbitrum Nova.',
+    chainId: CHAINIDS.ARBITRUM_NOVA,
+    explorerUrl: 'https://nova.arbiscan.io',
+    websiteUrl: 'https://nova.arbitrum.io',
+    isMainnet: true,
+    coins: ARBITRUM_NOVA_COINS,
+    rpc: ['https://nova.arbitrum.io/rpc'],
+    icon: require('assets/chain/arbitrumnova.svg'),
   },
   {
     name: CHAINNAMES.AVALANCHE,

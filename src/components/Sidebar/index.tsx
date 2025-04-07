@@ -31,6 +31,7 @@ import LitecoinSVG from 'assets/chain/litecoin.svg';
 import XrpSVG from 'assets/chain/xrp.svg';
 import BitcoinCashSVG from 'assets/chain/bitcoincash.svg';
 import ArbitrumSVG from 'assets/chain/arbitrum.svg';
+import ArbitrumNovaSVG from 'assets/chain/arbitrumnova.svg';
 import AvalancheSVG from 'assets/chain/avalanche.svg';
 import PolygonSVG from 'assets/chain/polygon.svg';
 import BaseSVG from 'assets/chain/base.svg';
@@ -100,7 +101,7 @@ const HomeSidebar = () => {
   const [isStore, setStore] = useState<boolean>(false);
   const [isWallet, setWallet] = useState<boolean>(false);
 
-  const { getShowSidebar } = useUserPresistStore((state) => state);
+  const { getShowSidebar, getNetwork } = useUserPresistStore((state) => state);
   const { getIsWallet } = useWalletPresistStore((state) => state);
   const { getIsStore } = useStorePresistStore((state) => state);
 
@@ -290,6 +291,15 @@ const HomeSidebar = () => {
                 >
                   Arbitrum
                 </MenuItem>
+                {getNetwork() === 'mainnet' && (
+                  <MenuItem
+                    icon={<Image src={ArbitrumNovaSVG} alt="icon" width={25} height={25} />}
+                    active={router.pathname === '/wallets/arbitrumnova' ? true : false}
+                    component={<Link href={'/wallets/arbitrumnova'} />}
+                  >
+                    Arbitrum Nova
+                  </MenuItem>
+                )}
                 <MenuItem
                   icon={<Image src={AvalancheSVG} alt="icon" width={25} height={25} />}
                   active={router.pathname === '/wallets/avalanche' ? true : false}

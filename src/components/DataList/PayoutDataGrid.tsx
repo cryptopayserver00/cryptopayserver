@@ -252,6 +252,9 @@ export default function PayoutDataGrid(props: GridType) {
       case CHAINS.ARBITRUM:
         window.location.href = '/wallets/arbitrum/send?payoutId=' + row.payoutId;
         return;
+      case CHAINS.ARBITRUMNOVA:
+        window.location.href = '/wallets/arbitrumnova/send?payoutId=' + row.payoutId;
+        return;
       case CHAINS.AVALANCHE:
         window.location.href = '/wallets/avalanche/send?payoutId=' + row.payoutId;
         return;
