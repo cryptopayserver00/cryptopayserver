@@ -44,9 +44,6 @@ const Providers = ({ children, cookies }: { children: ReactNode; cookies: string
   return (
     <ErrorBoundary>
       <Web3Provider cookies={cookies}>
-        {/* <ChakraProvider resetCSS theme={theme}>
-          {children}
-        </ChakraProvider> */}
         {/* <ThemeProvider> */}
         <CssBaseline />
         {children}

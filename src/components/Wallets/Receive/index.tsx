@@ -65,7 +65,7 @@ const WalletsReceive = () => {
         <Box mt={4} textAlign={'center'}>
           <Typography>Send only {FindChainNamesByChains(Number(chainId))} assets to this address</Typography>
           <Box textAlign={'right'}>
-            <WalletConnect network={String(network)} chainId={Number(chainId)} />
+            <WalletConnect network={String(network)} chainId={Number(chainId)} address={address} />
           </Box>
           <Paper style={{ padding: 80, marginTop: 20 }}>
             <QRCodeSVG

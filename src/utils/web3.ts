@@ -380,6 +380,32 @@ export function GetChainIds(isMainnet: boolean, chain: CHAINS): CHAINIDS {
   }
 }
 
+export function GetAllSupportAppKitNetwork(): [AppKitNetwork, ...AppKitNetwork[]] {
+  return [
+    bitcoin,
+    bitcoinTestnet,
+    xrplevmTestnet,
+    mainnet,
+    sepolia,
+    tron,
+    solana,
+    solanaDevnet,
+    bsc,
+    bscTestnet,
+    arbitrum,
+    arbitrumNova,
+    arbitrumSepolia,
+    avalanche,
+    avalancheFuji,
+    polygon,
+    polygonAmoy,
+    base,
+    baseSepolia,
+    optimism,
+    optimismSepolia,
+  ];
+}
+
 export function GetWalletConnectNetwork(chainIds: CHAINIDS): AppKitNetwork | undefined {
   switch (chainIds) {
     case CHAINIDS.BITCOIN:

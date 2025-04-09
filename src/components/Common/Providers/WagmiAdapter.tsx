@@ -1,23 +1,16 @@
-import { cookieStorage, createStorage, http } from '@wagmi/core';
+import { cookieStorage, createStorage } from '@wagmi/core';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
-import { mainnet, arbitrum } from '@reown/appkit/networks';
+import { GetAllSupportAppKitNetwork } from 'utils/web3';
+import { WALLETCONNECT_PROJECT_ID } from 'packages/constants';
 
-// Get projectId from https://cloud.reown.com
-export const projectId = 'db22437d7de9e742b9646aef64f6c9e0';
+export const networks = GetAllSupportAppKitNetwork();
 
-if (!projectId) {
-  throw new Error('Project ID is not defined');
-}
-
-export const networks = [mainnet, arbitrum];
-
-//Set up the Wagmi Adapter (Config)
 export const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
     storage: cookieStorage,
   }),
   ssr: true,
-  projectId,
+  projectId: String(WALLETCONNECT_PROJECT_ID),
   networks,
 });
 
