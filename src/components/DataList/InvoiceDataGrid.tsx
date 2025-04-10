@@ -131,6 +131,7 @@ export default function InvoiceDataGrid(props: GridType) {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.orderStatus, props.orderId, props.time]);
 
   return (

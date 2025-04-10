@@ -1,4 +1,5 @@
 import { generate } from 'random-words';
+import { Hex } from 'viem';
 
 export function RandomWords(length: number = 0): string[] {
   return length === 0 ? [generate() as string] : (generate(length) as string[]);
@@ -84,4 +85,8 @@ export function DecodeNonstandardCurrencyCode(hex: string): string {
   }
 
   return result;
+}
+
+export function IsHexAddress(value: string): value is Hex {
+  return /^0x[a-fA-F0-9]{40}$/.test(value);
 }

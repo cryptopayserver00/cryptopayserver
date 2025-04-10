@@ -2,44 +2,37 @@ import { useEffect, useState } from 'react';
 import { Button } from '@mui/material';
 import { Send } from '@mui/icons-material';
 import { AppKit, createAppKit, useAppKitNetwork } from '@reown/appkit/react';
-import { wagmiAdapter } from 'components/Common/Providers/WagmiAdapter';
-import {
-  mainnet,
-  arbitrum,
-  avalanche,
-  base,
-  optimism,
-  polygon,
-  sepolia,
-  AppKitNetwork,
-  bsc,
-  bscTestnet,
-} from '@reown/appkit/networks';
+import { AppKitNetwork } from '@reown/appkit/networks';
 import { CHAINIDS, CHAINS } from 'packages/constants/blockchain';
 import { GetWalletConnectNetwork, GetChainIds, GetAllSupportAppKitNetwork } from 'utils/web3';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { useSwitchChain, useSignMessage, useEstimateGas, useSendTransaction } from 'wagmi';
-import { parseGwei, type Address } from 'viem';
+import { Hex, parseGwei, type Address } from 'viem';
 import { useAppKit } from '@reown/appkit/react';
+import { useSnackPresistStore } from 'lib/store';
+import { ethers } from 'ethers';
+import { IsHexAddress } from 'utils/strings';
 
 type WalletConnectType = {
   network: string;
   chainId: CHAINS;
   address: string;
+  value: string;
 };
 
-const WalletConnect = (props: WalletConnectType) => {
+const WalletConnectButton = (props: WalletConnectType) => {
   const [connectNetwork, setConnectNetwork] = useState<AppKitNetwork>();
   const { chainId, switchNetwork } = useAppKitNetwork();
 
+  const { setSnackOpen, setSnackSeverity, setSnackMessage } = useSnackPresistStore((state) => state);
+
   const { open, close } = useAppKit();
   const { address, isConnected } = useAppKitAccount();
-  const TX = {
-    to: props.address as Address,
-    // value: 0,
-  };
 
-  const { data: gas } = useEstimateGas({ ...TX });
+  const { data: gas } = useEstimateGas({
+    to: props.address as Address,
+    value: ethers.parseEther(props.value),
+  });
 
   const { data: hash, sendTransaction } = useSendTransaction();
 
@@ -48,15 +41,22 @@ const WalletConnect = (props: WalletConnectType) => {
       if (!connectNetwork) return;
 
       if (connectNetwork.id != chainId) {
-        switchNetwork(connectNetwork);
+        setSnackSeverity('error');
+        setSnackMessage(
+          'The current network is incorrect, please switch to the correct network environment: ' + connectNetwork.name,
+        );
+        setSnackOpen(true);
+        await open();
+        return;
       }
 
-      // await appKit.switchNetwork(connectNetwork);
-      // await switchChain({ chainId: connectNetwork?.id });
+      if (!IsHexAddress(props.address)) {
+        return;
+      }
 
       await sendTransaction({
         to: props.address,
-        value: 0,
+        value: ethers.parseEther(props.value),
         gas,
       });
     } catch (e) {
@@ -79,6 +79,14 @@ const WalletConnect = (props: WalletConnectType) => {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    if (hash) {
+      setSnackSeverity('success');
+      setSnackMessage('You sent a transaction successfully');
+      setSnackOpen(true);
+    }
+  }, [hash, setSnackSeverity, setSnackMessage, setSnackOpen]);
 
   useEffect(() => {
     if (!props.network || !props.chainId || !props.address) {
@@ -108,9 +116,9 @@ const WalletConnect = (props: WalletConnectType) => {
         onClickWalletConnect();
       }}
     >
-      Connect Wallet
+      {isConnected ? 'Send Transaction' : 'Connect Wallet'}
     </Button>
   );
 };
 
-export default WalletConnect;
+export default WalletConnectButton;

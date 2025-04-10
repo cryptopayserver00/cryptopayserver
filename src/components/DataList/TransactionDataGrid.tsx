@@ -1,4 +1,4 @@
-import { Button, Dialog, DialogTitle, FormControl, OutlinedInput, Stack, Typography } from '@mui/material';
+import { Button, Dialog, Stack, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
@@ -203,7 +203,8 @@ export default function TransactionDataGrid(props: GridType) {
 
   useEffect(() => {
     init(page, pageSize, Number(props.chain), Number(props.storeId), props.network, props.address);
-  }, [props.chain, props.network, props.address]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.chain, props.storeId, props.network, props.address]);
 
   return (
     <Box>
@@ -249,7 +250,7 @@ export default function TransactionDataGrid(props: GridType) {
         </Button>
       </Stack>
 
-      <TxDialog row={selectedValue as RowType} open={open} onClose={handleClose} />
+      <TxDialog row={selectedValue as RowType} open={open} onClose={handleClose} network={props.network} />
     </Box>
   );
 }
@@ -258,12 +259,11 @@ export type TxDialogProps = {
   open: boolean;
   row: RowType;
   onClose: (value: RowType) => void;
+  network: string;
 };
 
 function TxDialog(props: TxDialogProps) {
-  const { onClose, row, open } = props;
-
-  const { getNetwork } = useUserPresistStore((state) => state);
+  const { onClose, row, open, network } = props;
 
   if (!row) return;
 
@@ -283,7 +283,7 @@ function TxDialog(props: TxDialogProps) {
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
             <Typography>Hash</Typography>
             <Link
-              href={GetBlockchainTxUrlByChainIds(getNetwork() === 'mainnet' ? true : false, row.chainId, row.hash)}
+              href={GetBlockchainTxUrlByChainIds(network === 'mainnet' ? true : false, row.chainId, row.hash)}
               target="_blank"
             >
               {OmitMiddleString(row.hash, 10)}
@@ -292,11 +292,7 @@ function TxDialog(props: TxDialogProps) {
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
             <Typography>Address</Typography>
             <Link
-              href={GetBlockchainAddressUrlByChainIds(
-                getNetwork() === 'mainnet' ? true : false,
-                row.chainId,
-                row.address,
-              )}
+              href={GetBlockchainAddressUrlByChainIds(network === 'mainnet' ? true : false, row.chainId, row.address)}
               target="_blank"
             >
               {row.address}
@@ -306,7 +302,7 @@ function TxDialog(props: TxDialogProps) {
             <Typography>From Address</Typography>
             <Link
               href={GetBlockchainAddressUrlByChainIds(
-                getNetwork() === 'mainnet' ? true : false,
+                network === 'mainnet' ? true : false,
                 row.chainId,
                 row.fromAddress,
               )}
@@ -318,11 +314,7 @@ function TxDialog(props: TxDialogProps) {
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
             <Typography>To Address</Typography>
             <Link
-              href={GetBlockchainAddressUrlByChainIds(
-                getNetwork() === 'mainnet' ? true : false,
-                row.chainId,
-                row.toAddress,
-              )}
+              href={GetBlockchainAddressUrlByChainIds(network === 'mainnet' ? true : false, row.chainId, row.toAddress)}
               target="_blank"
             >
               {row.toAddress}

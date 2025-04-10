@@ -10,7 +10,7 @@ import TransactionDataGrid from 'components/DataList/TransactionDataGrid';
 import { FindChainNamesByChains } from 'utils/web3';
 import { CHAINS, COIN, COINS } from 'packages/constants/blockchain';
 import { useRouter } from 'next/router';
-import WalletConnect from 'components/Button/WalletConnect';
+import WalletConnectButton from 'components/Button/WalletConnectButton';
 
 const WalletsReceive = () => {
   const router = useRouter();
@@ -65,7 +65,7 @@ const WalletsReceive = () => {
         <Box mt={4} textAlign={'center'}>
           <Typography>Send only {FindChainNamesByChains(Number(chainId))} assets to this address</Typography>
           <Box textAlign={'right'}>
-            <WalletConnect network={String(network)} chainId={Number(chainId)} address={address} />
+            <WalletConnectButton network={String(network)} chainId={Number(chainId)} address={address} value="0" />
           </Box>
           <Paper style={{ padding: 80, marginTop: 20 }}>
             <QRCodeSVG

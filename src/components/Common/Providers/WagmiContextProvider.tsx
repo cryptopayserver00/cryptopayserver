@@ -10,10 +10,10 @@ import { WALLETCONNECT_PROJECT_ID } from 'packages/constants';
 const queryClient = new QueryClient();
 
 const metadata = {
-  name: 'cryptopayserver',
-  description: 'AppKit Example',
-  url: 'https://reown.com/appkit', // origin must match your domain & subdomain
-  icons: ['https://assets.reown.com/reown-profile-pic.png'],
+  name: 'Cryptopayserver',
+  description: 'Free services to help you buy and sell products and collect cryptocurrencies.',
+  url: 'https://cryptopayserver.xyz',
+  icons: ['https://cryptopayserver.xyz/favicon.ico'],
 };
 
 createAppKit({
@@ -27,7 +27,6 @@ createAppKit({
     socials: [],
     email: false,
   },
-  allWallets: 'HIDE',
 });
 
 function WagmiContextProvider({ children, cookies }: { children: ReactNode; cookies: string | null }) {
