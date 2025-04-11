@@ -14,10 +14,13 @@ import { ethers } from 'ethers';
 import { IsHexAddress } from 'utils/strings';
 
 type WalletConnectType = {
-  network: string;
+  network: number;
   chainId: CHAINS;
   address: string;
   value: string;
+  buttonSize?: 'small' | 'medium' | 'large';
+  buttonVariant?: 'text' | 'outlined' | 'contained';
+  fullWidth?: boolean;
 };
 
 const WalletConnectButton = (props: WalletConnectType) => {
@@ -31,7 +34,7 @@ const WalletConnectButton = (props: WalletConnectType) => {
 
   const { data: gas } = useEstimateGas({
     to: props.address as Address,
-    value: ethers.parseEther(props.value),
+    value: ethers.parseEther(String(props.value)),
   });
 
   const { data: hash, sendTransaction } = useSendTransaction();
@@ -56,7 +59,7 @@ const WalletConnectButton = (props: WalletConnectType) => {
 
       await sendTransaction({
         to: props.address,
-        value: ethers.parseEther(props.value),
+        value: ethers.parseEther(String(props.value)),
         gas,
       });
     } catch (e) {
@@ -93,7 +96,7 @@ const WalletConnectButton = (props: WalletConnectType) => {
       return;
     }
 
-    const chainids = GetChainIds(props.network === 'mainnet' ? true : false, props.chainId);
+    const chainids = GetChainIds(props.network === 1 ? true : false, props.chainId);
 
     if (!chainids) {
       return;
@@ -110,7 +113,9 @@ const WalletConnectButton = (props: WalletConnectType) => {
 
   return (
     <Button
-      variant="contained"
+      fullWidth={props.fullWidth}
+      variant={props.buttonVariant ? props.buttonVariant : 'contained'}
+      size={props.buttonSize ? props.buttonSize : 'medium'}
       endIcon={<Send />}
       onClick={() => {
         onClickWalletConnect();

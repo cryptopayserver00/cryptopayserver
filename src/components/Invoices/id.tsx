@@ -13,6 +13,7 @@ import {
   IconButton,
   Card,
   CardContent,
+  AlertTitle,
 } from '@mui/material';
 import { useSnackPresistStore } from 'lib/store';
 import { useRouter } from 'next/router';
@@ -26,6 +27,7 @@ import { GetImgSrcByCrypto } from 'utils/qrcode';
 import Link from 'next/link';
 import { FindChainNamesByChains, GetBlockchainAddressUrlByChainIds, GetBlockchainTxUrlByChainIds } from 'utils/web3';
 import { COINS } from 'packages/constants/blockchain';
+import WalletConnectButton from 'components/Button/WalletConnectButton';
 
 type OrderType = {
   orderId: number;
@@ -190,6 +192,21 @@ const InvoiceDetails = () => {
   return (
     <Box mt={4}>
       <Container>
+        {order.network === 2 && (
+          <Box mb={1}>
+            <Alert severity="warning">
+              <AlertTitle>Warning</AlertTitle>
+              <Typography>
+                This is a test network, and the currency has no real value. If you need free coins, you can get
+                them&nbsp;
+                <Link href={'/freecoin'} target="_blank">
+                  here.
+                </Link>
+              </Typography>
+            </Alert>
+          </Box>
+        )}
+
         <Typography textAlign={'center'}>{order.description}</Typography>
         <Stack direction={'row'} alignItems={'center'} mt={2} justifyContent={'center'}>
           <Typography variant="h4" fontWeight={'bold'}>
@@ -363,9 +380,15 @@ const InvoiceDetails = () => {
 
         {order.orderStatus === ORDER_STATUS.Processing && (
           <Box mt={2}>
-            <Button variant={'contained'} size={'large'} fullWidth onClick={() => {}}>
-              Pay in wallet
-            </Button>
+            <WalletConnectButton
+              network={order.network}
+              chainId={order.chainId}
+              address={order.destinationAddress}
+              value={order.totalPrice}
+              buttonSize={'large'}
+              buttonVariant={'contained'}
+              fullWidth={true}
+            />
           </Box>
         )}
       </Container>
