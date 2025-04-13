@@ -5,6 +5,7 @@ import {
   TransactionDetail,
   SendTransaction,
   CreateXrpTrustLineTransaction,
+  QRCodeText,
 } from './types';
 import { Bip39 } from './bip39';
 import { BTC } from './chain/btc';
@@ -136,6 +137,123 @@ export class WEB3 {
         return TON.checkAddress(isMainnet, address);
       default:
         return false;
+    }
+  }
+
+  static checkQRCodeText(chain: CHAINS, text: string): boolean {
+    switch (chain) {
+      case CHAINS.BITCOIN:
+        return BTC.checkQRCodeText(text);
+      case CHAINS.LITECOIN:
+        return LTC.checkQRCodeText(text);
+      case CHAINS.XRP:
+        return XRP.checkQRCodeText(text);
+      case CHAINS.BITCOINCASH:
+        return BITCOINCASH.checkQRCodeText(text);
+      case CHAINS.ETHEREUM:
+        return ETH.checkQRCodeText(text);
+      case CHAINS.TRON:
+        return TRON.checkQRCodeText(text);
+      case CHAINS.SOLANA:
+        return SOLANA.checkQRCodeText(text);
+      case CHAINS.BSC:
+        return BSC.checkQRCodeText(text);
+      case CHAINS.ARBITRUM:
+        return ARB.checkQRCodeText(text);
+      case CHAINS.AVALANCHE:
+        return AVAX.checkQRCodeText(text);
+      case CHAINS.POLYGON:
+        return POL.checkQRCodeText(text);
+      case CHAINS.BASE:
+        return BASE.checkQRCodeText(text);
+      case CHAINS.OPTIMISM:
+        return OP.checkQRCodeText(text);
+      case CHAINS.TON:
+        return TON.checkQRCodeText(text);
+      case CHAINS.ARBITRUMNOVA:
+        return ARBNOVA.checkQRCodeText(text);
+      default:
+        return false;
+    }
+  }
+
+  static parseQRCodeText(chain: CHAINS, text: string): QRCodeText {
+    switch (chain) {
+      case CHAINS.BITCOIN:
+        return BTC.parseQRCodeText(text);
+      case CHAINS.LITECOIN:
+        return LTC.parseQRCodeText(text);
+      case CHAINS.XRP:
+        return XRP.parseQRCodeText(text);
+      case CHAINS.BITCOINCASH:
+        return BITCOINCASH.parseQRCodeText(text);
+      case CHAINS.ETHEREUM:
+        return ETH.parseQRCodeText(text);
+      case CHAINS.TRON:
+        return TRON.parseQRCodeText(text);
+      case CHAINS.SOLANA:
+        return SOLANA.parseQRCodeText(text);
+      case CHAINS.BSC:
+        return BSC.parseQRCodeText(text);
+      case CHAINS.ARBITRUM:
+        return ARB.parseQRCodeText(text);
+      case CHAINS.AVALANCHE:
+        return AVAX.parseQRCodeText(text);
+      case CHAINS.POLYGON:
+        return POL.parseQRCodeText(text);
+      case CHAINS.BASE:
+        return BASE.parseQRCodeText(text);
+      case CHAINS.OPTIMISM:
+        return OP.parseQRCodeText(text);
+      case CHAINS.TON:
+        return TON.parseQRCodeText(text);
+      case CHAINS.ARBITRUMNOVA:
+        return ARBNOVA.parseQRCodeText(text);
+      default:
+        return {} as QRCodeText;
+    }
+  }
+
+  static generateQRCodeText(
+    isMainnet: boolean,
+    chain: CHAINS,
+    address: string,
+    contractAddress?: string,
+    amount?: string,
+  ): string {
+    switch (chain) {
+      case CHAINS.BITCOIN:
+        return BTC.generateQRCodeText(isMainnet, address, amount);
+      case CHAINS.LITECOIN:
+        return LTC.generateQRCodeText(isMainnet, address, amount);
+      case CHAINS.XRP:
+        return XRP.generateQRCodeText(isMainnet, address, amount);
+      case CHAINS.BITCOINCASH:
+        return BITCOINCASH.generateQRCodeText(isMainnet, address, amount);
+      case CHAINS.ETHEREUM:
+        return ETH.generateQRCodeText(isMainnet, address, contractAddress, amount);
+      case CHAINS.TRON:
+        return TRON.generateQRCodeText(isMainnet, address, contractAddress, amount);
+      case CHAINS.SOLANA:
+        return SOLANA.generateQRCodeText(isMainnet, address, contractAddress, amount);
+      case CHAINS.BSC:
+        return BSC.generateQRCodeText(isMainnet, address, contractAddress, amount);
+      case CHAINS.ARBITRUM:
+        return ARB.generateQRCodeText(isMainnet, address, contractAddress, amount);
+      case CHAINS.AVALANCHE:
+        return AVAX.generateQRCodeText(isMainnet, address, contractAddress, amount);
+      case CHAINS.POLYGON:
+        return POL.generateQRCodeText(isMainnet, address, contractAddress, amount);
+      case CHAINS.BASE:
+        return BASE.generateQRCodeText(isMainnet, address, contractAddress, amount);
+      case CHAINS.OPTIMISM:
+        return OP.generateQRCodeText(isMainnet, address, contractAddress, amount);
+      case CHAINS.TON:
+        return TON.generateQRCodeText(isMainnet, address, contractAddress, amount);
+      case CHAINS.ARBITRUMNOVA:
+        return ARBNOVA.generateQRCodeText(address, contractAddress, amount);
+      default:
+        return '';
     }
   }
 

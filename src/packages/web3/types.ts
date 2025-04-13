@@ -219,3 +219,12 @@ export type CreateXrpTrustLineTransaction = {
   coin: COINS;
   limit: string;
 };
+
+export type QRCodeText = {
+  network: number;
+  networkString: string;
+  address: string;
+  token?: string;
+  tokenAddress?: string;
+  amount: string;
+};

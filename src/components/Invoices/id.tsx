@@ -25,7 +25,13 @@ import { OmitMiddleString } from 'utils/strings';
 import { CURRENCY_SYMBOLS, ORDER_STATUS } from 'packages/constants';
 import { GetImgSrcByCrypto } from 'utils/qrcode';
 import Link from 'next/link';
-import { FindChainNamesByChains, GetBlockchainAddressUrlByChainIds, GetBlockchainTxUrlByChainIds } from 'utils/web3';
+import {
+  FindChainNamesByChains,
+  FindTokenByChainIdsAndSymbol,
+  GetBlockchainAddressUrlByChainIds,
+  GetBlockchainTxUrlByChainIds,
+  GetChainIds,
+} from 'utils/web3';
 import { COINS } from 'packages/constants/blockchain';
 import WalletConnectButton from 'components/Button/WalletConnectButton';
 
@@ -54,6 +60,7 @@ type OrderType = {
   blockTimestamp: number;
   network: number;
   chainId: number;
+  qrCodeText: string;
 };
 
 const InvoiceDetails = () => {
@@ -62,7 +69,7 @@ const InvoiceDetails = () => {
 
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state);
 
-  const [qrCodeVal, setQrCodeVal] = useState<string>('');
+  // const [qrCodeVal, setQrCodeVal] = useState<string>('');
   const [countdownVal, setCountdownVal] = useState<string>('0');
 
   const [order, setOrder] = useState<OrderType>({
@@ -90,6 +97,7 @@ const InvoiceDetails = () => {
     blockTimestamp: 0,
     network: 0,
     chainId: 0,
+    qrCodeText: '',
   });
 
   const init = async (id: any) => {
@@ -126,17 +134,18 @@ const InvoiceDetails = () => {
           blockTimestamp: Number(response.data.block_timestamp),
           network: response.data.network,
           chainId: response.data.chain_id,
+          qrCodeText: response.data.qr_code_text,
         });
 
-        const qrVal =
-          FindChainNamesByChains(response.data.chain_id) +
-          ':' +
-          response.data.destination_address +
-          '?amount=' +
-          response.data.crypto_amount +
-          '&pj=' +
-          location.href;
-        setQrCodeVal(qrVal);
+        // const qrVal =
+        //   FindChainNamesByChains(response.data.chain_id) +
+        //   ':' +
+        //   response.data.destination_address +
+        //   '?amount=' +
+        //   response.data.crypto_amount +
+        //   '&pj=' +
+        //   location.href;
+        // setQrCodeVal(qrVal);
       } else {
         setSnackSeverity('error');
         setSnackMessage('Can not find the invoice!');
@@ -334,7 +343,7 @@ const InvoiceDetails = () => {
                     target="_blank"
                     href={GetBlockchainTxUrlByChainIds(order.network === 1 ? true : false, order.chainId, order.hash)}
                   >
-                    {OmitMiddleString(order.hash, 10)}
+                    {order.hash}
                   </Link>
                 </Stack>
               </CardContent>
@@ -346,7 +355,7 @@ const InvoiceDetails = () => {
           <Box mt={2} textAlign={'center'}>
             <Paper style={{ padding: 20 }}>
               <QRCodeSVG
-                value={qrCodeVal}
+                value={order.qrCodeText}
                 width={250}
                 height={250}
                 imageSettings={{
@@ -363,7 +372,9 @@ const InvoiceDetails = () => {
         <Box mt={4}>
           <Typography>ADDRESS</Typography>
           <Stack direction={'row'} alignItems={'center'}>
-            <Typography mr={1}>{OmitMiddleString(order.destinationAddress, 10)}</Typography>
+            <Typography mr={1} fontWeight={'bold'}>
+              {OmitMiddleString(order.destinationAddress, 10)}
+            </Typography>
             <IconButton
               onClick={async () => {
                 await navigator.clipboard.writeText(order.destinationAddress);
@@ -384,6 +395,18 @@ const InvoiceDetails = () => {
               network={order.network}
               chainId={order.chainId}
               address={order.destinationAddress}
+              contractAddress={
+                FindTokenByChainIdsAndSymbol(
+                  GetChainIds(order.network === 1 ? true : false, order.chainId),
+                  order.crypto as COINS,
+                ).contractAddress
+              }
+              decimals={
+                FindTokenByChainIdsAndSymbol(
+                  GetChainIds(order.network === 1 ? true : false, order.chainId),
+                  order.crypto as COINS,
+                ).decimals
+              }
               value={order.totalPrice}
               buttonSize={'large'}
               buttonVariant={'contained'}

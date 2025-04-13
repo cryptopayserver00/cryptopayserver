@@ -1,11 +1,12 @@
 import * as bitcoin from 'bitcoinjs-lib';
 import { toXOnly } from 'bitcoinjs-lib/src/psbt/bip371';
-import { CHAINIDS, CHAINS, COINS } from 'packages/constants/blockchain';
+import { CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
 import {
   AssetBalance,
   BTCFeeRate,
   BTCTYPE,
   ChainAccountType,
+  QRCodeText,
   SendTransaction,
   TransactionDetail,
   TRANSACTIONSTATUS,
@@ -34,6 +35,10 @@ export class BTC {
 
   static getChainIds(isMainnet: boolean): CHAINIDS {
     return isMainnet ? CHAINIDS.BITCOIN : CHAINIDS.BITCOIN_TESTNET;
+  }
+
+  static getChainName(isMainnet: boolean): INNERCHAINNAMES {
+    return isMainnet ? INNERCHAINNAMES.BITCOIN : INNERCHAINNAMES.BITCOIN_TESTNET;
   }
 
   static getType(note: string): BTCTYPE {
@@ -237,7 +242,10 @@ export class BTC {
   }
 
   static checkQRCodeText(text: string): boolean {
-    const regex = /bitcoin:(\w+)\?amount=([\d.]+)/;
+    const regex = `^(${this.getChainName(true)}|${this.getChainName(
+      false,
+    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`;
+
     try {
       const matchText = text.match(regex);
       if (matchText) {
@@ -250,26 +258,62 @@ export class BTC {
     }
   }
 
-  static parseQRCodeText(text: string): any {
-    const regex = /bitcoin:(\w+)\?amount=([\d.]+)/;
+  static parseQRCodeText(text: string): QRCodeText {
+    const regex = `^(${this.getChainName(true)}|${this.getChainName(
+      false,
+    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`;
 
     try {
       const matchText = text.match(regex);
-      if (matchText) {
-        const address = matchText[1];
-        const amount = matchText[2] || 0;
 
-        return {
-          address,
-          amount,
-        };
-      } else {
-        return;
+      let network = 0;
+      let networkString = '';
+      let address = '';
+      let token = '';
+      let tokenAddress = '';
+      let amount = '';
+
+      if (matchText) {
+        networkString = matchText[1];
+        address = matchText[2];
+
+        switch (networkString) {
+          case INNERCHAINNAMES.BITCOIN:
+            network = 1;
+            break;
+          case INNERCHAINNAMES.BITCOIN_TESTNET:
+            network = 2;
+            break;
+          default:
+            throw new Error('Invalid QR code text format');
+        }
+
+        amount = matchText[7];
+        token = COINS.BTC;
       }
+
+      return {
+        network,
+        networkString,
+        address,
+        token,
+        tokenAddress,
+        amount,
+      };
     } catch (e) {
       console.error(e);
-      return;
+      return {} as QRCodeText;
     }
+  }
+
+  static generateQRCodeText(isMainnet: boolean, address: string, amount?: string): string {
+    let qrcodeText = `${this.getChainName(isMainnet)}:${address}?`;
+
+    amount = amount || '0';
+
+    qrcodeText += `amount=${amount}`;
+
+    return qrcodeText;
   }
 
   static async getAssetBalance(isMainnet: boolean, address: string, toBTC: boolean = true): Promise<AssetBalance> {

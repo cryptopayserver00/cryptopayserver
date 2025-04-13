@@ -493,6 +493,41 @@ const WalletsSend = () => {
     }
   };
 
+  const onClickParseClipboardText = async (text: string) => {
+    try {
+      if (!text || text === '') {
+        setSnackSeverity('error');
+        setSnackMessage('Invalid parsing');
+        setSnackOpen(true);
+        return;
+      }
+
+      text = text.trim();
+
+      const response: any = await axios.get(Http.parse_qrcode_text, {
+        params: {
+          chain_id: chainId,
+          text: text,
+        },
+      });
+
+      if (response.result) {
+        setSnackSeverity('success');
+        setSnackMessage('Parsing success');
+        setSnackOpen(true);
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Invalid parsing');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     if (maxFee && maxFee > 0 && gasLimit && gasLimit > 0) {
       setNetworkFee(parseFloat(BigMul(GweiToEther(maxFee).toString(), gasLimit.toString())).toFixed(8));
@@ -535,6 +570,19 @@ const WalletsSend = () => {
         {page === 1 && (
           <>
             <Box mt={4}>
+              <Stack mt={2} direction={'row'} alignItems={'center'}>
+                <Button
+                  variant={'contained'}
+                  onClick={async () => {
+                    const text = await navigator.clipboard.readText();
+
+                    await onClickParseClipboardText(text);
+                  }}
+                >
+                  parse clipboard text
+                </Button>
+              </Stack>
+
               <Stack mt={2} direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
                 <Typography>From address</Typography>
               </Stack>

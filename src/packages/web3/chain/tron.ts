@@ -1,10 +1,11 @@
 import axios from 'axios';
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
 import {
   AssetBalance,
   ChainAccountType,
   CreateTronTransaction,
   EthereumTransactionDetail,
+  QRCodeText,
   SendTransaction,
   TransactionDetail,
   TRANSACTIONSTATUS,
@@ -12,7 +13,7 @@ import {
 import { HDKey } from 'ethereum-cryptography/hdkey';
 import { TronWeb } from 'tronweb';
 import { ethers } from 'ethers';
-import { FindDecimalsByChainIdsAndContractAddress } from 'utils/web3';
+import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from 'utils/web3';
 import { TRC20Abi } from '../abi/trc20';
 import { GetBlockchainTxUrl } from 'utils/chain/tron';
 import { BLOCKSCAN } from '../block_scan';
@@ -28,6 +29,10 @@ export class TRON {
 
   static getChainIds(isMainnet: boolean): CHAINIDS {
     return isMainnet ? CHAINIDS.TRON : CHAINIDS.TRON_NILE;
+  }
+
+  static getChainName(isMainnet: boolean): INNERCHAINNAMES {
+    return isMainnet ? INNERCHAINNAMES.TRON : INNERCHAINNAMES.TRON_NILE;
   }
 
   static async getTronClient(isMainnet: boolean) {
@@ -83,7 +88,10 @@ export class TRON {
   }
 
   static checkQRCodeText(text: string): boolean {
-    const regex = /tron:(\w+)(\?value=(\d+)&decimal=(\d+))?(&contractAddress=(\w+))?/;
+    const regex = `^(${this.getChainName(true)}|${this.getChainName(
+      false,
+    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`;
+
     try {
       const matchText = text.match(regex);
       if (matchText) {
@@ -96,49 +104,74 @@ export class TRON {
     }
   }
 
-  static parseQRCodeText(text: string): any {
-    const regex = /tron:(\w+)(\?value=(\d+)&decimal=(\d+))?(&contractAddress=(\w+))?/;
+  static parseQRCodeText(text: string): QRCodeText {
+    const regex = `^(${this.getChainName(true)}|${this.getChainName(
+      false,
+    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`;
 
     try {
       const matchText = text.match(regex);
-      if (matchText) {
-        const address = matchText[1];
-        const value = matchText[3] || 0;
-        const decimal = matchText[4] || 18;
-        const amount = ethers.formatUnits(value, decimal);
-        const contractAddress = matchText[6] || undefined;
 
-        return {
-          address,
-          amount,
-          decimal,
-          contractAddress,
-        };
-      } else {
-        return;
+      let network = 0;
+      let networkString = '';
+      let address = '';
+      let token = '';
+      let tokenAddress = '';
+      let amount = '';
+
+      if (matchText) {
+        networkString = matchText[1];
+        address = matchText[2];
+
+        switch (networkString) {
+          case INNERCHAINNAMES.TRON:
+            network = 1;
+            break;
+          case INNERCHAINNAMES.TRON_NILE:
+            network = 2;
+            break;
+          default:
+            throw new Error('Invalid QR code text format');
+        }
+
+        if (matchText[4] !== undefined) {
+          tokenAddress = matchText[4];
+          amount = matchText[6];
+
+          const coin = FindTokenByChainIdsAndContractAddress(
+            this.getChainIds(network === 1 ? true : false),
+            tokenAddress,
+          );
+          token = coin.name;
+        } else {
+          amount = matchText[7];
+          token = COINS.TRX;
+        }
       }
+
+      return {
+        network,
+        networkString,
+        address,
+        token,
+        tokenAddress,
+        amount,
+      };
     } catch (e) {
       console.error(e);
-      return;
+      return {} as QRCodeText;
     }
   }
 
-  static async generateQRCodeText(
-    isMainnet: boolean,
-    address: string,
-    contractAddress?: string,
-    amount?: string,
-  ): Promise<string> {
-    let qrcodeText = `tron:${address}`;
-    const decimal = contractAddress ? await this.getTokenDecimals(isMainnet, contractAddress) : 6;
+  static generateQRCodeText(isMainnet: boolean, address: string, contractAddress?: string, amount?: string): string {
+    let qrcodeText = `${this.getChainName(isMainnet)}:${address}?`;
 
     amount = amount || '0';
-    const value = ethers.parseUnits(amount, decimal).toString();
-
-    qrcodeText += `?value=${value}&decimal=${decimal}`;
 
     if (contractAddress) {
-      qrcodeText += `&contractAddress=${contractAddress}`;
+      qrcodeText += `token=${contractAddress}&amount=${amount}`;
+    } else {
+      qrcodeText += `amount=${amount}`;
     }
 
     return qrcodeText;

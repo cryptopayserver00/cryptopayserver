@@ -1,7 +1,6 @@
-import { Box, Stack, Typography } from '@mui/material';
-import CustomButton from 'components/Button/CustomButton';
+import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import MetaTags from 'components/Common/MetaTags';
-import { APP_NAME } from 'packages/constants';
+import { CustomLogo } from 'components/Logo/CustomLogo';
 
 const Custom404 = () => {
   const onClickButton = async () => {
@@ -11,18 +10,38 @@ const Custom404 = () => {
   return (
     <>
       <MetaTags title="Not found" />
-      {/* <Center> */}
-      <Stack direction={'column'} alignItems={'center'}>
-        <Box className="mb-10">
-          <Typography fontSize={30} fontWeight="bold">
-            {APP_NAME}
-          </Typography>
+      <Container>
+        <Box mt={20}>
+          <Button
+            style={{ padding: 0 }}
+            onClick={() => {
+              window.location.href = '/dashboard';
+            }}
+          >
+            <Stack direction={'row'} alignItems={'center'}>
+              <CustomLogo>C</CustomLogo>
+              <Typography fontWeight={'bold'} color="#0098e5" fontSize={'large'}>
+                Crypto Pay
+              </Typography>
+            </Stack>
+          </Button>
+
+          <Stack mt={4} direction={'row'} alignItems={'center'}>
+            <Typography fontWeight={'bold'}>404.</Typography>
+            <Typography ml={1}>That's an error.</Typography>
+          </Stack>
+
+          <Box mt={4}>
+            <Typography>The requested URL was not found on this server. That’s all we know.</Typography>
+          </Box>
+
+          <Box mt={6}>
+            <Button variant={'contained'} onClick={onClickButton} size='large'>
+              Go Home
+            </Button>
+          </Box>
         </Box>
-        <Typography className="text-4xl font-bold">404</Typography>
-        <Box className="mb-6">This page could not be found.</Box>
-        <CustomButton variant="surface" text={'Go Home'} onClick={onClickButton} />
-      </Stack>
-      {/* </Center> */}
+      </Container>
     </>
   );
 };

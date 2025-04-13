@@ -1,8 +1,6 @@
-import { Box, Stack, Typography } from '@mui/material';
-import CustomButton from 'components/Button/CustomButton';
+import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import MetaTags from 'components/Common/MetaTags';
-import Link from 'next/link';
-import { APP_NAME } from 'packages/constants';
+import { CustomLogo } from 'components/Logo/CustomLogo';
 
 const Custom500 = () => {
   const onClickButton = async () => {
@@ -12,22 +10,38 @@ const Custom500 = () => {
   return (
     <>
       <MetaTags title="Something wrong" />
-      {/* <Center> */}
-      <Stack direction={'column'} alignItems={'center'}>
-        <Box className="mb-10">
-          <Typography fontSize={30} fontWeight="bold">
-            {APP_NAME}
-          </Typography>
+      <Container>
+        <Box mt={20}>
+          <Button
+            style={{ padding: 0 }}
+            onClick={() => {
+              window.location.href = '/dashboard';
+            }}
+          >
+            <Stack direction={'row'} alignItems={'center'}>
+              <CustomLogo>C</CustomLogo>
+              <Typography fontWeight={'bold'} color="#0098e5" fontSize={'large'}>
+                Crypto Pay
+              </Typography>
+            </Stack>
+          </Button>
+
+          <Stack mt={4} direction={'row'} alignItems={'center'}>
+            <Typography fontWeight={'bold'}>500.</Typography>
+            <Typography ml={1}>That's an error.</Typography>
+          </Stack>
+
+          <Box mt={4}>
+            <Typography>There was an error. Please try again later. That’s all we know.</Typography>
+          </Box>
+
+          <Box mt={6}>
+            <Button variant={'contained'} onClick={onClickButton} size="large">
+              Go Home
+            </Button>
+          </Box>
         </Box>
-        <Typography className="text-4xl font-bold">500</Typography>
-        <Typography className="text-4xl font-bold">Looks like something went wrong!</Typography>
-        <Box className="mb-6">
-          We track these errors automatically, but if the problem persists feel free to contact us. In the meantime, try
-          refreshing.
-        </Box>
-        <CustomButton variant="surface" text={'Go Home'} onClick={onClickButton} />
-      </Stack>
-      {/* </Center> */}
+      </Container>
     </>
   );
 };

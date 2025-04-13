@@ -6,17 +6,27 @@ import { AppKitNetwork } from '@reown/appkit/networks';
 import { CHAINIDS, CHAINS } from 'packages/constants/blockchain';
 import { GetWalletConnectNetwork, GetChainIds, GetAllSupportAppKitNetwork } from 'utils/web3';
 import { useAppKitAccount } from '@reown/appkit/react';
-import { useSwitchChain, useSignMessage, useEstimateGas, useSendTransaction } from 'wagmi';
+import {
+  useSwitchChain,
+  useSignMessage,
+  useEstimateGas,
+  useSendTransaction,
+  usePrepareTransactionRequest,
+} from 'wagmi';
 import { Hex, parseGwei, type Address } from 'viem';
 import { useAppKit } from '@reown/appkit/react';
 import { useSnackPresistStore } from 'lib/store';
 import { ethers } from 'ethers';
 import { IsHexAddress } from 'utils/strings';
+// import { ERC20Abi } from '../abi/erc20';
+import { ERC20Abi } from 'packages/web3/abi/erc20';
 
 type WalletConnectType = {
   network: number;
   chainId: CHAINS;
   address: string;
+  contractAddress?: string;
+  decimals?: number;
   value: string;
   buttonSize?: 'small' | 'medium' | 'large';
   buttonVariant?: 'text' | 'outlined' | 'contained';
@@ -31,11 +41,6 @@ const WalletConnectButton = (props: WalletConnectType) => {
 
   const { open, close } = useAppKit();
   const { address, isConnected } = useAppKitAccount();
-
-  const { data: gas } = useEstimateGas({
-    to: props.address as Address,
-    value: ethers.parseEther(String(props.value)),
-  });
 
   const { data: hash, sendTransaction } = useSendTransaction();
 
@@ -57,11 +62,22 @@ const WalletConnectButton = (props: WalletConnectType) => {
         return;
       }
 
-      await sendTransaction({
-        to: props.address,
-        value: ethers.parseEther(String(props.value)),
-        gas,
-      });
+      if (props.contractAddress) {
+        const value = ethers.parseUnits(String(props.value), props.decimals).toString();
+        const iface = new ethers.Interface(ERC20Abi);
+        const data = iface.encodeFunctionData('transfer', [props.address, value]);
+
+        await sendTransaction({
+          data: data,
+          to: props.contractAddress,
+          value: 0,
+        });
+      } else {
+        await sendTransaction({
+          to: props.address,
+          value: ethers.parseEther(String(props.value)),
+        });
+      }
     } catch (e) {
       console.error(e);
     }

@@ -1,7 +1,7 @@
 import { Box, Button, Container, Divider, Grid, List, ListItem, Stack, Typography } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
 import { useRouter } from 'next/router';
-import { ORDER_STATUS } from 'packages/constants';
+import { CURRENCY_SYMBOLS, ORDER_STATUS } from 'packages/constants';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
@@ -272,7 +272,8 @@ const PaymentInvoiceDetails = () => {
                 </Grid>
                 <Grid item xs={9}>
                   <Typography>
-                    {order.amount} {order.currency}
+                    {CURRENCY_SYMBOLS[order.currency]}
+                    {order.amount}
                   </Typography>
                 </Grid>
               </Grid>
@@ -375,7 +376,8 @@ const PaymentInvoiceDetails = () => {
                 </Grid>
                 <Grid item xs={9}>
                   <Typography>
-                    {order.rate} {order.currency}
+                    {CURRENCY_SYMBOLS[order.currency]}
+                    {order.rate}
                   </Typography>
                 </Grid>
               </Grid>
@@ -407,6 +409,26 @@ const PaymentInvoiceDetails = () => {
             <Divider />
             {order.orderStatus === ORDER_STATUS.Settled && (
               <>
+                <ListItem>
+                  <Grid container>
+                    <Grid item xs={3}>
+                      <Typography>Hash</Typography>
+                    </Grid>
+                    <Grid item xs={9}>
+                      <Link
+                        target="_blank"
+                        href={GetBlockchainTxUrlByChainIds(
+                          order.network === 1 ? true : false,
+                          order.chainId,
+                          order.hash,
+                        )}
+                      >
+                        {order.hash}
+                      </Link>
+                    </Grid>
+                  </Grid>
+                </ListItem>
+                <Divider />
                 <ListItem>
                   <Grid container>
                     <Grid item xs={3}>
@@ -442,26 +464,6 @@ const PaymentInvoiceDetails = () => {
                         )}
                       >
                         {order.toAddress}
-                      </Link>
-                    </Grid>
-                  </Grid>
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <Grid container>
-                    <Grid item xs={3}>
-                      <Typography>Hash</Typography>
-                    </Grid>
-                    <Grid item xs={9}>
-                      <Link
-                        target="_blank"
-                        href={GetBlockchainTxUrlByChainIds(
-                          order.network === 1 ? true : false,
-                          order.chainId,
-                          order.hash,
-                        )}
-                      >
-                        {order.hash}
                       </Link>
                     </Grid>
                   </Grid>

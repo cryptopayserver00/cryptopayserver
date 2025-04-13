@@ -45,6 +45,51 @@ export enum CHAINIDS {
   TON_TESTNET = 1101,
 }
 
+export enum INNERCHAINNAMES {
+  BITCOIN = 'bitcoin',
+  BITCOIN_TESTNET = 'bitcointestnet',
+
+  LITECOIN = 'litecoin',
+  LITECOIN_TESTNET = 'litecointestnet',
+
+  XRP = 'xrp',
+  XRP_TESTNET = 'xrptestnet',
+
+  BITCOINCASH = 'bitcoincash',
+  BITCOINCASH_TESTNET = 'bitcoincashtestnet',
+
+  ETHEREUM = 'ethereum',
+  ETHEREUM_SEPOLIA = 'sepolia',
+
+  TRON = 'tron',
+  TRON_NILE = 'tronnile',
+
+  SOLANA = 'solana',
+  SOLANA_DEVNET = 'solanadevnet',
+
+  BSC = 'bsc',
+  BSC_TESTNET = 'bsctestnet',
+
+  ARBITRUM_ONE = 'arbitrum',
+  ARBITRUM_NOVA = 'arbitrumnova',
+  ARBITRUM_SEPOLIA = 'arbitrumsepolia',
+
+  AVALANCHE = 'avalanche',
+  AVALANCHE_TESTNET = 'avalanchefuji',
+
+  POLYGON = 'polygon',
+  POLYGON_TESTNET = 'polygonamoy',
+
+  BASE = 'base',
+  BASE_SEPOLIA = 'basesepolia',
+
+  OPTIMISM = 'optimism',
+  OPTIMISM_SEPOLIA = 'optimismsepolia',
+
+  TON = 'ton',
+  TON_TESTNET = 'tontestnet',
+}
+
 export enum CHAINNAMES {
   BITCOIN = 'Bitcoin',
   LITECOIN = 'Litecoin',

@@ -1,16 +1,18 @@
 import axios from 'axios';
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
 import {
   AssetBalance,
   ChainAccountType,
   CreateXrpTransaction,
   CreateXrpTrustLineTransaction,
+  QRCodeText,
   SendTransaction,
   TransactionDetail,
 } from '../types';
 import { Client, convertHexToString, dropsToXrp, isValidAddress, Wallet, xrpToDrops } from 'xrpl';
 import { NonstandardCurrencyCode, DecodeNonstandardCurrencyCode } from 'utils/strings';
 import { FindTokenByChainIdsAndContractAddress } from 'utils/web3';
+import { ethers } from 'ethers';
 
 export class XRP {
   static chain = CHAINS.XRP;
@@ -21,6 +23,10 @@ export class XRP {
 
   static getChainIds(isMainnet: boolean): CHAINIDS {
     return isMainnet ? CHAINIDS.XRP : CHAINIDS.XRP_TESTNET;
+  }
+
+  static getChainName(isMainnet: boolean): INNERCHAINNAMES {
+    return isMainnet ? INNERCHAINNAMES.XRP : INNERCHAINNAMES.XRP_TESTNET;
   }
 
   static getXrpClient(isMainnet: boolean): Client {
@@ -87,7 +93,10 @@ export class XRP {
   }
 
   static checkQRCodeText(text: string): boolean {
-    const regex = /xrp:(\w+)\?amount=([\d.]+)/;
+    const regex = `^(${this.getChainName(true)}|${this.getChainName(
+      false,
+    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`;
+
     try {
       const matchText = text.match(regex);
       if (matchText) {
@@ -100,26 +109,62 @@ export class XRP {
     }
   }
 
-  static parseQRCodeText(text: string): any {
-    const regex = /xrp:(\w+)\?amount=([\d.]+)/;
+  static parseQRCodeText(text: string): QRCodeText {
+    const regex = `^(${this.getChainName(true)}|${this.getChainName(
+      false,
+    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`;
 
     try {
       const matchText = text.match(regex);
-      if (matchText) {
-        const address = matchText[1];
-        const amount = matchText[2] || 0;
 
-        return {
-          address,
-          amount,
-        };
-      } else {
-        return;
+      let network = 0;
+      let networkString = '';
+      let address = '';
+      let token = '';
+      let tokenAddress = '';
+      let amount = '';
+
+      if (matchText) {
+        networkString = matchText[1];
+        address = matchText[2];
+
+        switch (networkString) {
+          case INNERCHAINNAMES.XRP:
+            network = 1;
+            break;
+          case INNERCHAINNAMES.XRP_TESTNET:
+            network = 2;
+            break;
+          default:
+            throw new Error('Invalid QR code text format');
+        }
+
+        amount = matchText[7];
+        token = COINS.XRP;
       }
+
+      return {
+        network,
+        networkString,
+        address,
+        token,
+        tokenAddress,
+        amount,
+      };
     } catch (e) {
       console.error(e);
-      return;
+      return {} as QRCodeText;
     }
+  }
+
+  static generateQRCodeText(isMainnet: boolean, address: string, amount?: string): string {
+    let qrcodeText = `${this.getChainName(isMainnet)}:${address}?`;
+
+    amount = amount || '0';
+
+    qrcodeText += `amount=${amount}`;
+
+    return qrcodeText;
   }
 
   static async getAssetBalance(isMainnet: boolean, address: string, toXRP: boolean = true): Promise<AssetBalance> {

@@ -1,6 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
+import { WEB3 } from 'packages/web3';
+import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
+import { COINS } from 'packages/constants/blockchain';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -25,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         //   }
 
-        const invoice = await prisma.invoices.findFirst({
+        let invoice = await prisma.invoices.findFirst({
           where: {
             order_id: Number(id),
             status: 1,
@@ -36,7 +39,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({ message: '', result: true, data: invoice });
+        const contractAddress = FindTokenByChainIdsAndSymbol(
+          WEB3.getChainIds(invoice.network === 1 ? true : false, invoice.chain_id),
+          invoice.crypto as COINS,
+        ).contractAddress;
+
+        const qrCodeText = WEB3.generateQRCodeText(
+          invoice.network === 1 ? true : false,
+          invoice.chain_id,
+          invoice.destination_address,
+          contractAddress,
+          invoice.crypto_amount.toString(),
+        );
+
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: {
+            ...invoice,
+            qr_code_text: qrCodeText,
+          },
+        });
 
       // return res.status(200).json({
       //   message: '',

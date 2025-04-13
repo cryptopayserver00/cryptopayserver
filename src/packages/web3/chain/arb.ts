@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ethers, Contract } from 'ethers';
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
 import { RPC } from '../rpc';
 import {
   AssetBalance,
@@ -8,6 +8,7 @@ import {
   EthereumTransactionDetail,
   ETHGasPrice,
   ETHMaxPriorityFeePerGas,
+  QRCodeText,
   SendTransaction,
   TransactionDetail,
   TRANSACTIONFUNCS,
@@ -31,12 +32,19 @@ export class ARB {
     return isMainnet ? CHAINIDS.ARBITRUM_ONE : CHAINIDS.ARBITRUM_SEPOLIA;
   }
 
+  static getChainName(isMainnet: boolean): INNERCHAINNAMES {
+    return isMainnet ? INNERCHAINNAMES.ARBITRUM_ONE : INNERCHAINNAMES.ARBITRUM_SEPOLIA;
+  }
+
   static async getProvider(isMainnet: boolean) {
     return new ethers.JsonRpcProvider(RPC.getRpcByChainIds(this.getChainIds(isMainnet)));
   }
 
   static checkQRCodeText(text: string): boolean {
-    const regex = /arbitrum:(\w+)(\?value=(\d+)&decimal=(\d+))?(&contractAddress=(\w+))?/;
+    const regex = `^(${this.getChainName(true)}|${this.getChainName(
+      false,
+    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`;
+
     try {
       const matchText = text.match(regex);
       if (matchText) {
@@ -49,49 +57,74 @@ export class ARB {
     }
   }
 
-  static parseQRCodeText(text: string): any {
-    const regex = /arbitrum:(\w+)(\?value=(\d+)&decimal=(\d+))?(&contractAddress=(\w+))?/;
+  static parseQRCodeText(text: string): QRCodeText {
+    const regex = `^(${this.getChainName(true)}|${this.getChainName(
+      false,
+    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`;
 
     try {
       const matchText = text.match(regex);
-      if (matchText) {
-        const address = matchText[1];
-        const value = matchText[3] || 0;
-        const decimal = matchText[4] || 18;
-        const amount = ethers.formatUnits(value, decimal);
-        const contractAddress = matchText[6] || undefined;
 
-        return {
-          address,
-          amount,
-          decimal,
-          contractAddress,
-        };
-      } else {
-        return;
+      let network = 0;
+      let networkString = '';
+      let address = '';
+      let token = '';
+      let tokenAddress = '';
+      let amount = '';
+
+      if (matchText) {
+        networkString = matchText[1];
+        address = matchText[2];
+
+        switch (networkString) {
+          case INNERCHAINNAMES.ETHEREUM:
+            network = 1;
+            break;
+          case INNERCHAINNAMES.ETHEREUM_SEPOLIA:
+            network = 2;
+            break;
+          default:
+            throw new Error('Invalid QR code text format');
+        }
+
+        if (matchText[4] !== undefined) {
+          tokenAddress = matchText[4];
+          amount = matchText[6];
+
+          const coin = FindTokenByChainIdsAndContractAddress(
+            this.getChainIds(network === 1 ? true : false),
+            tokenAddress,
+          );
+          token = coin.name;
+        } else {
+          amount = matchText[7];
+          token = COINS.ETH;
+        }
       }
+
+      return {
+        network,
+        networkString,
+        address,
+        token,
+        tokenAddress,
+        amount,
+      };
     } catch (e) {
       console.error(e);
-      return;
+      return {} as QRCodeText;
     }
   }
 
-  static async generateQRCodeText(
-    isMainnet: boolean,
-    address: string,
-    contractAddress?: string,
-    amount?: string,
-  ): Promise<string> {
-    let qrcodeText = `arbitrum:${address}`;
-    const decimal = contractAddress ? await this.getTokenDecimals(isMainnet, contractAddress) : 18;
+  static generateQRCodeText(isMainnet: boolean, address: string, contractAddress?: string, amount?: string): string {
+    let qrcodeText = `${this.getChainName(isMainnet)}:${address}?`;
 
     amount = amount || '0';
-    const value = ethers.parseUnits(amount, decimal).toString();
-
-    qrcodeText += `?value=${value}&decimal=${decimal}`;
 
     if (contractAddress) {
-      qrcodeText += `&contractAddress=${contractAddress}`;
+      qrcodeText += `token=${contractAddress}&amount=${amount}`;
+    } else {
+      qrcodeText += `amount=${amount}`;
     }
 
     return qrcodeText;

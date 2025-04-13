@@ -152,4 +152,5 @@ export class Http {
   static checkout_chain_address_status = this.httpPath + '/tool/checkout_chain_address_status';
   static find_fee_rate = this.httpPath + '/tool/find_fee_rate';
   static find_gas_fee = this.httpPath + '/tool/find_gas_fee';
+  static parse_qrcode_text = this.httpPath + '/tool/parse_qrcode_text';
 }
