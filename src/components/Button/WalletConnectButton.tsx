@@ -128,17 +128,21 @@ const WalletConnectButton = (props: WalletConnectType) => {
   }, [props.network, props.chainId, props.address]);
 
   return (
-    <Button
-      fullWidth={props.fullWidth}
-      variant={props.buttonVariant ? props.buttonVariant : 'contained'}
-      size={props.buttonSize ? props.buttonSize : 'medium'}
-      endIcon={<Send />}
-      onClick={() => {
-        onClickWalletConnect();
-      }}
-    >
-      {isConnected ? 'Send Transaction' : 'Connect Wallet'}
-    </Button>
+    <>
+      {connectNetwork && (
+        <Button
+          fullWidth={props.fullWidth}
+          variant={props.buttonVariant ? props.buttonVariant : 'contained'}
+          size={props.buttonSize ? props.buttonSize : 'medium'}
+          endIcon={<Send />}
+          onClick={() => {
+            onClickWalletConnect();
+          }}
+        >
+          {isConnected ? 'Send Transaction' : 'Connect Wallet'}
+        </Button>
+      )}
+    </>
   );
 };
 
