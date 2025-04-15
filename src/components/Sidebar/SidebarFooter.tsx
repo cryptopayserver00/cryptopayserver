@@ -99,7 +99,7 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ children, collapse
   };
 
   const AccountDrawer = (
-    <Box sx={{ width: 250 }} role="presentation" onClick={toggleAccountDrawer(false)} p={2}>
+    <Box sx={{ width: 250 }} role="presentation" p={2}>
       <Typography mb={2}>{getUsername()}</Typography>
       <Divider />
       <Box my={2}>

@@ -573,3 +573,5 @@ export const REQUEST_CUSTOMER_DATA = [
   'Request email address only',
   'Request shipping address',
 ];
+
+export const WALLET = ['Binance', 'Coinbase', 'OKX', 'Other'];

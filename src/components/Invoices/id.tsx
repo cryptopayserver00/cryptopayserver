@@ -1,4 +1,13 @@
-import { ContentCopy, ExpandMore, HelpOutline, Lock, Store, WarningAmber } from '@mui/icons-material';
+import {
+  Close,
+  CloseRounded,
+  ContentCopy,
+  ExpandMore,
+  HelpOutline,
+  Lock,
+  Store,
+  WarningAmber,
+} from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -18,6 +27,17 @@ import {
   Grid,
   Chip,
   Divider,
+  Drawer,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  FormControl,
+  OutlinedInput,
+  InputAdornment,
+  DialogActions,
+  Select,
+  MenuItem,
+  TextField,
 } from '@mui/material';
 import { useSnackPresistStore } from 'lib/store';
 import { useRouter } from 'next/router';
@@ -26,7 +46,7 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { QRCodeSVG } from 'qrcode.react';
 import { OmitMiddleString } from 'utils/strings';
-import { CURRENCY_SYMBOLS, ORDER_STATUS } from 'packages/constants';
+import { CURRENCY_SYMBOLS, ORDER_STATUS, WALLET } from 'packages/constants';
 import { GetImgSrcByChain, GetImgSrcByCrypto } from 'utils/qrcode';
 import Link from 'next/link';
 import {
@@ -36,7 +56,7 @@ import {
   GetBlockchainTxUrlByChainIds,
   GetChainIds,
 } from 'utils/web3';
-import { CHAINS, COINS } from 'packages/constants/blockchain';
+import { CHAINNAMES, CHAINS, COINS } from 'packages/constants/blockchain';
 import WalletConnectButton from 'components/Button/WalletConnectButton';
 import Image from 'next/image';
 
@@ -66,6 +86,10 @@ type OrderType = {
   network: number;
   chainId: number;
   qrCodeText: string;
+  storeName: string;
+  storeBrandColor: string;
+  storeLogoUrl: string;
+  storeWebsite: string;
 };
 
 const InvoiceDetails = () => {
@@ -75,6 +99,11 @@ const InvoiceDetails = () => {
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state);
 
   const [countdownVal, setCountdownVal] = useState<string>('0');
+  const [openDrawer, setOpenDrawer] = useState(false);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+  const [issueWallet, setIssueWallet] = useState<typeof WALLET>();
+  const [issuePaymentMethod, setIssuePaymentMethod] = useState<CHAINNAMES>(CHAINNAMES.BITCOIN);
+  const [issueMessage, setIssueMessage] = useState<string>('');
 
   const [order, setOrder] = useState<OrderType>({
     orderId: 0,
@@ -102,6 +131,10 @@ const InvoiceDetails = () => {
     network: 0,
     chainId: 0,
     qrCodeText: '',
+    storeName: '',
+    storeBrandColor: '',
+    storeLogoUrl: '',
+    storeWebsite: '',
   });
 
   const init = async (id: any) => {
@@ -139,6 +172,10 @@ const InvoiceDetails = () => {
           network: response.data.network,
           chainId: response.data.chain_id,
           qrCodeText: response.data.qr_code_text,
+          storeName: response.data.store_name,
+          storeBrandColor: response.data.store_brand_color,
+          storeLogoUrl: response.data.store_logo_url,
+          storeWebsite: response.data.store_website,
         });
       } else {
         setSnackSeverity('error');
@@ -149,6 +186,30 @@ const InvoiceDetails = () => {
       setSnackSeverity('error');
       setSnackMessage('The network error occurred. Please try again later.');
       setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const toggleDrawer = (newOpen: boolean) => () => {
+    setOpenDrawer(newOpen);
+  };
+
+  const handleDialogClose = () => {
+    setIssueWallet(undefined);
+    setIssuePaymentMethod(CHAINNAMES.BITCOIN);
+    setIssueMessage('');
+
+    setOpenDialog(false);
+  };
+
+  const onClickSubmitIssue = async () => {
+    try {
+      setSnackSeverity('success');
+      setSnackMessage('report issue success!');
+      setSnackOpen(true);
+
+      setOpenDialog(false);
+    } catch (e) {
       console.error(e);
     }
   };
@@ -210,18 +271,49 @@ const InvoiceDetails = () => {
           </Box>
         )}
 
+        <Box mb={2}>
+          {order.orderStatus === ORDER_STATUS.Settled && (
+            <Alert variant="filled" severity="success">
+              <Stack direction={'row'} alignItems={'center'}>
+                <Typography>The order has been paid successfully</Typography>
+              </Stack>
+            </Alert>
+          )}
+
+          {order.orderStatus === ORDER_STATUS.Expired && (
+            <Alert variant="filled" severity="warning">
+              <Stack direction={'row'} alignItems={'center'}>
+                <Typography>The order has expired, please do not continue to pay</Typography>
+              </Stack>
+            </Alert>
+          )}
+          {order.orderStatus === ORDER_STATUS.Invalid && (
+            <Alert variant="filled" severity="error">
+              <Stack direction={'row'} alignItems={'center'}>
+                <Typography>The order has invalid, please do not continue to pay</Typography>
+              </Stack>
+            </Alert>
+          )}
+        </Box>
+
         <Grid container spacing={20}>
           <Grid item xs={6} md={6} sm={6}>
             <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
               <Stack direction={'row'} alignItems={'center'}>
-                <Icon component={Store} />
-                <Typography mx={1}>Merchant account</Typography>
-                <Chip label="TestMode" color={'warning'} variant={'filled'} />
+                {order.storeLogoUrl ? (
+                  <Image alt="logo" src={order.storeLogoUrl} width={100} height={40} />
+                ) : (
+                  <Icon component={Store} />
+                )}
+                <Box mx={1}>
+                  <Link href={order.storeWebsite}>{order.storeName}</Link>
+                </Box>
+                {order.network === 2 && <Chip label="TestMode" color={'warning'} variant={'filled'} />}
               </Stack>
 
               <Stack direction={'row'} alignItems={'center'}>
-                <Typography mx={1}>{countdownVal}</Typography>
-                <IconButton aria-label="icon">
+                {countdownVal !== '0' && <Typography mx={1}>{countdownVal}</Typography>}
+                <IconButton aria-label="icon" onClick={toggleDrawer(true)}>
                   <HelpOutline />
                 </IconButton>
               </Stack>
@@ -292,18 +384,68 @@ const InvoiceDetails = () => {
               </Stack>
             </Box>
 
-            <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={33}>
+            {order.orderStatus === ORDER_STATUS.Settled && (
+              <>
+                <Box py={4}>
+                  <Divider />
+                </Box>
+                <Box mt={2}>
+                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
+                    <Typography>Order Status</Typography>
+                    <Chip label={order.orderStatus} color={'success'} variant={'filled'} />
+                  </Stack>
+                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
+                    <Typography>Hash</Typography>
+                    <Link
+                      target="_blank"
+                      href={GetBlockchainTxUrlByChainIds(order.network === 1 ? true : false, order.chainId, order.hash)}
+                    >
+                      {OmitMiddleString(order.hash)}
+                    </Link>
+                  </Stack>
+                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
+                    <Typography>From Address</Typography>
+                    <Link
+                      target="_blank"
+                      href={GetBlockchainAddressUrlByChainIds(
+                        order.network === 1 ? true : false,
+                        order.chainId,
+                        order.fromAddress,
+                      )}
+                    >
+                      {OmitMiddleString(order.fromAddress)}
+                    </Link>
+                  </Stack>
+                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
+                    <Typography>To Address</Typography>
+                    <Link
+                      target="_blank"
+                      href={GetBlockchainAddressUrlByChainIds(
+                        order.network === 1 ? true : false,
+                        order.chainId,
+                        order.toAddress,
+                      )}
+                    >
+                      {OmitMiddleString(order.toAddress)}
+                    </Link>
+                  </Stack>
+                </Box>
+              </>
+            )}
+
+            <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={10}>
               <Stack direction={'row'} alignItems={'center'}>
                 <Icon component={Lock} />
-                <Typography ml={1} fontWeight={'bold'}>
-                  Secured by CryptoPayServer
+                <Typography ml={1}>Secured by</Typography>
+                <Typography fontWeight={'bold'} ml={1}>
+                  CryptoPayServer
                 </Typography>
               </Stack>
 
               <Stack direction={'row'} alignItems={'center'} gap={0.5}>
-                <Typography>Terms</Typography>
+                <Link href={'#'}>Terms</Link>
                 <Typography>·</Typography>
-                <Typography>Privacy</Typography>
+                <Link href={'#'}>Privacy</Link>
               </Stack>
             </Stack>
           </Grid>
@@ -311,305 +453,273 @@ const InvoiceDetails = () => {
           <Grid item xs={6} md={6} sm={6}>
             <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
               <Typography>Payment Method</Typography>
-              <Button variant="outlined" startIcon={<WarningAmber />}>
+              <Button
+                variant="outlined"
+                startIcon={<WarningAmber />}
+                onClick={() => {
+                  setOpenDialog(true);
+                }}
+              >
                 Report
               </Button>
             </Stack>
 
             <Box mt={2}>
               <Typography mb={2}>Deposit currency</Typography>
-              <Button
-                variant="outlined"
-                startIcon={<Image alt="crypto" width={20} height={20} src={GetImgSrcByCrypto(order.crypto as COINS)} />}
-                fullWidth
-              >
-                {order.crypto}
-              </Button>
+              {order.crypto && (
+                <Button
+                  variant="outlined"
+                  startIcon={
+                    <Image alt="crypto" width={20} height={20} src={GetImgSrcByCrypto(order.crypto as COINS)} />
+                  }
+                  fullWidth
+                >
+                  {order.crypto}
+                </Button>
+              )}
+
               <Typography my={2}>Select network</Typography>
-              <Button
-                variant="outlined"
-                startIcon={<Image alt="chain" width={20} height={20} src={GetImgSrcByChain(order.chainId as CHAINS)} />}
-                fullWidth
-              >
-                {FindChainNamesByChains(order.chainId)?.toUpperCase()}
-              </Button>
+              {order.chainId && (
+                <Button
+                  variant="outlined"
+                  startIcon={
+                    <Image alt="chain" width={20} height={20} src={GetImgSrcByChain(order.chainId as CHAINS)} />
+                  }
+                  fullWidth
+                >
+                  {FindChainNamesByChains(order.chainId)?.toUpperCase()}
+                </Button>
+              )}
             </Box>
 
-            {order.orderStatus === ORDER_STATUS.Processing && (
-              <Box mt={2} textAlign={'center'}>
-                <Paper style={{ padding: 20 }}>
-                  <QRCodeSVG
-                    value={order.qrCodeText}
-                    width={'100%'}
-                    height={'100%'}
-                    imageSettings={{
-                      src: GetImgSrcByCrypto(order.crypto as COINS),
-                      width: 20,
-                      height: 20,
-                      excavate: true,
+            <Box mt={2} textAlign={'center'}>
+              <Paper style={{ padding: 20 }}>
+                <QRCodeSVG
+                  value={order.qrCodeText}
+                  width={'100%'}
+                  height={'100%'}
+                  imageSettings={{
+                    src: GetImgSrcByCrypto(order.crypto as COINS),
+                    width: 20,
+                    height: 20,
+                    excavate: true,
+                  }}
+                />
+
+                <Box mt={2}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(order.destinationAddress);
+
+                      setSnackMessage('Successfully copy');
+                      setSnackSeverity('success');
+                      setSnackOpen(true);
                     }}
-                  />
+                  >
+                    {order.destinationAddress}
+                  </Button>
+                </Box>
 
-                  <Box mt={2}>
-                    <Button
-                      variant="outlined"
-                      fullWidth
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(order.destinationAddress);
+                <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1} gap={2}>
+                  <Button
+                    variant="outlined"
+                    startIcon={<ContentCopy />}
+                    fullWidth
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(order.destinationAddress);
 
-                        setSnackMessage('Successfully copy');
-                        setSnackSeverity('success');
-                        setSnackOpen(true);
-                      }}
-                    >
-                      {order.destinationAddress}
-                    </Button>
-                  </Box>
+                      setSnackMessage('Successfully copy');
+                      setSnackSeverity('success');
+                      setSnackOpen(true);
+                    }}
+                  >
+                    Copy Address
+                  </Button>
 
-                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1} gap={2}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<ContentCopy />}
-                      fullWidth
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(order.destinationAddress);
-
-                        setSnackMessage('Successfully copy');
-                        setSnackSeverity('success');
-                        setSnackOpen(true);
-                      }}
-                    >
-                      Copy Address
-                    </Button>
-
-                    {order.orderStatus === ORDER_STATUS.Processing && (
-                      <WalletConnectButton
-                        network={order.network}
-                        chainId={order.chainId}
-                        address={order.destinationAddress}
-                        contractAddress={
-                          FindTokenByChainIdsAndSymbol(
-                            GetChainIds(order.network === 1 ? true : false, order.chainId),
-                            order.crypto as COINS,
-                          ).contractAddress
-                        }
-                        decimals={
-                          FindTokenByChainIdsAndSymbol(
-                            GetChainIds(order.network === 1 ? true : false, order.chainId),
-                            order.crypto as COINS,
-                          ).decimals
-                        }
-                        value={order.totalPrice}
-                        buttonSize={'medium'}
-                        buttonVariant={'contained'}
-                        fullWidth={true}
-                      />
-                    )}
-                  </Stack>
-                </Paper>
-              </Box>
-            )}
+                  {order.orderStatus !== 'Settled' && (
+                    <WalletConnectButton
+                      network={order.network}
+                      chainId={order.chainId}
+                      address={order.destinationAddress}
+                      contractAddress={
+                        FindTokenByChainIdsAndSymbol(
+                          GetChainIds(order.network === 1 ? true : false, order.chainId),
+                          order.crypto as COINS,
+                        )?.contractAddress
+                      }
+                      decimals={
+                        FindTokenByChainIdsAndSymbol(
+                          GetChainIds(order.network === 1 ? true : false, order.chainId),
+                          order.crypto as COINS,
+                        )?.decimals
+                      }
+                      value={order.totalPrice}
+                      buttonSize={'medium'}
+                      buttonVariant={'contained'}
+                      fullWidth={true}
+                    />
+                  )}
+                </Stack>
+              </Paper>
+            </Box>
           </Grid>
         </Grid>
 
-        <Typography textAlign={'center'}>{order.description}</Typography>
-        <Stack direction={'row'} alignItems={'center'} mt={2} justifyContent={'center'}>
-          <Typography variant="h4" fontWeight={'bold'}>
-            {order.totalPrice}
-          </Typography>
-          <Typography ml={1} variant="h4" fontWeight={'bold'}>
-            {order.crypto}
-          </Typography>
-        </Stack>
-
-        <Box mt={2}>
-          {order.orderStatus === ORDER_STATUS.Processing && (
-            <Alert variant="filled" severity="info">
+        <Drawer open={openDrawer} onClose={toggleDrawer(false)} anchor={'right'}>
+          <Box role="presentation" width={400}>
+            <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} py={2} px={2}>
               <Stack direction={'row'} alignItems={'center'}>
-                <Typography>This invoice will expire in</Typography>
-                <Typography ml={1}>{countdownVal}</Typography>
-                <Typography ml={1}>minutes</Typography>
-              </Stack>
-            </Alert>
-          )}
-
-          {order.orderStatus === ORDER_STATUS.Settled && (
-            <Alert variant="filled" severity="success">
-              <Stack direction={'row'} alignItems={'center'}>
-                <Typography>The order has been paid successfully</Typography>
-              </Stack>
-            </Alert>
-          )}
-
-          {order.orderStatus === ORDER_STATUS.Expired && (
-            <Alert variant="filled" severity="warning">
-              <Stack direction={'row'} alignItems={'center'}>
-                <Typography>The order has expired, please do not continue to pay</Typography>
-              </Stack>
-            </Alert>
-          )}
-          {order.orderStatus === ORDER_STATUS.Invalid && (
-            <Alert variant="filled" severity="error">
-              <Stack direction={'row'} alignItems={'center'}>
-                <Typography>The order has invalid, please do not continue to pay</Typography>
-              </Stack>
-            </Alert>
-          )}
-        </Box>
-
-        <Box mt={2}>
-          <Card>
-            <CardContent>
-              <Typography textAlign={'center'} pt={1}>
-                Send only <b>{FindChainNamesByChains(order.chainId)?.toUpperCase()}</b> assets to this address
-              </Typography>
-            </CardContent>
-          </Card>
-        </Box>
-
-        <Box mt={2}>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1-content">
-              View Details
-            </AccordionSummary>
-            <AccordionDetails>
-              <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
-                <Typography>Total Price</Typography>
-                <Typography fontWeight={'bold'}>
-                  {order.totalPrice} {order.crypto}
+                <HelpOutline />
+                <Typography variant={'h6'} ml={1}>
+                  Help
                 </Typography>
               </Stack>
-              <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
-                <Typography>Total Fiat</Typography>
-                <Typography fontWeight={'bold'}>
-                  {CURRENCY_SYMBOLS[order.currency]}
-                  {order.amount}
-                </Typography>
-              </Stack>
-              <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
-                <Typography>Exchange Rate</Typography>
-                <Typography fontWeight={'bold'}>
-                  1 {order.crypto} = {CURRENCY_SYMBOLS[order.currency]}
-                  {order.rate}
-                </Typography>
-              </Stack>
-              <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
-                <Typography>Amount Due</Typography>
-                <Typography fontWeight={'bold'}>
-                  {order.amountDue} {order.crypto}
-                </Typography>
-              </Stack>
-            </AccordionDetails>
-          </Accordion>
-        </Box>
+              <IconButton onClick={toggleDrawer(false)}>
+                <Close />
+              </IconButton>
+            </Stack>
 
-        {order.orderStatus === ORDER_STATUS.Settled && (
-          <Box mt={2}>
-            <Card>
-              <CardContent>
-                <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
-                  <Typography>From Address</Typography>
-                  <Link
-                    target="_blank"
-                    href={GetBlockchainAddressUrlByChainIds(
-                      order.network === 1 ? true : false,
-                      order.chainId,
-                      order.fromAddress,
-                    )}
-                  >
-                    {order.fromAddress}
-                  </Link>
-                </Stack>
-                <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
-                  <Typography>To Address</Typography>
-                  <Link
-                    target="_blank"
-                    href={GetBlockchainAddressUrlByChainIds(
-                      order.network === 1 ? true : false,
-                      order.chainId,
-                      order.toAddress,
-                    )}
-                  >
-                    {order.toAddress}
-                  </Link>
-                </Stack>
-                <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
-                  <Typography>Hash</Typography>
-                  <Link
-                    target="_blank"
-                    href={GetBlockchainTxUrlByChainIds(order.network === 1 ? true : false, order.chainId, order.hash)}
-                  >
-                    {order.hash}
-                  </Link>
-                </Stack>
-              </CardContent>
-            </Card>
+            <Divider />
+
+            <Box mt={4} px={2}>
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1-content">
+                  What is CryptoPayServer?
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography>
+                    CryptoPayServer is a leading coin payment processor. CryptoPayServer makes it possible for you to
+                    send and receive transactions very quickly using the crypto network.
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1-content">
+                  What is CryptoPayServer wallet?
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography>
+                    A wallet is a software program that allows you to send and receive crypto from others in the
+                    network. It keeps track of your balance and transaction history. Each wallet has its own address,
+                    which functions similarly to your bank account's account number. There are lots of wallets
+                    available. Picking the right one is a matter of personal preference.
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1-content">
+                  How to make the payment?
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography>There are many ways to pay:</Typography>
+                  <Typography>QR Code</Typography>
+                  <Typography>1. Open your onchain wallet and tap scan.</Typography>
+                  <Typography>2. Scan the QR code.</Typography>
+                  <Typography>3. Tap Pay, and you’re done!</Typography>
+                </AccordionDetails>
+              </Accordion>
+
+              <Box p={2} border={1} mt={4}>
+                <Typography>More Questions?</Typography>
+                <Typography mt={1}>
+                  You can reach out to us <Link href={'#'}>here</Link> for more information
+                </Typography>
+              </Box>
+            </Box>
           </Box>
-        )}
+        </Drawer>
 
-        {order.orderStatus === ORDER_STATUS.Processing && (
-          <Box mt={2} textAlign={'center'}>
-            <Paper style={{ padding: 20 }}>
-              <QRCodeSVG
-                value={order.qrCodeText}
-                width={250}
-                height={250}
-                imageSettings={{
-                  src: GetImgSrcByCrypto(order.crypto as COINS),
-                  width: 35,
-                  height: 35,
-                  excavate: false,
-                }}
-              />
-            </Paper>
-          </Box>
-        )}
+        <Dialog
+          open={openDialog}
+          onClose={handleDialogClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+          fullWidth
+        >
+          <DialogTitle id="alert-dialog-title">Report an issue</DialogTitle>
+          <DialogContent>
+            <Typography fontWeight={'bold'}>I have an issue in making payment</Typography>
 
-        <Box mt={4}>
-          <Typography>ADDRESS</Typography>
-          <Stack direction={'row'} alignItems={'center'}>
-            <Typography mr={1} fontWeight={'bold'}>
-              {OmitMiddleString(order.destinationAddress, 10)}
+            <Typography mt={2} mb={1}>
+              Select wallet which you have used
             </Typography>
-            <IconButton
-              onClick={async () => {
-                await navigator.clipboard.writeText(order.destinationAddress);
+            <Box mb={2}>
+              <FormControl variant="outlined" fullWidth size={'small'}>
+                <Select
+                  size={'small'}
+                  inputProps={{ 'aria-label': 'Without label' }}
+                  onChange={(e: any) => {
+                    setIssueWallet(e.target.value);
+                  }}
+                  value={issueWallet}
+                  placeholder="Select wallet"
+                >
+                  {WALLET &&
+                    WALLET.length > 0 &&
+                    WALLET.map((item, index) => (
+                      <MenuItem value={item} key={index}>
+                        {item}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Box>
 
-                setSnackMessage('Successfully copy');
-                setSnackSeverity('success');
-                setSnackOpen(true);
+            <Typography mb={1}>Select payment method which you have used</Typography>
+            <Box mb={2}>
+              <FormControl variant="outlined" fullWidth size={'small'}>
+                <Select
+                  size={'small'}
+                  inputProps={{ 'aria-label': 'Without label' }}
+                  onChange={(e) => {
+                    setIssuePaymentMethod(e.target.value as CHAINNAMES);
+                  }}
+                  value={issuePaymentMethod}
+                >
+                  {CHAINNAMES &&
+                    Object.entries(CHAINNAMES).length > 0 &&
+                    Object.entries(CHAINNAMES).map((item, index) => (
+                      <MenuItem value={item[1]} key={index}>
+                        {item[1]}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Typography mb={1}>Provide more information like error message, failure etc</Typography>
+            <Box mb={2}>
+              <FormControl variant="outlined" fullWidth size={'small'}>
+                <TextField
+                  fullWidth
+                  hiddenLabel
+                  multiline
+                  minRows={4}
+                  value={issueMessage}
+                  onChange={(e: any) => {
+                    setIssueMessage(e.target.value);
+                  }}
+                  placeholder="Type a reason..."
+                />
+              </FormControl>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button variant={'outlined'} onClick={handleDialogClose}>
+              Close
+            </Button>
+            <Button
+              variant={'contained'}
+              onClick={async () => {
+                await onClickSubmitIssue();
               }}
             >
-              <ContentCopy fontSize={'small'} />
-            </IconButton>
-          </Stack>
-        </Box>
-
-        {order.orderStatus === ORDER_STATUS.Processing && (
-          <Box mt={2}>
-            <WalletConnectButton
-              network={order.network}
-              chainId={order.chainId}
-              address={order.destinationAddress}
-              contractAddress={
-                FindTokenByChainIdsAndSymbol(
-                  GetChainIds(order.network === 1 ? true : false, order.chainId),
-                  order.crypto as COINS,
-                ).contractAddress
-              }
-              decimals={
-                FindTokenByChainIdsAndSymbol(
-                  GetChainIds(order.network === 1 ? true : false, order.chainId),
-                  order.crypto as COINS,
-                ).decimals
-              }
-              value={order.totalPrice}
-              buttonSize={'large'}
-              buttonVariant={'contained'}
-              fullWidth={true}
-            />
-          </Box>
-        )}
+              Submit
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   );
