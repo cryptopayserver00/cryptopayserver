@@ -41,7 +41,7 @@ const AccessToken = () => {
         <Typography mt={2}>
           Alternatively, you can use the invoice API by including the following HTTP Header in your requests:
         </Typography>
-        <Typography mt={2} fontSize={14}>Authorization: Basic *API Key*</Typography>
+        <Typography mt={2} fontSize={14} fontWeight={'bold'}>Authorization: Basic *API Key*</Typography>
 
         <Box mt={3}>
           <Typography>API Key</Typography>

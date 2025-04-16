@@ -340,13 +340,17 @@ const InvoiceDetails = () => {
                   <Typography>To</Typography>
                   <Typography mt={1}>Invoice</Typography>
                   <Typography mt={1}>Due Date</Typography>
-                  <Typography mt={1}>Memo</Typography>
+                  <Typography mt={1}>Description</Typography>
+                  <Typography mt={1}>Buyer Email</Typography>
+                  <Typography mt={1}>Metadata</Typography>
                 </Box>
                 <Box ml={6}>
                   <Typography>test</Typography>
                   <Typography mt={1}>{order.orderId}</Typography>
-                  <Typography mt={1}>04/15/2025</Typography>
+                  <Typography mt={1}>{new Date(order.expirationDate).toLocaleString()}</Typography>
                   <Typography mt={1}>{order.description}</Typography>
+                  <Typography mt={1}>{order.buyerEmail ? order.buyerEmail : 'None'}</Typography>
+                  <Typography mt={1}>{order.metadata ? order.metadata : ''}</Typography>
                 </Box>
               </Stack>
             </Box>

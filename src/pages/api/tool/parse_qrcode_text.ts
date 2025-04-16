@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const chainId = req.query.chain_id;
         const text = req.query.text;
 
-        const result = await WEB3.parseQRCodeText(Number(chainId), String(text));
+        const result = WEB3.parseQRCodeText(Number(chainId), String(text));
 
         return res.status(200).json({ message: '', result: true, data: result });
       default:

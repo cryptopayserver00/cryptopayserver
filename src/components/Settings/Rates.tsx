@@ -1,24 +1,4 @@
-import { AccountCircle, CloudUpload } from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Container,
-  FormControl,
-  Icon,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
-  OutlinedInput,
-  Select,
-  Stack,
-  styled,
-  Switch,
-  Tab,
-  Tabs,
-  TextField,
-  Typography,
-} from '@mui/material';
-import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
+import { Box, Button, FormControl, MenuItem, Select, Typography } from '@mui/material';
 import { PRICE_RESOURCE } from 'packages/constants';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
@@ -114,7 +94,7 @@ const Rates = () => {
                   ))}
               </Select>
             </FormControl>
-            <Typography mt={1}>Current Rates source is coingecko.</Typography>
+            <Typography mt={1}>Current Rates source is {priceSource}.</Typography>
           </Box>
 
           {/* <Stack direction={'row'} alignItems={'center'} mt={4}>
@@ -166,7 +146,7 @@ const Rates = () => {
       </Box> */}
 
       <Box mt={5}>
-        <Button variant={'contained'} size="large" onClick={onClickSave}>
+        <Button variant={'contained'} size="large" onClick={onClickSave} color='success'>
           Save
         </Button>
       </Box>

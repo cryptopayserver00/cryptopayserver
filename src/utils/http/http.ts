@@ -153,4 +153,5 @@ export class Http {
   static find_fee_rate = this.httpPath + '/tool/find_fee_rate';
   static find_gas_fee = this.httpPath + '/tool/find_gas_fee';
   static parse_qrcode_text = this.httpPath + '/tool/parse_qrcode_text';
+  static upload_file = this.httpPath + '/tool/upload_file';
 }

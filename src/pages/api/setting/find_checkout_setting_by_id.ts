@@ -21,28 +21,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!checkout_setting) {
-          return res.status(200).json({ message: '', result: false, data: null });
+          const create_checkout_setting = await prisma.checkout_settings.create({
+            data: {
+              user_id: Number(userId),
+              store_id: Number(storeId),
+              show_payment_confetti: 2,
+              show_sound: 2,
+              show_pay_in_wallet_button: 1,
+              show_detect_language: 1,
+              language: 'English',
+              custom_html_title: '',
+              support_url: '',
+              show_payment_method: 2,
+              show_redirect_url: 2,
+              show_public_receipt_page: 1,
+              show_payment_list: 1,
+              show_qrcode_receipt: 1,
+              show_header: 1,
+              status: 1,
+            },
+          });
+          return res.status(200).json({ message: '', result: true, data: create_checkout_setting });
         }
 
         return res.status(200).json({
           message: '',
           result: true,
-          data: {
-            id: checkout_setting.id,
-            show_payment_confetti: checkout_setting.show_payment_confetti,
-            show_sound: checkout_setting.show_sound,
-            show_pay_in_wallet_button: checkout_setting.show_pay_in_wallet_button,
-            custom_html_title: checkout_setting.custom_html_title,
-            language: checkout_setting.language,
-            show_detect_language: checkout_setting.show_detect_language,
-            support_url: checkout_setting.support_url,
-            show_payment_method: checkout_setting.show_payment_method,
-            show_redirect_url: checkout_setting.show_redirect_url,
-            show_public_receipt_page: checkout_setting.show_public_receipt_page,
-            show_payment_list: checkout_setting.show_payment_list,
-            show_qrcode_receipt: checkout_setting.show_qrcode_receipt,
-            show_header: checkout_setting.show_header,
-          },
+          data: checkout_setting,
         });
 
       default:

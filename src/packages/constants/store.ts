@@ -575,3 +575,13 @@ export const REQUEST_CUSTOMER_DATA = [
 ];
 
 export const WALLET = ['Binance', 'Coinbase', 'OKX', 'Other'];
+
+export const FILE_TYPE = {
+  Image: 'Image',
+  Document: 'Document',
+  Audio: 'Audio',
+  Video: 'Video',
+  Compressed: 'Compressed',
+  Dev: 'Dev',
+  Other: 'Other',
+};

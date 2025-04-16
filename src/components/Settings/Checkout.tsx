@@ -104,51 +104,6 @@ const Checkout = () => {
   return (
     <Box>
       <Box>
-        <Typography variant="h6">Invoice Settings</Typography>
-        <Box mt={4}>
-          <Typography>Set the money selection page</Typography>
-          {/* <Box mt={2}>
-            <FormControl sx={{ minWidth: 300 }}>
-              <Select
-                size={'small'}
-                inputProps={{ 'aria-label': 'Without label' }}
-                defaultValue={1}
-                //   value={age}
-
-                //   onChange={handleChange}
-              >
-                <MenuItem value={1}>BTC(On-Chain)</MenuItem>
-                <MenuItem value={2}>AAA</MenuItem>
-                <MenuItem value={3}>BBB</MenuItem>
-              </Select>
-            </FormControl>
-          </Box> */}
-        </Box>
-
-        {/* <Box mt={5}>
-          <Typography>Enable payment methods only when amount is …</Typography>
-          <Stack direction={'row'} alignItems={'center'} mt={2}>
-            <Typography>BTC (On-Chain)</Typography>
-            <Box ml={10}>
-              <Select
-                size={'small'}
-                inputProps={{ 'aria-label': 'Without label' }}
-                defaultValue={1}
-                //   value={age}
-                //   onChange={handleChange}
-              >
-                <MenuItem value={1}>Greater than</MenuItem>
-                <MenuItem value={2}>Less than</MenuItem>
-              </Select>
-            </Box>
-            <Box ml={2}>
-              <TextField hiddenLabel defaultValue="" size="small" placeholder="6.15 USD" />
-            </Box>
-          </Stack>
-        </Box> */}
-      </Box>
-
-      <Box mt={6}>
         <Typography variant="h6">Checkout</Typography>
         <Stack direction={'row'} mt={4} alignItems={'center'}>
           <Switch
@@ -251,8 +206,7 @@ const Checkout = () => {
             </Box>
             <Typography mt={1} fontSize={14}>
               For support requests related to partially paid invoices. A &apos;Contact Us&apos; button with this link
-              will be shown on the invoice expired page. Can contain the placeholders [OrderId] and [InvoiceId]. Can be
-              any valid URI, such as a website, email, and Nostr.
+              will be shown on the invoice expired page. Can be any valid URI, such as a website, email, and Nostr.
             </Typography>
           </Box>
 

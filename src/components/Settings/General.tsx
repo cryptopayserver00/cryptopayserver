@@ -1,10 +1,11 @@
-import { AccountCircle, CloudUpload } from '@mui/icons-material';
+import { AccountCircle, CloudUpload, ReportGmailerrorred } from '@mui/icons-material';
 import {
   Box,
   Button,
   Container,
   FormControl,
   Icon,
+  IconButton,
   InputAdornment,
   InputLabel,
   MenuItem,
@@ -18,19 +19,19 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CURRENCY } from 'packages/constants';
+import { CURRENCY, FILE_TYPE } from 'packages/constants';
+import { SketchPicker } from 'react-color';
 
 const General = () => {
   const [storeName, setStoreName] = useState<string>('');
   const [storeWebsite, setStoreWebsite] = useState<string>('');
-  const [brandColor, setBrandColor] = useState<string>('');
+  const [brandColor, setBrandColor] = useState<any>('');
   const [logoUrl, setLogoUrl] = useState<string>('');
   const [customCssUrl, setCustomCssUrl] = useState<string>('');
   const [currency, setCurrency] = useState<string>(CURRENCY[0]);
@@ -38,10 +39,10 @@ const General = () => {
   const [addAdditionalFeeToInvoice, setAddAdditionalFeeToInvoice] = useState<number>(1 || 2 || 3);
   const [invoiceExpiresIfNotPaidFullAmount, setInvoiceExpiresIfNotPaidFullAmount] = useState<number>(0);
   const [invoicePaidLessThanPrecent, setInvoicePaidLessThanPrecent] = useState<number>(0);
-  const [minimumExpiraionTimeForRefund, setMinimumExpiraionTimeForRefund] = useState<number>(0);
 
-  const { getStoreId } = useStorePresistStore((state) => state);
-  const { getUserId } = useUserPresistStore((state) => state);
+  const { resetUser } = useUserPresistStore((state) => state);
+  const { resetWallet } = useWalletPresistStore((state) => state);
+  const { getStoreId, resetStore } = useStorePresistStore((state) => state);
   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
 
   const VisuallyHiddenInput = styled('input')({
@@ -75,7 +76,6 @@ const General = () => {
         setAddAdditionalFeeToInvoice(response.data.add_additional_fee_to_invoice);
         setInvoiceExpiresIfNotPaidFullAmount(response.data.invoice_expires_if_not_paid_full_amount);
         setInvoicePaidLessThanPrecent(response.data.invoice_paid_less_than_precent);
-        setMinimumExpiraionTimeForRefund(response.data.minimum_expiraion_time_for_refund);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -109,7 +109,6 @@ const General = () => {
         add_additional_fee_to_invoice: addAdditionalFeeToInvoice,
         invoice_expires_if_not_paid_full_amount: invoiceExpiresIfNotPaidFullAmount,
         invoice_paid_less_than_precent: invoicePaidLessThanPrecent,
-        minimum_expiraion_time_for_refund: minimumExpiraionTimeForRefund,
       });
 
       if (response.result) {
@@ -138,13 +137,13 @@ const General = () => {
       });
 
       if (response.result) {
-        setSnackSeverity('success');
-        setSnackMessage('Archive successful!');
-        setSnackOpen(true);
-      } else {
-        setSnackSeverity('error');
-        setSnackMessage('The update failed, please try again later.');
-        setSnackOpen(true);
+        resetUser();
+        resetStore();
+        resetWallet();
+
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -161,12 +160,52 @@ const General = () => {
       });
 
       if (response.result) {
+        resetUser();
+        resetStore();
+        resetWallet();
+
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const uploadFile = async (data: any) => {
+    try {
+      if (!data || data.length !== 1) {
+        setSnackSeverity('error');
+        setSnackMessage('At least one file is required');
+        setSnackOpen(true);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', data[0]);
+
+      const response: any = await axios.post(Http.upload_file, formData, {
+        params: {
+          file_type: FILE_TYPE.Image,
+        },
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.result && response.data.urls[0] != '') {
+        setLogoUrl(response.data.urls[0]);
+
         setSnackSeverity('success');
-        setSnackMessage('Delete successful!');
+        setSnackMessage('Upload success');
         setSnackOpen(true);
       } else {
         setSnackSeverity('error');
-        setSnackMessage('The update failed, please try again later.');
+        setSnackMessage('Upload Failed');
         setSnackOpen(true);
       }
     } catch (e) {
@@ -206,20 +245,11 @@ const General = () => {
         <Box mt={4}>
           <Typography>Brand Color</Typography>
           <Box mt={1}>
-            <TextField
-              value={brandColor}
-              onChange={(e: any) => {
-                setBrandColor(e.target.value);
+            <SketchPicker
+              color={brandColor}
+              onChangeComplete={(e: any) => {
+                setBrandColor(e.hex);
               }}
-              hiddenLabel
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <AccountCircle />
-                  </InputAdornment>
-                ),
-              }}
-              variant="standard"
             />
           </Box>
         </Box>
@@ -234,7 +264,12 @@ const General = () => {
 
             <Button component="label" role={undefined} variant="contained" tabIndex={-1} startIcon={<CloudUpload />}>
               Upload file
-              <VisuallyHiddenInput type="file" />
+              <VisuallyHiddenInput
+                type="file"
+                onChange={async (event: any) => {
+                  await uploadFile(event.target.files);
+                }}
+              />
             </Button>
           </Box>
         </Box>
@@ -295,12 +330,24 @@ const General = () => {
             <Typography ml={2} pr={1}>
               Allow anyone to create invoice
             </Typography>
-            <Icon component={ReportGmailerrorredIcon} />
+            <IconButton
+              onClick={() => {
+                window.location.href = '#';
+              }}
+            >
+              <ReportGmailerrorred />
+            </IconButton>
           </Stack>
 
           <Stack direction={'row'} alignItems={'center'} mt={4}>
             <Typography pr={1}>Add additional fee (network fee) to invoice …</Typography>
-            <Icon component={ReportGmailerrorredIcon} />
+            <IconButton
+              onClick={() => {
+                window.location.href = '#';
+              }}
+            >
+              <ReportGmailerrorred />
+            </IconButton>
           </Stack>
 
           <Box mt={1}>
@@ -323,7 +370,13 @@ const General = () => {
           <Box mt={3}>
             <Stack direction={'row'} alignItems={'center'} mt={4}>
               <Typography pr={1}>Invoice expires if the full amount has not been paid after …</Typography>
-              <Icon component={ReportGmailerrorredIcon} />
+              <IconButton
+                onClick={() => {
+                  window.location.href = '#';
+                }}
+              >
+                <ReportGmailerrorred />
+              </IconButton>
             </Stack>
 
             <Box mt={1}>
@@ -350,7 +403,13 @@ const General = () => {
               <Typography pr={1}>
                 Consider the invoice paid even if the paid amount is ... % less than expected
               </Typography>
-              <Icon component={ReportGmailerrorredIcon} />
+              <IconButton
+                onClick={() => {
+                  window.location.href = '#';
+                }}
+              >
+                <ReportGmailerrorred />
+              </IconButton>
             </Stack>
 
             <Box mt={1}>
@@ -371,32 +430,8 @@ const General = () => {
             </Box>
           </Box>
 
-          <Box mt={3}>
-            <Stack direction={'row'} alignItems={'center'} mt={4}>
-              <Typography pr={1}>Minimum acceptable expiration time for BOLT11 for refunds</Typography>
-              <Icon component={ReportGmailerrorredIcon} />
-            </Stack>
-
-            <Box mt={1}>
-              <FormControl sx={{ width: '25ch' }} variant="outlined">
-                <OutlinedInput
-                  size={'small'}
-                  type="number"
-                  endAdornment={<InputAdornment position="end">days</InputAdornment>}
-                  aria-describedby="outlined-weight-helper-text"
-                  inputProps={{
-                    'aria-label': 'weight',
-                  }}
-                  value={minimumExpiraionTimeForRefund}
-                  onChange={(e: any) => {
-                    setMinimumExpiraionTimeForRefund(e.target.value);
-                  }}
-                />
-              </FormControl>
-            </Box>
-          </Box>
           <Box mt={4}>
-            <Button variant="contained" size="large" onClick={onClickSaveStore}>
+            <Button variant="contained" size="large" onClick={onClickSaveStore} color={'success'}>
               Save
             </Button>
           </Box>
@@ -406,11 +441,11 @@ const General = () => {
       <Box mt={6}>
         <Typography variant="h6">Additional Actions</Typography>
         <Stack mt={2} direction={'row'} columnGap={3}>
-          <Button variant="contained" onClick={onClickArchiveStore}>
+          <Button variant="contained" onClick={onClickArchiveStore} color={'warning'}>
             Archive this store
           </Button>
 
-          <Button variant="contained" onClick={onClickDeleteStore}>
+          <Button variant="contained" onClick={onClickDeleteStore} color={'error'}>
             Delete this store
           </Button>
         </Stack>

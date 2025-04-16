@@ -11,6 +11,8 @@ import {
 import { PrismaClient } from '@prisma/client';
 import { BLOCKSCAN } from 'packages/web3/block_scan';
 import { WEB3 } from 'packages/web3';
+import { WEBHOOK } from 'utils/webhook';
+import { EMAIL } from 'utils/email';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -86,6 +88,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
                 switch (invoice.source_type) {
                   case INVOICE_SOURCE_TYPE.Invoice:
+                    const notifyBody = {
+                      chain_id: invoice.chain_id,
+                      network: invoice.network,
+                      order_id: invoice.order_id,
+                      currency: invoice.currency,
+                      amount: invoice.amount,
+                      crypto: invoice.crypto,
+                      crypto_amount: invoice.crypto_amount,
+                      rate: invoice.rate,
+                      from_address: invoice.from_address,
+                      to_address: invoice.to_address,
+                      hash: invoice.hash,
+                      block_timestamp: invoice.block_timestamp,
+                      order_status: invoice.order_status,
+                    };
+                    if (invoice.notification_url && invoice.notification_url !== '') {
+                      // notify(webhook) to url
+                      await WEBHOOK.sendWebhook(invoice.notification_url, notifyBody);
+                    }
+
+                    if (invoice.notification_email && invoice.notification_email !== '') {
+                      // notify to email
+                      await EMAIL.sendInvoiceEmail(invoice.notification_email, notifyBody);
+                    }
                     break;
                   case INVOICE_SOURCE_TYPE.PaymentRequest:
                     const update_payment_request = await prisma.payment_requests.update({
