@@ -15,8 +15,12 @@ import {
   Typography,
 } from '@mui/material';
 import Link from 'next/link';
+import { USER_ROLE } from 'packages/constants';
+import { useState } from 'react';
 
 const Users = () => {
+  const [userRole, setUserRole] = useState<string>(USER_ROLE.Employee);
+
   return (
     <Box>
       <Box>
@@ -26,19 +30,23 @@ const Users = () => {
           <Link href={'/settings'}>roles</Link> for granted permissions.
         </Typography>
         <Stack direction={'row'} alignItems={'center'} gap={3} mt={4}>
-          <TextField fullWidth hiddenLabel defaultValue="" size="small" />
+          <TextField fullWidth hiddenLabel size="small"  placeholder='user@example.com'/>
           <Select
             size={'small'}
             inputProps={{ 'aria-label': 'Without label' }}
-            defaultValue={3}
-            //   value={age}
-            //   onChange={handleChange}
+            value={userRole}
+            onChange={(e) => {
+              setUserRole(e.target.value);
+            }}
           >
-            <MenuItem value={1}>Owner</MenuItem>
-            <MenuItem value={2}>Manager</MenuItem>
-            <MenuItem value={3}>Employee</MenuItem>
-            <MenuItem value={4}>Guest</MenuItem>
+            {USER_ROLE &&
+              Object.entries(USER_ROLE).map((item, index) => (
+                <MenuItem value={item[1]} key={index}>
+                  {item[1]}
+                </MenuItem>
+              ))}
           </Select>
+
           <Button variant={'contained'} style={{ width: 150 }}>
             Add User
           </Button>
@@ -58,7 +66,7 @@ function createData(id: number, email: string, role: string) {
   return { id, email, role };
 }
 
-const rows = [createData(1, 'aur-014@hotmail.com', 'Owner')];
+const rows = [createData(1, 'example@gmail.com', 'Owner')];
 
 function StoreUserTable() {
   return (

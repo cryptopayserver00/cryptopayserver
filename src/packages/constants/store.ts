@@ -585,3 +585,77 @@ export const FILE_TYPE = {
   Dev: 'Dev',
   Other: 'Other',
 };
+
+export const USER_ROLE = {
+  Owner: 'Owner',
+  Manager: 'Manager',
+  Employee: 'Employee',
+  Guest: 'Guest',
+};
+
+export const DEFAULT_USER_ROLE_PERMISSIONS = {
+  Owner: '1,2,3,4,5,6,7',
+  Manager: '2,3,4,5,6,7',
+  Employee: '3,4,6,7',
+  Guest: '4',
+};
+
+export type ROLEPERMISSION = {
+  id: number;
+  title: string;
+  tag: string;
+  description: string;
+  status?: boolean;
+};
+
+export const ROLEPERMISSIONS: ROLEPERMISSION[] = [
+  {
+    id: 1,
+    title: 'Modify your stores',
+    tag: '',
+    description: 'Allows managing invoices on all your stores and modify their settings.',
+    status: false,
+  },
+  {
+    id: 2,
+    title: 'Manage your pull payments',
+    tag: '',
+    description: 'Allows viewing, modifying, deleting and creating pull payments on all your stores.',
+    status: false,
+  },
+  {
+    id: 3,
+    title: 'Modify invoices',
+    tag: '',
+    description: 'Allows viewing and modifying invoices.',
+    status: false,
+  },
+  {
+    id: 4,
+    title: 'View your stores',
+    tag: '',
+    description: 'Allows viewing stores settings.',
+    status: false,
+  },
+  {
+    id: 5,
+    title: 'Modify stores webhooks',
+    tag: '',
+    description: 'Allows modifying the webhooks of all your stores.',
+    status: false,
+  },
+  {
+    id: 6,
+    title: 'Modify your payment requests',
+    tag: '',
+    description: 'Allows viewing, modifying, deleting and creating new payment requests on all your stores.',
+    status: false,
+  },
+  {
+    id: 7,
+    title: 'Manage payouts',
+    tag: '',
+    description: 'Allows managing payouts on all your stores.',
+    status: false,
+  },
+];

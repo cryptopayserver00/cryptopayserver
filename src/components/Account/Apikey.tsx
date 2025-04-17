@@ -52,7 +52,7 @@ const ApiKey = () => {
         return;
       }
 
-      const response: any = await axios.post(Http.create_apikeys_setting, {
+      const response: any = await axios.post(Http.create_apikey_setting, {
         user_id: getUserId(),
         store_id: getStoreId(),
         label: label,
@@ -199,7 +199,7 @@ function AccountApiKeyTable() {
 
   const init = async () => {
     try {
-      const response: any = await axios.get(Http.find_apikeys_setting, {
+      const response: any = await axios.get(Http.find_apikey_setting, {
         params: {
           user_id: getUserId(),
           store_id: getStoreId(),
@@ -249,7 +249,7 @@ function AccountApiKeyTable() {
 
   const onClickDelete = async (id: number) => {
     try {
-      const response: any = await axios.put(Http.delete_apikeys_setting_by_id, {
+      const response: any = await axios.put(Http.delete_apikey_setting_by_id, {
         id: id,
       });
 

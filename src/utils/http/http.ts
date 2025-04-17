@@ -15,10 +15,21 @@ export class Http {
   static login = this.httpPath + '/user/login';
   static send_reset_email = this.httpPath + '/user/send_reset_email';
 
-  // apikeys
-  static find_apikeys_setting = this.httpPath + '/apikeys/find_apikeys_setting';
-  static create_apikeys_setting = this.httpPath + '/apikeys/create_apikeys_setting';
-  static delete_apikeys_setting_by_id = this.httpPath + '/apikeys/delete_apikeys_setting_by_id';
+  // apikey
+  static find_apikey_setting = this.httpPath + '/apikey/find_apikey_setting';
+  static create_apikey_setting = this.httpPath + '/apikey/create_apikey_setting';
+  static delete_apikey_setting_by_id = this.httpPath + '/apikey/delete_apikey_setting_by_id';
+
+  // role
+  static find_role = this.httpPath + '/role/find_role';
+  static create_role = this.httpPath + '/role/create_role';
+  static update_role_by_id = this.httpPath + '/role/update_role_by_id';
+  static delete_role_by_id = this.httpPath + '/role/delete_role_by_id';
+
+  // user role
+  static find_user_roles = this.httpPath + '/userrole/find_user_role';
+  static create_user_roles = this.httpPath + '/userrole/create_user_role';
+  static delete_user_roles_by_id = this.httpPath + '/userrole/delete_user_role_by_id';
 
   // store
   static find_store = this.httpPath + '/store/find_store';
