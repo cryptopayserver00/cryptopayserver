@@ -11,10 +11,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const prisma = new PrismaClient();
         const id = req.body.id;
 
+        let updateData: { [key: string]: any } = {};
+
+        if (req.body.email !== undefined) updateData.email = req.body.email;
+        if (req.body.role !== undefined) updateData.role = req.body.role;
+
         const userrole = await prisma.user_roles.update({
-          data: {
-            status: 2,
-          },
+          data: updateData,
           where: {
             id: id,
             status: 1,
@@ -22,18 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         });
 
         if (!userrole) {
-          return res.status(200).json({
-            message: '',
-            result: false,
-            data: null,
-          });
+          return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({
-          message: '',
-          result: true,
-          data: null,
-        });
+        return res.status(200).json({ message: '', result: true, data: null });
 
       default:
         throw 'no support the method of api';

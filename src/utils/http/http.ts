@@ -29,7 +29,8 @@ export class Http {
   // user role
   static find_user_roles = this.httpPath + '/userrole/find_user_role';
   static create_user_roles = this.httpPath + '/userrole/create_user_role';
-  static delete_user_roles_by_id = this.httpPath + '/userrole/delete_user_role_by_id';
+  static update_userrole_by_id = this.httpPath + '/userrole/update_userrole_by_id';
+  static delete_user_role_by_id = this.httpPath + '/userrole/delete_user_role_by_id';
 
   // store
   static find_store = this.httpPath + '/store/find_store';

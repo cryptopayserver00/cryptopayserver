@@ -13,22 +13,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
 
-        const label = req.body.label;
-        const permissions = req.body.permissions;
-        const key = randomUUID().toString();
+        const role = req.body.role;
+        const email = req.body.email;
 
-        const apiKey = await prisma.api_key_settings.create({
+        const userRole = await prisma.user_roles.create({
           data: {
             user_id: userId,
             store_id: storeId,
-            label: label,
-            api_key: key,
-            permissions: permissions,
+            role: role,
+            email: email,
             status: 1,
           },
         });
 
-        if (!apiKey) {
+        if (!userRole) {
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
@@ -36,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           message: '',
           result: true,
           data: {
-            id: apiKey.id,
+            id: userRole.id,
           },
         });
 

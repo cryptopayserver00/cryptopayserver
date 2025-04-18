@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
+import { USER_ROLE } from 'packages/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -12,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const storeId = req.query.store_id;
         const userId = req.query.user_id;
 
-        const apiKeys = await prisma.api_key_settings.findMany({
+        const userRoles = await prisma.user_roles.findMany({
           where: {
             user_id: Number(userId),
             store_id: Number(storeId),
@@ -20,14 +21,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         });
 
-        if (!apiKeys) {
-          return res.status(200).json({ message: '', result: false, data: null });
+        if (userRoles.length === 0) {
+          // create default user role
+          const user = await prisma.users.findFirst({
+            where: {
+              id: Number(userId),
+            },
+          });
+
+          if (!user) {
+            return res.status(200).json({ message: '', result: false, data: null });
+          }
+
+          const default_user_roles = await prisma.user_roles.createMany({
+            data: [
+              {
+                user_id: Number(userId),
+                store_id: Number(storeId),
+                email: user.email,
+                role: USER_ROLE.Owner,
+                status: 1,
+              },
+            ],
+          });
+
+          if (!default_user_roles) {
+            return res.status(200).json({ message: '', result: false, data: null });
+          }
+
+          return res.status(200).json({ message: '', result: true, data: default_user_roles });
         }
 
-        return res.status(200).json({ message: '', result: true, data: apiKeys });
+        return res.status(200).json({ message: '', result: true, data: userRoles });
 
-      case 'POST':
-        break;
       default:
         throw 'no support the method of api';
     }
