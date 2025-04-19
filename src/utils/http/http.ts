@@ -63,8 +63,9 @@ export class Http {
   static delete_webhook_setting_by_id = this.httpPath + '/setting/delete_webhook_setting_by_id';
 
   // payout setting of store
-  static find_payout_setting_by_network = this.httpPath + '/setting/find_payout_setting_by_network';
-  static update_payout_setting_by_network = this.httpPath + '/setting/update_payout_setting_by_network';
+  static find_payout_setting = this.httpPath + '/setting/find_payout_setting';
+  static find_payout_setting_by_id = this.httpPath + '/setting/find_payout_setting_by_id';
+  static update_payout_setting_by_id = this.httpPath + '/setting/update_payout_setting_by_id';
 
   // email setting of store
   static find_email_setting = this.httpPath + '/setting/find_email_setting';

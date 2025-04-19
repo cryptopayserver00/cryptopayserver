@@ -20,19 +20,8 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import CryptoJS from 'crypto-js';
 import WebhookDataGrid from 'components/DataList/WebhookDataGrid';
 
-type WebhookType = {
-  id: number;
-  automaticRedelivery: number;
-  enabled: number;
-  eventType: number;
-  payloadUrl: string;
-  secret: string;
-  status: number;
-};
-
 const Webhooks = () => {
   const [IsWebhook, setIsWebhook] = useState<boolean>(false);
-  const [pageStatus, setPageStatus] = useState<'CREATE' | 'UPDATE'>('CREATE');
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -53,7 +42,28 @@ const Webhooks = () => {
 
   const onClickButton = async () => {
     try {
-      if (pageStatus === 'CREATE') {
+      if (modifyId && modifyId > 0) {
+        const response: any = await axios.put(Http.update_webhook_setting_by_id, {
+          id: modifyId,
+          payload_url: payloadUrl ? payloadUrl : '',
+          secret: secret ? secret : '',
+          automatic_redelivery: showAutomaticRedelivery ? 1 : 2,
+          enabled: showEnabled ? 1 : 2,
+          event_type: eventType ? eventType : '',
+        });
+
+        if (response.result) {
+          setSnackSeverity('success');
+          setSnackMessage('Update successful!');
+          setSnackOpen(true);
+
+          setIsWebhook(false);
+        } else {
+          setSnackSeverity('error');
+          setSnackMessage('Update failed!');
+          setSnackOpen(true);
+        }
+      } else {
         const response: any = await axios.post(Http.create_webhook_setting, {
           store_id: getStoreId(),
           user_id: getUserId(),
@@ -69,39 +79,10 @@ const Webhooks = () => {
           setSnackMessage('Save successful!');
           setSnackOpen(true);
 
-          clearInput();
-
-          // await init();
-
           setIsWebhook(false);
         } else {
           setSnackSeverity('error');
           setSnackMessage('Save failed!');
-          setSnackOpen(true);
-        }
-      } else if (pageStatus === 'UPDATE') {
-        const response: any = await axios.put(Http.update_webhook_setting_by_id, {
-          id: modifyId,
-          payload_url: payloadUrl ? payloadUrl : '',
-          secret: secret ? secret : '',
-          automatic_redelivery: showAutomaticRedelivery ? 1 : 2,
-          enabled: showEnabled ? 1 : 2,
-          event_type: eventType ? eventType : '',
-        });
-
-        if (response.result) {
-          setSnackSeverity('success');
-          setSnackMessage('Update successful!');
-          setSnackOpen(true);
-
-          clearInput();
-
-          // await init();
-
-          setIsWebhook(false);
-        } else {
-          setSnackSeverity('error');
-          setSnackMessage('Update failed!');
           setSnackOpen(true);
         }
       }
@@ -110,10 +91,13 @@ const Webhooks = () => {
       setSnackMessage('The network error occurred. Please try again later.');
       setSnackOpen(true);
       console.error(e);
+    } finally {
+      clearInput();
     }
   };
 
   const clearInput = () => {
+    setModifyId(0);
     setPayloadUrl('');
     setSecret('');
     setShowAutomaticRedelivery(false);
@@ -137,7 +121,6 @@ const Webhooks = () => {
               variant={'contained'}
               onClick={() => {
                 setIsWebhook(true);
-                setPageStatus('CREATE');
               }}
             >
               Create Webhook
@@ -150,7 +133,6 @@ const Webhooks = () => {
           <Box mt={2}>
             <WebhookDataGrid
               source="none"
-              setPageStatus={setPageStatus}
               setIsWebhook={setIsWebhook}
               setEventType={setEventType}
               setPayloadUrl={setPayloadUrl}
@@ -163,7 +145,19 @@ const Webhooks = () => {
         </Box>
       ) : (
         <Box>
-          <Typography variant="h6">Webhook Settings</Typography>
+          <Stack direction={'row'} justifyContent={'space-between'}>
+            <Typography variant="h6">Webhook Settings</Typography>
+            <Button
+              variant={'contained'}
+              onClick={() => {
+                clearInput();
+                setIsWebhook(false);
+              }}
+            >
+              Back
+            </Button>
+          </Stack>
+
           <Box mt={2}>
             <Typography>Payload URL</Typography>
             <Box mt={1}>
@@ -251,9 +245,8 @@ const Webhooks = () => {
               </Select>
             </Box>
             <Box mt={4}>
-              <Button variant={'contained'} size="large" onClick={onClickButton}>
-                {pageStatus === 'CREATE' && 'Add webhook'}
-                {pageStatus === 'UPDATE' && 'Update webhook'}
+              <Button variant={'contained'} size="large" onClick={onClickButton} color={'success'}>
+                Save
               </Button>
             </Box>
           </Box>

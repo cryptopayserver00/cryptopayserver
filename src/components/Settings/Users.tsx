@@ -21,10 +21,10 @@ import {
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
 import Link from 'next/link';
-import { USER_ROLE } from 'packages/constants';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
+import { IsValidEmail } from 'utils/verify';
 
 const Users = () => {
   const [email, setEmail] = useState<string>('');
@@ -40,7 +40,14 @@ const Users = () => {
     try {
       setRefresh(false);
 
-      if (!userRole || !email) {
+      if (!userRole) {
+        return;
+      }
+
+      if (!email || email === '' || !IsValidEmail(email)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect email input');
+        setSnackOpen(true);
         return;
       }
 

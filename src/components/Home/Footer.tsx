@@ -4,7 +4,7 @@ import Link from 'next/link';
 const Footer = () => {
   return (
     <Box mt={20} pb={2}>
-      <Container maxWidth={'md'}>
+      <Container>
         <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
           <Grid container color={'#8f979e'} gap={2}>
             <Grid item>

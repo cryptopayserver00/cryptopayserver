@@ -1,3 +1,4 @@
+import { Check, Clear } from '@mui/icons-material';
 import { Button, Stack } from '@mui/material';
 import Box from '@mui/material/Box';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
@@ -20,7 +21,6 @@ type RowType = {
 type GridType = {
   source: 'dashboard' | 'none';
   setIsWebhook: (value: boolean) => void;
-  setPageStatus: (vakue: 'CREATE' | 'UPDATE') => void;
   setPayloadUrl: (value: string) => void;
   setSecret: (value: string) => void;
   setShowAutomaticRedelivery: (value: boolean) => void;
@@ -47,7 +47,7 @@ export default function WebhookDataGrid(props: GridType) {
 
   const onClickTest = async (params: any) => {
     try {
-      await axios.get(params.row.payloadUrl);
+      await axios.get(params.payloadUrl);
 
       setSnackSeverity('success');
       setSnackMessage('Testing successful!');
@@ -61,14 +61,13 @@ export default function WebhookDataGrid(props: GridType) {
   };
 
   const onClickModify = async (params: any) => {
-    if (params.row) {
-      props.setModifyId(params.row.webhookId);
-      props.setEventType(params.row.eventType);
-      props.setPayloadUrl(params.row.payloadUrl);
-      props.setSecret(params.row.secret);
-      props.setShowAutomaticRedelivery(params.row.automaticRedelivery === 1 ? true : false);
-      props.setShowEnabled(params.row.enabled === 1 ? true : false);
-      props.setPageStatus('UPDATE');
+    if (params) {
+      props.setModifyId(params.webhookId);
+      props.setEventType(params.eventType);
+      props.setPayloadUrl(params.payloadUrl);
+      props.setSecret(params.secret);
+      props.setShowAutomaticRedelivery(params.automaticRedelivery === 1 ? true : false);
+      props.setShowEnabled(params.enabled === 1 ? true : false);
       props.setIsWebhook(true);
     }
   };
@@ -76,7 +75,7 @@ export default function WebhookDataGrid(props: GridType) {
   const onClickDelete = async (params: any) => {
     try {
       const response: any = await axios.put(Http.delete_webhook_setting_by_id, {
-        id: params.row.webhookId,
+        id: params.webhookId,
       });
 
       if (response.result) {
@@ -85,12 +84,6 @@ export default function WebhookDataGrid(props: GridType) {
         setSnackOpen(true);
 
         await init();
-
-        // if (ws && ws.length > 0) {
-        //   setRows(ws);
-        // } else {
-        //   window.location.reload();
-        // }
       } else {
         setSnackSeverity('error');
         setSnackMessage('Delete failed!');
@@ -105,17 +98,16 @@ export default function WebhookDataGrid(props: GridType) {
   };
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
-    { field: 'id', headerName: 'ID', width: 50 },
     {
-      field: 'status',
+      field: 'enabled',
       headerName: 'Status',
       width: 200,
-      valueGetter: (value, row) => (value === 1 ? 'TRUE' : 'FALSE'),
+      renderCell: (params) => (params.value === 1 ? <Check color="success" /> : <Clear color={'error'} />),
     },
     {
       field: 'payloadUrl',
       headerName: 'Url',
-      width: 200,
+      width: 300,
     },
     {
       field: 'actions',

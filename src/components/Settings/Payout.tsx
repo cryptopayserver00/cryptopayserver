@@ -17,9 +17,10 @@ import {
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
 import { CHAINS } from 'packages/constants/blockchain';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
+import { FindChainNamesByChains } from 'utils/web3';
 
 const Payout = () => {
   const [id, setId] = useState<number>(0);
@@ -30,13 +31,15 @@ const Payout = () => {
   const [feeBlockTarget, setFeeBlockTarget] = useState<number>(0);
   const [threshold, setThreshold] = useState<number>(0);
 
-  const { getStoreId } = useStorePresistStore((state) => state);
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state);
   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
 
   const onClickSave = async () => {
     try {
-      const response: any = await axios.put(Http.update_payout_setting_by_network, {
+      if (!id) {
+        return;
+      }
+
+      const response: any = await axios.put(Http.update_payout_setting_by_id, {
         id: id,
         show_approve_payout_process: showApprovePayoutProcess ? 1 : 2,
         interval: interval,
@@ -60,7 +63,18 @@ const Payout = () => {
       setSnackMessage('The network error occurred. Please try again later.');
       setSnackOpen(true);
       console.error(e);
+    } finally {
+      clearData();
     }
+  };
+
+  const clearData = () => {
+    setId(0);
+    setConfigureChain(CHAINS.BITCOIN);
+    setShowApprovePayoutProcess(false);
+    setInterval(0);
+    setFeeBlockTarget(0);
+    setThreshold(0);
   };
 
   return (
@@ -92,8 +106,19 @@ const Payout = () => {
         </Box>
       ) : (
         <Box>
-          <Typography variant="h6">Payout Processors</Typography>
-          <Typography mt={2}>Set a schedule for automated Payouts.</Typography>
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+            <Typography variant="h6">{FindChainNamesByChains(configureChain)} Payout Processors</Typography>
+            <Button
+              variant={'contained'}
+              onClick={() => {
+                clearData();
+                setIsConfigure(false);
+              }}
+            >
+              back
+            </Button>
+          </Stack>
+          <Typography mt={2}>Set a schedule for automated {FindChainNamesByChains(configureChain)} Payouts.</Typography>
           <Stack direction={'row'} alignItems={'center'} mt={1}>
             <Switch
               checked={showApprovePayoutProcess}
@@ -168,7 +193,7 @@ const Payout = () => {
           </Box>
 
           <Box mt={5}>
-            <Button size="large" variant={'contained'} onClick={onClickSave}>
+            <Button size="large" variant={'contained'} onClick={onClickSave} color={'success'}>
               Save
             </Button>
           </Box>
@@ -180,16 +205,6 @@ const Payout = () => {
 
 export default Payout;
 
-function createData(id: number, paymentMethod: string, chain: CHAINS) {
-  return { id, paymentMethod, chain };
-}
-
-const rows = [
-  createData(1, 'BTC (On-Chain)', CHAINS.BITCOIN),
-  createData(2, 'Ethereum', CHAINS.ETHEREUM),
-  createData(3, 'Solana', CHAINS.SOLANA),
-];
-
 type TableType = {
   setId: (value: number) => void;
   setIsConfigure: (value: boolean) => void;
@@ -200,42 +215,79 @@ type TableType = {
   setThreshold: (value: number) => void;
 };
 
+type RowType = {
+  id: number;
+  pid: number;
+  chainId: CHAINS;
+  showApprovePayoutProcess: boolean;
+  interval: number;
+  feeBlockTarget: number;
+  threshold: number;
+};
+
 function StorePayoutTable(props: TableType) {
+  const [rows, setRows] = useState<RowType[]>([]);
+
   const { getStoreId } = useStorePresistStore((state) => state);
   const { getUserId, getNetwork } = useUserPresistStore((state) => state);
 
   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
 
-  const onClickConfigure = async (rows: any) => {
-    if (rows.chain && rows.chain > 0) {
-      try {
-        const response: any = await axios.get(Http.find_payout_setting_by_network, {
-          params: {
-            store_id: getStoreId(),
-            user_id: getUserId(),
-            network: getNetwork() === 'mainnnet' ? 1 : 2,
-            chain_id: rows.chain,
-          },
-        });
+  const onClickConfigure = async (row: RowType) => {
+    props.setId(row.pid);
+    props.setConfigureChain(row.chainId);
+    props.setShowApprovePayoutProcess(row.showApprovePayoutProcess);
+    props.setInterval(row.interval);
+    props.setFeeBlockTarget(row.feeBlockTarget);
+    props.setThreshold(row.threshold);
 
-        if (response.result) {
-          props.setId(response.data.id);
-          props.setConfigureChain(response.data.chain_id);
-          props.setShowApprovePayoutProcess(response.data.show_approve_payout_process === 1 ? true : false);
-          props.setInterval(response.data.interval);
-          props.setFeeBlockTarget(response.data.fee_block_target);
-          props.setThreshold(response.data.threshold);
+    props.setIsConfigure(true);
+  };
 
-          props.setIsConfigure(true);
+  const findPayout = async () => {
+    try {
+      const response: any = await axios.get(Http.find_payout_setting, {
+        params: {
+          user_id: getUserId(),
+          store_id: getStoreId(),
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+
+      if (response.result) {
+        if (response.data.length > 0) {
+          let rt: RowType[] = [];
+          response.data.forEach(async (item: any, index: number) => {
+            rt.push({
+              id: index + 1,
+              pid: item.id,
+              chainId: item.chain_id,
+              showApprovePayoutProcess: item.show_approve_payout_process === 1 ? true : false,
+              interval: item.interval,
+              feeBlockTarget: item.fee_block_target,
+              threshold: item.threshold,
+            });
+          });
+          setRows(rt);
+        } else {
+          setRows([]);
         }
-      } catch (e) {
-        setSnackSeverity('error');
-        setSnackMessage('The network error occurred. Please try again later.');
-        setSnackOpen(true);
-        console.error(e);
       }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
     }
   };
+
+  const init = async () => {
+    await findPayout();
+  };
+
+  useEffect(() => {
+    init();
+  }, []);
 
   return (
     <TableContainer component={Paper}>
@@ -252,7 +304,7 @@ function StorePayoutTable(props: TableType) {
               {rows.map((row) => (
                 <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                   <TableCell component="th" scope="row">
-                    {row.paymentMethod}
+                    {FindChainNamesByChains(row.chainId)}
                   </TableCell>
                   <TableCell align="right">
                     <Button
