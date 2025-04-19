@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
 
-        const tigger = req.body.tigger;
+        const trigger = req.body.trigger;
         const recipients = req.body.recipients;
         const showSendToBuyer = req.body.show_send_to_buyer;
         const subject = req.body.subject;
@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           data: {
             user_id: userId,
             store_id: storeId,
-            tigger: tigger,
+            trigger: trigger,
             recipients: recipients,
             show_send_to_buyer: showSendToBuyer,
             subject: subject,

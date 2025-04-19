@@ -659,3 +659,83 @@ export const ROLEPERMISSIONS: ROLEPERMISSION[] = [
     status: false,
   },
 ];
+
+export type EMAIL_RULE_TIGGER_DATA = {
+  id: number;
+  title: string;
+};
+
+export const EMAIL_RULE_TIGGER_DATAS: EMAIL_RULE_TIGGER_DATA[] = [
+  {
+    id: 1,
+    title: 'Invoice - Became Invalid',
+  },
+  {
+    id: 2,
+    title: 'Invoice - Created',
+  },
+  {
+    id: 3,
+    title: 'Invoice - Expired',
+  },
+  {
+    id: 4,
+    title: 'Invoice - Is Processing',
+  },
+  {
+    id: 5,
+    title: 'Invoice - Is Settled',
+  },
+  {
+    id: 6,
+    title: 'Invoice - Payment Settled',
+  },
+  {
+    id: 7,
+    title: 'Invoice - Received Payment',
+  },
+  {
+    id: 8,
+    title: 'Payment Request - Archived',
+  },
+  {
+    id: 9,
+    title: 'Payment Request - Created',
+  },
+  {
+    id: 10,
+    title: 'Payment Request - Status Changed',
+  },
+  {
+    id: 11,
+    title: 'Payment Request - Updated',
+  },
+  {
+    id: 12,
+    title: 'Payout - Approved',
+  },
+  {
+    id: 13,
+    title: 'Payout - Created',
+  },
+  {
+    id: 14,
+    title: 'Payout - Updated',
+  },
+  {
+    id: 15,
+    title: 'Pending Transaction - Broadcast',
+  },
+  {
+    id: 16,
+    title: 'Pending Transaction - Cancelled',
+  },
+  {
+    id: 17,
+    title: 'Pending Transaction - Created',
+  },
+  {
+    id: 18,
+    title: 'Pending Transaction - Signature Collected',
+  },
+];

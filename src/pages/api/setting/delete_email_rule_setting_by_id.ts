@@ -7,15 +7,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     await CorsMiddleware(req, res, CorsMethod);
 
     switch (req.method) {
-      case 'GET':
+      case 'PUT':
         const prisma = new PrismaClient();
-        const storeId = req.query.store_id;
-        const userId = req.query.user_id;
+        const id = req.body.id;
 
-        const email_rule_setting = await prisma.email_rule_settings.findMany({
+        const email_rule_setting = await prisma.email_rule_settings.update({
+          data: {
+            status: 2,
+          },
           where: {
-            user_id: Number(userId),
-            store_id: Number(storeId),
+            id: id,
             status: 1,
           },
         });
@@ -24,17 +25,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({
-          message: '',
-          result: true,
-          data: email_rule_setting,
-        });
+        return res.status(200).json({ message: '', result: true, data: null });
 
       default:
         throw 'no support the method of api';
     }
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ message: '', result: false, data: e });
+    return res.status(500).json({ message: 'no support the api', result: false, data: e });
   }
 }

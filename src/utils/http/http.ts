@@ -76,6 +76,7 @@ export class Http {
   static find_email_rule_setting = this.httpPath + '/setting/find_email_rule_setting';
   static update_email_rule_setting = this.httpPath + '/setting/update_email_rule_setting';
   static create_email_rule_setting = this.httpPath + '/setting/create_email_rule_setting';
+  static delete_email_rule_setting_by_id = this.httpPath + '/setting/delete_email_rule_setting_by_id';
 
   // payment setting
   static find_payment_setting_by_chain_id = this.httpPath + '/setting/find_payment_setting_by_chain_id';

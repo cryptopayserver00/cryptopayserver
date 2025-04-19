@@ -14,15 +14,25 @@ import {
   Switch,
   TextField,
   Typography,
+  Alert,
+  AlertTitle,
+  TableContainer,
+  Paper,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
 import Link from 'next/link';
+import { EMAIL_RULE_TIGGER_DATA, EMAIL_RULE_TIGGER_DATAS } from 'packages/constants';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 
 const Emails = () => {
-  const [isConfigure, setIsConfigure] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
   const [id, setId] = useState<number>(0);
   const [smtpServer, setSmtpServer] = useState<string>('');
   const [port, setPort] = useState<number>(0);
@@ -33,7 +43,7 @@ const Emails = () => {
   const [testEmail, setTestEmail] = useState<string>('');
 
   const [ruleId, setRuleId] = useState<number>(0);
-  const [tigger, setTigger] = useState<number>(1);
+  const [trigger, setTrigger] = useState<EMAIL_RULE_TIGGER_DATA>();
   const [recipients, setRecipients] = useState<string>('');
   const [subject, setSubject] = useState<string>('');
   const [body, setBody] = useState<string>('');
@@ -59,12 +69,25 @@ const Emails = () => {
     setAnchorEl(null);
   };
 
+  const clearData = () => {
+    setRuleId(0);
+    setTrigger(undefined);
+    setRecipients('');
+    setShowSendToBuyer(false);
+    setSubject('');
+    setBody('');
+  };
+
   const onClickSaveRule = async () => {
     try {
+      if (!trigger || !recipients || !subject || !body) {
+        return;
+      }
+
       if (ruleId && ruleId > 0) {
         const response: any = await axios.put(Http.update_email_rule_setting, {
           id: ruleId,
-          tigger: tigger,
+          trigger: trigger,
           recipients: recipients,
           show_send_to_buyer: showSendToBuyer ? 1 : 2,
           subject: subject,
@@ -77,6 +100,7 @@ const Emails = () => {
           setSnackOpen(true);
 
           await init();
+          setPage(2);
         } else {
           setSnackSeverity('error');
           setSnackMessage('Update failed!');
@@ -86,7 +110,7 @@ const Emails = () => {
         const response: any = await axios.post(Http.create_email_rule_setting, {
           store_id: getStoreId(),
           user_id: getUserId(),
-          tigger: tigger,
+          trigger: trigger,
           recipients: recipients,
           show_send_to_buyer: showSendToBuyer ? 1 : 2,
           subject: subject,
@@ -99,6 +123,7 @@ const Emails = () => {
           setSnackOpen(true);
 
           await init();
+          setPage(2);
         } else {
           setSnackSeverity('error');
           setSnackMessage('Save failed!');
@@ -110,13 +135,19 @@ const Emails = () => {
       setSnackMessage('The network error occurred. Please try again later.');
       setSnackOpen(true);
       console.error(e);
+    } finally {
+      clearData();
     }
   };
 
   const onClickTestEmail = async () => {};
 
-  const onClickSave = async () => {
+  const onClickSaveEmailServer = async () => {
     try {
+      if (!smtpServer || !port || !senderEmailAddress || !login || !password) {
+        return;
+      }
+
       if (id && id > 0) {
         const response: any = await axios.put(Http.update_email_setting, {
           id: id,
@@ -195,29 +226,6 @@ const Emails = () => {
       setSnackOpen(true);
       console.error(e);
     }
-
-    try {
-      const response: any = await axios.get(Http.find_email_rule_setting, {
-        params: {
-          store_id: getStoreId(),
-          user_id: getUserId(),
-        },
-      });
-
-      if (response.result) {
-        setRuleId(response.data.id);
-        setTigger(response.data.tigger);
-        setRecipients(response.data.recipients);
-        setShowSendToBuyer(response.data.show_send_to_buyer === 1 ? true : false);
-        setSubject(response.data.subject);
-        setBody(response.data.body);
-      }
-    } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
-    }
   };
 
   useEffect(() => {
@@ -227,65 +235,261 @@ const Emails = () => {
 
   return (
     <Box>
-      <Box>
-        <Stack direction={'row'} justifyContent={'space-between'}>
-          <Typography variant="h6">Email Rules</Typography>
-          {isConfigure ? (
-            <Button
-              variant={'contained'}
-              onClick={() => {
-                onClickSaveRule();
+      {page === 1 && (
+        <Box>
+          <Typography variant="h6">Email Server</Typography>
+          <Box mt={2}>
+            <Typography mb={1}>SMTP Server</Typography>
+            <TextField
+              fullWidth
+              hiddenLabel
+              size="small"
+              value={smtpServer}
+              onChange={(e: any) => {
+                setSmtpServer(e.target.value);
               }}
-            >
+            />
+          </Box>
+
+          <Box mt={2}>
+            <Typography mb={1}>Port</Typography>
+            <FormControl fullWidth variant="outlined">
+              <OutlinedInput
+                size={'small'}
+                type="number"
+                aria-describedby="outlined-weight-helper-text"
+                inputProps={{
+                  'aria-label': 'weight',
+                }}
+                value={port}
+                onChange={(e: any) => {
+                  setPort(e.target.value);
+                }}
+              />
+            </FormControl>
+          </Box>
+          <Box mt={2}>
+            <Typography mb={1}>Sender&apos;s Email Address</Typography>
+            <FormControl fullWidth variant="outlined">
+              <OutlinedInput
+                size={'small'}
+                aria-describedby="outlined-weight-helper-text"
+                inputProps={{
+                  'aria-label': 'weight',
+                }}
+                value={senderEmailAddress}
+                onChange={(e: any) => {
+                  setSenderEmailAddress(e.target.value);
+                }}
+              />
+            </FormControl>
+          </Box>
+          <Box mt={2}>
+            <Typography mb={1}>Login</Typography>
+            <FormControl fullWidth variant="outlined">
+              <OutlinedInput
+                size={'small'}
+                aria-describedby="outlined-weight-helper-text"
+                inputProps={{
+                  'aria-label': 'weight',
+                }}
+                value={login}
+                onChange={(e: any) => {
+                  setLogin(e.target.value);
+                }}
+              />
+            </FormControl>
+            <Typography fontSize={14}>
+              For many email providers (like Gmail) your login is your email address.
+            </Typography>
+          </Box>
+          <Box mt={2}>
+            <Typography mb={1}>Password</Typography>
+            <FormControl fullWidth variant="outlined">
+              <OutlinedInput
+                size={'small'}
+                type={showPassword ? 'text' : 'password'}
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleClickShowPassword}
+                      onMouseDown={handleMouseDownPassword}
+                    >
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                }
+                aria-describedby="outlined-weight-helper-text"
+                inputProps={{
+                  'aria-label': 'weight',
+                }}
+                value={password}
+                onChange={(e: any) => {
+                  setPassword(e.target.value);
+                }}
+              />
+            </FormControl>
+          </Box>
+          <Stack direction={'row'} alignItems={'center'} mt={2}>
+            <Switch
+              checked={showTls}
+              onChange={() => {
+                setShowTls(!showTls);
+              }}
+            />
+            <Typography ml={1}>TLS certificate security checks</Typography>
+          </Stack>
+
+          <Box mt={4}>
+            <Button variant={'contained'} size="large" onClick={onClickSaveEmailServer} color="success">
               Save
             </Button>
-          ) : (
+          </Box>
+
+          <Box mt={6}>
+            <Typography variant={'h6'}>Testing</Typography>
+            <Box mt={2}>
+              <Typography mb={1}>To test your settings, enter an email address</Typography>
+              <FormControl fullWidth variant="outlined">
+                <OutlinedInput
+                  size={'small'}
+                  aria-describedby="outlined-weight-helper-text"
+                  inputProps={{
+                    'aria-label': 'weight',
+                  }}
+                  value={testEmail}
+                  onChange={(e) => {
+                    setTestEmail(testEmail);
+                  }}
+                />
+              </FormControl>
+            </Box>
+
+            <Box mt={4}>
+              <Button variant={'contained'} size="large" onClick={onClickTestEmail}>
+                Send Test Email
+              </Button>
+            </Box>
+          </Box>
+
+          <Box mt={5}>
+            <Typography variant="h6">Email Rules</Typography>
+            <Typography mt={1} mb={4}>
+              <Link href={'#'}>Email rules</Link> allow CryptoPay Server to send customized emails from your store based
+              on events.
+            </Typography>
             <Button
               variant={'contained'}
               onClick={() => {
-                setIsConfigure(true);
+                setPage(2);
               }}
+              size="large"
             >
               Configure
             </Button>
-          )}
-        </Stack>
-        <Typography mt={3}>
-          <Link href={'#'}>Email rules</Link> allow CryptoPay Server to send customized emails from your store based on
-          events.
-        </Typography>
-      </Box>
+          </Box>
+        </Box>
+      )}
 
-      {isConfigure ? (
-        <Box mt={5}>
-          <Typography>Tigger*</Typography>
-          <FormControl hiddenLabel size="small" fullWidth>
-            <Select
-              value={tigger}
-              onChange={(e: any) => {
-                setTigger(e.target.value);
+      {page === 2 && (
+        <Box>
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+            <Typography variant="h6">Email Rules</Typography>
+            <Stack direction={'row'} alignItems={'center'} gap={1}>
+              <Button
+                variant={'contained'}
+                onClick={() => {
+                  setPage(1);
+                }}
+              >
+                back
+              </Button>
+              <Button
+                variant={'contained'}
+                onClick={() => {
+                  setPage(3);
+                }}
+                color="success"
+              >
+                create email rule
+              </Button>
+            </Stack>
+          </Stack>
+
+          {!id && (
+            <Box my={2}>
+              <Alert severity="warning">
+                <Typography>
+                  You need to configure email settings before this feature works.
+                  <Link
+                    onClick={() => {
+                      setPage(1);
+                    }}
+                    href={'#'}
+                  >
+                    Configure store email settings.
+                  </Link>
+                </Typography>
+              </Alert>
+            </Box>
+          )}
+
+          <Typography>
+            Email rules allow Cryptopay Server to send customized emails from your store based on events.
+          </Typography>
+
+          <Box mt={5}>
+            <EmailRuleTable
+              setRuleId={setRuleId}
+              setTrigger={setTrigger}
+              setRecipients={setRecipients}
+              setSubject={setSubject}
+              setBody={setBody}
+              setShowSendToBuyer={setShowSendToBuyer}
+              setPage={setPage}
+            />
+          </Box>
+        </Box>
+      )}
+
+      {page === 3 && (
+        <Box>
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+            <Typography variant="h6">Create Email Rule</Typography>
+            <Button
+              variant={'contained'}
+              onClick={() => {
+                setPage(2);
+                clearData();
               }}
             >
-              <MenuItem value={1}>A new invoice has been created</MenuItem>
-              <MenuItem value={2}>A new payment has been received</MenuItem>
-              <MenuItem value={3}>A payment has been settled</MenuItem>
-              <MenuItem value={4}>An invoice is processing</MenuItem>
-              <MenuItem value={5}>An invoice has expired</MenuItem>
-              <MenuItem value={6}>An invoice has been settled</MenuItem>
-              <MenuItem value={7}>An invoice became invalid</MenuItem>
-              <MenuItem value={8}>A payout has been created</MenuItem>
-              <MenuItem value={9}>A payout has been approved</MenuItem>
-              <MenuItem value={10}>A payout was updated</MenuItem>
-              <MenuItem value={11}>Payment Request Created</MenuItem>
-              <MenuItem value={12}>Payment Request Updated</MenuItem>
-              <MenuItem value={13}>Payment Request Archived</MenuItem>
-              <MenuItem value={14}>Payment Request Status Changed</MenuItem>
+              Cancel
+            </Button>
+          </Stack>
+          <Typography mt={4} mb={1}>
+            Tigger*
+          </Typography>
+          <FormControl hiddenLabel size="small" fullWidth>
+            <Select
+              value={trigger}
+              onChange={(e: any) => {
+                setTrigger(e.target.value);
+              }}
+            >
+              {EMAIL_RULE_TIGGER_DATAS &&
+                EMAIL_RULE_TIGGER_DATAS.length > 0 &&
+                EMAIL_RULE_TIGGER_DATAS.map((item, index) => (
+                  <MenuItem value={item.id} key={index}>
+                    {item.title}
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
           <Typography fontSize={14}>Choose what event sends the email.</Typography>
 
           <Box mt={2}>
-            <Typography>Recipients</Typography>
+            <Typography mb={1}>Recipients</Typography>
             <TextField
               fullWidth
               hiddenLabel
@@ -309,7 +513,7 @@ const Emails = () => {
           </Stack>
 
           <Box mt={2}>
-            <Typography>Subject*</Typography>
+            <Typography mb={1}>Subject*</Typography>
             <TextField
               fullWidth
               hiddenLabel
@@ -322,7 +526,7 @@ const Emails = () => {
           </Box>
 
           <Box mt={2}>
-            <Typography>Body*</Typography>
+            <Typography mb={1}>Body*</Typography>
             <TextField
               id="outlined-multiline-flexible"
               fullWidth
@@ -338,181 +542,9 @@ const Emails = () => {
           </Box>
 
           <Box mt={5}>
-            <Button variant={'contained'} size="large">
-              Test
+            <Button variant={'contained'} size="large" color="success" onClick={onClickSaveRule}>
+              Save
             </Button>
-          </Box>
-        </Box>
-      ) : (
-        <Box>
-          <Box mt={5}>
-            <Typography variant="h6">Email Server</Typography>
-
-            <Box mt={2}>
-              <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                <Typography>SMTP Server</Typography>
-                {/* <Button
-              aria-controls={open ? 'demo-positioned-menu' : undefined}
-              aria-haspopup="true"
-              aria-expanded={open ? 'true' : undefined}
-              onClick={handleClick}
-              endIcon={<KeyboardArrowDown />}
-            >
-              Quick Fill
-            </Button>
-            <Menu
-              aria-labelledby="demo-positioned-button"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-              }}
-            >
-              <MenuItem onClick={handleClose}>Gamil.com</MenuItem>
-              <MenuItem onClick={handleClose}>Yahoo.com</MenuItem>
-              <MenuItem onClick={handleClose}>Outlook.com</MenuItem>
-            </Menu> */}
-              </Stack>
-              <TextField
-                fullWidth
-                hiddenLabel
-                size="small"
-                value={smtpServer}
-                onChange={(e: any) => {
-                  setSmtpServer(e.target.value);
-                }}
-              />
-            </Box>
-
-            <Box mt={2}>
-              <Typography>Port</Typography>
-              <FormControl fullWidth variant="outlined">
-                <OutlinedInput
-                  size={'small'}
-                  type="number"
-                  aria-describedby="outlined-weight-helper-text"
-                  inputProps={{
-                    'aria-label': 'weight',
-                  }}
-                  value={port}
-                  onChange={(e: any) => {
-                    setPort(e.target.value);
-                  }}
-                />
-              </FormControl>
-            </Box>
-            <Box mt={2}>
-              <Typography>Sender&apos;s Email Address</Typography>
-              <FormControl fullWidth variant="outlined">
-                <OutlinedInput
-                  size={'small'}
-                  aria-describedby="outlined-weight-helper-text"
-                  inputProps={{
-                    'aria-label': 'weight',
-                  }}
-                  value={senderEmailAddress}
-                  onChange={(e: any) => {
-                    setSenderEmailAddress(e.target.value);
-                  }}
-                />
-              </FormControl>
-            </Box>
-            <Box mt={2}>
-              <Typography>Login</Typography>
-              <Box mt={1}>
-                <FormControl fullWidth variant="outlined">
-                  <OutlinedInput
-                    size={'small'}
-                    aria-describedby="outlined-weight-helper-text"
-                    inputProps={{
-                      'aria-label': 'weight',
-                    }}
-                    value={login}
-                    onChange={(e: any) => {
-                      setLogin(e.target.value);
-                    }}
-                  />
-                </FormControl>
-              </Box>
-              <Typography fontSize={14}>
-                For many email providers (like Gmail) your login is your email address.
-              </Typography>
-            </Box>
-            <Box mt={2}>
-              <Typography>Password</Typography>
-              <FormControl fullWidth variant="outlined">
-                <OutlinedInput
-                  size={'small'}
-                  type={showPassword ? 'text' : 'password'}
-                  endAdornment={
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        onMouseDown={handleMouseDownPassword}
-                      >
-                        {showPassword ? <Visibility /> : <VisibilityOff />}
-                      </IconButton>
-                    </InputAdornment>
-                  }
-                  aria-describedby="outlined-weight-helper-text"
-                  inputProps={{
-                    'aria-label': 'weight',
-                  }}
-                  value={password}
-                  onChange={(e: any) => {
-                    setPassword(e.target.value);
-                  }}
-                />
-              </FormControl>
-            </Box>
-            <Stack direction={'row'} alignItems={'center'} mt={2}>
-              <Switch
-                checked={showTls}
-                onChange={() => {
-                  setShowTls(!showTls);
-                }}
-              />
-              <Typography ml={1}>TLS certificate security checks</Typography>
-            </Stack>
-
-            <Box mt={4}>
-              <Button variant={'contained'} size="large" onClick={onClickSave}>
-                Save
-              </Button>
-            </Box>
-          </Box>
-
-          <Box mt={6}>
-            <Typography variant={'h6'}>Testing</Typography>
-            <Box mt={2}>
-              <Typography>To test your settings, enter an email address</Typography>
-              <FormControl fullWidth variant="outlined">
-                <OutlinedInput
-                  size={'small'}
-                  aria-describedby="outlined-weight-helper-text"
-                  inputProps={{
-                    'aria-label': 'weight',
-                  }}
-                  value={testEmail}
-                  onChange={(e) => {
-                    setTestEmail(testEmail);
-                  }}
-                />
-              </FormControl>
-            </Box>
-
-            <Box mt={4}>
-              <Button variant={'contained'} size="large" onClick={onClickTestEmail}>
-                Send Test Email
-              </Button>
-            </Box>
           </Box>
         </Box>
       )}
@@ -521,3 +553,162 @@ const Emails = () => {
 };
 
 export default Emails;
+
+type RowType = {
+  id: number;
+  rid: number;
+  trigger: EMAIL_RULE_TIGGER_DATA;
+  triggerid: number;
+  to: string;
+  subject: string;
+  body: string;
+  showSendToBuyer: boolean;
+};
+
+type TableType = {
+  setRuleId: (value: number) => void;
+  setTrigger: (value: EMAIL_RULE_TIGGER_DATA) => void;
+  setRecipients: (value: string) => void;
+  setSubject: (value: string) => void;
+  setBody: (value: string) => void;
+  setShowSendToBuyer: (value: boolean) => void;
+  setPage: (value: number) => void;
+};
+
+function EmailRuleTable(props: TableType) {
+  const [rows, setRows] = useState<RowType[]>([]);
+
+  const { getUserId } = useUserPresistStore((state) => state);
+  const { getStoreId } = useStorePresistStore((state) => state);
+  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
+
+  const init = async () => {
+    try {
+      const response: any = await axios.get(Http.find_email_rule_setting, {
+        params: {
+          user_id: getUserId(),
+          store_id: getStoreId(),
+        },
+      });
+
+      if (response.result) {
+        if (response.data.length > 0) {
+          let rt: RowType[] = [];
+          response.data.forEach(async (item: any, index: number) => {
+            rt.push({
+              id: index + 1,
+              rid: item.id,
+              trigger: item.trigger,
+              triggerid: item.trigger,
+              to: item.recipients,
+              subject: item.subject,
+              body: item.body,
+              showSendToBuyer: item.show_send_to_buyer === 1 ? true : false,
+            });
+          });
+          setRows(rt);
+        } else {
+          setRows([]);
+        }
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    init();
+  }, []);
+
+  const onClickDelete = async (id: number) => {
+    try {
+      const response: any = await axios.put(Http.delete_email_rule_setting_by_id, {
+        id: id,
+      });
+
+      if (response.result) {
+        await init();
+
+        setSnackSeverity('success');
+        setSnackMessage('delete Success.');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  return (
+    <>
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Trigger</TableCell>
+              <TableCell>Customer Email</TableCell>
+              <TableCell>To</TableCell>
+              <TableCell>Subject</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {rows && rows.length > 0 ? (
+              <>
+                {rows.map((row) => (
+                  <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                    <TableCell component="th" scope="row">
+                      {Object.values(EMAIL_RULE_TIGGER_DATAS).find((item) => item.id === row.triggerid)?.title}
+                    </TableCell>
+                    <TableCell>No</TableCell>
+                    <TableCell>
+                      {row.to &&
+                        row.to?.split(',').length > 0 &&
+                        row.to?.split(',').map((item, index) => <Typography key={index}>{item}</Typography>)}
+                    </TableCell>
+                    <TableCell>{row.subject}</TableCell>
+                    <TableCell align="right">
+                      <Button
+                        onClick={() => {
+                          props.setRuleId(row.rid);
+                          props.setTrigger(row.trigger as EMAIL_RULE_TIGGER_DATA);
+                          props.setRecipients(row.to);
+                          props.setSubject(row.subject);
+                          props.setBody(row.body);
+                          props.setShowSendToBuyer(row.showSendToBuyer);
+                          props.setPage(3);
+                        }}
+                        color="success"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          onClickDelete(row.rid);
+                        }}
+                        color={'error'}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </>
+            ) : (
+              <TableRow>
+                <TableCell colSpan={100} align="center">
+                  No rows
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+}

@@ -27,15 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         return res.status(200).json({
           message: '',
           result: true,
-          data: {
-            id: email_setting.id,
-            login: email_setting.login,
-            password: email_setting.password,
-            port: email_setting.port,
-            sender_email: email_setting.sender_email,
-            show_tls: email_setting.show_tls,
-            smtp_server: email_setting.smtp_server,
-          },
+          data: email_setting,
         });
 
       default:

@@ -78,7 +78,7 @@ model email_rule_settings {
   id                 Int      @id @default(autoincrement())
   user_id            Int
   store_id           Int
-  tigger             Int
+  trigger            Int
   recipients         String
   show_send_to_buyer Int
   subject            String

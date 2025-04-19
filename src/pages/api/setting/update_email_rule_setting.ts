@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         let updateData: { [key: string]: any } = {};
 
-        if (req.body.tigger !== undefined) updateData.tigger = Number(req.body.tigger);
+        if (req.body.trigger !== undefined) updateData.trigger = Number(req.body.trigger);
         if (req.body.recipients !== undefined) updateData.recipients = req.body.recipients;
         if (req.body.show_send_to_buyer !== undefined)
           updateData.show_send_to_buyer = Number(req.body.show_send_to_buyer);
