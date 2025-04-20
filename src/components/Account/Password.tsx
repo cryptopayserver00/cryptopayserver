@@ -3,6 +3,7 @@ import { useSnackPresistStore, useUserPresistStore } from 'lib/store';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
+import { isValidPassword } from 'utils/verify';
 
 const Password = () => {
   const [oldPwd, setOldPwd] = useState<string>('');
@@ -14,7 +15,16 @@ const Password = () => {
 
   const onClickUpdatePassword = async () => {
     try {
-      if (oldPwd === '' || newPwd === '' || confirmNewPwd === '' || newPwd !== confirmNewPwd || oldPwd === newPwd) {
+      if (
+        !oldPwd ||
+        !newPwd ||
+        !confirmNewPwd ||
+        newPwd !== confirmNewPwd ||
+        oldPwd === newPwd ||
+        !isValidPassword(oldPwd) ||
+        !isValidPassword(newPwd) ||
+        !isValidPassword(confirmNewPwd)
+      ) {
         setSnackSeverity('error');
         setSnackMessage('Please confirm the input content!');
         setSnackOpen(true);
@@ -41,7 +51,15 @@ const Password = () => {
       setSnackMessage('The network error occurred. Please try again later.');
       setSnackOpen(true);
       console.error(e);
+    } finally {
+      clearData();
     }
+  };
+
+  const clearData = () => {
+    setOldPwd('');
+    setNewPwd('');
+    setConfirmNewPwd('');
   };
 
   return (
@@ -108,7 +126,7 @@ const Password = () => {
       </Box>
 
       <Box mt={5}>
-        <Button variant={'contained'} size={'large'} onClick={onClickUpdatePassword}>
+        <Button variant={'contained'} size={'large'} onClick={onClickUpdatePassword} color={'success'}>
           Update Password
         </Button>
       </Box>

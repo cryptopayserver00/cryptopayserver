@@ -266,7 +266,7 @@ const Checkout = () => {
         </Box>
 
         <Box mt={4}>
-          <Button variant={'contained'} size="large" onClick={onClickSave}>
+          <Button variant={'contained'} size="large" onClick={onClickSave} color="success">
             Save
           </Button>
         </Box>

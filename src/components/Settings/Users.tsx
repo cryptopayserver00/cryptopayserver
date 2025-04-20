@@ -155,7 +155,7 @@ const Users = () => {
               ))}
           </Select>
 
-          <Button variant={'contained'} style={{ width: 150 }} onClick={onClickAddUser}>
+          <Button variant={'contained'} style={{ width: 150 }} onClick={onClickAddUser} color="success">
             Add User
           </Button>
         </Stack>
