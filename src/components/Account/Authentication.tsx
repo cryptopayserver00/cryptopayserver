@@ -24,6 +24,7 @@ import { Http } from 'utils/http/http';
 const Authentication = () => {
   const [page, setPage] = useState<number>(1);
 
+  const [isSetup, setIsSetup] = useState<boolean>(false);
   const [text, setText] = useState<string>('');
   const [qrCode, setQrCode] = useState<string>('');
   const [code, setCode] = useState<string>('');
@@ -42,13 +43,15 @@ const Authentication = () => {
       });
 
       if (response.result && response.data.authenticator && response.data.authenticator !== '') {
+        setIsSetup(true);
         setText(response.data.authenticator);
         const link = `otpauth://totp/CryptoPayServer:${getUserEmail()}?secret=${
           response.data.authenticator
         }&issuer=CryptoPayServer&digits=6`;
         setQrCode(link);
-        setPage(2);
+        setPage(1);
       } else {
+        setIsSetup(false);
         const token = GenerateAuthenticatorSecret();
         setText(token);
         const link = `otpauth://totp/CryptoPayServer:${getUserEmail()}?secret=${token}&issuer=CryptoPayServer&digits=6`;
@@ -76,13 +79,14 @@ const Authentication = () => {
 
       if (response.result) {
         setSnackSeverity('success');
-        setSnackMessage('Update successful!');
+        setSnackMessage('Reset successful!');
         setSnackOpen(true);
 
-        setPage(1);
+        await init();
+        setPage(2);
       } else {
         setSnackSeverity('error');
-        setSnackMessage('Update failed!');
+        setSnackMessage('Reset failed!');
         setSnackOpen(true);
       }
     } catch (e) {
@@ -94,6 +98,10 @@ const Authentication = () => {
   };
 
   const onClickVerify = async () => {
+    if (!text || !code) {
+      return;
+    }
+
     if (VerifyAuthenticator(code, text)) {
       try {
         const response: any = await axios.put(Http.update_user_by_email, {
@@ -103,13 +111,13 @@ const Authentication = () => {
 
         if (response.result) {
           setSnackSeverity('success');
-          setSnackMessage('Update successful!');
+          setSnackMessage('Save successful!');
           setSnackOpen(true);
 
-          setPage(1);
+          await init();
         } else {
           setSnackSeverity('error');
-          setSnackMessage('Update failed!');
+          setSnackMessage('Authentication failed!');
           setSnackOpen(true);
         }
       } catch (e) {
@@ -117,12 +125,18 @@ const Authentication = () => {
         setSnackMessage('The network error occurred. Please try again later.');
         setSnackOpen(true);
         console.error(e);
+      } finally {
+        clearData();
       }
     } else {
-      setSnackMessage('Verification failure!');
+      setSnackMessage('Verification failed!');
       setSnackSeverity('error');
       setSnackOpen(true);
     }
+  };
+
+  const clearData = () => {
+    setCode('');
   };
 
   return (
@@ -140,103 +154,108 @@ const Authentication = () => {
             App-based 2FA
           </Typography>
 
-          <Box mt={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Enable 2FA</Typography>
-                <Typography mt={1} mb={1} fontSize={14}>
-                  Using apps such as Google or Microsoft Authenticator.
-                </Typography>
-                <Button
-                  variant={'contained'}
-                  onClick={() => {
-                    setPage(3);
-                  }}
-                >
-                  Click
-                </Button>
-              </CardContent>
-            </Card>
-          </Box>
+          {isSetup ? (
+            <>
+              <Box mt={4}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6">Disable 2FA</Typography>
+                    <Typography mt={1} mb={2} fontSize={14}>
+                      Re-enabling will not require you to reconfigure your app.
+                    </Typography>
+                    <Button
+                      variant={'contained'}
+                      onClick={() => {
+                        onClickResetApp();
+                      }}
+                      color="error"
+                    >
+                      Disable
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Box>
+
+              <Box mt={4}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6">Reset app</Typography>
+                    <Typography mt={1} mb={2} fontSize={14}>
+                      Invalidates the current authenticator configuration. Useful if you believe your authenticator
+                      settings were compromised.
+                    </Typography>
+                    <Button
+                      variant={'contained'}
+                      onClick={() => {
+                        onClickResetApp();
+                      }}
+                      color={'warning'}
+                    >
+                      Reset
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Box>
+
+              <Box mt={4}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6">Configure app</Typography>
+                    <Typography mt={1} mb={2} fontSize={14}>
+                      Display the key or QR code to configure an authenticator app with your current setup.
+                    </Typography>
+                    <Button
+                      variant={'contained'}
+                      onClick={() => {
+                        setPage(2);
+                        clearData();
+                      }}
+                      color="success"
+                    >
+                      Check
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Box>
+            </>
+          ) : (
+            <Box mt={4}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6">Enable 2FA</Typography>
+                  <Typography mt={1} mb={2} fontSize={14}>
+                    Using apps such as Google or Microsoft Authenticator.
+                  </Typography>
+                  <Button
+                    variant={'contained'}
+                    onClick={() => {
+                      setPage(2);
+                      clearData();
+                    }}
+                    color="success"
+                  >
+                    Enable
+                  </Button>
+                </CardContent>
+              </Card>
+            </Box>
+          )}
         </>
       )}
 
       {page === 2 && (
         <>
-          <Typography variant={'h6'}>Two-Factor Authentication</Typography>
-          <Typography mt={2} fontSize={14}>
-            Two-Factor Authentication (2FA) is an additional measure to protect your account. In addition to your
-            password you will be asked for a second proof on login. This can be provided by an app (such as Google or
-            Microsoft Authenticator) or a security device (like a Yubikey or your hardware wallet supporting FIDO2).
-          </Typography>
-
-          <Typography variant={'h6'} mt={4}>
-            App-based 2FA
-          </Typography>
-
-          <Box mt={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Disable 2FA</Typography>
-                <Typography mt={1} mb={1} fontSize={14}>
-                  Re-enabling will not require you to reconfigure your app.
-                </Typography>
-                <Button
-                  variant={'contained'}
-                  onClick={() => {
-                    onClickResetApp();
-                  }}
-                >
-                  Click
-                </Button>
-              </CardContent>
-            </Card>
-          </Box>
-
-          <Box mt={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Reset app</Typography>
-                <Typography mt={1} mb={1} fontSize={14}>
-                  Invalidates the current authenticator configuration. Useful if you believe your authenticator settings
-                  were compromised.
-                </Typography>
-                <Button
-                  variant={'contained'}
-                  onClick={() => {
-                    onClickResetApp();
-                  }}
-                >
-                  Click
-                </Button>
-              </CardContent>
-            </Card>
-          </Box>
-
-          <Box mt={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Configure app</Typography>
-                <Typography mt={1} mb={1} fontSize={14}>
-                  Display the key or QR code to configure an authenticator app with your current setup.
-                </Typography>
-                <Button
-                  variant={'contained'}
-                  onClick={() => {
-                    setPage(3);
-                  }}
-                >
-                  Click
-                </Button>
-              </CardContent>
-            </Card>
-          </Box>
-        </>
-      )}
-
-      {page === 3 && (
-        <>
-          <Typography variant={'h6'}>Enable Authenticator App</Typography>
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+            <Typography variant={'h6'}>Enable Authenticator App</Typography>
+            <Button
+              onClick={() => {
+                setPage(1);
+              }}
+              variant={'contained'}
+            >
+              Back
+            </Button>
+          </Stack>
           <Box mt={6}>
             <Typography fontSize={14}>To use an authenticator app go through the following steps:</Typography>
             <Typography fontSize={14} mt={2}>
@@ -285,7 +304,7 @@ const Authentication = () => {
             </ul>
           </Box>
 
-          <Box mt={4}>
+          <Box mt={6}>
             <Typography fontSize={14}>
               2. Scan the QR Code or enter the following key into your two-factor authenticator app:
             </Typography>
@@ -338,13 +357,13 @@ const Authentication = () => {
             </Box>
           </Box>
 
-          <Box mt={4}>
+          <Box mt={6}>
             <Typography fontSize={14}>
               3. Your two-factor authenticator app will provide you with a unique code. Enter the code in the
               confirmation box below.
             </Typography>
 
-            <Box mt={3}>
+            <Box mt={6}>
               <Typography mb={1} fontSize={14}>
                 Verification Code
               </Typography>
@@ -360,7 +379,7 @@ const Authentication = () => {
           </Box>
 
           <Box mt={4}>
-            <Button onClick={onClickVerify} variant={'contained'}>
+            <Button onClick={onClickVerify} variant={'contained'} size="large" color="success">
               Verify
             </Button>
           </Box>
