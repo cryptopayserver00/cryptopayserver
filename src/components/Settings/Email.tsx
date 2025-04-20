@@ -1,11 +1,10 @@
-import { KeyboardArrowDown, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Check, Clear, KeyboardArrowDown, Visibility, VisibilityOff } from '@mui/icons-material';
 import {
   Box,
   Button,
   FormControl,
   IconButton,
   InputAdornment,
-  Menu,
   MenuItem,
   OutlinedInput,
   Select,
@@ -15,7 +14,6 @@ import {
   TextField,
   Typography,
   Alert,
-  AlertTitle,
   TableContainer,
   Paper,
   Table,
@@ -30,6 +28,7 @@ import { EMAIL_RULE_TIGGER_DATA, EMAIL_RULE_TIGGER_DATAS } from 'packages/consta
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
+import { IsValidEmail } from 'utils/verify';
 
 const Emails = () => {
   const [page, setPage] = useState<number>(1);
@@ -84,6 +83,16 @@ const Emails = () => {
         return;
       }
 
+      const emails = recipients.split(',');
+      for (const item of emails) {
+        if (!IsValidEmail(item)) {
+          setSnackSeverity('error');
+          setSnackMessage('Incorrect email input');
+          setSnackOpen(true);
+          return;
+        }
+      }
+
       if (ruleId && ruleId > 0) {
         const response: any = await axios.put(Http.update_email_rule_setting, {
           id: ruleId,
@@ -135,16 +144,57 @@ const Emails = () => {
       setSnackMessage('The network error occurred. Please try again later.');
       setSnackOpen(true);
       console.error(e);
-    } finally {
-      clearData();
     }
   };
 
-  const onClickTestEmail = async () => {};
+  const onClickTestEmail = async () => {
+    try {
+      if (!testEmail) {
+        return;
+      }
+
+      if (!IsValidEmail(testEmail)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect email input');
+        setSnackOpen(true);
+        return;
+      }
+
+      const response: any = await axios.get(Http.test_email_setting, {
+        params: {
+          store_id: getStoreId(),
+          user_id: getUserId(),
+          email: testEmail,
+        },
+      });
+
+      if (response.result) {
+        setSnackSeverity('success');
+        setSnackMessage('Testing successful!');
+        setSnackOpen(true);
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Testing failed!');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
 
   const onClickSaveEmailServer = async () => {
     try {
       if (!smtpServer || !port || !senderEmailAddress || !login || !password) {
+        return;
+      }
+
+      if (!IsValidEmail(senderEmailAddress)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect email input');
+        setSnackOpen(true);
         return;
       }
 
@@ -359,8 +409,8 @@ const Emails = () => {
                     'aria-label': 'weight',
                   }}
                   value={testEmail}
-                  onChange={(e) => {
-                    setTestEmail(testEmail);
+                  onChange={(e: any) => {
+                    setTestEmail(e.target.value);
                   }}
                 />
               </FormControl>
@@ -665,7 +715,7 @@ function EmailRuleTable(props: TableType) {
                     <TableCell component="th" scope="row">
                       {Object.values(EMAIL_RULE_TIGGER_DATAS).find((item) => item.id === row.triggerid)?.title}
                     </TableCell>
-                    <TableCell>No</TableCell>
+                    <TableCell>{row.showSendToBuyer ? <Check color="success" /> : <Clear color={'error'} />}</TableCell>
                     <TableCell>
                       {row.to &&
                         row.to?.split(',').length > 0 &&

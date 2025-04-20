@@ -71,6 +71,7 @@ export class Http {
   static find_email_setting = this.httpPath + '/setting/find_email_setting';
   static update_email_setting = this.httpPath + '/setting/update_email_setting';
   static create_email_setting = this.httpPath + '/setting/create_email_setting';
+  static test_email_setting = this.httpPath + '/setting/test_email_setting';
 
   // email rule setting of store
   static find_email_rule_setting = this.httpPath + '/setting/find_email_rule_setting';

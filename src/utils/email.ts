@@ -1,9 +1,9 @@
 import nodemailer from 'nodemailer';
 
 export class EMAIL {
-  static async sendInvoiceEmail(email: string, body: any): Promise<any> {
+  static async sendInvoiceEmail(email: string, body: any): Promise<boolean> {
     try {
-      throw new Error('can not send the email');
+      return true;
     } catch (e) {
       console.error(e);
       throw new Error('can not send the email');
@@ -13,18 +13,19 @@ export class EMAIL {
   static async sendEmailCore(
     host: string,
     port: number,
-    user: string, 
+    isSecure: boolean,
+    user: string,
     pwd: string,
     from: string,
     to: string,
     subject: string,
     text: string,
-    html: string,
+    html?: string,
   ): Promise<boolean> {
     const transporter = nodemailer.createTransport({
       host: host,
-      port: port || 587,
-      secure: false,
+      port: port,
+      secure: isSecure,
       auth: {
         user: user,
         pass: pwd,
@@ -32,14 +33,16 @@ export class EMAIL {
     });
 
     const mailOptions = {
-      from: from,
+      from: `"Sender Name" <${from}>`,
       to: to,
       subject: subject,
       text: text,
-      html: html,
+      html: html ? html : '',
     };
 
     try {
+      await transporter.verify();
+
       await transporter.sendMail(mailOptions);
       return true;
     } catch (e) {
