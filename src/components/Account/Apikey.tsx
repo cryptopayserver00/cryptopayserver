@@ -34,7 +34,7 @@ const ApiKey = () => {
 
   const onClickGenerateAPIKEY = async () => {
     try {
-      if (!permissions || permissions.length === 0) {
+      if (!label || !permissions || permissions.length === 0) {
         return;
       }
 
@@ -64,6 +64,7 @@ const ApiKey = () => {
         setSnackMessage('Save successful!');
         setSnackOpen(true);
 
+        clearData();
         setPage(1);
       } else {
         setSnackSeverity('error');
@@ -76,6 +77,16 @@ const ApiKey = () => {
       setSnackOpen(true);
       console.error(e);
     }
+  };
+
+  const clearData = () => {
+    setLabel('');
+    setPermissions(() =>
+      APIKEYPERMISSIONS.map((item) => ({
+        ...item,
+        status: false,
+      })),
+    );
   };
 
   return (
@@ -113,15 +124,28 @@ const ApiKey = () => {
         <>
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
             <Typography variant={'h6'}>Generate API Key</Typography>
-            <Button
-              variant={'contained'}
-              size="large"
-              onClick={() => {
-                onClickGenerateAPIKEY();
-              }}
-            >
-              Generate API Key
-            </Button>
+            <Stack direction={'row'} alignItems={'center'} gap={1}>
+              <Button
+                variant={'contained'}
+                size="large"
+                onClick={() => {
+                  clearData();
+                  setPage(1);
+                }}
+              >
+                Back
+              </Button>
+              <Button
+                variant={'contained'}
+                size="large"
+                onClick={() => {
+                  onClickGenerateAPIKEY();
+                }}
+                color="success"
+              >
+                Generate API Key
+              </Button>
+            </Stack>
           </Stack>
 
           <Typography mt={4}>Generate a new api key to use CryptoPay through its API.</Typography>
@@ -154,8 +178,9 @@ const ApiKey = () => {
                             style={{ padding: 0 }}
                             checked={item.status}
                             onChange={() => {
-                              permissions[index].status = !permissions[index].status;
-                              setPermissions(permissions);
+                              const newPermissions = [...permissions];
+                              newPermissions[index].status = !newPermissions[index].status;
+                              setPermissions(newPermissions);
                             }}
                           />
                           <Box ml={1}>
