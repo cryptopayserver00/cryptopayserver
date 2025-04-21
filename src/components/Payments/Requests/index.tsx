@@ -28,6 +28,8 @@ import dayjs, { Dayjs } from 'dayjs';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import PaymentRequestDataGrid from 'components/DataList/PaymentRequestDataGrid';
+import Link from 'next/link';
+import { IsValidEmail } from 'utils/verify';
 
 const Requests = () => {
   const [openExplain, setOpenExplain] = useState<boolean>(false);
@@ -123,6 +125,13 @@ const Requests = () => {
         exipre = new Date(expirationDate.toString()).getTime();
       }
 
+      if (!IsValidEmail(email)) {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect email input');
+        setSnackOpen(true);
+        return;
+      }
+
       const response: any = await axios.post(Http.create_payment_request, {
         user_id: getUserId(),
         store_id: getStoreId(),
@@ -164,9 +173,19 @@ const Requests = () => {
           <Box>
             <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} pt={5}>
               <Typography variant="h6">Create Payment Requests</Typography>
-              <Button variant={'contained'} onClick={onClickCreate}>
-                Create
-              </Button>
+              <Stack direction={'row'} alignItems={'center'} gap={1}>
+                <Button
+                  variant={'contained'}
+                  onClick={() => {
+                    setOpenCreateRequest(false);
+                  }}
+                >
+                  Back
+                </Button>
+                <Button variant={'contained'} onClick={onClickCreate} color="success">
+                  Create
+                </Button>
+              </Stack>
             </Stack>
 
             <Box mt={3}>
@@ -292,6 +311,10 @@ const Requests = () => {
                     />
                   </FormControl>
                 </Box>
+                <Typography mt={1}>
+                  This will send notification mails to the recipient, as configured by the{' '}
+                  <Link href={'/settings?tab=emails'}>email rules.</Link>
+                </Typography>
               </Box>
 
               <Box mt={4}>

@@ -116,6 +116,7 @@ const SecurityWallet = () => {
                 </Button>
                 <Box mt={1}>
                   <Button
+                    color="success"
                     fullWidth
                     variant={'contained'}
                     onClick={() => {

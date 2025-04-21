@@ -137,6 +137,7 @@ const Notification = () => {
           onClick={() => {
             handleChangeNotification(0);
           }}
+          color={'error'}
         >
           Disable all notifications
         </Button>

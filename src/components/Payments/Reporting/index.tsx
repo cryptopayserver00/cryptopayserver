@@ -82,7 +82,7 @@ const Reporting = () => {
               <ReportGmailerrorred />
             </IconButton>
           </Stack>
-          <Button variant={'contained'} onClick={onClickExport}>
+          <Button variant={'contained'} onClick={onClickExport} color="success">
             Export
           </Button>
         </Stack>

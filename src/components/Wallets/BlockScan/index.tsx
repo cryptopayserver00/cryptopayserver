@@ -141,7 +141,7 @@ const BlockScan = () => {
         <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={4}>
           <Typography variant="h6">Wallet Address</Typography>
           <Stack direction={'row'} alignItems={'center'}>
-            <Button variant={'contained'} onClick={checkScanStatus}>
+            <Button variant={'contained'} onClick={checkScanStatus} color='success'>
               Check Scan Status
             </Button>
           </Stack>
@@ -167,7 +167,7 @@ const BlockScan = () => {
         <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={4}>
           <Typography variant="h6">Network</Typography>
           <Stack direction={'row'} alignItems={'center'}>
-            <Button variant={'contained'} onClick={checkNetworkStatus}>
+            <Button variant={'contained'} onClick={checkNetworkStatus} color='success'>
               Check network Status
             </Button>
           </Stack>

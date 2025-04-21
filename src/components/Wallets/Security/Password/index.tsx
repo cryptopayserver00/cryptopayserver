@@ -152,7 +152,7 @@ const SecurityPassword = () => {
                     Delete Password
                   </Button>
                 ) : (
-                  <Button variant={'contained'} onClick={handleSetPasswordOpen}>
+                  <Button variant={'contained'} onClick={handleSetPasswordOpen} color="success">
                     Set Password
                   </Button>
                 )}

@@ -1,5 +1,7 @@
 import { ReportGmailerrorred } from '@mui/icons-material';
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
   Container,
@@ -16,7 +18,7 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 
 const Shopify = () => {
-  const [openShopify, setOpenShopify] = useState<boolean>(false);
+  const [openExplain, setOpenExplain] = useState<boolean>(false);
   const [id, setId] = useState<number>(0);
   const [shopName, setShopName] = useState<string>('');
   const [apiKey, setApiKey] = useState<string>('');
@@ -106,18 +108,39 @@ const Shopify = () => {
     <Box>
       <Container>
         <Box>
-          <Stack direction={'row'} alignItems={'center'} pt={5}>
+          <Box mt={2}>
+            <Alert severity="warning">
+              <AlertTitle>Important notice</AlertTitle>
+              This Shopify integration has been discontinued by Shopify and will no longer be supported after{' '}
+              <b>August 31, 2025</b>.
+              <br />
+              If you completed your CryptoPay Server-Shopify setup before <b>December 31, 2024</b>, you may continue
+              using it until August 31, 2025.
+              <br />
+              However, we recommend transitioning to Shopify V2 for continued functionality.
+              <br />
+              All new users have to use Shopify V2. Refer to this guide to get started with Shopify V2
+            </Alert>
+          </Box>
+
+          <Stack direction={'row'} alignItems={'center'} pt={2}>
             <Typography variant="h6">Shopify</Typography>
             <IconButton
               onClick={() => {
-                setOpenShopify(!openShopify);
+                setOpenExplain(!openExplain);
               }}
             >
               <ReportGmailerrorred />
             </IconButton>
           </Stack>
+          {openExplain && (
+            <Alert severity="info">
+              <AlertTitle>Info</AlertTitle>
+              Introducing CryptoPay Server for Shopify – open-source payment gateway that enables you accept crypto
+              payments directly on your website or stores from customers with no fee.
+            </Alert>
+          )}
           <Typography mt={2}>Connect CryptoPay Server to your Shopify checkout experience to accept Crypto.</Typography>
-
           <Box mt={3}>
             <Typography>Shop Name</Typography>
             <Box mt={1}>
@@ -138,7 +161,6 @@ const Shopify = () => {
               </FormControl>
             </Box>
           </Box>
-
           <Box mt={3}>
             <Typography>API KEY</Typography>
             <Box mt={1}>
@@ -157,7 +179,6 @@ const Shopify = () => {
               </FormControl>
             </Box>
           </Box>
-
           <Box mt={4}>
             <Typography>Admin API access token</Typography>
             <Box mt={1}>
@@ -177,9 +198,8 @@ const Shopify = () => {
               </FormControl>
             </Box>
           </Box>
-
           <Box mt={5}>
-            <Button variant={'contained'} size={'large'} onClick={onClickSave}>
+            <Button variant={'contained'} size={'large'} onClick={onClickSave} color="success">
               Save
             </Button>
           </Box>

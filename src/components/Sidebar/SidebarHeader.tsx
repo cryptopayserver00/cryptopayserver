@@ -1,20 +1,7 @@
 import styled from '@emotion/styled';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import { Typography } from './Typography';
-import {
-  Alert,
-  Badge,
-  Box,
-  Button,
-  FormControl,
-  Icon,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Stack,
-} from '@mui/material';
+import { Badge, Box, Button, FormControl, IconButton, MenuItem, Select, Stack } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { CustomLogo } from 'components/Logo/CustomLogo';
 import { useStorePresistStore } from 'lib/store/store';
@@ -156,7 +143,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
         }, 2000);
       } else {
         setSnackSeverity('error');
-        setSnackMessage("Cannot find the store, please try again later.");
+        setSnackMessage('Cannot find the store, please try again later.');
         setSnackOpen(true);
       }
     } catch (e) {
@@ -185,7 +172,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
           <Stack direction={'row'} alignItems={'center'}>
             <CustomLogo>C</CustomLogo>
             <Typography fontWeight={'bold'} color="#0098e5" fontSize={'large'}>
-              Crypto Pay
+              CryptoPay
             </Typography>
           </Stack>
         </Button>

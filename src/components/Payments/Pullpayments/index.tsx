@@ -133,9 +133,19 @@ const Pullpayments = () => {
           <Box>
             <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} pt={5}>
               <Typography variant="h6">Create pull payment</Typography>
-              <Button variant={'contained'} onClick={onClickCreate}>
-                Create
-              </Button>
+              <Stack direction={'row'} alignItems={'center'} gap={1}>
+                <Button
+                  variant={'contained'}
+                  onClick={() => {
+                    setOpenCreatePullPayment(false);
+                  }}
+                >
+                  Back
+                </Button>
+                <Button variant={'contained'} onClick={onClickCreate} color="success">
+                  Create
+                </Button>
+              </Stack>
             </Stack>
 
             <Box mt={4}>

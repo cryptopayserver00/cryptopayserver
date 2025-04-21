@@ -222,7 +222,7 @@ const PaymentInvoices = () => {
                   >
                     Back
                   </Button>
-                  <Button variant={'contained'} onClick={onClickCreateInvoice}>
+                  <Button variant={'contained'} onClick={onClickCreateInvoice} color="success">
                     Create
                   </Button>
                 </Box>

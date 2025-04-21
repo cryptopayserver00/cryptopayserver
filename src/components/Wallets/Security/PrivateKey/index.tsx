@@ -180,7 +180,7 @@ const SecurityPrivateKey = () => {
                       <Box mr={1}>
                         {item.view ? (
                           <Button
-                            variant={'outlined'}
+                            variant={'contained'}
                             onClick={() => {
                               const newRows = [...rows];
                               newRows[index].view = false;
@@ -191,7 +191,8 @@ const SecurityPrivateKey = () => {
                           </Button>
                         ) : (
                           <Button
-                            variant={'outlined'}
+                            color="warning"
+                            variant={'contained'}
                             onClick={() => {
                               const newRows = [...rows];
                               newRows[index].view = true;
@@ -203,7 +204,8 @@ const SecurityPrivateKey = () => {
                         )}
                       </Box>
                       <Button
-                        variant={'outlined'}
+                        color={'success'}
+                        variant={'contained'}
                         onClick={async () => {
                           await navigator.clipboard.writeText(item.privateKey);
 
