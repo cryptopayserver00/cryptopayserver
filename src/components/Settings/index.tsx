@@ -1,5 +1,5 @@
 import { Box, Container, Tab, Tabs, TextField, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AccessToken from './AccessToken';
 import Checkout from './Checkout';
 import Emails from './Email';
@@ -10,13 +10,33 @@ import Rates from './Rates';
 import Roles from './Roles';
 import Users from './Users';
 import Webhooks from './Webhooks';
+import { useRouter } from 'next/router';
+import { SETTING_TAB_DATAS } from 'packages/constants';
 
 const Settings = () => {
+  const router = useRouter();
+  const { tab } = router.query;
+
   const [value, setValue] = useState<number>(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    const tabId = Object.values(SETTING_TAB_DATAS).find((item) => item.id === newValue)?.tabId;
+    router.replace({
+      pathname: router.pathname,
+      query: { ...router.query, tab: tabId },
+    });
+
     setValue(newValue);
   };
+
+  const init = (tab: any) => {
+    const tabId = Object.values(SETTING_TAB_DATAS).find((item) => item.tabId === tab)?.id;
+    setValue(tabId || 0);
+  };
+
+  useEffect(() => {
+    tab && init(tab);
+  }, [tab]);
 
   return (
     <Box>
@@ -27,23 +47,10 @@ const Settings = () => {
 
         <Box mt={2}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs
-              value={value}
-              onChange={handleChange}
-              aria-label="basic tabs example"
-              variant="scrollable"
-              scrollButtons="auto"
-            >
-              <Tab label="General" {...a11yProps(0)} />
-              <Tab label="Rates" {...a11yProps(1)} />
-              <Tab label="Checkout Appearance" {...a11yProps(2)} />
-              <Tab label="Access Tokens" {...a11yProps(3)} />
-              <Tab label="Users" {...a11yProps(4)} />
-              <Tab label="Roles" {...a11yProps(5)} />
-              <Tab label="Webhooks" {...a11yProps(6)} />
-              <Tab label="Payout Processors" {...a11yProps(7)} />
-              <Tab label="Emails" {...a11yProps(8)} />
-              <Tab label="Forms" {...a11yProps(9)} />
+            <Tabs value={value} onChange={handleChange} variant="scrollable" scrollButtons="auto">
+              {SETTING_TAB_DATAS &&
+                SETTING_TAB_DATAS.length > 0 &&
+                SETTING_TAB_DATAS.map((item, index) => <Tab key={index} label={item.title} {...a11yProps(item.id)} />)}
             </Tabs>
           </Box>
           <CustomTabPanel value={value} index={0}>

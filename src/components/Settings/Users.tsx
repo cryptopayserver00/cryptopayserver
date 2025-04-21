@@ -126,7 +126,7 @@ const Users = () => {
         <Typography variant="h6">Store Users</Typography>
         <Typography mt={2}>
           Give other registered CryptoPay Server users access to your store. See the{' '}
-          <Link href={'/settings'}>roles</Link> for granted permissions.
+          <Link href={'/settings?tab=roles'}>roles</Link> for granted permissions.
         </Typography>
         <Stack direction={'row'} alignItems={'center'} gap={3} mt={4}>
           <TextField

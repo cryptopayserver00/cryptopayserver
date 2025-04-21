@@ -739,3 +739,95 @@ export const EMAIL_RULE_TIGGER_DATAS: EMAIL_RULE_TIGGER_DATA[] = [
     title: 'Pending Transaction - Signature Collected',
   },
 ];
+
+export type TAB_DATA = {
+  id: number;
+  title: string;
+  tabId: string;
+};
+
+export const SETTING_TAB_DATAS: TAB_DATA[] = [
+  {
+    id: 0,
+    title: 'General',
+    tabId: 'general',
+  },
+  {
+    id: 1,
+    title: 'Rates',
+    tabId: 'rates',
+  },
+  {
+    id: 2,
+    title: 'Checkout Appearance',
+    tabId: 'checkoutappearance',
+  },
+  {
+    id: 3,
+    title: 'Access Tokens',
+    tabId: 'accesstokens',
+  },
+  {
+    id: 4,
+    title: 'Users',
+    tabId: 'users',
+  },
+  {
+    id: 5,
+    title: 'Roles',
+    tabId: 'roles',
+  },
+  {
+    id: 6,
+    title: 'Webhooks',
+    tabId: 'webhooks',
+  },
+  {
+    id: 7,
+    title: 'Payout Processors',
+    tabId: 'payoutprocessors',
+  },
+  {
+    id: 8,
+    title: 'Emails',
+    tabId: 'emails',
+  },
+  {
+    id: 9,
+    title: 'Forms',
+    tabId: 'forms',
+  },
+];
+
+export const ACCOUNT_TAB_DATAS: TAB_DATA[] = [
+  {
+    id: 0,
+    title: 'Account',
+    tabId: 'account',
+  },
+  {
+    id: 1,
+    title: 'Password',
+    tabId: 'password',
+  },
+  {
+    id: 2,
+    title: 'Two-Factor Authentication',
+    tabId: 'tfauthentication',
+  },
+  {
+    id: 3,
+    title: 'API Keys',
+    tabId: 'apikeys',
+  },
+  {
+    id: 4,
+    title: 'Notifications',
+    tabId: 'notifications',
+  },
+  {
+    id: 5,
+    title: 'Login Codes',
+    tabId: 'logincodes',
+  },
+];

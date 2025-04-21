@@ -30,7 +30,7 @@ const Notifications = () => {
               size={'large'}
               aria-label="toggle password visibility"
               onClick={() => {
-                window.location.href = '/account';
+                window.location.href = '/account?tab=notifications';
               }}
               edge="end"
             >

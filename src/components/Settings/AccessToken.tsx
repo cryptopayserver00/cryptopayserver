@@ -24,7 +24,7 @@ const AccessToken = () => {
     <Box>
       <Box>
         <Typography variant="h6">Greenfield API Keys</Typography>
-        <Typography mt={2}>To generate Greenfield API keys, please <Link href={"/account/apikeys"}>click here.</Link></Typography>
+        <Typography mt={2}>To generate Greenfield API keys, please <Link href={"/account?tab=apikeys"}>click here.</Link></Typography>
       </Box>
 
       <Box mt={5}>
