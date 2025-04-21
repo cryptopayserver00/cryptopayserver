@@ -68,9 +68,9 @@ const WalletConnectButton = (props: WalletConnectType) => {
         const data = iface.encodeFunctionData('transfer', [props.address, value]);
 
         await sendTransaction({
-          data: data,
-          to: props.contractAddress,
-          value: 0,
+          data: data as `0x${string}`,
+          to: props.contractAddress as `0x${string}`,
+          value: 0 as any,
         });
       } else {
         await sendTransaction({

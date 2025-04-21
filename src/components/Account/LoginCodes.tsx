@@ -13,7 +13,7 @@ const LoginCodes = () => {
         device.
       </Typography>
 
-      <Box mt={2}>
+      <Box mt={6}>
         <Paper style={{ padding: 20 }}>
           <QRCodeSVG
             value={code}

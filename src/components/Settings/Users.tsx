@@ -117,6 +117,7 @@ const Users = () => {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -234,6 +235,7 @@ function StoreUserTable(props: TableType) {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onClickChangeRole = async () => {

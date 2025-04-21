@@ -28,11 +28,11 @@ const Custom404 = () => {
 
           <Stack mt={4} direction={'row'} alignItems={'center'}>
             <Typography fontWeight={'bold'}>404.</Typography>
-            <Typography ml={1}>That's an error.</Typography>
+            <Typography ml={1}>That&apos;s an error.</Typography>
           </Stack>
 
           <Box mt={4}>
-            <Typography>The requested URL was not found on this server. That’s all we know.</Typography>
+            <Typography>The requested URL was not found on this server. That&apos;s all we know.</Typography>
           </Box>
 
           <Box mt={6}>

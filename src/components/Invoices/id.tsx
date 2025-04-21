@@ -607,7 +607,7 @@ const InvoiceDetails = () => {
                   <Typography>
                     A wallet is a software program that allows you to send and receive crypto from others in the
                     network. It keeps track of your balance and transaction history. Each wallet has its own address,
-                    which functions similarly to your bank account's account number. There are lots of wallets
+                    which functions similarly to your bank account&apos;s account number. There are lots of wallets
                     available. Picking the right one is a matter of personal preference.
                   </Typography>
                 </AccordionDetails>

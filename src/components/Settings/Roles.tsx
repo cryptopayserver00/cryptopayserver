@@ -350,6 +350,7 @@ function StoreRoles(props: TableType) {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
