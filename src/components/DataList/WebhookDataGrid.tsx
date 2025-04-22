@@ -114,8 +114,6 @@ export default function WebhookDataGrid(props: GridType) {
       headerName: 'Actions',
       type: 'actions',
       width: 600,
-      align: 'right',
-      headerAlign: 'right',
       getActions: ({ row }) => {
         return [
           <>

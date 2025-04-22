@@ -39,13 +39,10 @@ export default function CurrencyDataGrid(props: GridType) {
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
   const columns: GridColDef<(typeof rows)[number]>[] = [
-    { field: 'id', headerName: 'ID', width: 50 },
     {
       field: 'coin',
       headerName: 'Name',
       width: 150,
-      align: 'left',
-      headerAlign: 'left',
       renderCell: ({ row }) => (
         <Stack direction={'row'} alignItems={'center'} height={'100%'}>
           <Image src={GetImgSrcByCrypto(row.coin as COINS).toString()} alt="logo" width={20} height={20} />
@@ -59,29 +56,21 @@ export default function CurrencyDataGrid(props: GridType) {
       field: 'price',
       headerName: 'Price',
       width: 150,
-      headerAlign: 'right',
-      align: 'right',
     },
     {
       field: 'twentyFourHChange',
       headerName: '24h %',
       width: 150,
-      headerAlign: 'right',
-      align: 'right',
     },
     {
       field: 'twentyFourHVol',
       headerName: 'Volume(24h)',
       width: 200,
-      headerAlign: 'right',
-      align: 'right',
     },
     {
       field: 'number',
       headerName: 'Your Account Number',
       width: 200,
-      align: 'right',
-      headerAlign: 'right',
       renderCell: ({ row }) => (
         <Box height={'100%'} alignContent={'center'}>
           <Typography fontWeight={'bold'}>{row.number}</Typography>
@@ -92,8 +81,6 @@ export default function CurrencyDataGrid(props: GridType) {
       field: 'balance',
       headerName: 'Your Account Balance',
       width: 200,
-      align: 'right',
-      headerAlign: 'right',
       renderCell: ({ row }) => (
         <Box height={'100%'} alignContent={'center'}>
           <Typography fontWeight={'bold'}>{row.balance}</Typography>

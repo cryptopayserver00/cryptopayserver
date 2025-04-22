@@ -141,6 +141,7 @@ const Dashboard = () => {
                     onClick={() => {
                       // window.location.href = '/currencies';
                     }}
+                    variant='contained'
                   >
                     View All
                   </Button>
@@ -162,6 +163,7 @@ const Dashboard = () => {
                     onClick={() => {
                       window.location.href = '/payments/transactions';
                     }}
+                    variant='contained'
                   >
                     View All
                   </Button>
@@ -183,6 +185,7 @@ const Dashboard = () => {
                     onClick={() => {
                       window.location.href = '/payments/invoices';
                     }}
+                    variant='contained'
                   >
                     View All
                   </Button>
@@ -204,6 +207,7 @@ const Dashboard = () => {
                     onClick={() => {
                       window.location.href = '/payments/payouts';
                     }}
+                    variant='contained'
                   >
                     View All
                   </Button>

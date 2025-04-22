@@ -16,9 +16,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const storeId = req.query.store_id;
         const network = req.query.network;
 
+        let findData: { [key: string]: any } = {};
+
+        if (req.query.start_date !== undefined) findData.start_date = req.body.start_date;
+        if (req.query.start_date !== undefined) findData.start_date = req.body.start_date;
+        if (req.query.start_date !== undefined) findData.start_date = req.body.start_date;
+        if (req.query.start_date !== undefined) findData.start_date = req.body.start_date;
+        if (req.query.start_date !== undefined) findData.start_date = req.body.start_date;
+
         const reports = await prisma.invoices.findMany({
           where: {
-            source_type: String(status) && String(status) !== REPORT_STATUS.All ? String(status) : REPORT_STATUS.All,
+            source_type: String(status) && String(status) !== REPORT_STATUS.All ? String(status) : undefined,
             created_at: {
               gte: new Date(Number(startDate)),
               lte: new Date(Number(endDate)),
@@ -28,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             status: 1,
           },
           select: {
+            order_id: true,
             chain_id: true,
             currency: true,
             amount: true,
@@ -40,9 +49,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             created_at: true,
             expiration_at: true,
             payment_method: true,
+            source_type: true,
             paid: true,
             metadata: true,
-            match_tx_id: true,
+            hash: true,
+          },
+          orderBy: {
+            id: 'desc',
           },
         });
 
@@ -50,7 +63,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        return res.status(200).json({ message: '', result: true, data: reports });
+        const store = await prisma.stores.findFirst({
+          where: {
+            id: Number(storeId),
+            status: 1,
+          },
+          select: {
+            name: true,
+          },
+        });
+
+        if (!store) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        }
+
+        const newReports = reports.map((item) => ({
+          ...item,
+          store_name: store.name,
+        }));
+
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: newReports,
+        });
 
       default:
         throw 'no support the method of api';

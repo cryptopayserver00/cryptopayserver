@@ -183,7 +183,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest 
               window.location.href = '/notifications';
             }}
           >
-            <Badge badgeContent={notificationCount} color="primary">
+            <Badge badgeContent={notificationCount} color="error">
               <NotificationsNoneIcon color="action" />
             </Badge>
           </IconButton>

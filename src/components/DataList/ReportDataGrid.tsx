@@ -2,12 +2,11 @@ import { Dialog, Stack, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { CHAINNAMES } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { FindChainNamesByChains } from 'utils/web3';
-import { PAID_STATUS, REPORT_STATUS } from 'packages/constants';
+import { CURRENCY_SYMBOLS, PAID_STATUS, REPORT_STATUS } from 'packages/constants';
 import { RowType } from 'components/Payments/Reporting';
 
 type GridType = {
@@ -37,7 +36,6 @@ export default function ReportDataGrid(props: GridType) {
   };
 
   const onClickRow = async (e: RowType) => {
-    // const txId = e.id;
     setSelectedValue(e);
     setOpen(true);
   };
@@ -45,23 +43,23 @@ export default function ReportDataGrid(props: GridType) {
   const columns: GridColDef<(typeof rows)[number]>[] = [
     { field: 'id', headerName: 'ID', width: 50 },
     {
-      field: 'chainName',
+      field: 'storeName',
+      headerName: 'Store Name',
+      width: 100,
+    },
+    {
+      field: 'orderId',
+      headerName: 'Order Id',
+      width: 200,
+    },
+    {
+      field: 'fiatAmount',
+      headerName: 'Fiat Amount',
+      width: 100,
+    },
+    {
+      field: 'chain',
       headerName: 'Chain',
-      width: 100,
-    },
-    {
-      field: 'currency',
-      headerName: 'Currency',
-      width: 100,
-    },
-    {
-      field: 'amount',
-      headerName: 'Amount',
-      width: 150,
-    },
-    {
-      field: 'crypto',
-      headerName: 'Crypto',
       width: 100,
     },
     {
@@ -75,14 +73,14 @@ export default function ReportDataGrid(props: GridType) {
       width: 150,
     },
     {
+      field: 'sourceType',
+      headerName: 'Source Type',
+      width: 140,
+    },
+    {
       field: 'orderStatus',
       headerName: 'Order Status',
       width: 150,
-    },
-    {
-      field: 'paid',
-      headerName: 'Paid',
-      width: 100,
     },
     {
       field: 'createdDate',
@@ -113,19 +111,19 @@ export default function ReportDataGrid(props: GridType) {
           response.data.forEach(async (item: any, index: number) => {
             rt.push({
               id: index + 1,
+              storeName: item.store_name,
+              sourceType: item.source_type,
+              orderId: item.order_id,
               chainId: item.chain_id,
-              chainName: FindChainNamesByChains(item.chain_id),
-              currency: item.currency,
-              amount: item.amount,
-              crypto: item.crypto,
-              cryptoAmount: item.crypto_amount,
+              chain: FindChainNamesByChains(item.chain_id),
+              cryptoAmount: item.crypto_amount + ' ' + item.crypto,
+              fiatAmount: CURRENCY_SYMBOLS[item.currency] + item.amount,
               rate: item.rate,
               description: item.description,
               metadata: item.metadata,
               buyerEmail: item.buyer_email,
               orderStatus: item.order_status,
               paymentMethod: item.payment_method,
-              paid: item.paid === 1 ? PAID_STATUS.PAID : PAID_STATUS.UNPAID,
               createdDate: new Date(item.created_at).toLocaleString(),
               expirationDate: new Date(item.expiration_at).toLocaleString(),
             });
@@ -213,18 +211,28 @@ function TxDialog(props: TxDialogProps) {
         <Typography variant="h5">Report</Typography>
         <Box mt={3}>
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+            <Typography>Store Name</Typography>
+            <Typography>{row.storeName}</Typography>
+          </Stack>
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
+            <Typography>Order Id</Typography>
+            <Typography>{row.orderId}</Typography>
+          </Stack>
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
+            <Typography>Source Type</Typography>
+            <Typography>{row.sourceType}</Typography>
+          </Stack>
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
             <Typography>Chain</Typography>
-            <Typography>{row.chainName}</Typography>
+            <Typography>{row.chain}</Typography>
           </Stack>
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
-            <Typography>Amount</Typography>
-            <Typography fontWeight={'bold'}>
-              {row.amount} {row.currency} = {row.cryptoAmount} {row.crypto}
-            </Typography>
+            <Typography>Fait Amount</Typography>
+            <Typography fontWeight={'bold'}>{row.fiatAmount}</Typography>
           </Stack>
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
-            <Typography>Rate</Typography>
-            <Typography fontWeight={'bold'}>{row.rate}</Typography>
+            <Typography>Crypto Amount</Typography>
+            <Typography fontWeight={'bold'}>{row.cryptoAmount}</Typography>
           </Stack>
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
             <Typography>Description</Typography>
@@ -245,10 +253,6 @@ function TxDialog(props: TxDialogProps) {
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
             <Typography>Payment Method</Typography>
             <Typography fontWeight={'bold'}>{row.paymentMethod}</Typography>
-          </Stack>
-          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
-            <Typography>Paid</Typography>
-            <Typography fontWeight={'bold'}>{row.paid}</Typography>
           </Stack>
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1}>
             <Typography>Created Date</Typography>

@@ -36,22 +36,16 @@ export default function PullPaymentDataGrid(props: GridType) {
       field: 'createdDate',
       headerName: 'Start',
       width: 200,
-      headerAlign: 'right',
-      align: 'right',
     },
     {
       field: 'expirationDate',
       headerName: 'End',
       width: 200,
-      headerAlign: 'right',
-      align: 'right',
     },
     {
       field: 'name',
       headerName: 'Name',
       width: 100,
-      headerAlign: 'right',
-      align: 'right',
     },
     {
       field: 'showAutoApproveClaim',
@@ -70,8 +64,6 @@ export default function PullPaymentDataGrid(props: GridType) {
       headerName: 'Actions',
       type: 'actions',
       width: actionWidth,
-      align: 'center',
-      headerAlign: 'center',
       getActions: ({ row }) => {
         switch (props.status) {
           case PULL_PAYMENT_STATUS.Active:

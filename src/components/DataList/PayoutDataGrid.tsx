@@ -88,8 +88,6 @@ export default function PayoutDataGrid(props: GridType) {
       headerName: 'Actions',
       type: 'actions',
       width: actionWidth,
-      align: 'right',
-      headerAlign: 'right',
       getActions: ({ row }) => {
         switch (props.status) {
           case PAYOUT_STATUS.AwaitingApproval:

@@ -95,7 +95,6 @@ export default function PaymentRequestDataGrid(props: GridType) {
       headerName: 'Actions',
       width: 200,
       cellClassName: 'actions',
-      align: 'center',
       getActions: ({ row }) => {
         return [
           <Box key={row.id}>

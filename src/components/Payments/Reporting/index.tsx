@@ -24,19 +24,19 @@ import { CHAINNAMES } from 'packages/constants/blockchain';
 
 export type RowType = {
   id: number;
+  storeName: string;
+  orderId: number;
   chainId: number;
-  chainName: CHAINNAMES;
-  currency: string;
-  amount: number;
-  crypto: string;
-  cryptoAmount: number;
+  chain: CHAINNAMES;
+  sourceType: string;
+  fiatAmount: string;
+  cryptoAmount: string;
   rate: number;
   description: string;
   metadata: string;
   buyerEmail: string;
   orderStatus: string;
   paymentMethod: string;
-  paid: string;
   createdDate: string;
   expirationDate: string;
 };
