@@ -85,6 +85,7 @@ export default function CreateFreeFundsDialog(props: DialogType) {
 
   useEffect(() => {
     initAddressBook(props.selectCoinItem?.chainId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.selectCoinItem]);
 
   return (
