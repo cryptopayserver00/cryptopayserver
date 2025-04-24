@@ -36,27 +36,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           message: '',
           result: true,
           data: {
-            user_id: payment_requests.user_id,
-            store_id: payment_requests.store_id,
+            ...payment_requests,
             store_name: store.name,
+            store_brand_color: store.brand_color,
             store_logo_url: store.logo_url,
             store_website: store.website,
-            payment_request_id: payment_requests.payment_request_id,
-            network: payment_requests.network,
-            title: payment_requests.title,
-            amount: payment_requests.amount,
-            currency: payment_requests.currency,
-            memo: payment_requests.memo,
-            expiration_date: payment_requests.expiration_at,
-            payment_request_status: payment_requests.payment_request_status,
-            request_customer_data: payment_requests.request_customer_data,
-            show_allow_custom_amount: payment_requests.show_allow_custom_amount,
-            email: payment_requests.email,
           },
         });
 
-      case 'POST':
-        break;
       default:
         throw 'no support the method of api';
     }

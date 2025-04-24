@@ -31,6 +31,7 @@ type WalletConnectType = {
   buttonSize?: 'small' | 'medium' | 'large';
   buttonVariant?: 'text' | 'outlined' | 'contained';
   fullWidth?: boolean;
+  color?: 'inherit' | 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
 };
 
 const WalletConnectButton = (props: WalletConnectType) => {
@@ -131,6 +132,7 @@ const WalletConnectButton = (props: WalletConnectType) => {
     <>
       {connectNetwork && (
         <Button
+          color={props.color ? props.color : 'primary'}
           fullWidth={props.fullWidth}
           variant={props.buttonVariant ? props.buttonVariant : 'contained'}
           size={props.buttonSize ? props.buttonSize : 'medium'}

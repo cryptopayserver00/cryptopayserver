@@ -678,7 +678,7 @@ export const ARBITRUM_SEPOLIA_COINS: COIN[] = [
     decimals: 18,
     displayDecimals: 2,
     contractAddress: '0x07d77913Bc824eDa81Fe18EE9eeC0Cdf81cEa790',
-    icon: require('assets/coin/usdt.svg'),
+    icon: require('assets/coin/dai.svg'),
   },
 ];
 

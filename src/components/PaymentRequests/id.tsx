@@ -6,9 +6,6 @@ import {
   Typography,
   Paper,
   Alert,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Card,
   CardContent,
   TableContainer,
@@ -18,22 +15,25 @@ import {
   TableCell,
   TableBody,
   Link,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Chip,
+  AlertTitle,
+  Grid,
+  Icon,
+  IconButton,
+  Divider,
 } from '@mui/material';
 import { useSnackPresistStore } from 'lib/store';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import { COINGECKO_IDS, CURRENCY_SYMBOLS, INVOICE_SOURCE_TYPE, ORDER_STATUS } from 'packages/constants';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from 'packages/constants/blockchain';
+import { CURRENCY_SYMBOLS, INVOICE_SOURCE_TYPE, ORDER_STATUS } from 'packages/constants';
+import { COIN } from 'packages/constants/blockchain';
 import Image from 'next/image';
-import { BigDiv } from 'utils/number';
+import { HelpOutline, Lock, Store, WarningAmber } from '@mui/icons-material';
+import HelpDrawer from 'components/Drawer/HelpDrawer';
+import ReportPaymentDialog from 'components/Dialog/ReportPaymentDialog';
+import PaymentRequestSelectChainAndCryptoCard from 'components/Card/PaymentRequestSelectChainAndCryptoCard';
 
 type paymentRequestType = {
   userId: number;
@@ -47,7 +47,7 @@ type paymentRequestType = {
   amount: number;
   currency: string;
   memo: string;
-  expirationDate: string;
+  expirationDate: number;
   paymentRequestStatus: string;
   requesCustomerData: string;
   showAllowCustomAmount: boolean;
@@ -66,6 +66,9 @@ const PaymentRequestsDetails = () => {
   const { id } = router.query;
 
   const [page, setPage] = useState<number>(1);
+
+  const [openDrawer, setOpenDrawer] = useState<boolean>(false);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   const [paymentRequestData, setPaymentRequestData] = useState<paymentRequestType>();
   const [paymentRequestRows, setPaymentRequestRows] = useState<InvoiceType[]>([]);
@@ -142,7 +145,7 @@ const PaymentRequestsDetails = () => {
           amount: response.data.amount,
           currency: response.data.currency,
           memo: response.data.memo,
-          expirationDate: new Date(response.data.expiration_date).toLocaleString(),
+          expirationDate: new Date(response.data.expiration_at).getTime(),
           paymentRequestStatus: response.data.payment_request_status,
           requesCustomerData: response.data.reques_customer_data,
           showAllowCustomAmount: response.data.show_allow_customAmount === 1 ? true : false,
@@ -163,10 +166,6 @@ const PaymentRequestsDetails = () => {
     id && init(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
-
-  const onClickPayInvoice = () => {
-    setPage(2);
-  };
 
   const onClickCoin = async (item: COIN, cryptoAmount: string, rate: number) => {
     if (!item || !cryptoAmount || !rate) {
@@ -211,309 +210,285 @@ const PaymentRequestsDetails = () => {
   return (
     <Box mt={4}>
       <Container>
-        <Typography textAlign={'center'} variant="h6">
-          {paymentRequestData?.title}
-        </Typography>
-        <Typography textAlign={'center'} mt={1} fontWeight={'bold'}>
-          Payment request from{' '}
-          <Link href={paymentRequestData?.storeWebsite} target="_blank">
-            {paymentRequestData?.storeName}
-          </Link>
-        </Typography>
-
-        {paymentRequestData?.storeLogoUrl && (
-          <Box textAlign={'center'} mt={2}>
-            <Image alt="logo" src={paymentRequestData?.storeLogoUrl} width={200} height={200} />
-          </Box>
-        )}
-
-        {paymentRequestData && paidAmount >= paymentRequestData?.amount && (
-          <Box mt={2}>
-            <Alert variant="filled" severity="success">
-              The payment request has reached its target, but you can continue to make payments.
+        {paymentRequestData?.network === 2 && (
+          <Box mb={2}>
+            <Alert severity="warning">
+              <AlertTitle>Warning</AlertTitle>
+              <Typography>
+                This is a test network, and the currency has no real value. If you need free coins, you can get
+                them&nbsp;
+                <Link href={'/freecoin'} target="_blank">
+                  here.
+                </Link>
+              </Typography>
             </Alert>
           </Box>
         )}
 
-        {page === 1 && (
-          <Box mt={4}>
+        <Box mb={2}>
+          {paymentRequestData && paidAmount >= paymentRequestData?.amount && (
+            <Box mt={2}>
+              <Alert variant="filled" severity="success">
+                The payment request has reached its target, but you can continue to make payments.
+              </Alert>
+            </Box>
+          )}
+        </Box>
+
+        <Grid container spacing={20}>
+          <Grid item xs={6} md={6} sm={6}>
+            <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+              <Stack direction={'row'} alignItems={'center'}>
+                {paymentRequestData?.storeLogoUrl ? (
+                  <Image alt="logo" src={paymentRequestData?.storeLogoUrl} width={100} height={40} />
+                ) : (
+                  <Icon component={Store} />
+                )}
+                <Box mx={1}>
+                  <Link href={String(paymentRequestData?.storeWebsite)}>{paymentRequestData?.storeName}</Link>
+                </Box>
+                {paymentRequestData?.network === 2 && <Chip label="TestMode" color={'warning'} variant={'filled'} />}
+              </Stack>
+
+              <Stack direction={'row'} alignItems={'center'}>
+                <IconButton
+                  aria-label="icon"
+                  onClick={() => {
+                    setOpenDrawer(true);
+                  }}
+                >
+                  <HelpOutline />
+                </IconButton>
+              </Stack>
+            </Stack>
+
+            <Stack direction={'row'} alignItems={'center'} mt={6}>
+              <Typography variant="h4" fontWeight={'bold'}>
+                {CURRENCY_SYMBOLS[String(paymentRequestData?.currency)]}
+                {paymentRequestData?.amount}
+              </Typography>
+            </Stack>
+
+            <Box py={4}>
+              <Divider />
+            </Box>
+
+            <Box>
+              <Typography>Payment Request Information</Typography>
+
+              <Stack direction={'row'} mt={4}>
+                <Box>
+                  <Typography>Title</Typography>
+                  <Typography mt={1}>Payment Request</Typography>
+                  <Typography mt={1}>Due Date</Typography>
+                </Box>
+                <Box ml={6}>
+                  <Typography>{paymentRequestData?.title ? paymentRequestData?.title : 'None'}</Typography>
+                  <Typography mt={1}>
+                    {paymentRequestData?.paymentRequestId ? paymentRequestData?.paymentRequestId : 'None'}
+                  </Typography>
+                  <Typography mt={1}>
+                    {paymentRequestData?.expirationDate
+                      ? new Date(Number(paymentRequestData?.expirationDate)).toLocaleString()
+                      : 'No due date'}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
+
+            <Box py={4}>
+              <Divider />
+            </Box>
+
             <Card>
               <CardContent>
-                <Stack direction={'row'} alignItems={'center'}>
-                  <Typography variant="h5" fontWeight={'bold'}>
-                    {CURRENCY_SYMBOLS[String(paymentRequestData?.currency)]}
-                    {paymentRequestData?.amount}
-                  </Typography>
-                </Stack>
-                <Box mt={1}>
-                  {paymentRequestData?.expirationDate ? (
-                    <>
-                      <Typography>{paymentRequestData.expirationDate}</Typography>
-                    </>
+                <Typography variant={'h6'}>Payment History</Typography>
+
+                <Box mt={2}>
+                  {paymentRequestRows && paymentRequestRows.length > 0 ? (
+                    <TableContainer component={Paper}>
+                      <Table aria-label="simple table">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Invoice Id</TableCell>
+                            <TableCell>Amount</TableCell>
+                            <TableCell>Status</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {paymentRequestRows.map((row, index) => (
+                            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                              <TableCell component="th" scope="row">
+                                <Button
+                                  onClick={() => {
+                                    window.location.href = '/invoices/' + row.orderId;
+                                  }}
+                                >
+                                  {row.orderId}
+                                </Button>
+                              </TableCell>
+                              <TableCell>
+                                {CURRENCY_SYMBOLS[row.currency]}
+                                {row.amount}
+                              </TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={row.orderStatus}
+                                  variant={'filled'}
+                                  color={
+                                    row.orderStatus === ORDER_STATUS.Settled
+                                      ? 'success'
+                                      : row.orderStatus === ORDER_STATUS.Processing
+                                      ? 'primary'
+                                      : row.orderStatus === ORDER_STATUS.Expired
+                                      ? 'warning'
+                                      : 'error'
+                                  }
+                                />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
                   ) : (
-                    <>
-                      <Typography>No due date</Typography>
-                    </>
+                    <Typography>No payments have been made yet.</Typography>
                   )}
                 </Box>
-
-                <Box mt={4}>
-                  <Button variant={'contained'} size="large" fullWidth onClick={onClickPayInvoice}>
-                    Pay Invoice
-                  </Button>
-                </Box>
-
-                <Stack mt={2} alignItems={'center'} gap={2} direction={'row'}>
-                  <Button
-                    variant={'outlined'}
-                    fullWidth
-                    onClick={() => {
-                      window.print();
-                    }}
-                  >
-                    Print
-                  </Button>
-
-                  <Button
-                    variant={'outlined'}
-                    fullWidth
-                    onClick={async () => {
-                      await navigator.clipboard.writeText(window.location.href);
-
-                      setSnackMessage('Successfully copy');
-                      setSnackSeverity('success');
-                      setSnackOpen(true);
-                    }}
-                  >
-                    Copy Link
-                  </Button>
-                </Stack>
               </CardContent>
             </Card>
 
-            <Box mt={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant={'h6'}>Payment History</Typography>
+            <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={10}>
+              <Stack direction={'row'} alignItems={'center'}>
+                <Icon component={Lock} />
+                <Typography ml={1}>Secured by</Typography>
+                <Typography fontWeight={'bold'} ml={1}>
+                  CryptoPayServer
+                </Typography>
+              </Stack>
 
-                  <Box mt={2}>
-                    {paymentRequestRows && paymentRequestRows.length > 0 ? (
-                      <TableContainer component={Paper}>
-                        <Table aria-label="simple table">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>Invoice Id</TableCell>
-                              <TableCell>Amount</TableCell>
-                              <TableCell>Status</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {paymentRequestRows.map((row, index) => (
-                              <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                <TableCell component="th" scope="row">
-                                  <Button
-                                    onClick={() => {
-                                      window.location.href = '/invoices/' + row.orderId;
-                                    }}
-                                  >
-                                    {row.orderId}
-                                  </Button>
-                                </TableCell>
-                                <TableCell>
-                                  {CURRENCY_SYMBOLS[row.currency]}
-                                  {row.amount}
-                                </TableCell>
-                                <TableCell>
-                                  <Chip label={row.orderStatus} variant={'filled'} color={'info'} />
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    ) : (
-                      <Typography>No payments have been made yet.</Typography>
-                    )}
+              <Stack direction={'row'} alignItems={'center'} gap={0.5}>
+                <Link href={'#'}>Terms</Link>
+                <Typography>·</Typography>
+                <Link href={'#'}>Privacy</Link>
+              </Stack>
+            </Stack>
+          </Grid>
+
+          <Grid item xs={6} md={6} sm={6}>
+            <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+              <Typography>Payment Method</Typography>
+              <Button
+                variant="outlined"
+                startIcon={<WarningAmber />}
+                onClick={() => {
+                  setOpenDialog(true);
+                }}
+                color={'warning'}
+              >
+                Report
+              </Button>
+            </Stack>
+            <Box mt={2}>
+              {page === 1 && (
+                <Card>
+                  <CardContent>
+                    <Stack direction={'row'} alignItems={'center'}>
+                      <Typography variant="h5" fontWeight={'bold'}>
+                        {CURRENCY_SYMBOLS[String(paymentRequestData?.currency)]}
+                        {paymentRequestData?.amount}
+                      </Typography>
+                    </Stack>
+                    <Box mt={1}>
+                      {paymentRequestData?.expirationDate ? (
+                        <>
+                          <Typography>
+                            {new Date(Number(paymentRequestData?.expirationDate)).toLocaleString()}
+                          </Typography>
+                        </>
+                      ) : (
+                        <>
+                          <Typography>No due date</Typography>
+                        </>
+                      )}
+                    </Box>
+
+                    <Box mt={4}>
+                      <Button
+                        variant={'contained'}
+                        size="large"
+                        fullWidth
+                        onClick={() => {
+                          setPage(2);
+                        }}
+                        color="success"
+                      >
+                        Pay Invoice
+                      </Button>
+                    </Box>
+
+                    <Stack mt={2} alignItems={'center'} gap={2} direction={'row'}>
+                      <Button
+                        variant={'outlined'}
+                        fullWidth
+                        onClick={() => {
+                          window.print();
+                        }}
+                      >
+                        Print
+                      </Button>
+
+                      <Button
+                        variant={'contained'}
+                        fullWidth
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(window.location.href);
+
+                          setSnackMessage('Successfully copy');
+                          setSnackSeverity('success');
+                          setSnackOpen(true);
+                        }}
+                      >
+                        Copy Link
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              )}
+
+              {page === 2 && (
+                <Box mt={2}>
+                  <Box textAlign={'right'}>
+                    <Button
+                      variant={'contained'}
+                      size="large"
+                      onClick={() => {
+                        setPage(1);
+                      }}
+                    >
+                      Back
+                    </Button>
                   </Box>
-                </CardContent>
-              </Card>
-            </Box>
-          </Box>
-        )}
-        {page === 2 && (
-          <Box mt={2}>
-            <Button
-              variant={'outlined'}
-              size="large"
-              onClick={() => {
-                setPage(1);
-              }}
-            >
-              Back
-            </Button>
 
-            <Box mt={1}>
-              <SelectChainAndCrypto
-                network={Number(paymentRequestData?.network)}
-                amount={Number(paymentRequestData?.amount)}
-                currency={String(paymentRequestData?.currency)}
-                onClickCoin={onClickCoin}
-              />
+                  <Box mt={1}>
+                    <PaymentRequestSelectChainAndCryptoCard
+                      network={Number(paymentRequestData?.network)}
+                      amount={Number(paymentRequestData?.amount)}
+                      currency={String(paymentRequestData?.currency)}
+                      onClickCoin={onClickCoin}
+                    />
+                  </Box>
+                </Box>
+              )}
             </Box>
-          </Box>
-        )}
+          </Grid>
+        </Grid>
+
+        <HelpDrawer openDrawer={openDrawer} setOpenDrawer={setOpenDrawer} />
+        <ReportPaymentDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
       </Container>
     </Box>
   );
 };
 
 export default PaymentRequestsDetails;
-
-type SelectType = {
-  network: number;
-  amount: number;
-  currency: string;
-  onClickCoin: (item: COIN, cryptoAmount: string, rate: number) => Promise<void>;
-};
-
-const SelectChainAndCrypto = (props: SelectType) => {
-  const [expanded, setExpanded] = useState<string | false>(false);
-  const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>([]);
-  const [selectCoinItem, setSelectCoinItem] = useState<COIN>();
-
-  const [open, setOpen] = useState<boolean>(false);
-  const [rate, setRate] = useState<number>(0);
-  const [cryptoAmount, setCryptoAmount] = useState<string>('');
-
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state);
-
-  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : false);
-  };
-
-  useEffect(() => {
-    const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
-    setBlcokchain(value);
-  }, [props.network]);
-
-  const handleOpen = async (chainId: number) => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setRate(0);
-    setCryptoAmount('');
-
-    setOpen(false);
-  };
-
-  const updateRate = async () => {
-    try {
-      if (!selectCoinItem?.name) {
-        return;
-      }
-
-      const ids = COINGECKO_IDS[selectCoinItem?.name];
-      const response: any = await axios.get(Http.find_crypto_price, {
-        params: {
-          ids: ids,
-          currency: props.currency,
-        },
-      });
-
-      const rate = response.data[ids][props.currency.toLowerCase()];
-      setRate(rate);
-      const totalPrice = parseFloat(BigDiv((props.amount as number).toString(), rate)).toFixed(4);
-      setCryptoAmount(totalPrice);
-    } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
-    }
-  };
-
-  useEffect(() => {
-    if (selectCoinItem?.name && props.amount && props.currency && props.amount > 0) {
-      updateRate();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectCoinItem?.name, props.amount, props.currency]);
-
-  return (
-    <Box>
-      <Card>
-        <CardContent>
-          <Typography variant={'h5'} textAlign={'center'} mt={1}>
-            Select Chain and Crypto
-          </Typography>
-        </CardContent>
-      </Card>
-      <Box mt={2}>
-        {blockchain &&
-          blockchain.length > 0 &&
-          blockchain.map((item, index) => (
-            <Accordion expanded={expanded === item.name} onChange={handleChange(item.name)} key={index}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1bh-content">
-                <Typography sx={{ width: '33%', flexShrink: 0 }} fontWeight={'bold'}>
-                  {item.name.toUpperCase()}
-                </Typography>
-                <Typography sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
-              </AccordionSummary>
-              {item.coins &&
-                item.coins.length > 0 &&
-                item.coins.map((coinItem: COIN, coinIndex) => (
-                  <AccordionDetails key={coinIndex}>
-                    <Button
-                      fullWidth
-                      onClick={async () => {
-                        setSelectCoinItem(coinItem);
-                        await handleOpen(coinItem.chainId);
-                      }}
-                    >
-                      <Image src={coinItem.icon} alt="icon" width={50} height={50} />
-                      <Typography ml={2}>{coinItem.name}</Typography>
-                    </Button>
-                  </AccordionDetails>
-                ))}
-            </Accordion>
-          ))}
-      </Box>
-
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-        fullWidth
-      >
-        <DialogTitle id="alert-dialog-title">Create invoice</DialogTitle>
-        <DialogContent>
-          <Box mb={2}>
-            <Typography>
-              Crypto rate: 1 {selectCoinItem?.name} = {CURRENCY_SYMBOLS[props.currency]}
-              {rate}
-            </Typography>
-            <Typography>
-              You will pay: {cryptoAmount} {selectCoinItem?.name}
-            </Typography>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button variant={'outlined'} onClick={handleClose}>
-            Close
-          </Button>
-          <Button
-            variant={'contained'}
-            onClick={async () => {
-              selectCoinItem && (await props.onClickCoin(selectCoinItem, cryptoAmount, rate));
-              handleClose();
-            }}
-          >
-            Create Invoice
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-};

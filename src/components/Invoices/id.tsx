@@ -1,13 +1,4 @@
-import {
-  Close,
-  CloseRounded,
-  ContentCopy,
-  ExpandMore,
-  HelpOutline,
-  Lock,
-  Store,
-  WarningAmber,
-} from '@mui/icons-material';
+import { ContentCopy, HelpOutline, Lock, Store, WarningAmber } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -16,28 +7,12 @@ import {
   Typography,
   Paper,
   Alert,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   IconButton,
-  Card,
-  CardContent,
   AlertTitle,
   Icon,
   Grid,
   Chip,
   Divider,
-  Drawer,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  FormControl,
-  OutlinedInput,
-  InputAdornment,
-  DialogActions,
-  Select,
-  MenuItem,
-  TextField,
 } from '@mui/material';
 import { useSnackPresistStore } from 'lib/store';
 import { useRouter } from 'next/router';
@@ -56,9 +31,11 @@ import {
   GetBlockchainTxUrlByChainIds,
   GetChainIds,
 } from 'utils/web3';
-import { CHAINNAMES, CHAINS, COINS } from 'packages/constants/blockchain';
+import { CHAINS, COINS } from 'packages/constants/blockchain';
 import WalletConnectButton from 'components/Button/WalletConnectButton';
 import Image from 'next/image';
+import HelpDrawer from 'components/Drawer/HelpDrawer';
+import ReportPaymentDialog from 'components/Dialog/ReportPaymentDialog';
 
 type OrderType = {
   orderId: number;
@@ -101,41 +78,8 @@ const InvoiceDetails = () => {
   const [countdownVal, setCountdownVal] = useState<string>('0');
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [issueWallet, setIssueWallet] = useState<typeof WALLET>();
-  const [issuePaymentMethod, setIssuePaymentMethod] = useState<CHAINNAMES>(CHAINNAMES.BITCOIN);
-  const [issueMessage, setIssueMessage] = useState<string>('');
 
-  const [order, setOrder] = useState<OrderType>({
-    orderId: 0,
-    amount: 0,
-    buyerEmail: '',
-    crypto: '',
-    currency: '',
-    description: '',
-    destinationAddress: '',
-    metadata: '',
-    notificationEmail: '',
-    notificationUrl: '',
-    orderStatus: '',
-    paid: 0,
-    paymentMethod: '',
-    createdDate: 0,
-    expirationDate: 0,
-    rate: 0,
-    totalPrice: '0',
-    amountDue: '0',
-    fromAddress: '',
-    toAddress: '',
-    hash: '',
-    blockTimestamp: 0,
-    network: 0,
-    chainId: 0,
-    qrCodeText: '',
-    storeName: '',
-    storeBrandColor: '',
-    storeLogoUrl: '',
-    storeWebsite: '',
-  });
+  const [order, setOrder] = useState<OrderType>();
 
   const init = async (id: any) => {
     try {
@@ -190,30 +134,6 @@ const InvoiceDetails = () => {
     }
   };
 
-  const toggleDrawer = (newOpen: boolean) => () => {
-    setOpenDrawer(newOpen);
-  };
-
-  const handleDialogClose = () => {
-    setIssueWallet(undefined);
-    setIssuePaymentMethod(CHAINNAMES.BITCOIN);
-    setIssueMessage('');
-
-    setOpenDialog(false);
-  };
-
-  const onClickSubmitIssue = async () => {
-    try {
-      setSnackSeverity('success');
-      setSnackMessage('report issue success!');
-      setSnackOpen(true);
-
-      setOpenDialog(false);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   useEffect(() => {
     id && init(id);
 
@@ -226,12 +146,12 @@ const InvoiceDetails = () => {
   }, [id]);
 
   const countDownTime = () => {
-    if (!order.expirationDate || order.expirationDate <= 0) {
+    if (!order?.expirationDate || order?.expirationDate <= 0) {
       return;
     }
 
     const currentTime = Date.now();
-    const remainingTime = order.expirationDate - currentTime;
+    const remainingTime = order?.expirationDate - currentTime;
 
     if (remainingTime <= 0) {
       return;
@@ -251,12 +171,12 @@ const InvoiceDetails = () => {
 
     return () => clearInterval(activeCountDownTime);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order.expirationDate]);
+  }, [order?.expirationDate]);
 
   return (
     <Box mt={4}>
       <Container>
-        {order.network === 2 && (
+        {order?.network === 2 && (
           <Box mb={2}>
             <Alert severity="warning">
               <AlertTitle>Warning</AlertTitle>
@@ -272,7 +192,7 @@ const InvoiceDetails = () => {
         )}
 
         <Box mb={2}>
-          {order.orderStatus === ORDER_STATUS.Settled && (
+          {order?.orderStatus === ORDER_STATUS.Settled && (
             <Alert variant="filled" severity="success">
               <Stack direction={'row'} alignItems={'center'}>
                 <Typography>The order has been paid successfully</Typography>
@@ -280,14 +200,14 @@ const InvoiceDetails = () => {
             </Alert>
           )}
 
-          {order.orderStatus === ORDER_STATUS.Expired && (
+          {order?.orderStatus === ORDER_STATUS.Expired && (
             <Alert variant="filled" severity="warning">
               <Stack direction={'row'} alignItems={'center'}>
                 <Typography>The order has expired, please do not continue to pay</Typography>
               </Stack>
             </Alert>
           )}
-          {order.orderStatus === ORDER_STATUS.Invalid && (
+          {order?.orderStatus === ORDER_STATUS.Invalid && (
             <Alert variant="filled" severity="error">
               <Stack direction={'row'} alignItems={'center'}>
                 <Typography>The order has invalid, please do not continue to pay</Typography>
@@ -300,20 +220,25 @@ const InvoiceDetails = () => {
           <Grid item xs={6} md={6} sm={6}>
             <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
               <Stack direction={'row'} alignItems={'center'}>
-                {order.storeLogoUrl ? (
-                  <Image alt="logo" src={order.storeLogoUrl} width={100} height={40} />
+                {order?.storeLogoUrl ? (
+                  <Image alt="logo" src={order?.storeLogoUrl} width={100} height={40} />
                 ) : (
                   <Icon component={Store} />
                 )}
                 <Box mx={1}>
-                  <Link href={order.storeWebsite}>{order.storeName}</Link>
+                  <Link href={String(order?.storeWebsite)}>{order?.storeName}</Link>
                 </Box>
-                {order.network === 2 && <Chip label="TestMode" color={'warning'} variant={'filled'} />}
+                {order?.network === 2 && <Chip label="TestMode" color={'warning'} variant={'filled'} />}
               </Stack>
 
               <Stack direction={'row'} alignItems={'center'}>
                 {countdownVal !== '0' && <Typography mx={1}>{countdownVal}</Typography>}
-                <IconButton aria-label="icon" onClick={toggleDrawer(true)}>
+                <IconButton
+                  aria-label="icon"
+                  onClick={() => {
+                    setOpenDrawer(true);
+                  }}
+                >
                   <HelpOutline />
                 </IconButton>
               </Stack>
@@ -321,10 +246,10 @@ const InvoiceDetails = () => {
 
             <Stack direction={'row'} alignItems={'center'} mt={6}>
               <Typography variant="h4" fontWeight={'bold'}>
-                {order.totalPrice}
+                {order?.totalPrice}
               </Typography>
               <Typography ml={1} variant="h4" fontWeight={'bold'}>
-                {order.crypto}
+                {order?.crypto}
               </Typography>
             </Stack>
 
@@ -337,7 +262,6 @@ const InvoiceDetails = () => {
 
               <Stack direction={'row'} mt={4}>
                 <Box>
-                  <Typography>To</Typography>
                   <Typography mt={1}>Invoice</Typography>
                   <Typography mt={1}>Due Date</Typography>
                   <Typography mt={1}>Description</Typography>
@@ -345,12 +269,13 @@ const InvoiceDetails = () => {
                   <Typography mt={1}>Metadata</Typography>
                 </Box>
                 <Box ml={6}>
-                  <Typography>test</Typography>
-                  <Typography mt={1}>{order.orderId}</Typography>
-                  <Typography mt={1}>{new Date(order.expirationDate).toLocaleString()}</Typography>
-                  <Typography mt={1}>{order.description}</Typography>
-                  <Typography mt={1}>{order.buyerEmail ? order.buyerEmail : 'None'}</Typography>
-                  <Typography mt={1}>{order.metadata ? order.metadata : 'None'}</Typography>
+                  <Typography mt={1}>{order?.orderId ? order?.orderId : 'None'}</Typography>
+                  <Typography mt={1}>
+                    {order?.expirationDate ? new Date(Number(order?.expirationDate)).toLocaleString() : 'No due date'}
+                  </Typography>
+                  <Typography mt={1}>{order?.description ? order?.description : 'None'}</Typography>
+                  <Typography mt={1}>{order?.buyerEmail ? order?.buyerEmail : 'None'}</Typography>
+                  <Typography mt={1}>{order?.metadata ? order?.metadata : 'None'}</Typography>
                 </Box>
               </Stack>
             </Box>
@@ -363,32 +288,32 @@ const InvoiceDetails = () => {
               <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
                 <Typography>Total Price</Typography>
                 <Typography fontWeight={'bold'}>
-                  {order.totalPrice} {order.crypto}
+                  {order?.totalPrice} {order?.crypto}
                 </Typography>
               </Stack>
               <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
                 <Typography>Total Fiat</Typography>
                 <Typography fontWeight={'bold'}>
-                  {CURRENCY_SYMBOLS[order.currency]}
-                  {order.amount}
+                  {CURRENCY_SYMBOLS[String(order?.currency)]}
+                  {order?.amount}
                 </Typography>
               </Stack>
               <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
                 <Typography>Exchange Rate</Typography>
                 <Typography fontWeight={'bold'}>
-                  1 {order.crypto} = {CURRENCY_SYMBOLS[order.currency]}
-                  {order.rate}
+                  1 {order?.crypto} = {CURRENCY_SYMBOLS[String(order?.currency)]}
+                  {order?.rate}
                 </Typography>
               </Stack>
               <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
                 <Typography>Amount Due</Typography>
                 <Typography fontWeight={'bold'}>
-                  {order.amountDue} {order.crypto}
+                  {order?.amountDue} {order?.crypto}
                 </Typography>
               </Stack>
             </Box>
 
-            {order.orderStatus === ORDER_STATUS.Settled && (
+            {order?.orderStatus === ORDER_STATUS.Settled && (
               <>
                 <Box py={4}>
                   <Divider />
@@ -396,15 +321,19 @@ const InvoiceDetails = () => {
                 <Box mt={2}>
                   <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
                     <Typography>Order Status</Typography>
-                    <Chip label={order.orderStatus} color={'success'} variant={'filled'} />
+                    <Chip label={order?.orderStatus} color={'success'} variant={'filled'} />
                   </Stack>
                   <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
                     <Typography>Hash</Typography>
                     <Link
                       target="_blank"
-                      href={GetBlockchainTxUrlByChainIds(order.network === 1 ? true : false, order.chainId, order.hash)}
+                      href={GetBlockchainTxUrlByChainIds(
+                        order?.network === 1 ? true : false,
+                        order?.chainId,
+                        order?.hash,
+                      )}
                     >
-                      {OmitMiddleString(order.hash)}
+                      {OmitMiddleString(order?.hash)}
                     </Link>
                   </Stack>
                   <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
@@ -412,12 +341,12 @@ const InvoiceDetails = () => {
                     <Link
                       target="_blank"
                       href={GetBlockchainAddressUrlByChainIds(
-                        order.network === 1 ? true : false,
-                        order.chainId,
-                        order.fromAddress,
+                        order?.network === 1 ? true : false,
+                        order?.chainId,
+                        order?.fromAddress,
                       )}
                     >
-                      {OmitMiddleString(order.fromAddress)}
+                      {OmitMiddleString(order?.fromAddress)}
                     </Link>
                   </Stack>
                   <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mb={1}>
@@ -425,12 +354,12 @@ const InvoiceDetails = () => {
                     <Link
                       target="_blank"
                       href={GetBlockchainAddressUrlByChainIds(
-                        order.network === 1 ? true : false,
-                        order.chainId,
-                        order.toAddress,
+                        order?.network === 1 ? true : false,
+                        order?.chainId,
+                        order?.toAddress,
                       )}
                     >
-                      {OmitMiddleString(order.toAddress)}
+                      {OmitMiddleString(order?.toAddress)}
                     </Link>
                   </Stack>
                 </Box>
@@ -471,28 +400,30 @@ const InvoiceDetails = () => {
 
             <Box mt={2}>
               <Typography mb={2}>Deposit currency</Typography>
-              {order.crypto && (
+              {order?.crypto && (
                 <Button
-                  variant="outlined"
+                  variant={'contained'}
+                  color={'success'}
                   startIcon={
-                    <Image alt="crypto" width={20} height={20} src={GetImgSrcByCrypto(order.crypto as COINS)} />
+                    <Image alt="crypto" width={20} height={20} src={GetImgSrcByCrypto(order?.crypto as COINS)} />
                   }
                   fullWidth
                 >
-                  {order.crypto}
+                  {order?.crypto}
                 </Button>
               )}
 
               <Typography my={2}>Select network</Typography>
-              {order.chainId && (
+              {order?.chainId && (
                 <Button
-                  variant="outlined"
+                  variant={'contained'}
+                  color={'success'}
                   startIcon={
-                    <Image alt="chain" width={20} height={20} src={GetImgSrcByChain(order.chainId as CHAINS)} />
+                    <Image alt="chain" width={20} height={20} src={GetImgSrcByChain(order?.chainId as CHAINS)} />
                   }
                   fullWidth
                 >
-                  {FindChainNamesByChains(order.chainId)?.toUpperCase()}
+                  {FindChainNamesByChains(order?.chainId)?.toUpperCase()}
                 </Button>
               )}
             </Box>
@@ -500,11 +431,11 @@ const InvoiceDetails = () => {
             <Box mt={2} textAlign={'center'}>
               <Paper style={{ padding: 20 }}>
                 <QRCodeSVG
-                  value={order.qrCodeText}
+                  value={String(order?.qrCodeText)}
                   width={'100%'}
                   height={'100%'}
                   imageSettings={{
-                    src: GetImgSrcByCrypto(order.crypto as COINS),
+                    src: GetImgSrcByCrypto(order?.crypto as COINS),
                     width: 20,
                     height: 20,
                     excavate: true,
@@ -516,24 +447,24 @@ const InvoiceDetails = () => {
                     variant="outlined"
                     fullWidth
                     onClick={async () => {
-                      await navigator.clipboard.writeText(order.destinationAddress);
+                      await navigator.clipboard.writeText(String(order?.destinationAddress));
 
                       setSnackMessage('Successfully copy');
                       setSnackSeverity('success');
                       setSnackOpen(true);
                     }}
                   >
-                    {order.destinationAddress}
+                    {order?.destinationAddress}
                   </Button>
                 </Box>
 
                 <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={1} gap={2}>
                   <Button
-                    variant="outlined"
+                    variant={'contained'}
                     startIcon={<ContentCopy />}
                     fullWidth
                     onClick={async () => {
-                      await navigator.clipboard.writeText(order.destinationAddress);
+                      await navigator.clipboard.writeText(String(order?.destinationAddress));
 
                       setSnackMessage('Successfully copy');
                       setSnackSeverity('success');
@@ -543,24 +474,25 @@ const InvoiceDetails = () => {
                     Copy Address
                   </Button>
 
-                  {order.orderStatus !== 'Settled' && (
+                  {order?.orderStatus !== 'Settled' && (
                     <WalletConnectButton
-                      network={order.network}
-                      chainId={order.chainId}
-                      address={order.destinationAddress}
+                      color={'success'}
+                      network={Number(order?.network)}
+                      chainId={Number(order?.chainId)}
+                      address={String(order?.destinationAddress)}
                       contractAddress={
                         FindTokenByChainIdsAndSymbol(
-                          GetChainIds(order.network === 1 ? true : false, order.chainId),
-                          order.crypto as COINS,
+                          GetChainIds(order?.network === 1 ? true : false, Number(order?.chainId)),
+                          order?.crypto as COINS,
                         )?.contractAddress
                       }
                       decimals={
                         FindTokenByChainIdsAndSymbol(
-                          GetChainIds(order.network === 1 ? true : false, order.chainId),
-                          order.crypto as COINS,
+                          GetChainIds(order?.network === 1 ? true : false, Number(order?.chainId)),
+                          order?.crypto as COINS,
                         )?.decimals
                       }
-                      value={order.totalPrice}
+                      value={String(order?.totalPrice)}
                       buttonSize={'medium'}
                       buttonVariant={'contained'}
                       fullWidth={true}
@@ -572,159 +504,8 @@ const InvoiceDetails = () => {
           </Grid>
         </Grid>
 
-        <Drawer open={openDrawer} onClose={toggleDrawer(false)} anchor={'right'}>
-          <Box role="presentation" width={400}>
-            <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} py={2} px={2}>
-              <Stack direction={'row'} alignItems={'center'}>
-                <HelpOutline />
-                <Typography variant={'h6'} ml={1}>
-                  Help
-                </Typography>
-              </Stack>
-              <IconButton onClick={toggleDrawer(false)}>
-                <Close />
-              </IconButton>
-            </Stack>
-
-            <Divider />
-
-            <Box mt={4} px={2}>
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1-content">
-                  What is CryptoPayServer?
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography>
-                    CryptoPayServer is a leading coin payment processor. CryptoPayServer makes it possible for you to
-                    send and receive transactions very quickly using the crypto network.
-                  </Typography>
-                </AccordionDetails>
-              </Accordion>
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1-content">
-                  What is CryptoPayServer wallet?
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography>
-                    A wallet is a software program that allows you to send and receive crypto from others in the
-                    network. It keeps track of your balance and transaction history. Each wallet has its own address,
-                    which functions similarly to your bank account&apos;s account number. There are lots of wallets
-                    available. Picking the right one is a matter of personal preference.
-                  </Typography>
-                </AccordionDetails>
-              </Accordion>
-              <Accordion>
-                <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1-content">
-                  How to make the payment?
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Typography>There are many ways to pay:</Typography>
-                  <Typography>QR Code</Typography>
-                  <Typography>1. Open your onchain wallet and tap scan.</Typography>
-                  <Typography>2. Scan the QR code.</Typography>
-                  <Typography>3. Tap Pay, and you’re done!</Typography>
-                </AccordionDetails>
-              </Accordion>
-
-              <Box p={2} border={1} mt={4}>
-                <Typography>More Questions?</Typography>
-                <Typography mt={1}>
-                  You can reach out to us <Link href={'#'}>here</Link> for more information
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </Drawer>
-
-        <Dialog
-          open={openDialog}
-          onClose={handleDialogClose}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-          fullWidth
-        >
-          <DialogTitle id="alert-dialog-title">Report an issue</DialogTitle>
-          <DialogContent>
-            <Typography fontWeight={'bold'}>I have an issue in making payment</Typography>
-
-            <Typography mt={2} mb={1}>
-              Select wallet which you have used
-            </Typography>
-            <Box mb={2}>
-              <FormControl variant="outlined" fullWidth size={'small'}>
-                <Select
-                  size={'small'}
-                  inputProps={{ 'aria-label': 'Without label' }}
-                  onChange={(e: any) => {
-                    setIssueWallet(e.target.value);
-                  }}
-                  value={issueWallet}
-                  placeholder="Select wallet"
-                >
-                  {WALLET &&
-                    WALLET.length > 0 &&
-                    WALLET.map((item, index) => (
-                      <MenuItem value={item} key={index}>
-                        {item}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Typography mb={1}>Select payment method which you have used</Typography>
-            <Box mb={2}>
-              <FormControl variant="outlined" fullWidth size={'small'}>
-                <Select
-                  size={'small'}
-                  inputProps={{ 'aria-label': 'Without label' }}
-                  onChange={(e) => {
-                    setIssuePaymentMethod(e.target.value as CHAINNAMES);
-                  }}
-                  value={issuePaymentMethod}
-                >
-                  {CHAINNAMES &&
-                    Object.entries(CHAINNAMES).length > 0 &&
-                    Object.entries(CHAINNAMES).map((item, index) => (
-                      <MenuItem value={item[1]} key={index}>
-                        {item[1]}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Typography mb={1}>Provide more information like error message, failure etc</Typography>
-            <Box mb={2}>
-              <FormControl variant="outlined" fullWidth size={'small'}>
-                <TextField
-                  fullWidth
-                  hiddenLabel
-                  multiline
-                  minRows={4}
-                  value={issueMessage}
-                  onChange={(e: any) => {
-                    setIssueMessage(e.target.value);
-                  }}
-                  placeholder="Type a reason..."
-                />
-              </FormControl>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button variant={'outlined'} onClick={handleDialogClose}>
-              Close
-            </Button>
-            <Button
-              variant={'contained'}
-              onClick={async () => {
-                await onClickSubmitIssue();
-              }}
-            >
-              Submit
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <HelpDrawer openDrawer={openDrawer} setOpenDrawer={setOpenDrawer} />
+        <ReportPaymentDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
       </Container>
     </Box>
   );

@@ -1,37 +1,14 @@
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  Grid,
-  Icon,
-  InputAdornment,
-  OutlinedInput,
-  Stack,
-  Typography,
-} from '@mui/material';
-import Image from 'next/image';
-import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINS, COIN } from 'packages/constants/blockchain';
-import { useEffect, useState } from 'react';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { FindChainNamesByChains, GetBlockchainTxUrlByChainIds } from 'utils/web3';
+import { Box, Button, Container, Icon, Stack, Typography } from '@mui/material';
+import { COIN } from 'packages/constants/blockchain';
+import { useState } from 'react';
+import { GetBlockchainTxUrlByChainIds } from 'utils/web3';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { useSnackPresistStore } from 'lib/store';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import Link from 'next/link';
-import { OmitMiddleString } from 'utils/strings';
+import FreeCoinSelectChainAndCryptoCard from 'components/Card/FreeCoinSelectChainAndCryptoCard';
 
 const FreeCoin = () => {
   const [page, setPage] = useState<number>(1);
@@ -97,7 +74,9 @@ const FreeCoin = () => {
         </Typography>
 
         <Box mt={6}>
-          {page === 1 && <SelectChainAndCrypto network={2} amount={0} currency={''} onClickCoin={onClickCoin} />}
+          {page === 1 && (
+            <FreeCoinSelectChainAndCryptoCard network={2} amount={0} currency={''} onClickCoin={onClickCoin} />
+          )}
 
           {page === 2 && (
             <Box textAlign={'center'} mt={10}>
@@ -133,202 +112,3 @@ const FreeCoin = () => {
 };
 
 export default FreeCoin;
-
-type SelectType = {
-  network: number;
-  amount: number;
-  currency: string;
-  onClickCoin: (item: COIN, address: string, amount: number) => Promise<void>;
-};
-
-type RowType = {
-  id: number;
-  chainId: number;
-  isMainnet: boolean;
-  name: string;
-  address: string;
-};
-
-const SelectChainAndCrypto = (props: SelectType) => {
-  const [expanded, setExpanded] = useState<string | false>(false);
-  const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>([]);
-  const [selectCoinItem, setSelectCoinItem] = useState<COIN>();
-  const [rows, setRows] = useState<RowType[]>([]);
-
-  const [open, setOpen] = useState<boolean>(false);
-  const [address, setAddress] = useState<string>('');
-  const [amount, setAmount] = useState<number>(0);
-
-  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : false);
-  };
-
-  useEffect(() => {
-    const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
-    setBlcokchain(value);
-  }, [props.network]);
-
-  const handleOpen = async (chainId: number) => {
-    try {
-      const response: any = await axios.get(Http.find_address_book, {
-        params: {
-          network: props.network,
-          chain_id: chainId,
-        },
-      });
-      if (response.result && response.data.length > 0) {
-        let rt: RowType[] = [];
-        response.data.forEach((item: any) => {
-          rt.push({
-            id: item.id,
-            chainId: item.chain_id,
-            isMainnet: item.network === 1 ? true : false,
-            name: item.name,
-            address: item.address,
-          });
-        });
-
-        setRows(rt);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setAddress('');
-    setAmount(0);
-    setRows([]);
-
-    setOpen(false);
-  };
-
-  return (
-    <Box>
-      <Card>
-        <CardContent>
-          <Typography variant={'h5'} textAlign={'center'} mt={1}>
-            Select Chain and Crypto
-          </Typography>
-        </CardContent>
-      </Card>
-      <Box mt={2}>
-        {blockchain &&
-          blockchain.length > 0 &&
-          blockchain.map((item, index) => (
-            <Accordion expanded={expanded === item.name} onChange={handleChange(item.name)} key={index}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1bh-content">
-                <Typography sx={{ width: '33%', flexShrink: 0 }} fontWeight={'bold'}>
-                  {item.name.toUpperCase()}
-                </Typography>
-                <Typography sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
-              </AccordionSummary>
-              {item.coins &&
-                item.coins.length > 0 &&
-                item.coins.map((coinItem: COIN, coinIndex) => (
-                  <AccordionDetails key={coinIndex}>
-                    <Button
-                      fullWidth
-                      onClick={async () => {
-                        setSelectCoinItem(coinItem);
-
-                        await handleOpen(coinItem.chainId);
-                      }}
-                    >
-                      <Image src={coinItem.icon} alt="icon" width={50} height={50} />
-                      <Typography ml={2}>{coinItem.name}</Typography>
-                    </Button>
-                  </AccordionDetails>
-                ))}
-            </Accordion>
-          ))}
-      </Box>
-
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-        fullWidth
-      >
-        <DialogTitle id="alert-dialog-title">Claim free funds</DialogTitle>
-        <DialogContent>
-          <Box mb={2}>
-            <FormControl variant="outlined" fullWidth size={'small'}>
-              <OutlinedInput
-                type="text"
-                endAdornment={
-                  <InputAdornment position="end">
-                    {FindChainNamesByChains(selectCoinItem?.chainId as CHAINS)}
-                  </InputAdornment>
-                }
-                aria-describedby="outlined-weight-helper-text"
-                inputProps={{
-                  'aria-label': 'weight',
-                }}
-                value={address}
-                onChange={(e: any) => {
-                  setAddress(e.target.value);
-                }}
-                placeholder="Enter your address"
-              />
-            </FormControl>
-          </Box>
-
-          {rows && rows.length > 0 && (
-            <Box mb={2}>
-              <Typography mb={2}>Address Books</Typography>
-              <Grid container spacing={2}>
-                {rows.map((item, index) => (
-                  <Grid item key={index}>
-                    <Chip
-                      label={OmitMiddleString(item.address)}
-                      variant="outlined"
-                      onClick={() => {
-                        setAddress(item.address);
-                      }}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
-
-          <Box mb={2}>
-            <FormControl variant="outlined" fullWidth size={'small'}>
-              <OutlinedInput
-                type="number"
-                endAdornment={<InputAdornment position="end">{props.currency}</InputAdornment>}
-                aria-describedby="outlined-weight-helper-text"
-                inputProps={{
-                  'aria-label': 'weight',
-                }}
-                value={amount}
-                onChange={(e: any) => {
-                  setAmount(e.target.value);
-                }}
-                placeholder="Enter you amount"
-              />
-            </FormControl>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button variant={'outlined'} onClick={handleClose}>
-            Close
-          </Button>
-          <Button
-            variant={'contained'}
-            onClick={async () => {
-              await props.onClickCoin(selectCoinItem as COIN, address, amount);
-              handleClose();
-            }}
-          >
-            Claim Funds
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-};

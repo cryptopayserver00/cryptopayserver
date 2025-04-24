@@ -30,8 +30,6 @@ type GridType = {
 };
 
 export default function WebhookDataGrid(props: GridType) {
-  const { source } = props;
-
   const [rows, setRows] = useState<RowType[]>([]);
   const [open, setOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState<RowType>();
@@ -209,7 +207,7 @@ export default function WebhookDataGrid(props: GridType) {
         }}
         // checkboxSelection
         // disableRowSelectionOnClick
-        hideFooter={source === 'dashboard' ? true : false}
+        hideFooter={props.source === 'dashboard' ? true : false}
         disableColumnMenu
       />
     </Box>
