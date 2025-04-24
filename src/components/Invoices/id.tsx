@@ -350,7 +350,7 @@ const InvoiceDetails = () => {
                   <Typography mt={1}>{new Date(order.expirationDate).toLocaleString()}</Typography>
                   <Typography mt={1}>{order.description}</Typography>
                   <Typography mt={1}>{order.buyerEmail ? order.buyerEmail : 'None'}</Typography>
-                  <Typography mt={1}>{order.metadata ? order.metadata : ''}</Typography>
+                  <Typography mt={1}>{order.metadata ? order.metadata : 'None'}</Typography>
                 </Box>
               </Stack>
             </Box>
@@ -463,6 +463,7 @@ const InvoiceDetails = () => {
                 onClick={() => {
                   setOpenDialog(true);
                 }}
+                color={'warning'}
               >
                 Report
               </Button>
