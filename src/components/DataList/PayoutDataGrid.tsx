@@ -235,35 +235,21 @@ export default function PayoutDataGrid(props: GridType) {
       case CHAINS.BITCOINCASH:
         window.location.href = '/wallets/bitcoincash/send?payoutId=' + row.payoutId;
         return;
-      case CHAINS.ETHEREUM:
-        window.location.href = '/wallets/ethereum/send?payoutId=' + row.payoutId;
+      case (CHAINS.ETHEREUM,
+      CHAINS.BSC,
+      CHAINS.ARBITRUM,
+      CHAINS.ARBITRUMNOVA,
+      CHAINS.AVALANCHE,
+      CHAINS.POLYGON,
+      CHAINS.BASE,
+      CHAINS.OPTIMISM):
+        window.location.href = `/wallets/send?chainId=${row.chainId}payoutId=${row.payoutId}`;
         return;
       case CHAINS.TRON:
         window.location.href = '/wallets/tron/send?payoutId=' + row.payoutId;
         return;
       case CHAINS.SOLANA:
         window.location.href = '/wallets/solana/send?payoutId=' + row.payoutId;
-        return;
-      case CHAINS.BSC:
-        window.location.href = '/wallets/bsc/send?payoutId=' + row.payoutId;
-        return;
-      case CHAINS.ARBITRUM:
-        window.location.href = '/wallets/arbitrum/send?payoutId=' + row.payoutId;
-        return;
-      case CHAINS.ARBITRUMNOVA:
-        window.location.href = '/wallets/arbitrumnova/send?payoutId=' + row.payoutId;
-        return;
-      case CHAINS.AVALANCHE:
-        window.location.href = '/wallets/avalanche/send?payoutId=' + row.payoutId;
-        return;
-      case CHAINS.POLYGON:
-        window.location.href = '/wallets/polygon/send?payoutId=' + row.payoutId;
-        return;
-      case CHAINS.BASE:
-        window.location.href = '/wallets/base/send?payoutId=' + row.payoutId;
-        return;
-      case CHAINS.OPTIMISM:
-        window.location.href = '/wallets/optimism/send?payoutId=' + row.payoutId;
         return;
       case CHAINS.TON:
         window.location.href = '/wallets/ton/send?payoutId=' + row.payoutId;

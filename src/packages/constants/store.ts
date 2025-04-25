@@ -831,3 +831,14 @@ export const ACCOUNT_TAB_DATAS: TAB_DATA[] = [
     tabId: 'logincodes',
   },
 ];
+
+export const STORE_STAT_TIME_TYPE = {
+  WEEK: 'WEEK',
+  MONTH: 'MONTH',
+  YEAR: 'YEAR',
+};
+
+export const STORE_STAT_ITEM_TYPE = {
+  DEAL_AMOUNT: 'DEAL_AMOUNT',
+  TRANSACTION_VOLUMN: 'TRANSACTION VOLUMN',
+};

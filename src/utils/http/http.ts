@@ -39,6 +39,7 @@ export class Http {
   static update_store_by_id = this.httpPath + '/store/update_store_by_id';
   static archive_store_by_id = this.httpPath + '/store/archive_store_by_id';
   static delete_store_by_id = this.httpPath + '/store/delete_store_by_id';
+  static fint_store_stat = this.httpPath + '/store/fint_store_stat';
 
   // address book of store
   static find_address_book = this.httpPath + '/store/addressbook/find_address_book';

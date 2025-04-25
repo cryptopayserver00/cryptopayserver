@@ -7,49 +7,29 @@ import {
   CardContent,
   Chip,
   Container,
-  FormControlLabel,
   Grid,
   Link,
-  Radio,
-  RadioGroup,
   Stack,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from '@mui/material';
-import Balance from './Balance';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import StoreData from './StoreData';
+import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import { COINGECKO_IDS, PAYOUT_STATUS } from 'packages/constants';
-import { COINS } from 'packages/constants/blockchain';
-import { BigMul } from 'utils/number';
+import { PAYOUT_STATUS } from 'packages/constants';
 import TransactionDataGrid from 'components/DataList/TransactionDataGrid';
 import InvoiceDataGrid from 'components/DataList/InvoiceDataGrid';
 import PayoutDataGrid from 'components/DataList/PayoutDataGrid';
 import CurrencyDataGrid from 'components/DataList/CurrencyDataGrid';
 
 const Dashboard = () => {
-  const [walletBalanceAlignment, setWalletBalanceAlignment] = useState<'USD' | 'USDT' | 'USDC'>('USD');
-  const [walletBalanceDayAlignment, setWalletBalanceDayAlignment] = useState<'WEEK' | 'MONTH' | 'YEAR'>('WEEK');
-  const [walletBalance, setWalletBalance] = useState<number>(0.0);
-  const [walletCoinMaps, setWalletCoinMaps] = useState<{ [key in string]: { number: number; price: number } }>({});
   const [enablePasswordWarn, setEnablePasswordWarn] = useState<boolean>(false);
   const [enableBackupWarn, setEnableBackupWarn] = useState<boolean>(false);
 
-  const onChangeCurrency = (e: any) => {
-    setWalletBalanceAlignment(e.target.value);
-  };
-
-  const onChangeDay = (e: any) => {
-    setWalletBalanceDayAlignment(e.target.value);
-  };
-
   const { getStoreName } = useStorePresistStore((state) => state);
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state);
+  const { getNetwork } = useUserPresistStore((state) => state);
   const { getWalletId } = useWalletPresistStore((state) => state);
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
 
   const init = async () => {
     try {
@@ -116,18 +96,7 @@ const Dashboard = () => {
           <Grid item xs={12}>
             <Card variant="outlined">
               <CardContent>
-                <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} mt={2}>
-                  <Box></Box>
-                  <RadioGroup row value={walletBalanceDayAlignment} onChange={onChangeDay}>
-                    <FormControlLabel value="WEEK" control={<Radio />} label="1W" />
-                    <FormControlLabel value="MONTH" control={<Radio />} label="1M" />
-                    <FormControlLabel value="YEAR" control={<Radio />} label="1Y" />
-                  </RadioGroup>
-                </Stack>
-
-                <Box mt={2}>
-                  <Balance />
-                </Box>
+                <StoreData />
               </CardContent>
             </Card>
           </Grid>
@@ -141,7 +110,7 @@ const Dashboard = () => {
                     onClick={() => {
                       // window.location.href = '/currencies';
                     }}
-                    variant='contained'
+                    variant="contained"
                   >
                     View All
                   </Button>
@@ -163,14 +132,14 @@ const Dashboard = () => {
                     onClick={() => {
                       window.location.href = '/payments/transactions';
                     }}
-                    variant='contained'
+                    variant="contained"
                   >
                     View All
                   </Button>
                 </Stack>
 
                 <Box mt={3}>
-                  <TransactionDataGrid source="dashboard" network={getNetwork()} />
+                  {/* <TransactionDataGrid source="dashboard" network={getNetwork()} /> */}
                 </Box>
               </CardContent>
             </Card>
@@ -185,7 +154,7 @@ const Dashboard = () => {
                     onClick={() => {
                       window.location.href = '/payments/invoices';
                     }}
-                    variant='contained'
+                    variant="contained"
                   >
                     View All
                   </Button>
@@ -207,7 +176,7 @@ const Dashboard = () => {
                     onClick={() => {
                       window.location.href = '/payments/payouts';
                     }}
-                    variant='contained'
+                    variant="contained"
                   >
                     View All
                   </Button>
