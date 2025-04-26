@@ -68,6 +68,7 @@ const StoreData = () => {
 
   useEffect(() => {
     init(timeAlignment, itemAlignment);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeAlignment, itemAlignment]);
 
   return (
