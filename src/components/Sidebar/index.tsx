@@ -22,6 +22,7 @@ import {
   Settings,
   ShoppingBag,
   Security,
+  AttachMoney,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import BitcoinSVG from 'assets/chain/bitcoin.svg';
@@ -222,6 +223,28 @@ const HomeSidebar = () => {
 
               <Menu menuItemStyles={menuItemStyles}>
                 <MenuItem
+                  icon={<AttachMoney />}
+                  active={router.pathname === '/wallets/assets' ? true : false}
+                  component={<Link href={'/wallets/assets'} />}
+                >
+                  My Assets
+                </MenuItem>
+                <MenuItem
+                  icon={<Adjust />}
+                  active={router.pathname === '/wallets/blockscan' ? true : false}
+                  component={<Link href={'/wallets/blockscan'} />}
+                >
+                  BlockScan
+                </MenuItem>
+
+                <MenuItem
+                  icon={<Security />}
+                  active={router.pathname === '/wallets/security' ? true : false}
+                  component={<Link href={'/wallets/security'} />}
+                >
+                  WalletSecurity
+                </MenuItem>
+                <MenuItem
                   icon={<Image src={BitcoinSVG} alt="icon" width={25} height={25} />}
                   active={router.pathname === '/wallets/bitcoin' ? true : false}
                   component={<Link href={'/wallets/bitcoin'} />}
@@ -334,22 +357,6 @@ const HomeSidebar = () => {
                   component={<Link href={'/wallets/ton'} />}
                 >
                   Ton
-                </MenuItem>
-
-                <MenuItem
-                  icon={<Adjust />}
-                  active={router.pathname === '/wallets/blockscan' ? true : false}
-                  component={<Link href={'/wallets/blockscan'} />}
-                >
-                  BlockScan
-                </MenuItem>
-
-                <MenuItem
-                  icon={<Security />}
-                  active={router.pathname === '/wallets/security' ? true : false}
-                  component={<Link href={'/wallets/security'} />}
-                >
-                  WalletSecurity
                 </MenuItem>
               </Menu>
 

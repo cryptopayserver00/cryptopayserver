@@ -235,15 +235,15 @@ export default function PayoutDataGrid(props: GridType) {
       case CHAINS.BITCOINCASH:
         window.location.href = '/wallets/bitcoincash/send?payoutId=' + row.payoutId;
         return;
-      case (CHAINS.ETHEREUM,
-      CHAINS.BSC,
-      CHAINS.ARBITRUM,
-      CHAINS.ARBITRUMNOVA,
-      CHAINS.AVALANCHE,
-      CHAINS.POLYGON,
-      CHAINS.BASE,
-      CHAINS.OPTIMISM):
-        window.location.href = `/wallets/send?chainId=${row.chainId}payoutId=${row.payoutId}`;
+      case CHAINS.ETHEREUM ||
+        CHAINS.BSC ||
+        CHAINS.ARBITRUM ||
+        CHAINS.ARBITRUMNOVA ||
+        CHAINS.AVALANCHE ||
+        CHAINS.POLYGON ||
+        CHAINS.BASE ||
+        CHAINS.OPTIMISM:
+        window.location.href = `/wallets/send?chainId=${row.chainId}&payoutId=${row.payoutId}`;
         return;
       case CHAINS.TRON:
         window.location.href = '/wallets/tron/send?payoutId=' + row.payoutId;

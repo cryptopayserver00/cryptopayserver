@@ -558,7 +558,9 @@ const WalletsSend = () => {
   return (
     <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" mb={10}>
       <Stack direction={'row'} alignItems={'center'} justifyContent={'center'}>
-        <Image src={GetImgSrcByChain(Number(chainId))} alt="chain" width={50} height={50} />
+        {GetImgSrcByChain(Number(chainId)) && (
+          <Image src={GetImgSrcByChain(Number(chainId))} alt="chain" width={50} height={50} />
+        )}
         <Typography variant="h4" my={4} ml={2}>
           Send coin on{' '}
           {getNetwork() === 'mainnet'
