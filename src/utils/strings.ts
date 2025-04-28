@@ -90,3 +90,35 @@ export function DecodeNonstandardCurrencyCode(hex: string): string {
 export function IsHexAddress(value: string): value is Hex {
   return /^0x[a-fA-F0-9]{40}$/.test(value);
 }
+
+export function FormatNumberToEnglish(num: number, decimals: number = 1): string {
+  if (isNaN(num) || num === null) {
+    return '0';
+  }
+
+  if (num === 0) {
+    return '0';
+  }
+
+  const isNegative = num < 0;
+  const absNum = Math.abs(num);
+  const sign = isNegative ? '-' : '';
+
+  const units: { threshold: number; suffix: string }[] = [
+    { threshold: 1_000_000_000_000, suffix: 'T' },
+    { threshold: 1_000_000_000, suffix: 'B' },
+    { threshold: 1_000_000, suffix: 'M' },
+    { threshold: 1_000, suffix: 'K' },
+    { threshold: 1, suffix: '' },
+  ];
+
+  for (const unit of units) {
+    if (absNum >= unit.threshold) {
+      const formatted = (absNum / unit.threshold).toFixed(decimals);
+      const cleaned = parseFloat(formatted).toString();
+      return `${sign}${cleaned}${unit.suffix}`;
+    }
+  }
+
+  return `${sign}${absNum.toFixed(decimals)}`;
+}

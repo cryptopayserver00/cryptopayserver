@@ -67,11 +67,12 @@ const PaymentInvoices = () => {
           currency: currency,
         },
       });
-
-      const rate = response.data[ids][currency.toLowerCase()];
-      setRate(rate);
-      const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(4);
-      setCryptoAmount(totalPrice);
+      if (response.result) {
+        const rate = response.data[ids][currency.toLowerCase()];
+        setRate(rate);
+        const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(4);
+        setCryptoAmount(totalPrice);
+      }
     } catch (e) {
       setSnackSeverity('error');
       setSnackMessage('The network error occurred. Please try again later.');

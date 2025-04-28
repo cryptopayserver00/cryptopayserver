@@ -141,15 +141,16 @@ const TonSend = () => {
             currency: response.data.currency,
           },
         });
+        if (rate_response.result) {
+          const rate = rate_response.data[ids][response.data.currency.toLowerCase()];
+          const totalPrice = parseFloat(BigDiv(Number(response.data.amount).toString(), rate)).toFixed(4);
 
-        const rate = rate_response.data[ids][response.data.currency.toLowerCase()];
-        const totalPrice = parseFloat(BigDiv(Number(response.data.amount).toString(), rate)).toFixed(4);
+          setAmount(totalPrice);
+          setCoin(response.data.crypto);
 
-        setAmount(totalPrice);
-        setCoin(response.data.crypto);
-
-        setIsDisableDestinationAddress(true);
-        setIsDisableAmount(true);
+          setIsDisableDestinationAddress(true);
+          setIsDisableAmount(true);
+        }
       }
     } catch (e) {
       setSnackSeverity('error');

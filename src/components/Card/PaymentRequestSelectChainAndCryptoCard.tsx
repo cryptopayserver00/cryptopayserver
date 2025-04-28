@@ -67,11 +67,12 @@ export default function PaymentRequestSelectChainAndCryptoCard(props: SelectType
           currency: currency,
         },
       });
-
-      const rate = response.data[ids][currency.toLowerCase()];
-      setRate(rate);
-      const totalPrice = parseFloat(BigDiv(amount.toString(), rate)).toFixed(selectName.displayDecimals);
-      setCryptoAmount(totalPrice);
+      if (response.result) {
+        const rate = response.data[ids][currency.toLowerCase()];
+        setRate(rate);
+        const totalPrice = parseFloat(BigDiv(amount.toString(), rate)).toFixed(selectName.displayDecimals);
+        setCryptoAmount(totalPrice);
+      }
     } catch (e) {
       setSnackSeverity('error');
       setSnackMessage('The network error occurred. Please try again later.');

@@ -65,6 +65,7 @@ import SecurityWallet from 'components/Wallets/Security/Wallet';
 import SecurityNetwork from 'components/Wallets/Security/Network';
 import SecurityAddressBook from 'components/Wallets/Security/AddressBook';
 import MyAssets from 'components/Wallets/Assets';
+import AssetsToken from 'components/Wallets/Assets/token';
 
 export type RouteType = {
   path: string;
@@ -361,6 +362,15 @@ export const routes: RouteType[] = [
     name: 'Assets',
     title: 'Assets',
     component: <MyAssets />,
+    enableSidebar: true,
+    needLogin: true,
+    enableInnerFooter: true,
+  },
+  {
+    path: '/wallets/assets/token',
+    name: 'AssetsToken',
+    title: 'AssetsToken',
+    component: <AssetsToken />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,
