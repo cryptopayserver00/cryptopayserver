@@ -98,6 +98,9 @@ export class Http {
   static find_wallet_address_by_network = this.httpPath + '/wallet/find_wallet_address_by_network';
   static create_wallet_to_block_scan = this.httpPath + '/wallet/create_wallet_to_block_scan';
   static find_private_key_by_chain_and_network = this.httpPath + '/wallet/find_private_key_by_chain_and_network';
+  static find_wallet_coin_enables = this.httpPath + '/wallet/find_wallet_coin_enables';
+  static update_wallet_coin_enable_by_id = this.httpPath + '/wallet/update_wallet_coin_enable_by_id';
+  static find_wallet_manage_by_network = this.httpPath + '/wallet/find_wallet_manage_by_network';
 
   // ethereum
   static find_nonce = this.httpPath + '/ethereum/find_nonce';

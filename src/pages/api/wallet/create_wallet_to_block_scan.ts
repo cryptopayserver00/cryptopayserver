@@ -76,10 +76,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           }
         });
 
-        const result = await BLOCKSCAN.bulkStoreUserWallet(blockscanWalletTypes);
+        const [result, data] = await BLOCKSCAN.bulkStoreUserWallet(blockscanWalletTypes);
 
         if (!result) {
-          return res.status(200).json({ message: '', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: data });
         }
 
         return res.status(200).json({ message: '', result: true, data: null });

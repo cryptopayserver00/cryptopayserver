@@ -1,7 +1,7 @@
 import { Box, Button, Card, CardContent, CardHeader, Container, Icon, Stack, Typography } from '@mui/material';
 import { VerifiedUser, AccountBalance, Code, GitHub } from '@mui/icons-material';
 
-const SecurityAudit = () => {
+const ManageAudit = () => {
   return (
     <Box>
       <Container>
@@ -86,4 +86,4 @@ const SecurityAudit = () => {
   );
 };
 
-export default SecurityAudit;
+export default ManageAudit;

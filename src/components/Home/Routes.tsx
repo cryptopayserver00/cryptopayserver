@@ -29,7 +29,7 @@ import Bsc from 'components/Wallets/Bsc';
 import BitcoinSend from 'components/Wallets/Bitcoin/Send';
 import InvoicesDetails from 'components/Invoices/id';
 import BlockScan from 'components/Wallets/BlockScan';
-import Security from 'components/Wallets/Security';
+import Manage from 'components/Wallets/Manage';
 import WalletsReceive from 'components/Wallets/Receive';
 import WalletsSend from 'components/Wallets/Send';
 import SolanaSend from 'components/Wallets/Solana/Send';
@@ -58,12 +58,12 @@ import Avalanche from 'components/Wallets/Avalanche';
 import Polygon from 'components/Wallets/Polygon';
 import Base from 'components/Wallets/Base';
 import Optimism from 'components/Wallets/Optimism';
-import SecurityPassword from 'components/Wallets/Security/Password';
-import SecurityPrivateKey from 'components/Wallets/Security/PrivateKey';
-import SecurityAudit from 'components/Wallets/Security/Audit';
-import SecurityWallet from 'components/Wallets/Security/Wallet';
-import SecurityNetwork from 'components/Wallets/Security/Network';
-import SecurityAddressBook from 'components/Wallets/Security/AddressBook';
+import ManagePassword from 'components/Wallets/Manage/Password';
+import ManagePrivateKey from 'components/Wallets/Manage/PrivateKey';
+import ManageAudit from 'components/Wallets/Manage/Audit';
+import ManageWallet from 'components/Wallets/Manage/Wallet';
+import ManageNetwork from 'components/Wallets/Manage/Network';
+import ManageAddressBook from 'components/Wallets/Manage/AddressBook';
 import MyAssets from 'components/Wallets/Assets';
 import AssetsToken from 'components/Wallets/Assets/token';
 
@@ -385,64 +385,64 @@ export const routes: RouteType[] = [
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/security',
-    name: 'Security',
-    title: 'Security',
-    component: <Security />,
+    path: '/wallets/manage',
+    name: 'Manage',
+    title: 'Manage',
+    component: <Manage />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/security/password',
-    name: 'SecurityPassword',
-    title: 'SecurityPassword',
-    component: <SecurityPassword />,
+    path: '/wallets/manage/password',
+    name: 'ManagePassword',
+    title: 'ManagePassword',
+    component: <ManagePassword />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/security/privatekey',
-    name: 'SecurityPrivateKey',
-    title: 'SecurityPrivateKey',
-    component: <SecurityPrivateKey />,
+    path: '/wallets/manage/privatekey',
+    name: 'ManagePrivateKey',
+    title: 'ManagePrivateKey',
+    component: <ManagePrivateKey />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/security/audit',
-    name: 'SecurityAudit',
-    title: 'SecurityAudit',
-    component: <SecurityAudit />,
+    path: '/wallets/manage/audit',
+    name: 'ManageAudit',
+    title: 'ManageAudit',
+    component: <ManageAudit />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/security/wallet',
-    name: 'SecurityWallet',
-    title: 'SecurityWallet',
-    component: <SecurityWallet />,
+    path: '/wallets/manage/wallet',
+    name: 'ManageWallet',
+    title: 'ManageWallet',
+    component: <ManageWallet />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/security/network',
-    name: 'SecurityNetwork',
-    title: 'SecurityNetwork',
-    component: <SecurityNetwork />,
+    path: '/wallets/manage/network',
+    name: 'ManageNetwork',
+    title: 'ManageNetwork',
+    component: <ManageNetwork />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,
   },
   {
-    path: '/wallets/security/addressbook',
-    name: 'SecurityAddressBook',
-    title: 'SecurityAddressBook',
-    component: <SecurityAddressBook />,
+    path: '/wallets/manage/addressbook',
+    name: 'ManageAddressBook',
+    title: 'ManageAddressBook',
+    component: <ManageAddressBook />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,

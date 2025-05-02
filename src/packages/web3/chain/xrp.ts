@@ -205,7 +205,10 @@ export class XRP {
       return items;
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the asset balance of xrp');
+      return {
+        XRP: '0',
+      } as AssetBalance;
+      // throw new Error('can not get the asset balance of xrp');
     } finally {
       await client.disconnect();
     }
@@ -242,7 +245,8 @@ export class XRP {
       return balances.result.lines;
     } catch (e) {
       console.error(e);
-      throw new Error('can not get the trust line of xrp');
+      return null;
+      // throw new Error('can not get the trust line of xrp');
     } finally {
       await client.disconnect();
     }

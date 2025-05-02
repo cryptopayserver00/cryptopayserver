@@ -23,7 +23,7 @@ import { Http } from 'utils/http/http';
 import { TaskAlt, Close, VisibilityOff, Visibility } from '@mui/icons-material';
 import { isValidPassword } from 'utils/verify';
 
-const SecurityPassword = () => {
+const ManagePassword = () => {
   const [password, setPassword] = useState<string>('');
   const [isPassword, setIsPassword] = useState<boolean>(false);
   const [openDeletePassword, setOpenDeletePassword] = useState<boolean>(false);
@@ -218,4 +218,4 @@ const SecurityPassword = () => {
   );
 };
 
-export default SecurityPassword;
+export default ManagePassword;

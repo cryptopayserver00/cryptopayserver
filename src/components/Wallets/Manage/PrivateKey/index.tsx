@@ -38,7 +38,7 @@ type RowType = {
   view: boolean;
 };
 
-const SecurityPrivateKey = () => {
+const ManagePrivateKey = () => {
   const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>();
   const [currentItem, setCurrentItem] = useState<BLOCKCHAIN>();
   const [open, setOpen] = useState<boolean>(false);
@@ -230,4 +230,4 @@ const SecurityPrivateKey = () => {
   );
 };
 
-export default SecurityPrivateKey;
+export default ManagePrivateKey;

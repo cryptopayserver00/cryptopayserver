@@ -141,7 +141,7 @@ const BlockScan = () => {
         <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={4}>
           <Typography variant="h6">Wallet Address</Typography>
           <Stack direction={'row'} alignItems={'center'}>
-            <Button variant={'contained'} onClick={checkScanStatus} color='success'>
+            <Button variant={'contained'} onClick={checkScanStatus} color="success">
               Check Scan Status
             </Button>
           </Stack>
@@ -163,99 +163,6 @@ const BlockScan = () => {
               </Box>
             ))}
         </Box>
-
-        <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} mt={4}>
-          <Typography variant="h6">Network</Typography>
-          <Stack direction={'row'} alignItems={'center'}>
-            <Button variant={'contained'} onClick={checkNetworkStatus} color='success'>
-              Check network Status
-            </Button>
-          </Stack>
-        </Stack>
-
-        {blockchain &&
-          blockchain.map((item, index) => (
-            <Box mt={4} key={index}>
-              <Card>
-                <CardContent>
-                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} p={2}>
-                    <Stack direction={'row'}>
-                      <Image src={item.icon} alt="image" width={50} height={50} />
-                      <Box ml={2}>
-                        <Typography fontSize={16} fontWeight={'bold'}>
-                          {item.name}
-                        </Typography>
-                        <Typography fontSize={16} fontWeight={'bold'}>
-                          {item.desc}
-                        </Typography>
-
-                        <Stack direction={'row'} mt={2} gap={2}>
-                          <Button
-                            variant={'contained'}
-                            onClick={() => {
-                              window.location.href = item.websiteUrl as string;
-                            }}
-                          >
-                            Website
-                          </Button>
-                          <Button
-                            variant={'contained'}
-                            onClick={() => {
-                              window.location.href = item.explorerUrl as string;
-                            }}
-                          >
-                            Explorer
-                          </Button>
-                        </Stack>
-
-                        <Typography fontSize={16} fontWeight={'bold'} mt={2}>
-                          Support Coins:
-                        </Typography>
-                        {item.coins.map((coin, index) => (
-                          <Stack direction={'row'} alignItems={'center'} pt={2} key={index}>
-                            <Image src={coin.icon} alt="coinImage" width={40} height={40} />
-                            {coin.isMainCoin ? (
-                              <Typography fontSize={14} fontWeight={'bold'} ml={1}>
-                                {coin.name}
-                              </Typography>
-                            ) : (
-                              <Link
-                                href={GetBlockchainAddressUrlByChainIds(
-                                  item.isMainnet,
-                                  coin.chainId,
-                                  coin.contractAddress as string,
-                                )}
-                                target="_blank"
-                              >
-                                <Typography fontSize={14} fontWeight={'bold'} ml={1}>
-                                  {coin.name}
-                                </Typography>
-                              </Link>
-                            )}
-                          </Stack>
-                        ))}
-                        {item.rpc && item.rpc.length > 0 && (
-                          <Box>
-                            <Typography fontSize={16} fontWeight={'bold'} mt={4}>
-                              RPC:
-                            </Typography>
-                            {item.rpc.map((item, index) => (
-                              <Typography mt={1} key={index}>
-                                {item}
-                              </Typography>
-                            ))}
-                          </Box>
-                        )}
-                      </Box>
-                    </Stack>
-                    {/* <Typography color={'green'} width={70}>
-                      {item.time} ms
-                    </Typography> */}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Box>
-          ))}
       </Container>
     </Box>
   );

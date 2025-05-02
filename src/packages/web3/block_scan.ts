@@ -13,12 +13,12 @@ export class BLOCKSCAN {
     timeout: 50000,
   });
 
-  static async bulkStoreUserWallet(bulk_storage: BlockScanWalletType[]): Promise<boolean> {
+  static async bulkStoreUserWallet(bulk_storage: BlockScanWalletType[]): Promise<[boolean, any]> {
     try {
       const url = this.baseUrl + '/bulkStoreUserWallet';
 
       if (!bulk_storage || bulk_storage.length <= 0) {
-        return false;
+        return [false, null];
       }
 
       const response = await this.axiosInstance.post(url, {
@@ -28,14 +28,20 @@ export class BLOCKSCAN {
         bulk_storage: bulk_storage,
       });
 
-      if (response && response.data && response.data.code === 10200) {
-        return true;
+      console.log(222, response.data);
+
+      if (response && response.data) {
+        if (response.data.code === 10200) {
+          return [true, null];
+        } else if (response.data.code === 10500) {
+          return [false, response.data.data.bulk_storage];
+        }
       }
 
-      return false;
+      return [false, null];
     } catch (e) {
       console.error(e);
-      return false;
+      return [false, null];
     }
   }
 

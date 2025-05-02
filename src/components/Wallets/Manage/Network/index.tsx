@@ -40,7 +40,7 @@ type RowType = {
   view: boolean;
 };
 
-const SecurityNetwork = () => {
+const ManageNetwork = () => {
   const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>();
   const [currentItem, setCurrentItem] = useState<BLOCKCHAIN>();
   const [open, setOpen] = useState<boolean>(false);
@@ -167,4 +167,4 @@ const SecurityNetwork = () => {
   );
 };
 
-export default SecurityNetwork;
+export default ManageNetwork;

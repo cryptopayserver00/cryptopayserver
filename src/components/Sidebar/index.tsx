@@ -239,10 +239,10 @@ const HomeSidebar = () => {
 
                 <MenuItem
                   icon={<Security />}
-                  active={router.pathname === '/wallets/security' ? true : false}
-                  component={<Link href={'/wallets/security'} />}
+                  active={router.pathname === '/wallets/manage' ? true : false}
+                  component={<Link href={'/wallets/manage'} />}
                 >
-                  WalletSecurity
+                  Wallet Management
                 </MenuItem>
                 <MenuItem
                   icon={<Image src={BitcoinSVG} alt="icon" width={25} height={25} />}

@@ -34,7 +34,7 @@ import { Http } from 'utils/http/http';
 import Image from 'next/image';
 import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINNAMES, CHAINS } from 'packages/constants/blockchain';
 import Link from 'next/link';
-import { GetBlockchainAddressUrlByChainIds } from 'utils/web3';
+import { FindChainIdsByChainNames, GetBlockchainAddressUrlByChainIds, GetChainIds } from 'utils/web3';
 import { CURRENCY_SYMBOLS, WALLET_ITEM_TYPE } from 'packages/constants';
 import {
   AccountCircle,
@@ -52,6 +52,7 @@ import {
 } from '@mui/icons-material';
 import { OmitMiddleString } from 'utils/strings';
 import BitcoinSVG from 'assets/chain/bitcoin.svg';
+import { GetImgSrcByChain } from 'utils/qrcode';
 
 const MyAssets = () => {
   const [address, setAddress] = useState<string>('0xEBf18b3A6E21B2a9845e02151224FB25cF4ac09a');
@@ -62,7 +63,13 @@ const MyAssets = () => {
   const { getWalletId } = useWalletPresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
-  const init = async () => {};
+  const getAssetWallet = async () => {
+    
+  };
+
+  const init = async () => {
+    await getAssetWallet();
+  };
 
   useEffect(() => {
     init();
@@ -103,7 +110,15 @@ const MyAssets = () => {
                     Object.entries(CHAINNAMES).length > 0 &&
                     Object.entries(CHAINNAMES).map((item, index) => (
                       <MenuItem value={item[1]} key={index}>
-                        {item[1]}
+                        <Stack direction={'row'} alignItems={'center'}>
+                          <Image
+                            src={GetImgSrcByChain(FindChainIdsByChainNames(item[1]))}
+                            alt="icon"
+                            width={30}
+                            height={30}
+                          />
+                          <Typography pl={1}>{item[1]}</Typography>
+                        </Stack>
                       </MenuItem>
                     ))}
                 </Select>
@@ -348,7 +363,7 @@ const MyAssets = () => {
                 <Typography variant="h6">Spending Caps</Typography>
                 <Typography>
                   A spending cap is a set permission, granted to a specific smart contract, allowing it to spend or
-                  utilize a defined amount of tokens from the owner's wallet. You can revoke these permissions at any
+                  utilize a defined amount of tokens from the owner&apos;s wallet. You can revoke these permissions at any
                   time.
                 </Typography>
               </Box>

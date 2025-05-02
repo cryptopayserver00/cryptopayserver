@@ -44,7 +44,7 @@ type RowType = {
   address: string;
 };
 
-const SecurityAddressBook = () => {
+const ManageAddressBook = () => {
   const [rows, setRows] = useState<RowType[]>([]);
   const [open, setOpen] = useState<boolean>(false);
 
@@ -342,4 +342,4 @@ const SecurityAddressBook = () => {
   );
 };
 
-export default SecurityAddressBook;
+export default ManageAddressBook;

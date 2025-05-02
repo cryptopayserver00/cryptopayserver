@@ -235,7 +235,7 @@ const Polygon = () => {
               <Button
                 variant={'contained'}
                 onClick={() => {
-                  window.location.href = '/wallets/security/privatekey';
+                  window.location.href = '/wallets/manage/privatekey';
                 }}
               >
                 Private Key
