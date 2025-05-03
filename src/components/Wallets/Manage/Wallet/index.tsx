@@ -14,7 +14,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
   Icon,
   IconButton,
   Stack,
@@ -26,45 +25,36 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWal
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import AccountCircle from '@mui/icons-material/AccountCircle';
 import { AccountBalanceWallet, ExpandMore, ReportGmailerrorred } from '@mui/icons-material';
 import Image from 'next/image';
-import BitcoinSVG from 'assets/chain/bitcoin.svg';
-import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from 'packages/constants/blockchain';
-
-type walletType = {
-  id: number;
-  address: string;
-  type: string;
-  network: number;
-  chainId: number;
-};
+import { BLOCKCHAINNAMES, CHAINNAMES, CHAINS, COINS } from 'packages/constants/blockchain';
 
 type blockchainCoinType = {
+  chainId: CHAINS;
   icon: any;
+  name: COINS;
   isMainCoin: boolean;
   address: string;
-  balance: string;
   enabled: boolean;
   scan: boolean;
 };
 
 type blockchainType = {
   icon: any;
-  name: string;
+  name: CHAINNAMES;
   desc: string;
   coins: blockchainCoinType[];
 };
 
 const ManageWallet = () => {
-  const [name, setName] = useState<string>('');
-  const [newName, setNewName] = useState<string>('');
+  const [openExplain, setOpenExplain] = useState<boolean>(false);
+
+  const [walletName, setWalletName] = useState<string>('');
+  const [newWalletName, setNewWalletName] = useState<string>('');
   const [isBackup, setIsBackup] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
 
-  const [openExplain, setOpenExplain] = useState<boolean>(false);
-  const [wallet, setWallet] = useState<walletType[]>([]);
-  const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>([]);
+  const [blockchain, setBlcokchain] = useState<blockchainType[]>([]);
 
   const { getWalletId } = useWalletPresistStore((state) => state);
   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
@@ -76,30 +66,22 @@ const ManageWallet = () => {
   };
 
   const handleClose = () => {
+    setNewWalletName('');
+
     setOpen(false);
   };
 
-  const onClickRename = async () => {
+  const getWalletInfo = async () => {
     try {
-      if (!newName || newName === '') {
-        setSnackSeverity('error');
-        setSnackMessage('Incorrect name input');
-        setSnackOpen(true);
-        return;
-      }
-
-      const response: any = await axios.put(Http.update_name_by_wallet_id, {
-        wallet_id: getWalletId(),
-        name: newName,
+      const response: any = await axios.get(Http.find_wallet_by_id, {
+        params: {
+          id: getWalletId(),
+        },
       });
-      if (response.result) {
-        setSnackSeverity('success');
-        setSnackMessage('Successful update!');
-        setSnackOpen(true);
 
-        await init();
-
-        handleClose();
+      if (response.result && response.data) {
+        setWalletName(response.data.name);
+        setIsBackup(response.data.is_backup === 1 ? true : false);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -109,10 +91,62 @@ const ManageWallet = () => {
     }
   };
 
-  const getNetworkInfo = async () => {
-    const value = BLOCKCHAINNAMES.filter((item) => (getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet));
+  const onClickRename = async () => {
+    try {
+      if (!newWalletName || newWalletName === '') {
+        setSnackSeverity('error');
+        setSnackMessage('Incorrect name input');
+        setSnackOpen(true);
+        return;
+      }
 
-    setBlcokchain(value);
+      const response: any = await axios.put(Http.update_name_by_wallet_id, {
+        wallet_id: getWalletId(),
+        name: newWalletName,
+      });
+      if (response.result) {
+        await getWalletInfo();
+        handleClose();
+
+        setSnackSeverity('success');
+        setSnackMessage('Successful update!');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const onChangeCoin = async (chainId: CHAINS, coinName: COINS) => {
+    try {
+      const response: any = await axios.put(Http.update_wallet_coin_enable_by_id, {
+        user_id: getUserId(),
+        store_id: getStoreId(),
+        chain_id: chainId,
+        name: coinName,
+        network: getNetwork() === 'mainnet' ? 1 : 2,
+      });
+
+      if (response.result) {
+        setSnackSeverity('success');
+        setSnackMessage('Update successful!');
+        setSnackOpen(true);
+
+        await getWalletManage();
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Update failed!');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
   };
 
   const getWalletManage = async () => {
@@ -145,30 +179,29 @@ const ManageWallet = () => {
           let coins: blockchainCoinType[] = [];
           for (const coin of chain.coins) {
             let blockchainCoin: blockchainCoinType = {
+              chainId: coin.chainId,
               icon: coin.icon,
+              name: coin.name,
               isMainCoin: coin.isMainCoin,
               address: '',
-              balance: '',
               enabled: false,
               scan: false,
             };
 
-            const findBalance = respBalances.find((item: any) => item.chain_id === coin.chainId);
-
+            const findBalance = respBalances?.find((item: any) => item.chain_id === coin.chainId);
             blockchainCoin.address = findBalance.address ? findBalance?.address : '';
-            blockchainCoin.balance = findBalance.balance[coin.name] ? findBalance.balance[coin.name] : '0';
-            blockchainCoin.enabled = respCoins.find(
+            blockchainCoin.enabled = respCoins?.find(
               (item: any) => item.chain_id === coin.chainId && item.name === coin.name,
             ).enabled;
 
             if (respScan.result) {
               blockchainCoin.scan = true;
             } else {
-              blockchainCoin.scan = respScan.data.find(
+              const hasScan = respScan.data?.find(
                 (item: any) => item.chain_id === coin.chainId && item.address === blockchainCoin.address,
-              )
-                ? true
-                : false;
+              );
+
+              blockchainCoin.scan = hasScan ? false : true;
             }
 
             coins.push(blockchainCoin);
@@ -178,7 +211,7 @@ const ManageWallet = () => {
           blockchains.push(blockchain);
         }
 
-        console.log(111, blockchains);
+        setBlcokchain(blockchains);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -189,33 +222,18 @@ const ManageWallet = () => {
   };
 
   const init = async () => {
-    setNewName('');
-    await getNetworkInfo();
+    await getWalletInfo();
     await getWalletManage();
-
-    // try {
-    //   const response: any = await axios.get(Http.find_wallet_by_id, {
-    //     params: {
-    //       id: getWalletId(),
-    //     },
-    //   });
-
-    //   if (response.result && response.data) {
-    //     setName(response.data.name);
-    //     setIsBackup(response.data.is_backup === 1 ? true : false);
-    //   }
-    // } catch (e) {
-    //   setSnackSeverity('error');
-    //   setSnackMessage('The network error occurred. Please try again later.');
-    //   setSnackOpen(true);
-    //   console.error(e);
-    // }
   };
 
   useEffect(() => {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const onClickRefresh = async () => {
+    await getWalletManage();
+  };
 
   return (
     <Box>
@@ -229,7 +247,7 @@ const ManageWallet = () => {
                 <Stack direction={'row'} alignItems={'center'}>
                   <Icon component={AccountBalanceWallet} fontSize={'large'} />
                   <Typography fontWeight={'bold'} px={2}>
-                    {name ? name : 'UNKOWN NAME'}
+                    {walletName ? walletName : 'UNKOWN NAME'}
                   </Typography>
                   <Chip color={isBackup ? 'success' : 'error'} label={isBackup ? 'Backed up' : 'Not backed up'} />
                 </Stack>
@@ -262,7 +280,7 @@ const ManageWallet = () => {
                     </IconButton>
                   </Stack>
 
-                  <Button variant={'contained'} color={'success'}>
+                  <Button variant={'contained'} color={'success'} onClick={onClickRefresh}>
                     Refresh
                   </Button>
                 </Stack>
@@ -285,7 +303,6 @@ const ManageWallet = () => {
                         <Stack direction={'row'} alignItems={'center'} gap={2}>
                           <Image src={item.icon} alt="icon" width={40} height={40} />
                           <Typography>{item.name}</Typography>
-                          <Chip color="success" label={'Scanned'} variant={'filled'} />
                         </Stack>
                       </AccordionSummary>
                       <AccordionDetails>
@@ -305,14 +322,19 @@ const ManageWallet = () => {
                             >
                               <Stack direction={'row'} alignItems={'center'} gap={2}>
                                 <Image src={coinItem.icon} alt="icon" width={40} height={40} />
-                                <Typography>0x4e16f68b13f15b40b0313f35E01bF2e6F636eB9a</Typography>
+                                <Typography>{coinItem.name}</Typography>
                                 {coinItem.isMainCoin && <Chip color={'info'} label={'main coin'} variant={'filled'} />}
-                                <Chip color={'primary'} label={'100.123'} variant={'filled'} />
+
+                                {coinItem.scan ? (
+                                  <Chip color="success" label={'Scanned'} variant={'filled'} />
+                                ) : (
+                                  <Chip color="error" label={'Scanned'} variant={'filled'} />
+                                )}
                               </Stack>
                               <Switch
-                                checked={false}
+                                checked={coinItem.enabled}
                                 onChange={() => {
-                                  // setShowSound(!showSound);
+                                  onChangeCoin(coinItem.chainId, coinItem.name);
                                 }}
                               />
                             </Stack>
@@ -320,23 +342,6 @@ const ManageWallet = () => {
                       </AccordionDetails>
                     </Accordion>
                   ))}
-
-                {/* <Image src={GetImgSrcByChain(FindChainIdsByChainNames(item[1]))} alt="icon" width={30} height={30} /> */}
-
-                {/* {wallet &&
-                  wallet.length > 0 &&
-                  wallet.map((item, index) => (
-                    <Box key={index} mb={4}>
-                      <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                        <Box>
-                          <Typography fontWeight={'bold'} fontSize={14}>
-                            {item.type}
-                          </Typography>
-                          <Typography mt={1}>{item.address}</Typography>
-                        </Box>
-                      </Stack>
-                    </Box>
-                  ))} */}
               </Box>
             </CardContent>
           </Card>
@@ -358,9 +363,9 @@ const ManageWallet = () => {
               type={'text'}
               fullWidth
               variant="standard"
-              value={newName}
+              value={newWalletName}
               onChange={(e: any) => {
-                setNewName(e.target.value);
+                setNewWalletName(e.target.value);
               }}
             />
           </DialogContent>

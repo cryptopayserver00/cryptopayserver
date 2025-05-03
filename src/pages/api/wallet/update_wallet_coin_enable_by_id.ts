@@ -10,22 +10,29 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
     switch (req.method) {
       case 'PUT':
         const prisma = new PrismaClient();
-        let id = req.body.id;
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
         const chainId = req.body.chain_id;
         const name = req.body.name;
         const network = req.body.network;
         let enabled = 0;
+        let id = 0;
 
         const coin_enable = await prisma.wallet_coin_enables.findFirst({
           where: {
-            id: Number(id),
+            user_id: Number(userId),
+            store_id: Number(storeId),
+            chain_id: Number(chainId),
+            name: String(name),
+            network: Number(network),
             status: 1,
           },
         });
 
-        if (!coin_enable) {
+        if (coin_enable) {
+          id = coin_enable.id;
+          enabled = coin_enable?.enabled;
+        } else {
           const create_coin_enable = await prisma.wallet_coin_enables.create({
             data: {
               user_id: Number(userId),
@@ -44,8 +51,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
 
           id = create_coin_enable.id;
           enabled = create_coin_enable.enabled;
-        } else {
-          enabled = coin_enable?.enabled;
         }
 
         const update_enable = await prisma.wallet_coin_enables.update({

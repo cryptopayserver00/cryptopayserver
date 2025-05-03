@@ -28,8 +28,6 @@ export class BLOCKSCAN {
         bulk_storage: bulk_storage,
       });
 
-      console.log(222, response.data);
-
       if (response && response.data) {
         if (response.data.code === 10200) {
           return [true, null];

@@ -37,84 +37,53 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         // balance
         let coinBalances: any[] = [];
+
         if (Array.isArray(addresses) && addresses.length > 0) {
-          const promises = addresses.map(async (item: any) => {
+          addresses.map(async (item: any) => {
             if (item.chain_id === CHAINS.ETHEREUM) {
-              return [
-                {
-                  address: item.address,
-                  chain_id: CHAINS.ETHEREUM,
-                  balance: await WEB3.getAssetBalance(
-                    Number(network) === 1 ? true : false,
-                    CHAINS.ETHEREUM,
-                    item.address,
-                  ),
-                },
-                {
-                  address: item.address,
-                  chain_id: CHAINS.BSC,
-                  balance: await WEB3.getAssetBalance(Number(network) === 1 ? true : false, CHAINS.BSC, item.address),
-                },
-                {
-                  address: item.address,
-                  chain_id: CHAINS.ARBITRUM,
-                  balance: await WEB3.getAssetBalance(
-                    Number(network) === 1 ? true : false,
-                    CHAINS.ARBITRUM,
-                    item.address,
-                  ),
-                },
-                {
-                  address: item.address,
-                  chain_id: CHAINS.AVALANCHE,
-                  balance: await WEB3.getAssetBalance(
-                    Number(network) === 1 ? true : false,
-                    CHAINS.AVALANCHE,
-                    item.address,
-                  ),
-                },
-                {
-                  address: item.address,
-                  chain_id: CHAINS.ARBITRUMNOVA,
-                  balance: await WEB3.getAssetBalance(
-                    Number(network) === 1 ? true : false,
-                    CHAINS.ARBITRUMNOVA,
-                    item.address,
-                  ),
-                },
-                {
-                  address: item.address,
-                  chain_id: CHAINS.POLYGON,
-                  balance: await WEB3.getAssetBalance(
-                    Number(network) === 1 ? true : false,
-                    CHAINS.POLYGON,
-                    item.address,
-                  ),
-                },
-                {
-                  address: item.address,
-                  chain_id: CHAINS.BASE,
-                  balance: await WEB3.getAssetBalance(Number(network) === 1 ? true : false, CHAINS.BASE, item.address),
-                },
-                {
-                  address: item.address,
-                  chain_id: CHAINS.OPTIMISM,
-                  balance: await WEB3.getAssetBalance(
-                    Number(network) === 1 ? true : false,
-                    CHAINS.OPTIMISM,
-                    item.address,
-                  ),
-                },
-              ];
+              coinBalances.push(
+                ...[
+                  {
+                    address: item.address,
+                    chain_id: CHAINS.ETHEREUM,
+                  },
+                  {
+                    address: item.address,
+                    chain_id: CHAINS.BSC,
+                  },
+                  {
+                    address: item.address,
+                    chain_id: CHAINS.ARBITRUM,
+                  },
+                  {
+                    address: item.address,
+                    chain_id: CHAINS.AVALANCHE,
+                  },
+                  {
+                    address: item.address,
+                    chain_id: CHAINS.ARBITRUMNOVA,
+                  },
+                  {
+                    address: item.address,
+                    chain_id: CHAINS.POLYGON,
+                  },
+                  {
+                    address: item.address,
+                    chain_id: CHAINS.BASE,
+                  },
+                  {
+                    address: item.address,
+                    chain_id: CHAINS.OPTIMISM,
+                  },
+                ],
+              );
             } else {
-              return {
+              coinBalances.push({
                 address: item.address,
                 chain_id: item.chain_id,
-                balance: await WEB3.getAssetBalance(Number(network) === 1 ? true : false, item.chain_id, item.address),
-              };
+              });
             }
           });
-          coinBalances = await Promise.all(promises);
         }
 
         // scan

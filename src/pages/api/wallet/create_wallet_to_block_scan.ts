@@ -48,10 +48,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               address: item.address,
               chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.ARBITRUM),
             });
-            blockscanWalletTypes.push({
-              address: item.address,
-              chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.ARBITRUMNOVA),
-            });
+            if (item.network === 1) {
+              blockscanWalletTypes.push({
+                address: item.address,
+                chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.ARBITRUMNOVA),
+              });
+            }
             blockscanWalletTypes.push({
               address: item.address,
               chain_id: WEB3.getChainIds(item.network === 1 ? true : false, CHAINS.AVALANCHE),
