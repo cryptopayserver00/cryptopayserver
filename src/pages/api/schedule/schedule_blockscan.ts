@@ -114,18 +114,53 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                     }
                     break;
                   case INVOICE_SOURCE_TYPE.PaymentRequest:
-                    const update_payment_request = await prisma.payment_requests.update({
-                      data: {
-                        payment_request_status: PAYMENT_REQUEST_STATUS.Settled,
-                      },
+                    const find_payment_request = await prisma.payment_requests.findFirst({
                       where: {
                         payment_request_id: invoice.external_payment_id,
+                        payment_request_status: PAYMENT_REQUEST_STATUS.Pending,
                         status: 1,
                       },
+                      select: {
+                        amount: true,
+                      },
                     });
-                    if (!update_payment_request) {
+                    if (!find_payment_request) {
                       continue;
                     }
+
+                    const find_payment_request_invoice = await prisma.invoices.findMany({
+                      where: {
+                        source_type: INVOICE_SOURCE_TYPE.PaymentRequest,
+                        external_payment_id: invoice.external_payment_id,
+                        order_status: ORDER_STATUS.Settled,
+                        status: 1,
+                      },
+                      select: {
+                        amount: true,
+                      },
+                    });
+
+                    const settledAmount = find_payment_request_invoice.reduce(
+                      (sum, invoice) => sum + invoice.amount,
+                      0,
+                    );
+
+                    if (settledAmount >= find_payment_request.amount) {
+                      const update_payment_request = await prisma.payment_requests.update({
+                        data: {
+                          payment_request_status: PAYMENT_REQUEST_STATUS.Settled,
+                        },
+                        where: {
+                          payment_request_id: invoice.external_payment_id,
+                          payment_request_status: PAYMENT_REQUEST_STATUS.Pending,
+                          status: 1,
+                        },
+                      });
+                      if (!update_payment_request) {
+                        continue;
+                      }
+                    }
+
                     break;
                   case INVOICE_SOURCE_TYPE.Payout:
                     const update_payout = await prisma.payouts.update({
@@ -134,6 +169,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                       },
                       where: {
                         payout_id: invoice.external_payment_id,
+                        payout_status: PAYOUT_STATUS.InProgress,
                         status: 1,
                       },
                     });

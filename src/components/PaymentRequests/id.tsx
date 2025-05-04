@@ -484,6 +484,7 @@ const PaymentRequestsDetails = () => {
 
                   <Box mt={1}>
                     <PaymentRequestSelectChainAndCryptoCard
+                      storeId={Number(paymentRequestData?.storeId)}
                       network={Number(paymentRequestData?.network)}
                       amount={Number(paymentRequestData?.amount)}
                       currency={String(paymentRequestData?.currency)}

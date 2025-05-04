@@ -28,7 +28,6 @@ import Tron from 'components/Wallets/Tron';
 import Bsc from 'components/Wallets/Bsc';
 import BitcoinSend from 'components/Wallets/Bitcoin/Send';
 import InvoicesDetails from 'components/Invoices/id';
-import BlockScan from 'components/Wallets/BlockScan';
 import Manage from 'components/Wallets/Manage';
 import WalletsReceive from 'components/Wallets/Receive';
 import WalletsSend from 'components/Wallets/Send';
@@ -371,15 +370,6 @@ export const routes: RouteType[] = [
     name: 'AssetsToken',
     title: 'AssetsToken',
     component: <AssetsToken />,
-    enableSidebar: true,
-    needLogin: true,
-    enableInnerFooter: true,
-  },
-  {
-    path: '/wallets/blockscan',
-    name: 'BlockScan',
-    title: 'BlockScan',
-    component: <BlockScan />,
     enableSidebar: true,
     needLogin: true,
     enableInnerFooter: true,

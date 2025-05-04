@@ -41,7 +41,7 @@ const Pullpayments = () => {
   const [name, setName] = useState<string>('');
   const [amount, setAmount] = useState<number>(0);
   const [currency, setCurrency] = useState<string>(CURRENCY[0]);
-  const [showAutoApproveClaim, setShowAutoApproveClaim] = useState<boolean>(false);
+  const [showAutoApproveClaim, setShowAutoApproveClaim] = useState<boolean>(true);
   const [description, setDescription] = useState<string>('');
   const [showNameAlert, setShowNameAlert] = useState<boolean>(false);
   const [showAmountAlert, setShowAmountAlert] = useState<boolean>(false);
@@ -149,7 +149,10 @@ const Pullpayments = () => {
             </Stack>
 
             <Box mt={4}>
-              <Typography>Name</Typography>
+              <Stack direction={'row'} alignItems={'center'}>
+                <Typography>Name</Typography>
+                <Typography color={'red'}>*</Typography>
+              </Stack>
               <Box mt={1}>
                 <FormControl sx={{ width: 500 }} variant="outlined">
                   <OutlinedInput
@@ -172,9 +175,12 @@ const Pullpayments = () => {
               )}
             </Box>
 
-            <Stack mt={4} alignItems={'baseline'} direction={'row'} gap={3}>
-              <Box>
-                <Typography>Amount</Typography>
+            <Stack mt={4} alignItems={'baseline'} direction={'row'} gap={4}>
+              <Box width={'100%'}>
+                <Stack direction={'row'} alignItems={'center'}>
+                  <Typography>Amount</Typography>
+                  <Typography color={'red'}>*</Typography>
+                </Stack>
                 <Box mt={1}>
                   <FormControl sx={{ width: 500 }} variant="outlined">
                     <OutlinedInput
@@ -197,10 +203,13 @@ const Pullpayments = () => {
                   </Typography>
                 )}
               </Box>
-              <Box>
-                <Typography>Currency</Typography>
+              <Box width={'100%'}>
+                <Stack direction={'row'} alignItems={'center'}>
+                  <Typography>Currency</Typography>
+                  <Typography color={'red'}>*</Typography>
+                </Stack>
                 <Box mt={1}>
-                  <FormControl sx={{ width: 200 }}>
+                  <FormControl fullWidth>
                     <Select
                       size={'small'}
                       inputProps={{ 'aria-label': 'Without label' }}

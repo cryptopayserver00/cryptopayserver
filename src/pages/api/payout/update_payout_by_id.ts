@@ -54,24 +54,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 payout_status: PAYOUT_STATUS.Completed,
                 status: 1,
               },
+              select: {
+                amount: true,
+              },
             });
 
             if (!payouts) {
               return res.status(200).json({ message: '', result: false, data: null });
             }
 
-            let totalPayoutAmount = 0;
-            payouts.map((payoutItem) => {
-              totalPayoutAmount += payoutItem.amount;
-            });
+            const settledAmount = payouts.reduce((sum, payout) => sum + payout.amount, 0);
 
-            if (totalPayoutAmount >= pull_payment.amount) {
+            if (settledAmount >= pull_payment.amount) {
               const update_pull_payment = await prisma.pull_payments.update({
                 data: {
                   pull_payment_status: PULL_PAYMENT_STATUS.Settled,
                 },
                 where: {
-                  id: pull_payment.id,
+                  pull_payment_id: payout.external_payment_id,
+                  pull_payment_status: PULL_PAYMENT_STATUS.Active,
+                  status: 1,
                 },
               });
 

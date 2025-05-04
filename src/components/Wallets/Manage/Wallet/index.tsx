@@ -54,7 +54,7 @@ const ManageWallet = () => {
   const [isBackup, setIsBackup] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
 
-  const [blockchain, setBlcokchain] = useState<blockchainType[]>([]);
+  const [blockchains, setBlockchains] = useState<blockchainType[]>([]);
 
   const { getWalletId } = useWalletPresistStore((state) => state);
   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
@@ -211,7 +211,7 @@ const ManageWallet = () => {
           blockchains.push(blockchain);
         }
 
-        setBlcokchain(blockchains);
+        setBlockchains(blockchains);
       }
     } catch (e) {
       setSnackSeverity('error');
@@ -301,9 +301,9 @@ const ManageWallet = () => {
                   </Alert>
                 )}
 
-                {blockchain &&
-                  blockchain.length > 0 &&
-                  blockchain.map((item, index) => (
+                {blockchains &&
+                  blockchains.length > 0 &&
+                  blockchains.map((item, index) => (
                     <Accordion defaultExpanded={index === 0 || index === 1 ? true : false} key={index}>
                       <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1-content">
                         <Stack direction={'row'} alignItems={'center'} gap={2}>

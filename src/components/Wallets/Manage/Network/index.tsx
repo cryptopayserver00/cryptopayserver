@@ -41,7 +41,7 @@ type RowType = {
 };
 
 const ManageNetwork = () => {
-  const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>();
+  const [blockchains, setBlockchains] = useState<BLOCKCHAIN[]>();
   const [currentItem, setCurrentItem] = useState<BLOCKCHAIN>();
   const [open, setOpen] = useState<boolean>(false);
 
@@ -63,7 +63,7 @@ const ManageNetwork = () => {
     const value = BLOCKCHAINNAMES.filter((item: any) =>
       getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet,
     );
-    setBlcokchain(value);
+    setBlockchains(value);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -84,9 +84,9 @@ const ManageNetwork = () => {
         </Box>
         <Box mt={4}>
           <Grid container color={'#8f979e'} spacing={3}>
-            {blockchain &&
-              blockchain.length > 0 &&
-              blockchain.map((item, index) => (
+            {blockchains &&
+              blockchains.length > 0 &&
+              blockchains.map((item, index) => (
                 <Grid xs={4} item key={index}>
                   <Card>
                     <CardContent>

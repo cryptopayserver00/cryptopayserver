@@ -39,7 +39,7 @@ type RowType = {
 };
 
 const ManagePrivateKey = () => {
-  const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>();
+  const [blockchains, setBlockchains] = useState<BLOCKCHAIN[]>();
   const [currentItem, setCurrentItem] = useState<BLOCKCHAIN>();
   const [open, setOpen] = useState<boolean>(false);
   const [rows, setRows] = useState<RowType[]>([]);
@@ -96,7 +96,7 @@ const ManagePrivateKey = () => {
     const value = BLOCKCHAINNAMES.filter((item: any) =>
       getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet,
     );
-    setBlcokchain(value);
+    setBlockchains(value);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -108,9 +108,9 @@ const ManagePrivateKey = () => {
         <Box sx={{ bgcolor: 'background.paper' }} mt={4}>
           <nav>
             <List>
-              {blockchain &&
-                blockchain.length > 0 &&
-                blockchain.map((item, index) => (
+              {blockchains &&
+                blockchains.length > 0 &&
+                blockchains.map((item, index) => (
                   <ListItem key={index}>
                     <ListItemButton
                       onClick={() => {

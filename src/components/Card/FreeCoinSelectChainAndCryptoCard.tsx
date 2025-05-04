@@ -23,7 +23,7 @@ type SelectType = {
 
 export default function FreeCoinSelectChainAndCryptoCard(props: SelectType) {
   const [expanded, setExpanded] = useState<string | false>(false);
-  const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>([]);
+  const [blockchains, setBlockchains] = useState<BLOCKCHAIN[]>([]);
   const [selectCoinItem, setSelectCoinItem] = useState<COIN>();
 
   const [open, setOpen] = useState<boolean>(false);
@@ -34,7 +34,7 @@ export default function FreeCoinSelectChainAndCryptoCard(props: SelectType) {
 
   useEffect(() => {
     const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
-    setBlcokchain(value);
+    setBlockchains(value);
   }, [props.network]);
 
   return (
@@ -47,9 +47,9 @@ export default function FreeCoinSelectChainAndCryptoCard(props: SelectType) {
         </CardContent>
       </Card>
       <Box mt={2}>
-        {blockchain &&
-          blockchain.length > 0 &&
-          blockchain.map((item, index) => (
+        {blockchains &&
+          blockchains.length > 0 &&
+          blockchains.map((item, index) => (
             <Accordion expanded={expanded === item.name} onChange={handleChange(item.name)} key={index}>
               <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1bh-content">
                 <Typography sx={{ width: '33%', flexShrink: 0 }} fontWeight={'bold'}>

@@ -27,7 +27,7 @@ export default function CreateInvoiceDialog(props: DialogType) {
     >
       <DialogTitle id="alert-dialog-title">Create Invoice</DialogTitle>
       <DialogContent>
-        <Image src={props.selectCoinItem?.icon} alt="icon" width={50} height={50} />
+        {props.selectCoinItem?.icon && <Image src={props.selectCoinItem?.icon} alt="icon" width={50} height={50} />}
 
         <Stack direction={'row'} mt={2}>
           <Box>

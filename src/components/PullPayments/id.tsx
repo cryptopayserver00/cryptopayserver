@@ -539,6 +539,7 @@ const PullPaymentsDetails = () => {
 
                   <Box mt={1}>
                     <PullPaymentSelectChainAndCryptoCard
+                      storeId={Number(pullPaymentData?.storeId)}
                       network={Number(pullPaymentData?.network)}
                       amount={Number(pullPaymentData?.amount)}
                       currency={String(pullPaymentData?.currency)}

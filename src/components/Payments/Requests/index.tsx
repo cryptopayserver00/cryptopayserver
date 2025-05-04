@@ -92,6 +92,9 @@ const Requests = () => {
         setShowExpiredAlert(true);
         return false;
       }
+    } else {
+      setShowExpiredAlert(true);
+      return false;
     }
 
     setShowExpiredAlert(false);
@@ -189,7 +192,10 @@ const Requests = () => {
             </Stack>
 
             <Box mt={3}>
-              <Typography>Title</Typography>
+              <Stack direction={'row'} alignItems={'center'}>
+                <Typography>Title</Typography>
+                <Typography color={'red'}>*</Typography>
+              </Stack>
               <Box mt={1}>
                 <FormControl variant="outlined" fullWidth>
                   <OutlinedInput
@@ -211,9 +217,12 @@ const Requests = () => {
                 </Typography>
               )}
 
-              <Grid container justifyContent={'space-between'} mt={4}>
-                <Grid item xs={8}>
-                  <Typography>Amount</Typography>
+              <Stack direction={'row'} alignItems={'baseline'} mt={4} gap={4}>
+                <Box width={'100%'}>
+                  <Stack direction={'row'} alignItems={'center'}>
+                    <Typography>Amount</Typography>
+                    <Typography color={'red'}>*</Typography>
+                  </Stack>
                   <Box mt={1}>
                     <FormControl variant="outlined" fullWidth>
                       <OutlinedInput
@@ -235,10 +244,13 @@ const Requests = () => {
                       Please provide an amount greater than 0
                     </Typography>
                   )}
-                </Grid>
+                </Box>
 
-                <Grid item xs={3}>
-                  <Typography>Currency</Typography>
+                <Box width={'100%'}>
+                  <Stack direction={'row'} alignItems={'center'}>
+                    <Typography>Currency</Typography>
+                    <Typography color={'red'}>*</Typography>
+                  </Stack>
                   <Box mt={1}>
                     <FormControl variant="outlined" fullWidth>
                       <Select
@@ -259,8 +271,8 @@ const Requests = () => {
                       </Select>
                     </FormControl>
                   </Box>
-                </Grid>
-              </Grid>
+                </Box>
+              </Stack>
 
               <Stack mt={4} direction={'row'} alignItems={'center'}>
                 <Switch
@@ -273,7 +285,10 @@ const Requests = () => {
               </Stack>
 
               <Box mt={4}>
-                <Typography>Expiration Date</Typography>
+                <Stack direction={'row'} alignItems={'center'}>
+                  <Typography>Expiration Date</Typography>
+                  <Typography color={'red'}>*</Typography>
+                </Stack>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DemoContainer components={['DateRangePicker']}>
                     <DemoItem>
@@ -295,7 +310,10 @@ const Requests = () => {
               )}
 
               <Box mt={4}>
-                <Typography>Email</Typography>
+                <Stack direction={'row'} alignItems={'center'}>
+                  <Typography>Email</Typography>
+                  <Typography color={'red'}>*</Typography>
+                </Stack>
                 <Box mt={1}>
                   <FormControl variant="outlined" fullWidth>
                     <OutlinedInput

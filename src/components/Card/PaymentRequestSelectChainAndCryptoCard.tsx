@@ -20,6 +20,7 @@ import { Http } from 'utils/http/http';
 import CreateInvoiceDialog from 'components/Dialog/CreateInvoiceDialog';
 
 type SelectType = {
+  storeId: number;
   network: number;
   amount: number;
   currency: string;
@@ -28,7 +29,7 @@ type SelectType = {
 
 export default function PaymentRequestSelectChainAndCryptoCard(props: SelectType) {
   const [expanded, setExpanded] = useState<string | false>(false);
-  const [blockchain, setBlcokchain] = useState<BLOCKCHAIN[]>([]);
+  const [blockchains, setBlockchains] = useState<BLOCKCHAIN[]>([]);
   const [selectCoinItem, setSelectCoinItem] = useState<COIN>();
 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -41,10 +42,55 @@ export default function PaymentRequestSelectChainAndCryptoCard(props: SelectType
     setExpanded(isExpanded ? panel : false);
   };
 
+  const getBlockchain = async (storeId: number, network: number) => {
+    try {
+      const response: any = await axios.get(Http.find_wallet_coin_enables, {
+        params: {
+          store_id: storeId,
+          network: network,
+        },
+      });
+      if (response.result) {
+        const respCoins = response.data;
+
+        const blockchains = BLOCKCHAINNAMES.filter((item: any) =>
+          props.network === 1 ? item.isMainnet : !item.isMainnet,
+        );
+
+        const newBlockchains: BLOCKCHAIN[] = [];
+
+        for (const item of blockchains) {
+          const newItem: BLOCKCHAIN = { ...item, coins: [...item.coins] };
+
+          if (respCoins && respCoins.length > 0) {
+            newItem.coins = newItem.coins.filter((coin: COIN) => {
+              const matchingCoin = respCoins.find(
+                (respCoin: any) => respCoin.chain_id === coin.chainId && respCoin.name === coin.name,
+              );
+              return !matchingCoin || matchingCoin.enabled !== 2;
+            });
+
+            if (newItem.coins.length > 0) {
+              newBlockchains.push(newItem);
+            }
+          } else {
+            newBlockchains.push(newItem);
+          }
+        }
+
+        setBlockchains(newBlockchains);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
-    const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
-    setBlcokchain(value);
-  }, [props.network]);
+    getBlockchain(props.storeId, props.network);
+  }, [props.storeId, props.network]);
 
   const handleClose = () => {
     setRate(0);
@@ -91,9 +137,9 @@ export default function PaymentRequestSelectChainAndCryptoCard(props: SelectType
         </CardContent>
       </Card>
       <Box mt={2}>
-        {blockchain &&
-          blockchain.length > 0 &&
-          blockchain.map((item, index) => (
+        {blockchains &&
+          blockchains.length > 0 &&
+          blockchains.map((item, index) => (
             <Accordion expanded={expanded === item.name} onChange={handleChange(item.name)} key={index}>
               <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1bh-content">
                 <Typography sx={{ width: '33%', flexShrink: 0 }} fontWeight={'bold'}>

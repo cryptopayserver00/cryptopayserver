@@ -230,14 +230,6 @@ const HomeSidebar = () => {
                   My Assets
                 </MenuItem>
                 <MenuItem
-                  icon={<Adjust />}
-                  active={router.pathname === '/wallets/blockscan' ? true : false}
-                  component={<Link href={'/wallets/blockscan'} />}
-                >
-                  BlockScan
-                </MenuItem>
-
-                <MenuItem
                   icon={<Security />}
                   active={router.pathname === '/wallets/manage' ? true : false}
                   component={<Link href={'/wallets/manage'} />}

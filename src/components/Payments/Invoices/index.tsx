@@ -229,9 +229,12 @@ const PaymentInvoices = () => {
                 </Box>
               </Stack>
 
-              <Stack direction={'row'} alignItems={'baseline'}>
-                <Box mt={5}>
-                  <Typography>* Amount</Typography>
+              <Stack direction={'row'} alignItems={'baseline'} gap={4} mt={5}>
+                <Box>
+                  <Stack direction={'row'} alignItems={'center'}>
+                    <Typography>Amount</Typography>
+                    <Typography color={'red'}>*</Typography>
+                  </Stack>
                   <Box mt={1}>
                     <TextField
                       fullWidth
@@ -245,8 +248,11 @@ const PaymentInvoices = () => {
                     />
                   </Box>
                 </Box>
-                <Box ml={5}>
-                  <Typography>* Currency</Typography>
+                <Box>
+                  <Stack direction={'row'} alignItems={'center'}>
+                    <Typography>Currency</Typography>
+                    <Typography color={'red'}>*</Typography>
+                  </Stack>
                   <Box mt={1}>
                     <FormControl sx={{ minWidth: 200 }}>
                       <Select
@@ -269,8 +275,11 @@ const PaymentInvoices = () => {
                     </FormControl>
                   </Box>
                 </Box>
-                <Box ml={5}>
-                  <Typography>* Network</Typography>
+                <Box>
+                  <Stack direction={'row'} alignItems={'center'}>
+                    <Typography>Network</Typography>
+                    <Typography color={'red'}>*</Typography>
+                  </Stack>
                   <Box mt={1}>
                     <FormControl sx={{ minWidth: 200 }}>
                       <Select
@@ -292,8 +301,11 @@ const PaymentInvoices = () => {
                     </FormControl>
                   </Box>
                 </Box>
-                <Box ml={5}>
-                  <Typography>* Crypto</Typography>
+                <Box>
+                  <Stack direction={'row'} alignItems={'center'}>
+                    <Typography>Crypto</Typography>
+                    <Typography color={'red'}>*</Typography>
+                  </Stack>
                   <Box mt={1}>
                     <FormControl sx={{ minWidth: 200 }}>
                       <Select
@@ -315,14 +327,20 @@ const PaymentInvoices = () => {
                     </FormControl>
                   </Box>
                 </Box>
-                <Box ml={5}>
-                  <Typography>Rate</Typography>
+                <Box>
+                  <Stack direction={'row'} alignItems={'center'}>
+                    <Typography>Rate</Typography>
+                    <Typography color={'red'}>*</Typography>
+                  </Stack>
                   <Box mt={1}>
                     <TextField fullWidth hiddenLabel size="small" value={rate} disabled />
                   </Box>
                 </Box>
-                <Box ml={5}>
-                  <Typography>Crypto Amount</Typography>
+                <Box>
+                  <Stack direction={'row'} alignItems={'center'}>
+                    <Typography>Crypto Amount</Typography>
+                    <Typography color={'red'}>*</Typography>
+                  </Stack>
                   <Box mt={1}>
                     <TextField fullWidth hiddenLabel size="small" value={cryptoAmount} disabled />
                   </Box>
@@ -330,7 +348,10 @@ const PaymentInvoices = () => {
               </Stack>
 
               <Box mt={4}>
-                <Typography>* Item Description</Typography>
+                <Stack direction={'row'} alignItems={'center'}>
+                  <Typography>Item Description</Typography>
+                  <Typography color={'red'}>*</Typography>
+                </Stack>
                 <Box mt={1}>
                   <TextField
                     fullWidth
@@ -348,7 +369,10 @@ const PaymentInvoices = () => {
             <Box mt={5}>
               <Typography variant="h6">Customer Information</Typography>
               <Box mt={4}>
-                <Typography>* Buyer Email</Typography>
+                <Stack direction={'row'} alignItems={'center'}>
+                  <Typography>Buyer Email</Typography>
+                  <Typography color={'red'}>*</Typography>
+                </Stack>
                 <Box mt={1}>
                   <TextField
                     fullWidth
