@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { PULL_PAYMENT_STATUS } from 'packages/constants';
+import { PAYMENT_REQUEST_STATUS } from 'packages/constants';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -9,27 +9,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'GET':
-        console.log('Schedule Pull Payment Expired');
+        console.log('Schedule Payment Request Expired');
         const prisma = new PrismaClient();
 
-        const pull_payments = await prisma.pull_payments.findMany({
+        const payment_requests = await prisma.payment_requests.findMany({
           where: {
-            pull_payment_status: PULL_PAYMENT_STATUS.Active,
+            payment_request_status: PAYMENT_REQUEST_STATUS.Pending,
             status: 1,
           },
         });
 
-        if (!pull_payments) {
+        if (!payment_requests) {
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
         const now = new Date();
-        pull_payments.forEach(async (item) => {
+        payment_requests.forEach(async (item) => {
           const remainingTime = item.expiration_at.getTime() - now.getTime();
           if (remainingTime <= 0) {
-            const pull_payment = await prisma.pull_payments.update({
+            const payment_request = await prisma.payment_requests.update({
               data: {
-                pull_payment_status: PULL_PAYMENT_STATUS.Expired,
+                payment_request_status: PAYMENT_REQUEST_STATUS.Expired,
               },
               where: {
                 id: item.id,
@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               },
             });
 
-            if (!pull_payment) {
+            if (!payment_request) {
               return res.status(200).json({ message: '', result: false, data: null });
             }
           }

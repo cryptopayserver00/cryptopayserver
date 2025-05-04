@@ -1,4 +1,4 @@
-import { ContentCopy, CopyAll, HelpOutline, Lock, QrCode, Store, WarningAmber } from '@mui/icons-material';
+import { HelpOutline, Lock, QrCode, Store, WarningAmber } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -17,9 +17,6 @@ import {
   TableCell,
   TableBody,
   Grid,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   Link,
   Chip,
   AlertTitle,
@@ -35,7 +32,6 @@ import { CURRENCY_SYMBOLS, PAYOUT_SOURCE_TYPE, PAYOUT_STATUS, PULL_PAYMENT_STATU
 import { CHAINS, COIN } from 'packages/constants/blockchain';
 import Image from 'next/image';
 import { FindChainNamesByChains, GetBlockchainTxUrlByChainIds } from 'utils/web3';
-import { QRCodeSVG } from 'qrcode.react';
 import { OmitMiddleString } from 'utils/strings';
 import PullPaymentSelectChainAndCryptoCard from 'components/Card/PullPaymentSelectChainAndCryptoCard';
 import PullPaymentQRDialog from 'components/Dialog/PullPaymentQRDialog';
@@ -273,7 +269,7 @@ const PullPaymentsDetails = () => {
         )}
 
         {pullPaymentData && pullPaymentData?.pullPaymentStatus !== PULL_PAYMENT_STATUS.Active && (
-          <Box mt={2}>
+          <Box mb={2}>
             <Alert
               variant="filled"
               severity={
@@ -284,7 +280,7 @@ const PullPaymentsDetails = () => {
                 'info'
               }
             >
-              The pull payment has been {pullPaymentData?.pullPaymentStatus}, and you can read the detail of the payout.
+              The pull payment has been {pullPaymentData?.pullPaymentStatus}, and you can read the detail of the claims.
             </Alert>
           </Box>
         )}
@@ -482,23 +478,21 @@ const PullPaymentsDetails = () => {
                     </Stack>
 
                     <Box>
-                      {pullPaymentData &&
-                        alreadyClaim < pullPaymentData?.amount &&
-                        pullPaymentData?.pullPaymentStatus === PULL_PAYMENT_STATUS.Active && (
-                          <Box mt={4}>
-                            <Button
-                              color="success"
-                              variant={'contained'}
-                              fullWidth
-                              size="large"
-                              onClick={() => {
-                                setPage(2);
-                              }}
-                            >
-                              Claim Funds
-                            </Button>
-                          </Box>
-                        )}
+                      {pullPaymentData && pullPaymentData?.pullPaymentStatus === PULL_PAYMENT_STATUS.Active && (
+                        <Box mt={4}>
+                          <Button
+                            color="success"
+                            variant={'contained'}
+                            fullWidth
+                            size="large"
+                            onClick={() => {
+                              setPage(2);
+                            }}
+                          >
+                            Claim Funds
+                          </Button>
+                        </Box>
+                      )}
                     </Box>
 
                     <Stack mt={2} alignItems={'center'} gap={2} direction={'row'}>

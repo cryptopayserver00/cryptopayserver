@@ -131,11 +131,11 @@ const ManageWallet = () => {
       });
 
       if (response.result) {
+        await getWalletManage();
+
         setSnackSeverity('success');
         setSnackMessage('Update successful!');
         setSnackOpen(true);
-
-        await getWalletManage();
       } else {
         setSnackSeverity('error');
         setSnackMessage('Update failed!');
@@ -270,7 +270,7 @@ const ManageWallet = () => {
               <Box mt={4}>
                 <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} pb={2}>
                   <Stack direction={'row'} alignItems={'center'}>
-                    <Typography variant="h6">Address Manage</Typography>
+                    <Typography variant="h6">Coin Manage</Typography>
                     <IconButton
                       onClick={() => {
                         setOpenExplain(!openExplain);
@@ -289,6 +289,12 @@ const ManageWallet = () => {
                   <Alert severity="info">
                     <AlertTitle>Info</AlertTitle>
                     Refresh: All data of the blockchain tokens will be refreshed.
+                    <br />
+                    <br />
+                    Scanned or no scan: Whether the address used by this coin is within the scanning range; if within
+                    the range, it will be processed for creating the order. "Scanned" indicates it exists, "No Scan"
+                    indicates it does not exist.
+                    <br />
                     <br />
                     Enable or Disable: Click the following button to enable or disable the display of this token,
                     involving all the users who create invoices.
@@ -328,7 +334,7 @@ const ManageWallet = () => {
                                 {coinItem.scan ? (
                                   <Chip color="success" label={'Scanned'} variant={'filled'} />
                                 ) : (
-                                  <Chip color="error" label={'Scanned'} variant={'filled'} />
+                                  <Chip color="error" label={'No Scan'} variant={'filled'} />
                                 )}
                               </Stack>
                               <Switch

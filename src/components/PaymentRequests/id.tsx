@@ -27,7 +27,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
-import { CURRENCY_SYMBOLS, INVOICE_SOURCE_TYPE, ORDER_STATUS } from 'packages/constants';
+import { CURRENCY_SYMBOLS, INVOICE_SOURCE_TYPE, ORDER_STATUS, PAYMENT_REQUEST_STATUS } from 'packages/constants';
 import { COIN } from 'packages/constants/blockchain';
 import Image from 'next/image';
 import { HelpOutline, Lock, Store, WarningAmber } from '@mui/icons-material';
@@ -225,15 +225,22 @@ const PaymentRequestsDetails = () => {
           </Box>
         )}
 
-        <Box mb={2}>
-          {paymentRequestData && paidAmount >= paymentRequestData?.amount && (
-            <Box mt={2}>
-              <Alert variant="filled" severity="success">
-                The payment request has reached its target, but you can continue to make payments.
-              </Alert>
-            </Box>
-          )}
-        </Box>
+        {paymentRequestData && paymentRequestData?.paymentRequestStatus !== PAYMENT_REQUEST_STATUS.Pending && (
+          <Box mb={2}>
+            <Alert
+              variant="filled"
+              severity={
+                (paymentRequestData?.paymentRequestStatus === PAYMENT_REQUEST_STATUS.Archived && 'info') ||
+                (paymentRequestData?.paymentRequestStatus === PAYMENT_REQUEST_STATUS.Expired && 'warning') ||
+                (paymentRequestData?.paymentRequestStatus === PAYMENT_REQUEST_STATUS.Settled && 'success') ||
+                'info'
+              }
+            >
+              The payment request has been {paymentRequestData?.paymentRequestStatus}, and you can read the detail of
+              the history.
+            </Alert>
+          </Box>
+        )}
 
         <Grid container spacing={20}>
           <Grid item xs={6} md={6} sm={6}>
@@ -413,18 +420,23 @@ const PaymentRequestsDetails = () => {
                       )}
                     </Box>
 
-                    <Box mt={4}>
-                      <Button
-                        variant={'contained'}
-                        size="large"
-                        fullWidth
-                        onClick={() => {
-                          setPage(2);
-                        }}
-                        color="success"
-                      >
-                        Pay Invoice
-                      </Button>
+                    <Box>
+                      {paymentRequestData &&
+                        paymentRequestData?.paymentRequestStatus === PAYMENT_REQUEST_STATUS.Pending && (
+                          <Box mt={4}>
+                            <Button
+                              variant={'contained'}
+                              size="large"
+                              fullWidth
+                              onClick={() => {
+                                setPage(2);
+                              }}
+                              color="success"
+                            >
+                              Pay Invoice
+                            </Button>
+                          </Box>
+                        )}
                     </Box>
 
                     <Stack mt={2} alignItems={'center'} gap={2} direction={'row'}>

@@ -11,7 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       case 'GET':
         console.log('Schedule Invoice Expired');
         const prisma = new PrismaClient();
-        const now = new Date();
 
         const invoices = await prisma.invoices.findMany({
           where: {
@@ -24,6 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
+        const now = new Date();
         invoices.forEach(async (item) => {
           const remainingTime = item.expiration_at.getTime() - now.getTime();
           if (remainingTime <= 0) {
