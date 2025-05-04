@@ -86,6 +86,7 @@ export default function PullPaymentSelectChainAndCryptoCard(props: SelectType) {
 
   useEffect(() => {
     getBlockchain(props.storeId, props.network);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.storeId, props.network]);
 
   return (

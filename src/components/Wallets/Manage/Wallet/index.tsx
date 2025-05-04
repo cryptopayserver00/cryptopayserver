@@ -292,7 +292,7 @@ const ManageWallet = () => {
                     <br />
                     <br />
                     Scanned or no scan: Whether the address used by this coin is within the scanning range; if within
-                    the range, it will be processed for creating the order. "Scanned" indicates it exists, "No Scan"
+                    the range, it will be processed for creating the order. &quot;Scanned&quot; indicates it exists, &quot;No Scan&quot;
                     indicates it does not exist.
                     <br />
                     <br />
