@@ -27,12 +27,12 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import Image from 'next/image';
-import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINNAMES, CHAINS } from 'packages/constants/blockchain';
+import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINNAMES, CHAINS, COINS } from 'packages/constants/blockchain';
 import Link from 'next/link';
 import { FindChainIdsByChainNames, GetBlockchainAddressUrlByChainIds, GetChainIds } from 'utils/web3';
 import { CURRENCY_SYMBOLS, WALLET_ITEM_TYPE } from 'packages/constants';
@@ -45,89 +45,138 @@ import {
   ArrowUpward,
   Check,
   ContentCopy,
+  Explore,
+  Language,
   LocalFlorist,
   OpenInNew,
   Remove,
   SwapHoriz,
+  Visibility,
 } from '@mui/icons-material';
 import { OmitMiddleString } from 'utils/strings';
 import BitcoinSVG from 'assets/chain/bitcoin.svg';
 import { GetImgSrcByChain } from 'utils/qrcode';
 
+type CoinType = {
+  coin: string;
+  price: string;
+  number: number;
+  unit: string;
+  balance: string;
+  marketCap: string;
+  twentyFourHVol: string;
+  twentyFourHChange: string;
+};
+
+type WalletType = {
+  walletId: number;
+  walletName: string;
+  address: string;
+  chainId: CHAINS;
+  coins: CoinType[];
+  totalBalance: number;
+  currency: string;
+  currencySymbol: string;
+};
+
 const MyAssets = () => {
-  const [address, setAddress] = useState<string>('0xEBf18b3A6E21B2a9845e02151224FB25cF4ac09a');
+  const [assetWallet, setAssetWallet] = useState<WalletType>();
   const [network, setNetwork] = useState<CHAINNAMES>(CHAINNAMES.BITCOIN);
   const [alignment, setAlignment] = useState<string>(WALLET_ITEM_TYPE.TOKENS);
+  const [blockchain, setBlockchain] = useState<BLOCKCHAIN>();
+  const [selectCoin, setSelectCoin] = useState<COINS>();
 
   const { getUserId, getNetwork } = useUserPresistStore((state) => state);
   const { getWalletId } = useWalletPresistStore((state) => state);
+  const { getStoreId } = useStorePresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
 
-  const getAssetWallet = async () => {
-    
-  };
-
-  const init = async () => {
-    await getAssetWallet();
+  const getAssetWallet = async (network: CHAINNAMES) => {
+    try {
+      const response: any = await axios.get(Http.find_wallet_balance_by_network, {
+        params: {
+          wallet_id: getWalletId(),
+          store_id: getStoreId(),
+          chain_id: FindChainIdsByChainNames(network),
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+        },
+      });
+      if (response.result) {
+        setAssetWallet(response.data);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
   };
 
   useEffect(() => {
-    init();
+    getAssetWallet(network);
+
+    const blockchain = BLOCKCHAINNAMES.find(
+      (item: BLOCKCHAIN) => (getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet) && item.name === network,
+    );
+
+    setBlockchain(blockchain);
+    setSelectCoin(blockchain?.coins[0].name);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [network]);
 
   return (
     <Box>
       <Container>
         <Typography variant="h6">My Assets</Typography>
-        <Stack direction={'row'} alignItems={'center'} mt={2} justifyContent={'space-between'}>
-          <Typography variant="h4">{CURRENCY_SYMBOLS['USD']}0.00</Typography>
-          <Stack direction={'row'} alignItems={'center'}>
-            <Stack direction="row" alignItems="center" justifyContent="center" gap={4}>
-              <Button
-                variant={'outlined'}
-                endIcon={<ContentCopy />}
-                onClick={async () => {
-                  await navigator.clipboard.writeText(address);
+        <Stack direction={'row'} alignItems={'baseline'} mt={2} justifyContent={'space-between'}>
+          <Typography variant="h4">
+            {assetWallet?.currencySymbol}
+            {assetWallet?.totalBalance.toFixed(2)}
+          </Typography>
+          <Stack direction="row" gap={2}>
+            <Button
+              size="large"
+              variant={'outlined'}
+              endIcon={<ContentCopy />}
+              onClick={async () => {
+                await navigator.clipboard.writeText(String(assetWallet?.address));
 
-                  setSnackMessage('Successfully copy');
-                  setSnackSeverity('success');
-                  setSnackOpen(true);
+                setSnackMessage('Successfully copy');
+                setSnackSeverity('success');
+                setSnackOpen(true);
+              }}
+            >
+              {OmitMiddleString(String(assetWallet?.address))}
+            </Button>
+            <FormControl style={{ width: 200 }}>
+              <Select
+                size={'small'}
+                inputProps={{ 'aria-label': 'Without label' }}
+                onChange={(e) => {
+                  setNetwork(e.target.value as CHAINNAMES);
                 }}
+                value={network}
               >
-                {OmitMiddleString(address)}
-              </Button>
-              <FormControl sx={{ minWidth: 200 }}>
-                <Select
-                  size={'small'}
-                  inputProps={{ 'aria-label': 'Without label' }}
-                  onChange={(e) => {
-                    setNetwork(e.target.value as CHAINNAMES);
-                  }}
-                  value={network}
-                >
-                  {CHAINNAMES &&
-                    Object.entries(CHAINNAMES).length > 0 &&
-                    Object.entries(CHAINNAMES).map((item, index) => (
-                      <MenuItem value={item[1]} key={index}>
-                        <Stack direction={'row'} alignItems={'center'}>
-                          <Image
-                            src={GetImgSrcByChain(FindChainIdsByChainNames(item[1]))}
-                            alt="icon"
-                            width={30}
-                            height={30}
-                          />
-                          <Typography pl={1}>{item[1]}</Typography>
-                        </Stack>
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-              <Stack direction={'row'} alignItems={'center'} gap={1}>
-                <Typography variant="h6">Wallet 2</Typography>
-                <Icon component={AccountCircle} fontSize={'large'} />
-              </Stack>
-            </Stack>
+                {CHAINNAMES &&
+                  Object.entries(CHAINNAMES).length > 0 &&
+                  Object.entries(CHAINNAMES).map((item, index) => (
+                    <MenuItem value={item[1]} key={index}>
+                      <Stack direction={'row'} alignItems={'center'}>
+                        <Image
+                          src={GetImgSrcByChain(FindChainIdsByChainNames(item[1]))}
+                          alt="icon"
+                          width={30}
+                          height={30}
+                        />
+                        <Typography pl={1}>{item[1]}</Typography>
+                      </Stack>
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+            <Button size={'large'} variant={'outlined'} endIcon={<AccountCircle />} onClick={() => {}}>
+              {assetWallet?.walletName}
+            </Button>
           </Stack>
         </Stack>
         <Box py={2}>
@@ -157,42 +206,65 @@ const MyAssets = () => {
 
             {WALLET_ITEM_TYPE.TOKENS === alignment && (
               <Stack mt={2} gap={1}>
-                <ListItemButton component="a" href="#" selected>
-                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} width={'100%'}>
-                    <Stack direction={'row'} alignItems={'center'}>
-                      <Icon component={AccountCircle} fontSize={'large'} />
-                      <Box ml={1}>
-                        <Typography fontWeight={'bold'}>Ethereum</Typography>
-                        <Typography>0.00 ETH</Typography>
-                      </Box>
-                    </Stack>
-                    <Box textAlign={'right'}>
-                      <Typography variant="h6">{CURRENCY_SYMBOLS['USD']}0.00</Typography>
-                      <Stack direction={'row'}>
-                        <Icon component={ArrowDropUp} color={'success'} />
-                        <Typography>0.96%</Typography>
+                {blockchain &&
+                  blockchain.coins.map((item, index) => (
+                    <ListItemButton
+                      key={index}
+                      selected={selectCoin === item.name ? true : false}
+                      onClick={() => {
+                        setSelectCoin(item.name);
+                      }}
+                    >
+                      <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} width={'100%'}>
+                        <Stack direction={'row'} alignItems={'center'}>
+                          {item.icon && <Image src={item.icon} width={40} height={40} alt="icon" />}
+                          <Box ml={1}>
+                            <Typography fontWeight={'bold'}>{item.name}</Typography>
+                            <Typography>
+                              {assetWallet?.coins
+                                .find((findItem) => findItem.coin === item.name)
+                                ?.number.toFixed(item.displayDecimals)}{' '}
+                              {item.name}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                        <Box textAlign={'right'}>
+                          <Typography variant="h6">
+                            {assetWallet?.currencySymbol}
+                            {parseFloat(
+                              String(assetWallet?.coins.find((findItem) => findItem.coin === item.name)?.balance),
+                            ).toFixed(2)}
+                          </Typography>
+                          <Stack direction={'row'}>
+                            <Icon
+                              component={
+                                Number(
+                                  assetWallet?.coins.find((findItem) => findItem.coin === item.name)?.twentyFourHChange,
+                                ) >= 0
+                                  ? ArrowDropUp
+                                  : ArrowDropDown
+                              }
+                              color={
+                                Number(
+                                  assetWallet?.coins.find((findItem) => findItem.coin === item.name)?.twentyFourHChange,
+                                ) >= 0
+                                  ? 'success'
+                                  : 'error'
+                              }
+                            />
+                            <Typography>
+                              {parseFloat(
+                                String(
+                                  assetWallet?.coins.find((findItem) => findItem.coin === item.name)?.twentyFourHChange,
+                                ),
+                              ).toFixed(6)}
+                              %
+                            </Typography>
+                          </Stack>
+                        </Box>
                       </Stack>
-                    </Box>
-                  </Stack>
-                </ListItemButton>
-                <ListItemButton component="a" href="#" selected>
-                  <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} width={'100%'}>
-                    <Stack direction={'row'} alignItems={'center'}>
-                      <Icon component={AccountCircle} fontSize={'large'} />
-                      <Box ml={1}>
-                        <Typography fontWeight={'bold'}>Ethereum</Typography>
-                        <Typography>0.00 ETH</Typography>
-                      </Box>
-                    </Stack>
-                    <Box textAlign={'right'}>
-                      <Typography variant="h6">{CURRENCY_SYMBOLS['USD']}0.00</Typography>
-                      <Stack direction={'row'}>
-                        <Icon component={ArrowDropDown} color={'error'} />
-                        <Typography>0.96%</Typography>
-                      </Stack>
-                    </Box>
-                  </Stack>
-                </ListItemButton>
+                    </ListItemButton>
+                  ))}
               </Stack>
             )}
 
@@ -284,7 +356,7 @@ const MyAssets = () => {
                             <Image src={BitcoinSVG} alt="icon" width={40} height={40} />
                             <Box px={2}>
                               <Typography>Native Transfer</Typography>
-                              <Typography>{OmitMiddleString(address)}</Typography>
+                              <Typography>{OmitMiddleString(String(assetWallet?.address))}</Typography>
                             </Box>
                           </Stack>
 
@@ -306,7 +378,7 @@ const MyAssets = () => {
                             <Image src={BitcoinSVG} alt="icon" width={40} height={40} />
                             <Box px={2}>
                               <Typography>To</Typography>
-                              <Typography>{OmitMiddleString(address)}</Typography>
+                              <Typography>{OmitMiddleString(String(assetWallet?.address))}</Typography>
                             </Box>
                           </Stack>
 
@@ -323,7 +395,7 @@ const MyAssets = () => {
                             <Image src={BitcoinSVG} alt="icon" width={40} height={40} />
                             <Box px={2}>
                               <Typography>Native Transfer</Typography>
-                              <Typography>{OmitMiddleString(address)}</Typography>
+                              <Typography>{OmitMiddleString(String(assetWallet?.address))}</Typography>
                             </Box>
                           </Stack>
 
@@ -345,7 +417,7 @@ const MyAssets = () => {
                             <Image src={BitcoinSVG} alt="icon" width={40} height={40} />
                             <Box px={2}>
                               <Typography>To</Typography>
-                              <Typography>{OmitMiddleString(address)}</Typography>
+                              <Typography>{OmitMiddleString(String(assetWallet?.address))}</Typography>
                             </Box>
                           </Stack>
 
@@ -363,8 +435,8 @@ const MyAssets = () => {
                 <Typography variant="h6">Spending Caps</Typography>
                 <Typography>
                   A spending cap is a set permission, granted to a specific smart contract, allowing it to spend or
-                  utilize a defined amount of tokens from the owner&apos;s wallet. You can revoke these permissions at any
-                  time.
+                  utilize a defined amount of tokens from the owner&apos;s wallet. You can revoke these permissions at
+                  any time.
                 </Typography>
               </Box>
             )}
@@ -377,26 +449,74 @@ const MyAssets = () => {
               <Box>
                 <Stack direction={'row'} justifyContent={'space-between'} alignItems={'flex-start'}>
                   <Stack direction={'row'} alignItems={'center'}>
-                    <Image src={BitcoinSVG} alt="icon" width={80} height={80} />
+                    <Image
+                      src={blockchain?.coins.find((item) => item.name === selectCoin)?.icon}
+                      alt="icon"
+                      width={80}
+                      height={80}
+                    />
                     <Box ml={3}>
-                      <Typography variant="h4" fontWeight={'bold'}>
-                        Ethereum
-                      </Typography>
+                      <Stack direction={'row'} alignItems={'center'} gap={1}>
+                        <Typography variant="h4" fontWeight={'bold'}>
+                          {blockchain?.coins.find((item) => item.name === selectCoin)?.name}
+                        </Typography>
+                        {blockchain?.coins.find((item) => item.name === selectCoin)?.isMainCoin && (
+                          <Chip size="small" label={'Main Coin'} color={'primary'} />
+                        )}
+                      </Stack>
                       <Typography py={1}>Price</Typography>
                       <Stack direction={'row'} alignItems={'center'}>
                         <Typography variant="h6" fontWeight={'bold'} pr={2}>
-                          {CURRENCY_SYMBOLS['USD']}1,1234.12
+                          {assetWallet?.currencySymbol}
+                          {assetWallet?.coins.find((findItem) => findItem.coin === selectCoin)?.price}
                         </Typography>
-                        <Chip icon={<ArrowDropUp color="success" />} label={'1.10%'} variant="outlined" />
+                        <Chip
+                          icon={
+                            Number(
+                              assetWallet?.coins.find((findItem) => findItem.coin === selectCoin)?.twentyFourHChange,
+                            ) >= 0 ? (
+                              <ArrowDropUp color={'success'} />
+                            ) : (
+                              <ArrowDropDown color="error" />
+                            )
+                          }
+                          variant="outlined"
+                          label={
+                            parseFloat(
+                              String(
+                                assetWallet?.coins.find((findItem) => findItem.coin === selectCoin)?.twentyFourHChange,
+                              ),
+                            ).toFixed(6) + '%'
+                          }
+                        />
                       </Stack>
                     </Box>
                   </Stack>
                   <Stack direction={'row'} gap={2}>
-                    <IconButton onClick={async () => {}} edge="end">
-                      <AccountCircle />
+                    <IconButton target="_blank" href={String(blockchain?.websiteUrl)} edge="end">
+                      <Language />
                     </IconButton>
-                    <IconButton onClick={async () => {}} edge="end">
-                      <OpenInNew />
+                    <IconButton target="_blank" href={String(blockchain?.explorerUrl)} edge="end">
+                      <Explore />
+                    </IconButton>
+                    {blockchain?.coins.find((item) => item.name === selectCoin)?.contractAddress && (
+                      <IconButton
+                        href={GetBlockchainAddressUrlByChainIds(
+                          Boolean(blockchain?.isMainnet),
+                          assetWallet?.chainId as CHAINS,
+                          String(blockchain?.coins.find((item) => item.name === selectCoin)?.contractAddress),
+                        )}
+                        target="_blank"
+                        edge="end"
+                      >
+                        <OpenInNew />
+                      </IconButton>
+                    )}
+                    <IconButton
+                      href={`/wallets/assets/token?chainId=${assetWallet?.chainId}&coin=${selectCoin}`}
+                      edge="end"
+                    >
+                      <Visibility />
                     </IconButton>
                   </Stack>
                 </Stack>
@@ -404,9 +524,19 @@ const MyAssets = () => {
                 <Box mt={2}>
                   <Typography>Balance</Typography>
                   <Typography variant="h5" fontWeight={'bold'} py={1}>
-                    {CURRENCY_SYMBOLS['USD']}0.00
+                    {assetWallet?.currencySymbol}
+                    {parseFloat(
+                      String(assetWallet?.coins.find((findItem) => findItem.coin === selectCoin)?.balance),
+                    ).toFixed(2)}
                   </Typography>
-                  <Typography>0.00 ETH</Typography>
+                  <Typography>
+                    {assetWallet?.coins
+                      .find((findItem) => findItem.coin === selectCoin)
+                      ?.number.toFixed(
+                        blockchain?.coins.find((item) => item.name === selectCoin)?.displayDecimals,
+                      )}{' '}
+                    {selectCoin}
+                  </Typography>
                 </Box>
 
                 <Grid container spacing={2} mt={4}>
@@ -454,7 +584,7 @@ const MyAssets = () => {
                   <Stack direction={'row'} alignItems={'center'} mt={4}>
                     <Box>
                       <Typography>Owner(You)</Typography>
-                      <Typography mt={1}>{OmitMiddleString(address)}</Typography>
+                      <Typography mt={1}>{OmitMiddleString(String(assetWallet?.address))}</Typography>
                     </Box>
                     <Box ml={4}>
                       <Typography>Bought for</Typography>
@@ -494,7 +624,7 @@ const MyAssets = () => {
                     </Stack>
                     <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} py={1}>
                       <Typography>Contract Address</Typography>
-                      <Typography>{OmitMiddleString(address)}</Typography>
+                      <Typography>{OmitMiddleString(String(assetWallet?.address))}</Typography>
                     </Stack>
                   </Box>
                 </Box>
@@ -517,7 +647,7 @@ const MyAssets = () => {
                     <Typography>from (You)</Typography>
                     <Stack direction={'row'} alignItems={'center'} mt={1}>
                       <Image src={BitcoinSVG} alt="icon" width={30} height={30} />
-                      <Typography px={1}>{OmitMiddleString(address)}</Typography>
+                      <Typography px={1}>{OmitMiddleString(String(assetWallet?.address))}</Typography>
                       <IconButton onClick={async () => {}} edge="end">
                         <ContentCopy fontSize="small" />
                       </IconButton>
@@ -526,7 +656,7 @@ const MyAssets = () => {
                     <Box mt={4}>
                       <Typography>Transaction ID</Typography>
                       <Stack direction={'row'} alignItems={'center'}>
-                        <Typography pr={1}>{OmitMiddleString(address)}</Typography>
+                        <Typography pr={1}>{OmitMiddleString(String(assetWallet?.address))}</Typography>
                         <IconButton onClick={async () => {}} edge="end">
                           <ContentCopy fontSize="small" />
                         </IconButton>
@@ -538,7 +668,7 @@ const MyAssets = () => {
                     <Typography>To</Typography>
                     <Stack direction={'row'} alignItems={'center'} mt={1}>
                       <Image src={BitcoinSVG} alt="icon" width={30} height={30} />
-                      <Typography px={1}>{OmitMiddleString(address)}</Typography>
+                      <Typography px={1}>{OmitMiddleString(String(assetWallet?.address))}</Typography>
                       <IconButton onClick={async () => {}} edge="end">
                         <ContentCopy fontSize="small" />
                       </IconButton>
@@ -600,7 +730,7 @@ const MyAssets = () => {
                       <IconButton onClick={async () => {}} edge="end">
                         <ContentCopy fontSize="small" />
                       </IconButton>
-                      <Typography pl={1}>{OmitMiddleString(address)}</Typography>
+                      <Typography pl={1}>{OmitMiddleString(String(assetWallet?.address))}</Typography>
                     </Stack>
                   </Stack>
                   <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} py={1}>
