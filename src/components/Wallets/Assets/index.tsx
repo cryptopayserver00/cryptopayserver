@@ -86,7 +86,7 @@ const MyAssets = () => {
   const [blockchain, setBlockchain] = useState<BLOCKCHAIN>();
   const [selectCoin, setSelectCoin] = useState<COINS>();
 
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state);
+  const { getNetwork } = useUserPresistStore((state) => state);
   const { getWalletId } = useWalletPresistStore((state) => state);
   const { getStoreId } = useStorePresistStore((state) => state);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
@@ -513,7 +513,7 @@ const MyAssets = () => {
                       </IconButton>
                     )}
                     <IconButton
-                      href={`/wallets/assets/token?chainId=${assetWallet?.chainId}&coin=${selectCoin}`}
+                      href={`/wallets/assets/token?chain=${assetWallet?.chainId}&coin=${selectCoin}`}
                       edge="end"
                     >
                       <Visibility />

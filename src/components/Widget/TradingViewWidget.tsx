@@ -7,12 +7,14 @@ type WidgetType = {
 };
 
 const TradingViewWidget = (props: WidgetType) => {
-  const coinPair = props.coinPair ? props.coinPair : COINPAIR.BTCUSDT;
-
   const container = useRef<HTMLDivElement>(null);
   const scriptLoaded = useRef(false);
 
   useEffect(() => {
+    if (!props.coinPair) {
+      return
+    }
+    
     if (container.current && !scriptLoaded.current) {
       scriptLoaded.current = true;
 
@@ -22,7 +24,7 @@ const TradingViewWidget = (props: WidgetType) => {
       script.async = true;
       script.innerHTML = JSON.stringify({
         autosize: true,
-        symbol: `BINANCE:${coinPair}`,
+        symbol: `BINANCE:${props.coinPair}`,
         interval: 'D',
         timezone: 'Etc/UTC',
         theme: 'dark',
@@ -47,7 +49,7 @@ const TradingViewWidget = (props: WidgetType) => {
         }
       };
     }
-  }, []);
+  }, [props.coinPair]);
 
   return (
     <Box className="tradingview-widget-container" ref={container} style={{ height: '100%', width: '100%' }}>
