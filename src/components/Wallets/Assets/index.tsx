@@ -33,8 +33,7 @@ import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import Image from 'next/image';
 import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINNAMES, CHAINS, COINS } from 'packages/constants/blockchain';
-import Link from 'next/link';
-import { FindChainIdsByChainNames, GetBlockchainAddressUrlByChainIds, GetChainIds } from 'utils/web3';
+import { FindChainIdsByChainNames, GetBlockchainAddressUrlByChainIds } from 'utils/web3';
 import { CURRENCY_SYMBOLS, WALLET_ITEM_TYPE } from 'packages/constants';
 import {
   AccountCircle,
@@ -148,8 +147,9 @@ const MyAssets = () => {
             >
               {OmitMiddleString(String(assetWallet?.address))}
             </Button>
-            <FormControl style={{ width: 200 }}>
+            <FormControl>
               <Select
+                autoWidth
                 size={'small'}
                 inputProps={{ 'aria-label': 'Without label' }}
                 onChange={(e) => {

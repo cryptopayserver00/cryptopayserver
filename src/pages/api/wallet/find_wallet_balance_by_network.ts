@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { WEB3 } from 'packages/web3';
 import { PrismaClient } from '@prisma/client';
-import { CHAINS, COINS, ETHEREUM_CATEGORY_CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, COINS } from 'packages/constants/blockchain';
 import { CRYPTOPRICE } from 'packages/web3/crypto_price';
 import { COINGECKO_IDS, CURRENCY, CURRENCY_SYMBOLS } from 'packages/constants';
 import { BigMul } from 'utils/number';
@@ -75,28 +75,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         if (!find_address) {
           return res.status(200).json({ message: '', result: false, data: null });
         }
-
-        // let dbChainId = chainId;
-
-        // if (ETHEREUM_CATEGORY_CHAINS.includes(Number(dbChainId))) {
-        //   dbChainId = CHAINS.ETHEREUM;
-        // }
-
-        // const addresses = await prisma.addresses.findMany({
-        //   where: {
-        //     wallet_id: Number(walletId),
-        //     chain_id: Number(dbChainId),
-        //     network: Number(network),
-        //     status: 1,
-        //   },
-        //   select: {
-        //     address: true,
-        //   },
-        // });
-
-        // if (!addresses) {
-        //   return res.status(200).json({ message: '', result: false, data: null });
-        // }
 
         const address = find_address.address;
         const balance = await WEB3.getAssetBalance(Number(network) === 1 ? true : false, Number(chainId), address);
