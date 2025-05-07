@@ -139,7 +139,7 @@ const BitcoinCashSend = () => {
         });
         if (rate_response.result) {
           const rate = rate_response.data[ids][response.data.currency.toLowerCase()];
-          const totalPrice = parseFloat(BigDiv(Number(response.data.amount).toString(), rate)).toFixed(4);
+          const totalPrice = parseFloat(BigDiv(Number(response.data.amount).toString(), rate)).toFixed(8);
           setAmount(totalPrice);
 
           setIsDisableDestinationAddress(true);

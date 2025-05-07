@@ -117,7 +117,7 @@ export default function PaymentRequestSelectChainAndCryptoCard(props: SelectType
       if (response.result) {
         const rate = response.data[ids][currency.toLowerCase()];
         setRate(rate);
-        const totalPrice = parseFloat(BigDiv(amount.toString(), rate)).toFixed(selectName.displayDecimals);
+        const totalPrice = parseFloat(BigDiv(amount.toString(), rate)).toFixed(selectName.decimals);
         setCryptoAmount(totalPrice);
       }
     } catch (e) {

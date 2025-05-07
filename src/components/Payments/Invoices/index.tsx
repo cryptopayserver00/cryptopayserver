@@ -70,7 +70,7 @@ const PaymentInvoices = () => {
       if (response.result) {
         const rate = response.data[ids][currency.toLowerCase()];
         setRate(rate);
-        const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(4);
+        const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(8)
         setCryptoAmount(totalPrice);
       }
     } catch (e) {
