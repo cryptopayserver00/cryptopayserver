@@ -454,7 +454,7 @@ const InvoiceDetails = () => {
                       setSnackOpen(true);
                     }}
                   >
-                    {order?.destinationAddress}
+                    {OmitMiddleString(String(order?.destinationAddress))}
                   </Button>
                 </Box>
 

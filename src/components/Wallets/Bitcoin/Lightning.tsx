@@ -3,6 +3,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Alert,
   Box,
   Button,
   Container,
@@ -10,6 +11,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import Link from 'next/link';
 
 const Lightning = () => {
   return (
@@ -29,8 +31,8 @@ const Lightning = () => {
           <Box mt={5}>
             <Typography>Connection configuration for your custom Lightning node:</Typography>
             <Stack direction={'row'} alignItems={'center'} gap={2} mt={1}>
-              <TextField fullWidth hiddenLabel defaultValue="" size="small" />
-              <Button variant={'contained'} style={{ width: 250 }}>
+              <TextField fullWidth hiddenLabel defaultValue="" size="small" placeholder="type=...;server=...;" />
+              <Button variant={'outlined'} style={{ width: 250 }} size={'large'}>
                 Test connection
               </Button>
             </Stack>
@@ -43,44 +45,123 @@ const Lightning = () => {
           <Box mt={3}>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1-content">
-                c-lightning via TCP or unix domain socket connection
+                <Typography fontWeight={'bold'} pr={1}>
+                  <Link href={'https://github.com/ElementsProject/lightning'} target="_blank">
+                    Core Lightning
+                  </Link>
+                </Typography>
+                via TCP or unix domain socket connection
               </AccordionSummary>
-              <AccordionDetails>EXAMPLE</AccordionDetails>
+              <AccordionDetails>
+                <Stack gap={1}>
+                  <Alert icon={false}>type=clightning;server=unix://root/.lightning/lightning-rpc</Alert>
+                  <Alert icon={false}>type=clightning;server=tcp://1.1.1.1:27743/</Alert>
+                </Stack>
+              </AccordionDetails>
             </Accordion>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel2-content">
-                Lightning Charge via HTTPS
+                <Typography fontWeight={'bold'} pr={1}>
+                  <Link href={'https://github.com/ElementsProject/lightning-charge'} target="_blank">
+                    Lightning Charge
+                  </Link>
+                </Typography>
+                via HTTPS
               </AccordionSummary>
-              <AccordionDetails>EXAMPLE</AccordionDetails>
+              <AccordionDetails>
+                <Alert icon={false}>type=charge;server=https://charge:8080/;api-token=myapitoken...</Alert>
+              </AccordionDetails>
             </Accordion>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel3-content">
-                Lightning Charge via HTTPS
+                <Typography fontWeight={'bold'} pr={1}>
+                  <Link href={'https://github.com/ACINQ/eclair'} target="_blank">
+                    Eclair
+                  </Link>
+                </Typography>
+                via HTTPS
               </AccordionSummary>
-              <AccordionDetails>EXAMPLE</AccordionDetails>
+              <AccordionDetails>
+                <Stack gap={1}>
+                  <Alert icon={false}>type=eclair;server=https://eclair:8080/;password=eclairpassword...</Alert>
+                  <Typography>
+                    Note that bitcoin-host and bitcoin-auth are optional, only useful if you want to use
+                    GetDepositAddress on Eclair:
+                  </Typography>
+                  <Alert icon={false}>
+                    type=eclair;server=https://eclair:8080/;password=eclairpassword;bitcoin-host=bitcoin.host;bitcoin-auth=btcpass
+                  </Alert>
+                </Stack>
+              </AccordionDetails>
             </Accordion>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel3-content">
-                Eclair via HTTPS
+                <Typography fontWeight={'bold'} pr={1}>
+                  <Link href={'https://docs.lightning.engineering/'} target="_blank">
+                    LND
+                  </Link>
+                </Typography>
+                via the REST API
               </AccordionSummary>
-              <AccordionDetails>EXAMPLE</AccordionDetails>
+              <AccordionDetails>
+                <Stack gap={1}>
+                  <Alert icon={false}>type=lnd-rest;server=https://mylnd:8080/;macaroon=abef263adfe...</Alert>
+                  <Alert icon={false}>
+                    type=lnd-rest;server=https://mylnd:8080/;macaroon=abef263adfe...;certthumbprint=abef263adfe...
+                  </Alert>
+                  <Typography>
+                    For the macaroon options you need to provide a macaroon with the invoices:write permission (e.g.
+                    invoice.macaroon. If you want to display the node connection details, it also needs the info:read
+                    permission. The path to the LND data directory may vary, the following examples assume /root/.lnd.
+                  </Typography>
+                  <Typography>
+                    The macaroon parameter expects the HEX value, it can be obtained using this command:
+                  </Typography>
+                  <Alert icon={false}>
+                    xxd -p -c 256 /root/.lnd/data/chain/bitcoin/mainnet/invoice.macaroon | tr -d '\n'
+                  </Alert>
+                  <Typography>
+                    You can omit certthumbprint if the certificate is trusted by your machine. The certthumbprint can be
+                    obtained using this command:
+                  </Typography>
+                  <Alert icon={false}>
+                    openssl x509 -noout -fingerprint -sha256 -in /root/.lnd/tls.cert | sed -e 's/.*=//;s/://g'
+                  </Alert>
+                  <Typography>
+                    If your LND REST server is using HTTP or HTTPS with an untrusted certificate, you can set
+                    allowinsecure=true as a fallback.
+                  </Typography>
+                </Stack>
+              </AccordionDetails>
             </Accordion>
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel3-content">
-                LND via the REST proxy
+                <Typography fontWeight={'bold'} pr={1}>
+                  <Link href={'https://bluewallet.io/lndhub/'} target="_blank">
+                    LNDhub
+                  </Link>
+                </Typography>
+                via the REST API
               </AccordionSummary>
-              <AccordionDetails>EXAMPLE</AccordionDetails>
-            </Accordion>
-            <Accordion>
-              <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel3-content">
-                LNDhub via the REST API
-              </AccordionSummary>
-              <AccordionDetails>EXAMPLE</AccordionDetails>
+              <AccordionDetails>
+                <Stack gap={1}>
+                  <Alert icon={false}>type=lndhub;server=https://login:password@lndhub.io</Alert>
+                  <Typography>
+                    The credentials and server address are shown as a lndhub:// URL on the "Export/Backup" screen in
+                    BlueWallet.
+                  </Typography>
+                  <Typography>
+                    You can also use this LNDhub-URL as the connection string and CryptoPay Server converts it into the
+                    expected type=lndhub connection string format:
+                  </Typography>
+                  <Alert icon={false}>lndhub://login:password@https://lndhub.io</Alert>
+                </Stack>
+              </AccordionDetails>
             </Accordion>
           </Box>
 
           <Box mt={5}>
-            <Button variant={'contained'} size={'large'}>
+            <Button variant={'contained'} size={'large'} color="success">
               Save
             </Button>
           </Box>
