@@ -102,6 +102,10 @@ export class Http {
   static update_wallet_coin_enable_by_id = this.httpPath + '/wallet/update_wallet_coin_enable_by_id';
   static find_wallet_manage_by_network = this.httpPath + '/wallet/find_wallet_manage_by_network';
 
+  // lightning network
+  static test_connection = this.httpPath + '/lightningnetwork/test_connection';
+  static create_lightning_network = this.httpPath + '/lightningnetwork/create_lightning_network';
+
   // ethereum
   static find_nonce = this.httpPath + '/ethereum/find_nonce';
   static find_gas_limit = this.httpPath + '/ethereum/find_gas_limit';

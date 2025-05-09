@@ -11,9 +11,78 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
 import Link from 'next/link';
+import { useState } from 'react';
+import axios from 'utils/http/axios';
+import { Http } from 'utils/http/http';
 
 const Lightning = () => {
+  const [text, setText] = useState<string>('');
+
+  const { getNetwork, getUserId } = useUserPresistStore((state) => state);
+  const { getStoreId } = useStorePresistStore((state) => state);
+  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
+
+  const onClickTestConnection = async () => {
+    try {
+      if (!text || text === '') return;
+
+      const response: any = await axios.get(Http.test_connection, {
+        params: {
+          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: getStoreId(),
+          text: text,
+        },
+      });
+
+      if (response.result) {
+        setSnackSeverity('success');
+        setSnackMessage('Test successfully');
+        setSnackOpen(true);
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Test failed, please try again');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
+  const onClickSave = async () => {
+    try {
+      if (!text || text === '') return;
+
+      const response: any = await axios.post(Http.create_lightning_network, {
+        user_id: getUserId(),
+        network: getNetwork() === 'mainnet' ? 1 : 2,
+        store_id: getStoreId(),
+        text: text,
+      });
+
+      if (response.result) {
+        setSnackSeverity('success');
+        setSnackMessage('Save successful!');
+        setSnackOpen(true);
+
+        setText('');
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Save failed!');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
+
   return (
     <Box>
       <Container>
@@ -31,8 +100,18 @@ const Lightning = () => {
           <Box mt={5}>
             <Typography>Connection configuration for your custom Lightning node:</Typography>
             <Stack direction={'row'} alignItems={'center'} gap={2} mt={1}>
-              <TextField fullWidth hiddenLabel defaultValue="" size="small" placeholder="type=...;server=...;" />
-              <Button variant={'outlined'} style={{ width: 250 }} size={'large'}>
+              <TextField
+                fullWidth
+                hiddenLabel
+                defaultValue=""
+                size="small"
+                placeholder="type=...;server=...;"
+                value={text}
+                onChange={(e: any) => {
+                  setText(e.target.value);
+                }}
+              />
+              <Button variant={'outlined'} style={{ width: 250 }} size={'large'} onClick={onClickTestConnection}>
                 Test connection
               </Button>
             </Stack>
@@ -161,7 +240,7 @@ const Lightning = () => {
           </Box>
 
           <Box mt={5}>
-            <Button variant={'contained'} size={'large'} color="success">
+            <Button variant={'contained'} size={'large'} color="success" onClick={onClickSave}>
               Save
             </Button>
           </Box>

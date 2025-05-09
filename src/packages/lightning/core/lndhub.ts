@@ -1,12 +1,14 @@
 import axios from 'axios';
 import { LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { createHash } from 'crypto';
 
-interface ParsedSecret {
-  baseUrl: string | null;
+type ParsedSecret = {
+  baseUrl: string;
   login: string;
   password: string;
-}
+};
 
+// https://github.com/BlueWallet/LndHub/blob/master/doc/Send-requirements.md
 export class LNDHUB {
   static lightningName = LIGHTNINGNAME.LNDHUB;
 
@@ -19,16 +21,26 @@ export class LNDHUB {
 
   static parseSecret(secret: string): ParsedSecret {
     if (!secret) {
-      return { baseUrl: null, login: '', password: '' };
+      return { baseUrl: '', login: '', password: '' };
     }
 
-    const baseUrl = secret.split('@')[1] || null;
+    let baseUrl = secret.split('@')[1];
+    if (baseUrl.slice(-1) === '/') {
+      baseUrl = baseUrl.slice(0, -1);
+    }
+
     const loginAndPassword = secret.split('@')[0].substring('lndhub://'.length);
     const [login = '', password = ''] = loginAndPassword.split(':');
     return { baseUrl, login, password };
   }
 
-  static async authorize(): Promise<boolean> {
+  static async authorize(
+    baseUrl: string,
+    login: string,
+    password: string,
+    refreshToken?: string,
+    refreshTokenCreatedTime?: number,
+  ): Promise<[boolean, any?]> {
     try {
       //   let data: { login: string; password: string } | { refresh_token: string };
       //   let type: 'auth' | 'refresh_token';
@@ -48,33 +60,105 @@ export class LNDHUB {
       //     this.axiosInstance.defaults.headers.common['Authorization'] = undefined;
       //   }
 
-      let response: any = undefined;
+      let response: any = null;
 
-      if (this.refreshToken && !this.refreshTokenIsExpired()) {
-        const url = '/auth?type=refresh_token';
-        const data = { refresh_token: this.refreshToken };
+      if (refreshToken && !this.refreshTokenIsExpired(refreshTokenCreatedTime)) {
+        const url = baseUrl + '/auth?type=refresh_token';
+        const data = { refresh_token: refreshToken };
 
         response = await this.axiosInstance.post(url, data);
       } else {
-        const url = '/auth?type=auth';
-        const data = { login: '', password: '' };
+        const url = baseUrl + '/auth?type=auth';
+        const data = { login: login, password: password };
 
         response = await this.axiosInstance.post(url, data);
       }
 
-      const url = `/auth?type=${type}`;
-      response = await this.axiosInstance.post(url, data);
-      if (response) {
+      if (response.status === 200 && response.data) {
+        console.log('authorize', response.data.access_token);
+        const accessTokenCreatedTime = Date.now();
+        const refreshTokenCreatedTime = Date.now();
+        const accessToken = response.data.access_token;
+        const refreshToken = response.data.refresh_token;
+        // this.options.headers = this.options.headers || {};
+        // this.options.headers['Authorization'] = `Bearer ${response.access_token}`;
+        // this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.access_token}`;
+
+        return [
+          true,
+          {
+            accessToken: accessToken,
+            accessTokenCreatedTime: accessTokenCreatedTime,
+            refreshToken: refreshToken,
+            refreshTokenCreatedTime: refreshTokenCreatedTime,
+          },
+        ];
+      }
+      return [false];
+    } catch (e) {
+      console.error(e);
+      return [false];
+    }
+  }
+
+  static async testConnection(secret: string): Promise<[boolean, any?]> {
+    try {
+      const { baseUrl, login, password } = this.parseSecret(secret);
+      if (baseUrl && login && password) {
+        return await this.authorize(baseUrl, login, password);
       }
 
-      //   const response = await this.request('post', `/auth?type=${type}`, data);
-      this.accessTokenCreatedTime = Date.now();
-      this.refreshTokenCreatedTime = Date.now();
-      this.accessToken = response.access_token;
-      this.refreshToken = response.refresh_token;
-      this.options.headers = this.options.headers || {};
-      this.options.headers['Authorization'] = `Bearer ${response.access_token}`;
-      this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.access_token}`;
+      return [false];
+    } catch (e) {
+      console.error(e);
+      return [false];
+    }
+  }
+
+  // static isAuthorized(): boolean {
+  //   return !!this.accessToken && !this.accessTokenIsExpired();
+  // }
+
+  // static async onAuthorized(): Promise<void> {
+  //   if (this.isAuthorized()) {
+  //     return;
+  //   }
+  //   await this.authorize();
+  // }
+
+  static accessTokenIsExpired(accessTokenCreatedTime?: number): boolean {
+    if (accessTokenCreatedTime) {
+      return Date.now() - accessTokenCreatedTime >= this.accessTokenMaxAge;
+    } else {
+      return false;
+    }
+  }
+
+  static refreshTokenIsExpired(refreshTokenCreatedTime?: number): boolean {
+    if (refreshTokenCreatedTime) {
+      return Date.now() - refreshTokenCreatedTime >= this.refreshTokenMaxAge;
+    } else {
+      return false;
+    }
+  }
+
+  static async payInvoice(invoice: string): Promise<boolean> {
+    try {
+      const response: any = await this.axiosInstance.post('/payinvoice', { invoice });
+
+      let preimage = '';
+      if (response.payment_preimage) {
+        if (typeof response.payment_preimage === 'string') {
+          preimage = response.payment_preimage;
+        } else if (typeof response.payment_preimage === 'object' && response.payment_preimage.type === 'Buffer') {
+          preimage = Buffer.from(response.payment_preimage.data, 'hex').toString('hex');
+        }
+        if (preimage) {
+          const paymentHash = createHash('sha256').update(Buffer.from(preimage, 'hex')).digest('hex');
+          // Optionally use paymentHash for validation
+          console.log('preimage', preimage);
+        }
+      }
 
       return true;
     } catch (e) {
@@ -83,83 +167,50 @@ export class LNDHUB {
     }
   }
 
-  static isAuthorized(): boolean {
-    return !!this.accessToken && !this.accessTokenIsExpired();
-  }
-
-  static async onAuthorized(): Promise<void> {
-    if (this.isAuthorized()) {
-      return;
+  static async addInvoice(amount: number, descriptionHash?: string, description?: string): Promise<string> {
+    try {
+      const response: any = await this.axiosInstance.post('/addinvoice', {
+        amt: Math.floor(amount / 1000).toString(), // Convert to sats, must be string
+        description_hash: descriptionHash,
+        memo: description,
+      });
+      return response.payment_request;
+    } catch (e) {
+      console.error(e);
+      return '';
     }
-    await this.authorize();
   }
 
-  static accessTokenIsExpired(accessTokenCreatedTime: number): boolean {
-    return Date.now() - accessTokenCreatedTime >= (this.options.accessTokenMaxAge || this.accessTokenMaxAge);
-  }
-
-  static refreshTokenIsExpired(refreshTokenCreatedTime: number): boolean {
-    return Date.now() - refreshTokenCreatedTime >= (this.options.refreshTokenMaxAge || this.refreshTokenMaxAge);
-  }
-
-  static async payInvoice(invoice: string): Promise<{ id: null; preimage: string | null }> {
-    const result = await this.tryAuthorizedRequest('post', '/payinvoice', { invoice });
-    let preimage: string | null = null;
-
-    if (result.payment_preimage) {
-      if (typeof result.payment_preimage === 'string') {
-        preimage = result.payment_preimage;
-      } else if (typeof result.payment_preimage === 'object' && result.payment_preimage.type === 'Buffer') {
-        preimage = Buffer.from(result.payment_preimage.data, 'hex').toString('hex');
-      }
-      if (preimage) {
-        const paymentHash = crypto.createHash('sha256').update(Buffer.from(preimage, 'hex')).digest('hex');
-        // Optionally use paymentHash for validation
-      }
+  static async getInvoiceStatus(paymentHash: string): Promise<any> {
+    try {
+      const hash = encodeURIComponent(paymentHash);
+      const response = await this.axiosInstance.get(`/checkpayment/${hash}`);
+      return response;
+      // return {
+      //   preimage: null,
+      //   settled: result && result.paid === true,
+      // };
+    } catch (e) {
+      console.error(e);
+      return null;
     }
-
-    return { id: null, preimage };
-  }
-
-  static async addInvoice(
-    amount: number,
-    extra: { descriptionHash?: string; description?: string },
-  ): Promise<{ id: null; invoice: string }> {
-    const result = await this.tryAuthorizedRequest('post', '/addinvoice', {
-      amt: Math.floor(amount / 1000).toString(), // Convert to sats, must be string
-      description_hash: extra.descriptionHash,
-      memo: extra.description,
-    });
-    return {
-      id: null,
-      invoice: result.payment_request,
-    };
-  }
-
-  static async getInvoiceStatus(paymentHash: string): Promise<{ preimage: null; settled: boolean }> {
-    const hash = encodeURIComponent(paymentHash);
-    const result = await this.tryAuthorizedRequest('get', `/checkpayment/${hash}`);
-    return {
-      preimage: null,
-      settled: result && result.paid === true,
-    };
   }
 
   static async getBalance(): Promise<number> {
     try {
-      const result = await this.request('get', '/balance');
-      return parseInt(result['BTC']['AvailableBalance']) * 1000;
+      const response: any = await this.axiosInstance.get('/balance');
+      return parseInt(response['BTC']['AvailableBalance']) * 1000;
     } catch (e) {
       console.error(e);
       return 0;
     }
   }
 
-  static async getNodeUri(): Promise<never> {
+  static async getNodeUri(): Promise<any> {
     throw new Error('Not supported by this LN service.');
   }
 
-  static async openChannel(remoteId: string, localAmt: number, pushAmt: number, makePrivate: boolean): Promise<never> {
+  static async openChannel(remoteId: string, localAmt: number, pushAmt: number, makePrivate: boolean): Promise<any> {
     throw new Error('Not supported by this LN service.');
   }
 }

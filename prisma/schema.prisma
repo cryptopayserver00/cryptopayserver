@@ -381,3 +381,33 @@ model user_roles {
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 }
+
+model wallet_lightning_networks {
+  id            Int      @id @default(autoincrement())
+  user_id       Int
+  store_id      Int
+  kind          String
+  server        String
+  access_token  String
+  refresh_token String
+  enabled       Int @default(1)
+  status        Int
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+model wallet_lightning_network_settings {
+  id          Int      @id @default(autoincrement())
+  lnd_id      Int
+  user_id     Int
+  store_id    Int
+  show_amount_satoshis          Int
+  show_hop_hint                 Int
+  show_unify_url_and_qrcode     Int
+  show_lnurl                    Int
+  show_lnurl_classic_mode       Int
+  show_allow_payee_pass_comment Int
+  status                        Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}

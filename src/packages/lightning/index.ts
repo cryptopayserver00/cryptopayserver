@@ -11,12 +11,12 @@ export class LIGHTNING {
     }
   }
 
-  static async authorize(name: LIGHTNINGNAME): Promise<boolean> {
+  static async testConnection(name: LIGHTNINGNAME, secret: string): Promise<[boolean, any?]> {
     switch (name) {
       case LIGHTNINGNAME.LNDHUB:
-        return await LNDHUB.authorize();
+        return await LNDHUB.testConnection(secret);
       default:
-        return false;
+        return [false];
     }
   }
 }
