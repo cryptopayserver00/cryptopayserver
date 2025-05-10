@@ -19,4 +19,18 @@ export class LIGHTNING {
         return [false];
     }
   }
+
+  static async addInvoice(
+    name: LIGHTNINGNAME,
+    secret?: string,
+    accessToken?: string,
+    refreshToken?: string,
+  ): Promise<string> {
+    switch (name) {
+      case LIGHTNINGNAME.LNDHUB:
+        // return await LNDHUB.addInvoice();
+      default:
+        return '';
+    }
+  }
 }

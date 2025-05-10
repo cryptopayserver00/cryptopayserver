@@ -11,6 +11,8 @@ export function GetImgSrcByCrypto(crypto: COINS): string {
   switch (crypto) {
     case COINS.BTC:
       return baseUrl + '/coin/btc.svg';
+    case COINS.BTC_LN:
+      return baseUrl + '/coin/btc_ln.svg';
     case COINS.ETH:
       return baseUrl + '/coin/eth.svg';
     case COINS.USDT:

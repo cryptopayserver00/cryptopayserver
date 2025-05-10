@@ -545,6 +545,7 @@ const Lightning = () => {
                 </Button>
                 <Button
                   variant={'contained'}
+                  color={'primary'}
                   size={'large'}
                   onClick={() => {
                     setPage(2);

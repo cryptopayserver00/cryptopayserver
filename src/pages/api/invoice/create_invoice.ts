@@ -3,6 +3,8 @@ import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { GenerateOrderIDByTime } from 'utils/number';
 import { INVOICE_SOURCE_TYPE, NOTIFICATION_TYPE, ORDER_STATUS } from 'packages/constants';
 import { PrismaClient } from '@prisma/client';
+import { CHAINS, LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { LIGHTNING } from 'packages/lightning';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -25,6 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const metadata = req.body.metadata;
         const notificationUrl = req.body.notification_url;
         const notificationEmail = req.body.notification_email;
+        const showBtcLn = req.body.show_btc_ln;
+        const showBtcUrl = req.body.show_btc_url;
 
         const orderId = GenerateOrderIDByTime();
 
@@ -75,6 +79,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         // const expirationDate = now.getTime() + parseInt(paymentExpire) * 60 * 1000;
         const sourceType = INVOICE_SOURCE_TYPE.Invoice;
 
+        // handle lightning network
+        let lightningInvoice = '',
+          lightningUrl = '';
+        if (chainId === CHAINS.BITCOIN) {
+          const find_lightning_network = await prisma.wallet_lightning_networks.findFirst({
+            where: {
+              user_id: Number(userId),
+              store_id: Number(storeId),
+              enabled: 1,
+              status: 1,
+            },
+          });
+
+          if (find_lightning_network) {
+            if (showBtcLn === 1) {
+              LIGHTNING.addInvoice(LIGHTNINGNAME.LNDHUB, find_lightning_network.server, find_lightning_network.access_token, find_lightning_network.refresh_token)
+
+              // switch (find_lightning_network.kind) {
+              //   case LIGHTNINGNAME.BLINK:
+              //     break;
+              //   case LIGHTNINGNAME.CLIGHTNING:
+              //     break;
+              //   case LIGHTNINGNAME.LNBITS:
+              //     break;
+              //   case LIGHTNINGNAME.LND:
+              //     break;
+              //   case LIGHTNINGNAME.LNDHUB:
+              //     break;
+              //   case LIGHTNINGNAME.OPENNODE:
+              //     break;
+              //   default:
+              //     break
+              // }
+              lightningInvoice = '';
+            }
+
+            if (showBtcUrl === 1) {
+            }
+          }
+        }
+
         const invoice = await prisma.invoices.create({
           data: {
             user_id: userId,
@@ -88,6 +133,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             crypto_amount: Number(crypto_amount),
             currency: currency,
             rate: Number(rate),
+            lightning_invoice: lightningInvoice,
+            lightning_url: lightningUrl,
             description: description,
             buyer_email: buyerEmail,
             destination_address: address.address,

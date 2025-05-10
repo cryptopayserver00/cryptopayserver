@@ -7,8 +7,11 @@ import {
   AlertTitle,
   Box,
   Button,
+  Checkbox,
   Container,
   FormControl,
+  FormControlLabel,
+  FormGroup,
   IconButton,
   MenuItem,
   OutlinedInput,
@@ -28,6 +31,8 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import { ORDER_STATUS } from 'packages/constants';
 import { BigDiv } from 'utils/number';
 import { FindChainIdsByChainNames, FindTokensByMainnetAndName } from 'utils/web3';
+import Image from 'next/image';
+import { GetImgSrcByChain, GetImgSrcByCrypto } from 'utils/qrcode';
 
 const PaymentInvoices = () => {
   const [openExplain, setOpenExplain] = useState<boolean>(false);
@@ -45,6 +50,8 @@ const PaymentInvoices = () => {
   const [metadata, setMetadata] = useState<string>('');
   const [notificationUrl, setNotificationUrl] = useState<string>('');
   const [notificationEmail, setNotificationEmail] = useState<string>('');
+  const [showBtcLn, setShowBtcLn] = useState<boolean>(false);
+  const [showBtcLnUrl, setShowBtcLnUrl] = useState<boolean>(false);
 
   const [search, setSearch] = useState<string>('');
   const [orderStatus, setOrderStatus] = useState<string>(ORDER_STATUS.AllStatus);
@@ -70,7 +77,7 @@ const PaymentInvoices = () => {
       if (response.result) {
         const rate = response.data[ids][currency.toLowerCase()];
         setRate(rate);
-        const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(8)
+        const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(8);
         setCryptoAmount(totalPrice);
       }
     } catch (e) {
@@ -170,6 +177,8 @@ const PaymentInvoices = () => {
     const ln_metadata = metadata;
     const ln_notification_url = notificationUrl;
     const ln_notification_email = notificationEmail;
+    const ln_show_btc_ln = showBtcLn;
+    const ln_show_btc_url = showBtcLnUrl;
 
     try {
       const response: any = await axios.post(Http.create_invoice, {
@@ -187,6 +196,8 @@ const PaymentInvoices = () => {
         metadata: ln_metadata,
         notification_url: ln_notification_url,
         notification_email: ln_notification_email,
+        show_btc_ln: ln_show_btc_ln ? 1 : 2,
+        show_btc_url: ln_show_btc_url ? 1 : 2,
       });
 
       if (response.result && response.data.order_id) {
@@ -283,10 +294,15 @@ const PaymentInvoices = () => {
                   <Box mt={1}>
                     <FormControl sx={{ minWidth: 200 }}>
                       <Select
+                        autoWidth
                         size={'small'}
                         inputProps={{ 'aria-label': 'Without label' }}
                         onChange={(e) => {
                           setNetwork(e.target.value as CHAINNAMES);
+                          setCrypto(
+                            FindTokensByMainnetAndName(getNetwork() === 'mainnet', e.target.value as CHAINNAMES)[0]
+                              .name,
+                          );
                         }}
                         value={network}
                       >
@@ -294,7 +310,15 @@ const PaymentInvoices = () => {
                           Object.entries(CHAINNAMES).length > 0 &&
                           Object.entries(CHAINNAMES).map((item, index) => (
                             <MenuItem value={item[1]} key={index}>
-                              {item[1]}
+                              <Stack direction={'row'} alignItems={'center'}>
+                                <Image
+                                  src={GetImgSrcByChain(FindChainIdsByChainNames(item[1]))}
+                                  alt="icon"
+                                  width={25}
+                                  height={25}
+                                />
+                                <Typography pl={1}>{item[1]}</Typography>
+                              </Stack>
                             </MenuItem>
                           ))}
                       </Select>
@@ -320,7 +344,10 @@ const PaymentInvoices = () => {
                           cryptoList.length > 0 &&
                           cryptoList.map((item, index) => (
                             <MenuItem value={item.name} key={index}>
-                              {item.name}
+                              <Stack direction={'row'} alignItems={'center'}>
+                                <Image src={GetImgSrcByCrypto(item.name)} alt="icon" width={25} height={25} />
+                                <Typography pl={1}>{item.name}</Typography>
+                              </Stack>
                             </MenuItem>
                           ))}
                       </Select>
@@ -364,6 +391,34 @@ const PaymentInvoices = () => {
                   />
                 </Box>
               </Box>
+
+              {network === CHAINNAMES.BITCOIN && (
+                <Box mt={4}>
+                  <Stack direction={'row'} alignItems={'center'}>
+                    <Typography>Supported Transaction Currencies</Typography>
+                    <Typography color={'red'}>*</Typography>
+                  </Stack>
+                  <Box mt={1}>
+                    <FormGroup>
+                      <FormControlLabel control={<Checkbox checked={true} />} label="BTC-CHAIN" />
+                      <FormControlLabel
+                        control={<Checkbox checked={showBtcLn} />}
+                        label="BTC-LN"
+                        onChange={() => {
+                          setShowBtcLn(!showBtcLn);
+                        }}
+                      />
+                      <FormControlLabel
+                        control={<Checkbox checked={showBtcLnUrl} />}
+                        label="BTC-LNURL"
+                        onChange={() => {
+                          setShowBtcLnUrl(!showBtcLnUrl);
+                        }}
+                      />
+                    </FormGroup>
+                  </Box>
+                </Box>
+              )}
             </Box>
 
             <Box mt={5}>

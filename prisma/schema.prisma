@@ -125,6 +125,8 @@ model invoices {
   crypto              String
   crypto_amount       Float
   rate                Float
+  lightning_invoice   String?  @db.LongText
+  lightning_url       String?  @db.LongText
   description         String?  @db.LongText
   buyer_email         String?
   order_status        String

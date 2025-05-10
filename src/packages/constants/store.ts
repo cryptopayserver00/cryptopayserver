@@ -171,6 +171,7 @@ export const REPORT_STATUS = {
 
 export const COINGECKO_IDS: { [key in COINS]: string } = {
   [COINS.BTC]: 'bitcoin',
+  [COINS.BTC_LN]: 'bitcoin',
   [COINS.ETH]: 'ethereum',
   [COINS.USDT]: 'tether',
   [COINS.BNB]: 'binancecoin',

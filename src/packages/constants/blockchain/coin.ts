@@ -1,5 +1,6 @@
 export enum COINS {
   BTC = 'BTC',
+  BTC_LN = 'BTC_LN',
   ETH = 'ETH',
   USDT = 'USDT',
   BNB = 'BNB',
