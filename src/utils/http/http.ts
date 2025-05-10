@@ -103,8 +103,11 @@ export class Http {
   static find_wallet_manage_by_network = this.httpPath + '/wallet/find_wallet_manage_by_network';
 
   // lightning network
+  static find_lightning_network = this.httpPath + '/lightningnetwork/find_lightning_network';
   static test_connection = this.httpPath + '/lightningnetwork/test_connection';
   static create_lightning_network = this.httpPath + '/lightningnetwork/create_lightning_network';
+  static update_lightning_network_setting_by_id =
+    this.httpPath + '/lightningnetwork/update_lightning_network_setting_by_id';
 
   // ethereum
   static find_nonce = this.httpPath + '/ethereum/find_nonce';

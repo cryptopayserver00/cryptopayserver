@@ -387,9 +387,9 @@ model wallet_lightning_networks {
   user_id       Int
   store_id      Int
   kind          String
-  server        String
-  access_token  String
-  refresh_token String
+  server        String   @db.LongText
+  access_token  String   @db.LongText
+  refresh_token String   @db.LongText
   enabled       Int @default(1)
   status        Int
   created_at    DateTime @default(now())

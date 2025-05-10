@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { WEB3 } from 'packages/web3';
 import { LIGHTNINGNAME } from 'packages/constants/blockchain';
 import { LIGHTNING } from 'packages/lightning';
 
@@ -10,8 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'GET':
-        const network = req.query.network;
-        const storeId = req.query.storeId;
         const text = req.query.text;
 
         if (!text) {

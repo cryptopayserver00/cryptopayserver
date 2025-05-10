@@ -76,8 +76,8 @@ export class LNDHUB {
 
       if (response.status === 200 && response.data) {
         console.log('authorize', response.data.access_token);
-        const accessTokenCreatedTime = Date.now();
-        const refreshTokenCreatedTime = Date.now();
+        // const accessTokenCreatedTime = Date.now();
+        // const refreshTokenCreatedTime = Date.now();
         const accessToken = response.data.access_token;
         const refreshToken = response.data.refresh_token;
         // this.options.headers = this.options.headers || {};
@@ -88,9 +88,9 @@ export class LNDHUB {
           true,
           {
             accessToken: accessToken,
-            accessTokenCreatedTime: accessTokenCreatedTime,
+            // accessTokenCreatedTime: accessTokenCreatedTime,
             refreshToken: refreshToken,
-            refreshTokenCreatedTime: refreshTokenCreatedTime,
+            // refreshTokenCreatedTime: refreshTokenCreatedTime,
           },
         ];
       }
