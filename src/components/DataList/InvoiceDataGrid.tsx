@@ -100,7 +100,7 @@ export default function InvoiceDataGrid(props: GridType) {
               orderId: item.order_id,
               sourceType: item.source_type,
               fiatAmount: CURRENCY_SYMBOLS[item.currency] + item.amount,
-              cryptoAmount: item.crypto_amount + ' ' + item.crypto,
+              cryptoAmount: `${item.crypto_amount} ${item.crypto}`,
               chain: FindChainNamesByChains(item.chain_id),
               createdDate: new Date(item.created_at).toLocaleString(),
               expirationDate: new Date(item.expiration_at).toLocaleString(),

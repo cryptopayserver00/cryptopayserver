@@ -1,4 +1,4 @@
-import { Box, Button, Container, Divider, Grid, List, ListItem, Stack, Typography } from '@mui/material';
+import { Box, Button, Container, Divider, Grid, IconButton, List, ListItem, Stack, Typography } from '@mui/material';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
 import { useRouter } from 'next/router';
 import { CURRENCY_SYMBOLS, ORDER_STATUS } from 'packages/constants';
@@ -8,6 +8,11 @@ import { Http } from 'utils/http/http';
 import { InvoiceEventDataTab } from '../../DataList/InvoiceEventDataTab';
 import { FindChainNamesByChains, GetBlockchainAddressUrlByChainIds, GetBlockchainTxUrlByChainIds } from 'utils/web3';
 import Link from 'next/link';
+import { CHAINS } from 'packages/constants/blockchain';
+import { OmitMiddleString } from 'utils/strings';
+import Image from 'next/image';
+import { GetImgSrcByChain } from 'utils/qrcode';
+import { ContentCopy } from '@mui/icons-material';
 
 type OrderType = {
   orderId: number;
@@ -27,6 +32,8 @@ type OrderType = {
   createdDate: number;
   expirationDate: number;
   rate: number;
+  lightningInvoice: string;
+  lightningUrl: string;
   totalPrice: string;
   amountDue: string;
   fromAddress: string;
@@ -62,6 +69,8 @@ const PaymentInvoiceDetails = () => {
     createdDate: 0,
     expirationDate: 0,
     rate: 0,
+    lightningInvoice: '',
+    lightningUrl: '',
     totalPrice: '0',
     amountDue: '0',
     fromAddress: '',
@@ -99,6 +108,8 @@ const PaymentInvoiceDetails = () => {
           createdDate: response.data.created_at,
           expirationDate: response.data.expiration_at,
           rate: response.data.rate,
+          lightningInvoice: response.data.lightning_invoice,
+          lightningUrl: response.data.lightning_url,
           totalPrice: response.data.crypto_amount,
           amountDue: response.data.crypto_amount,
           fromAddress: response.data.from_address,
@@ -166,7 +177,8 @@ const PaymentInvoiceDetails = () => {
 
         <Stack direction={'row'} alignItems={'center'} mt={4}>
           <Button
-            variant={'outlined'}
+            color="success"
+            variant={'contained'}
             onClick={() => {
               window.location.href = '/invoices/' + order.orderId;
             }}
@@ -174,7 +186,7 @@ const PaymentInvoiceDetails = () => {
             Checkout
           </Button>
           {order.orderStatus !== ORDER_STATUS.Invalid && (
-            <Button variant={'outlined'} onClick={onClickArchive} style={{ marginLeft: 20 }}>
+            <Button color="error" variant={'contained'} onClick={onClickArchive} style={{ marginLeft: 20 }}>
               Archive
             </Button>
           )}
@@ -202,7 +214,7 @@ const PaymentInvoiceDetails = () => {
                   <Typography>Order Id</Typography>
                 </Grid>
                 <Grid item xs={9}>
-                  <Typography>{order.orderId}</Typography>
+                  <Typography fontWeight={'bold'}>{order.orderId}</Typography>
                 </Grid>
               </Grid>
             </ListItem>
@@ -225,13 +237,14 @@ const PaymentInvoiceDetails = () => {
                 </Grid>
                 <Grid item xs={9}>
                   <Typography
+                    fontWeight={'bold'}
                     color={
                       order.orderStatus === ORDER_STATUS.Expired
                         ? 'red'
                         : order.orderStatus === ORDER_STATUS.Settled
                         ? 'green'
                         : order.orderStatus === ORDER_STATUS.Processing
-                        ? 'orange'
+                        ? 'blue'
                         : order.orderStatus === ORDER_STATUS.Invalid
                         ? 'red'
                         : ''
@@ -339,10 +352,13 @@ const PaymentInvoiceDetails = () => {
             <ListItem>
               <Grid container>
                 <Grid item xs={3}>
-                  <Typography>Payment method</Typography>
+                  <Typography>Chain</Typography>
                 </Grid>
                 <Grid item xs={9}>
-                  <Typography>{order.paymentMethod}</Typography>
+                  <Stack direction={'row'} alignItems={'center'} gap={1}>
+                    <Image alt="icon" width={30} height={30} src={GetImgSrcByChain(order.chainId)} />
+                    <Typography>{FindChainNamesByChains(order.chainId)?.toUpperCase()}</Typography>
+                  </Stack>
                 </Grid>
               </Grid>
             </ListItem>
@@ -353,35 +369,115 @@ const PaymentInvoiceDetails = () => {
                   <Typography>Destination</Typography>
                 </Grid>
                 <Grid item xs={9}>
-                  <Typography>{order.destinationAddress}</Typography>
+                  <Stack direction={'row'} gap={1} alignItems={'center'}>
+                    <Typography fontWeight={'bold'}>{order.destinationAddress}</Typography>
+                    <IconButton
+                      size="small"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(String(order?.destinationAddress));
+
+                        setSnackMessage('Successfully copy');
+                        setSnackSeverity('success');
+                        setSnackOpen(true);
+                      }}
+                    >
+                      <ContentCopy fontSize={'small'} />
+                    </IconButton>
+                  </Stack>
                 </Grid>
               </Grid>
             </ListItem>
             <Divider />
-            <ListItem>
-              <Grid container>
-                <Grid item xs={3}>
-                  <Typography>Chain</Typography>
-                </Grid>
-                <Grid item xs={9}>
-                  <Typography>{FindChainNamesByChains(order.chainId)?.toUpperCase()}</Typography>
-                </Grid>
-              </Grid>
-            </ListItem>
-            <Divider />
-            <ListItem>
-              <Grid container>
-                <Grid item xs={3}>
-                  <Typography>Rate</Typography>
-                </Grid>
-                <Grid item xs={9}>
-                  <Typography>
-                    {CURRENCY_SYMBOLS[order.currency]}
-                    {order.rate}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </ListItem>
+            {order.chainId === CHAINS.BITCOIN && (
+              <>
+                <ListItem>
+                  <Grid container>
+                    <Grid item xs={3}>
+                      <Typography>Lightning invoice</Typography>
+                    </Grid>
+                    <Grid item xs={9}>
+                      {order.lightningInvoice && (
+                        <Stack direction={'row'} gap={1}>
+                          <Typography fontWeight={'bold'}>{OmitMiddleString(order.lightningInvoice)}</Typography>
+                          <IconButton
+                            size="small"
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(String(order?.lightningInvoice));
+
+                              setSnackMessage('Successfully copy');
+                              setSnackSeverity('success');
+                              setSnackOpen(true);
+                            }}
+                          >
+                            <ContentCopy fontSize={'small'} />
+                          </IconButton>
+                        </Stack>
+                      )}
+                    </Grid>
+                  </Grid>
+                </ListItem>
+                {order.lightningUrl && (
+                  <>
+                    <Divider />
+                    <ListItem>
+                      <Grid container>
+                        <Grid item xs={3}>
+                          <Typography>Lightning url</Typography>
+                        </Grid>
+                        <Grid item xs={9}>
+                          {order.lightningUrl && (
+                            <Stack direction={'row'} gap={1}>
+                              <Typography fontWeight={'bold'}>{OmitMiddleString(order.lightningUrl)}</Typography>
+                              <IconButton
+                                size="small"
+                                onClick={async () => {
+                                  await navigator.clipboard.writeText(String(order?.lightningUrl));
+
+                                  setSnackMessage('Successfully copy');
+                                  setSnackSeverity('success');
+                                  setSnackOpen(true);
+                                }}
+                              >
+                                <ContentCopy fontSize={'small'} />
+                              </IconButton>
+                            </Stack>
+                          )}
+                        </Grid>
+                      </Grid>
+                    </ListItem>
+                  </>
+                )}
+              </>
+            )}
+            {order.paymentMethod && (
+              <>
+                <Divider />
+                <ListItem>
+                  <Grid container>
+                    <Grid item xs={3}>
+                      <Typography>Payment method</Typography>
+                    </Grid>
+                    <Grid item xs={9}>
+                      <Typography>{order.paymentMethod}</Typography>
+                    </Grid>
+                  </Grid>
+                </ListItem>
+                <Divider />
+                <ListItem>
+                  <Grid container>
+                    <Grid item xs={3}>
+                      <Typography>Rate</Typography>
+                    </Grid>
+                    <Grid item xs={9}>
+                      <Typography>
+                        {CURRENCY_SYMBOLS[order.currency]}
+                        {order.rate}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </ListItem>
+              </>
+            )}
             <Divider />
             <ListItem>
               <Grid container>
@@ -402,84 +498,101 @@ const PaymentInvoiceDetails = () => {
                   <Typography>Paid</Typography>
                 </Grid>
                 <Grid item xs={9}>
-                  <Typography>{order.paid === 1 ? 'True' : 'False'}</Typography>
+                  <Typography fontWeight={'bold'} color={order.paid === 1 ? 'green' : 'red'}>
+                    {order.paid === 1 ? 'True' : 'False'}
+                  </Typography>
                 </Grid>
               </Grid>
             </ListItem>
-            <Divider />
             {order.orderStatus === ORDER_STATUS.Settled && (
               <>
-                <ListItem>
-                  <Grid container>
-                    <Grid item xs={3}>
-                      <Typography>Hash</Typography>
-                    </Grid>
-                    <Grid item xs={9}>
-                      <Link
-                        target="_blank"
-                        href={GetBlockchainTxUrlByChainIds(
-                          order.network === 1 ? true : false,
-                          order.chainId,
-                          order.hash,
-                        )}
-                      >
-                        {order.hash}
-                      </Link>
-                    </Grid>
-                  </Grid>
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <Grid container>
-                    <Grid item xs={3}>
-                      <Typography>From Address</Typography>
-                    </Grid>
-                    <Grid item xs={9}>
-                      <Link
-                        target="_blank"
-                        href={GetBlockchainAddressUrlByChainIds(
-                          order.network === 1 ? true : false,
-                          order.chainId,
-                          order.fromAddress,
-                        )}
-                      >
-                        {order.fromAddress}
-                      </Link>
-                    </Grid>
-                  </Grid>
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <Grid container>
-                    <Grid item xs={3}>
-                      <Typography>To Address</Typography>
-                    </Grid>
-                    <Grid item xs={9}>
-                      <Link
-                        target="_blank"
-                        href={GetBlockchainAddressUrlByChainIds(
-                          order.network === 1 ? true : false,
-                          order.chainId,
-                          order.toAddress,
-                        )}
-                      >
-                        {order.toAddress}
-                      </Link>
-                    </Grid>
-                  </Grid>
-                </ListItem>
-                <Divider />
-                <ListItem>
-                  <Grid container>
-                    <Grid item xs={3}>
-                      <Typography>Block Timestamp</Typography>
-                    </Grid>
-                    <Grid item xs={9}>
-                      <Typography>{new Date(order.blockTimestamp).toLocaleString()}</Typography>
-                    </Grid>
-                  </Grid>
-                </ListItem>
-                <Divider />
+                {order.hash && (
+                  <>
+                    <Divider />
+                    <ListItem>
+                      <Grid container>
+                        <Grid item xs={3}>
+                          <Typography>Hash</Typography>
+                        </Grid>
+                        <Grid item xs={9}>
+                          <Link
+                            target="_blank"
+                            href={GetBlockchainTxUrlByChainIds(
+                              order.network === 1 ? true : false,
+                              order.chainId,
+                              order.hash,
+                            )}
+                          >
+                            {order.hash}
+                          </Link>
+                        </Grid>
+                      </Grid>
+                    </ListItem>
+                  </>
+                )}
+                {order.fromAddress && (
+                  <>
+                    <Divider />
+                    <ListItem>
+                      <Grid container>
+                        <Grid item xs={3}>
+                          <Typography>From Address</Typography>
+                        </Grid>
+                        <Grid item xs={9}>
+                          <Link
+                            target="_blank"
+                            href={GetBlockchainAddressUrlByChainIds(
+                              order.network === 1 ? true : false,
+                              order.chainId,
+                              order.fromAddress,
+                            )}
+                          >
+                            {order.fromAddress}
+                          </Link>
+                        </Grid>
+                      </Grid>
+                    </ListItem>
+                  </>
+                )}
+                {order.toAddress && (
+                  <>
+                    <Divider />
+                    <ListItem>
+                      <Grid container>
+                        <Grid item xs={3}>
+                          <Typography>To Address</Typography>
+                        </Grid>
+                        <Grid item xs={9}>
+                          <Link
+                            target="_blank"
+                            href={GetBlockchainAddressUrlByChainIds(
+                              order.network === 1 ? true : false,
+                              order.chainId,
+                              order.toAddress,
+                            )}
+                          >
+                            {order.toAddress}
+                          </Link>
+                        </Grid>
+                      </Grid>
+                    </ListItem>
+                  </>
+                )}
+                {order.blockTimestamp && (
+                  <>
+                    <Divider />
+                    <ListItem>
+                      <Grid container>
+                        <Grid item xs={3}>
+                          <Typography>Block Timestamp</Typography>
+                        </Grid>
+                        <Grid item xs={9}>
+                          <Typography>{new Date(order.blockTimestamp).toLocaleString()}</Typography>
+                        </Grid>
+                      </Grid>
+                    </ListItem>
+                  </>
+                )}
               </>
             )}
           </List>

@@ -68,8 +68,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        console.log(111, data);
-
         let id = 0;
 
         switch (type) {

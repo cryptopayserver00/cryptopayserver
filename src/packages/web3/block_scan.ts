@@ -21,12 +21,17 @@ export class BLOCKSCAN {
         return [false, null];
       }
 
-      const response = await this.axiosInstance.post(url, {
-        headers: {
-          accept: 'application/json',
+      const response = await this.axiosInstance.post(
+        url,
+        {
+          bulk_storage: bulk_storage,
         },
-        bulk_storage: bulk_storage,
-      });
+        {
+          headers: {
+            accept: 'application/json',
+          },
+        },
+      );
 
       if (response && response.data) {
         if (response.data.code === 10200) {

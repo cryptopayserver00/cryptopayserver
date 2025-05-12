@@ -63,3 +63,11 @@ export function GweiToWei(wei: number): number {
 export function GweiToEther(gwei: number): number {
   return gwei / 1_000_000_000;
 }
+
+export function BtcToSatoshis(btc: number): number {
+  return parseInt((btc * 100_000_000).toString());
+}
+
+export function SatoshisToBtc(sats: number): number {
+  return sats / 100_000_000;
+}

@@ -54,6 +54,8 @@ type OrderType = {
   createdDate: number;
   expirationDate: number;
   rate: number;
+  lightningInvoice: string;
+  lightningUrl: string;
   totalPrice: string;
   amountDue: string;
   fromAddress: string;
@@ -63,6 +65,7 @@ type OrderType = {
   network: number;
   chainId: number;
   qrCodeText: string;
+  qrLightningCodeText: string;
   storeName: string;
   storeBrandColor: string;
   storeLogoUrl: string;
@@ -80,8 +83,11 @@ const InvoiceDetails = () => {
   const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   const [order, setOrder] = useState<OrderType>();
+  const [crypto, setCrypto] = useState<COINS>();
+  const [qrCode, setQrCode] = useState<string>('');
+  const [destinationAddress, setDestinationAddress] = useState<string>('');
 
-  const init = async (id: any) => {
+  const init = async (id: any, order?: OrderType) => {
     try {
       const response: any = await axios.get(Http.find_invoice_by_id, {
         params: {
@@ -107,6 +113,8 @@ const InvoiceDetails = () => {
           createdDate: new Date(response.data.created_at).getTime(),
           expirationDate: new Date(response.data.expiration_at).getTime(),
           rate: response.data.rate,
+          lightningInvoice: response.data.lightning_invoice,
+          lightningUrl: response.data.lightning_url,
           totalPrice: response.data.crypto_amount,
           amountDue: response.data.crypto_amount,
           fromAddress: response.data.from_address,
@@ -116,11 +124,18 @@ const InvoiceDetails = () => {
           network: response.data.network,
           chainId: response.data.chain_id,
           qrCodeText: response.data.qr_code_text,
+          qrLightningCodeText: response.data.qr_lightning_code_text,
           storeName: response.data.store_name,
           storeBrandColor: response.data.store_brand_color,
           storeLogoUrl: response.data.store_logo_url,
           storeWebsite: response.data.store_website,
         });
+
+        if (order === undefined) {
+          setCrypto(response.data.crypto);
+          setQrCode(response.data.qr_code_text);
+          setDestinationAddress(response.data.destination_address);
+        }
       } else {
         setSnackSeverity('error');
         setSnackMessage('Can not find the invoice!');
@@ -135,14 +150,21 @@ const InvoiceDetails = () => {
   };
 
   useEffect(() => {
-    id && init(id);
+    if (id) {
+      const activeInit = setInterval(async () => {
+        await init(id, order as OrderType);
+      }, 10 * 1000);
 
-    const activeInit = setInterval(() => {
-      id && init(id);
-    }, 10 * 1000);
+      return () => clearInterval(activeInit);
+    }
 
-    return () => clearInterval(activeInit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, order]);
+
+  useEffect(() => {
+    if (id) {
+      init(id);
+    }
   }, [id]);
 
   const countDownTime = () => {
@@ -172,6 +194,18 @@ const InvoiceDetails = () => {
     return () => clearInterval(activeCountDownTime);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order?.expirationDate]);
+
+  const onClickCrypto = () => {
+    setCrypto(order?.crypto as COINS);
+    setQrCode(String(order?.qrCodeText));
+    setDestinationAddress(String(order?.destinationAddress));
+  };
+
+  const onClickBtcLn = () => {
+    setCrypto(COINS.BTC_LN);
+    setQrCode(String(order?.qrLightningCodeText));
+    setDestinationAddress(String(order?.lightningInvoice));
+  };
 
   return (
     <Box mt={4}>
@@ -400,18 +434,32 @@ const InvoiceDetails = () => {
 
             <Box mt={2}>
               <Typography mb={2}>Deposit currency</Typography>
-              {order?.crypto && (
-                <Button
-                  variant={'contained'}
-                  color={'success'}
-                  startIcon={
-                    <Image alt="crypto" width={20} height={20} src={GetImgSrcByCrypto(order?.crypto as COINS)} />
-                  }
-                  fullWidth
-                >
-                  {order?.crypto}
-                </Button>
-              )}
+              <Stack direction={'row'} gap={1}>
+                {order?.crypto && (
+                  <Button
+                    variant={crypto === order?.crypto ? 'contained' : 'outlined'}
+                    color={'success'}
+                    startIcon={
+                      <Image alt="crypto" width={20} height={20} src={GetImgSrcByCrypto(order?.crypto as COINS)} />
+                    }
+                    fullWidth
+                    onClick={onClickCrypto}
+                  >
+                    {order?.crypto}
+                  </Button>
+                )}
+                {order?.chainId === CHAINS.BITCOIN && order?.lightningInvoice && (
+                  <Button
+                    variant={crypto === COINS.BTC_LN ? 'contained' : 'outlined'}
+                    color={'success'}
+                    startIcon={<Image alt="crypto" width={20} height={20} src={GetImgSrcByCrypto(COINS.BTC_LN)} />}
+                    fullWidth
+                    onClick={onClickBtcLn}
+                  >
+                    {COINS.BTC_LN}
+                  </Button>
+                )}
+              </Stack>
 
               <Typography my={2}>Select network</Typography>
               {order?.chainId && (
@@ -431,11 +479,11 @@ const InvoiceDetails = () => {
             <Box mt={2} textAlign={'center'}>
               <Paper style={{ padding: 20 }}>
                 <QRCodeSVG
-                  value={String(order?.qrCodeText)}
+                  value={qrCode}
                   width={'100%'}
                   height={'100%'}
                   imageSettings={{
-                    src: GetImgSrcByCrypto(order?.crypto as COINS),
+                    src: GetImgSrcByCrypto(crypto as COINS),
                     width: 20,
                     height: 20,
                     excavate: true,
@@ -447,14 +495,14 @@ const InvoiceDetails = () => {
                     variant="outlined"
                     fullWidth
                     onClick={async () => {
-                      await navigator.clipboard.writeText(String(order?.destinationAddress));
+                      await navigator.clipboard.writeText(destinationAddress);
 
                       setSnackMessage('Successfully copy');
                       setSnackSeverity('success');
                       setSnackOpen(true);
                     }}
                   >
-                    {OmitMiddleString(String(order?.destinationAddress))}
+                    {OmitMiddleString(destinationAddress)}
                   </Button>
                 </Box>
 
@@ -464,7 +512,7 @@ const InvoiceDetails = () => {
                     startIcon={<ContentCopy />}
                     fullWidth
                     onClick={async () => {
-                      await navigator.clipboard.writeText(String(order?.destinationAddress));
+                      await navigator.clipboard.writeText(destinationAddress);
 
                       setSnackMessage('Successfully copy');
                       setSnackSeverity('success');
@@ -474,7 +522,7 @@ const InvoiceDetails = () => {
                     Copy Address
                   </Button>
 
-                  {order?.orderStatus !== 'Settled' && (
+                  {order?.orderStatus !== 'Settled' && crypto !== COINS.BTC_LN && (
                     <WalletConnectButton
                       color={'success'}
                       network={Number(order?.network)}

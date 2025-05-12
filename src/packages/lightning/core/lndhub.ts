@@ -2,7 +2,7 @@ import axios from 'axios';
 import { LIGHTNINGNAME } from 'packages/constants/blockchain';
 import { createHash } from 'crypto';
 
-type ParsedSecret = {
+type ParsedServer = {
   baseUrl: string;
   login: string;
   password: string;
@@ -19,17 +19,17 @@ export class LNDHUB {
   static accessTokenMaxAge = 7200000;
   static refreshTokenMaxAge = 604800000;
 
-  static parseSecret(secret: string): ParsedSecret {
-    if (!secret) {
+  static parseServer(server: string): ParsedServer {
+    if (!server) {
       return { baseUrl: '', login: '', password: '' };
     }
 
-    let baseUrl = secret.split('@')[1];
+    let baseUrl = server.split('@')[1];
     if (baseUrl.slice(-1) === '/') {
       baseUrl = baseUrl.slice(0, -1);
     }
 
-    const loginAndPassword = secret.split('@')[0].substring('lndhub://'.length);
+    const loginAndPassword = server.split('@')[0].substring('lndhub://'.length);
     const [login = '', password = ''] = loginAndPassword.split(':');
     return { baseUrl, login, password };
   }
@@ -49,7 +49,7 @@ export class LNDHUB {
       //     data = { refresh_token: this.refreshToken };
       //     type = 'refresh_token';
       //   } else {
-      //     const { login, password } = this.options as ParsedSecret;
+      //     const { login, password } = this.options as ParsedServer;
       //     data = { login, password };
       //     type = 'auth';
       //   }
@@ -75,7 +75,6 @@ export class LNDHUB {
       }
 
       if (response.status === 200 && response.data) {
-        console.log('authorize', response.data.access_token);
         // const accessTokenCreatedTime = Date.now();
         // const refreshTokenCreatedTime = Date.now();
         const accessToken = response.data.access_token;
@@ -101,9 +100,9 @@ export class LNDHUB {
     }
   }
 
-  static async testConnection(secret: string): Promise<[boolean, any?]> {
+  static async testConnection(server: string): Promise<[boolean, any?]> {
     try {
-      const { baseUrl, login, password } = this.parseSecret(secret);
+      const { baseUrl, login, password } = this.parseServer(server);
       if (baseUrl && login && password) {
         return await this.authorize(baseUrl, login, password);
       }
@@ -167,32 +166,67 @@ export class LNDHUB {
     }
   }
 
-  static async addInvoice(amount: number, descriptionHash?: string, description?: string): Promise<string> {
+  static async addInvoice(
+    server: string,
+    amount: number,
+    description?: string,
+    descriptionHash?: string,
+    accessToken?: string,
+  ): Promise<string> {
     try {
-      const response: any = await this.axiosInstance.post('/addinvoice', {
-        amt: Math.floor(amount / 1000).toString(), // Convert to sats, must be string
-        description_hash: descriptionHash,
-        memo: description,
-      });
-      return response.payment_request;
+      if (!accessToken || !amount) {
+        return '';
+      }
+
+      const { baseUrl, login, password } = this.parseServer(server);
+
+      const response: any = await this.axiosInstance.post(
+        `${baseUrl}/addinvoice`,
+        {
+          amt: amount.toString(), // Convert to sats, must be string
+          description_hash: descriptionHash ? descriptionHash : undefined,
+          memo: description ? description : undefined,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (response.status === 200) {
+        return response.data.payment_request;
+      }
+
+      return '';
     } catch (e) {
       console.error(e);
       return '';
     }
   }
 
-  static async getInvoiceStatus(paymentHash: string): Promise<any> {
+  static async getInvoiceStatus(server: string, paymentHash: string, accessToken?: string): Promise<boolean> {
     try {
-      const hash = encodeURIComponent(paymentHash);
-      const response = await this.axiosInstance.get(`/checkpayment/${hash}`);
-      return response;
-      // return {
-      //   preimage: null,
-      //   settled: result && result.paid === true,
-      // };
+      if (!accessToken || !paymentHash) {
+        return false;
+      }
+
+      const { baseUrl, login, password } = this.parseServer(server);
+
+      const response: any = await this.axiosInstance.get(`${baseUrl}/checkpayment/${paymentHash}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (response.status === 200) {
+        return response.data.paid ? true : false;
+      }
+
+      return false;
     } catch (e) {
       console.error(e);
-      return null;
+      return false;
     }
   }
 

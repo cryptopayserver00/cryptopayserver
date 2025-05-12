@@ -25,10 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res.status(200).json({ message: '', result: false, data: null });
         }
 
-        const contractAddress = FindTokenByChainIdsAndSymbol(
+        const token = FindTokenByChainIdsAndSymbol(
           WEB3.getChainIds(invoice.network === 1 ? true : false, invoice.chain_id),
           invoice.crypto as COINS,
-        ).contractAddress;
+        );
 
         const store = await prisma.stores.findFirst({
           where: {
@@ -45,8 +45,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           invoice.network === 1 ? true : false,
           invoice.chain_id,
           invoice.destination_address,
-          contractAddress,
-          invoice.crypto_amount.toString(),
+          token.contractAddress,
+          invoice.crypto_amount.toFixed(token.decimals),
         );
 
         return res.status(200).json({
@@ -54,6 +54,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           result: true,
           data: {
             ...invoice,
+            crypto_amount: invoice.crypto_amount.toFixed(token.decimals),
+            qr_lightning_code_text: invoice.lightning_invoice
+              ? `lightning:${invoice.lightning_invoice?.toUpperCase()}`
+              : undefined,
             qr_code_text: qrCodeText,
             store_name: store.name,
             store_brand_color: store.brand_color,
