@@ -108,6 +108,7 @@ export class Http {
   static create_lightning_network = this.httpPath + '/lightningnetwork/create_lightning_network';
   static update_lightning_network_setting_by_id =
     this.httpPath + '/lightningnetwork/update_lightning_network_setting_by_id';
+  static send_lightning_network_transaction = this.httpPath + '/lightningnetwork/send_lightning_network_transaction';
 
   // ethereum
   static find_nonce = this.httpPath + '/ethereum/find_nonce';

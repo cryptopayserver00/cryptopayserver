@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { LIGHTNINGNAME } from 'packages/constants/blockchain';
 import { createHash } from 'crypto';
+import { SatoshisToBtc } from 'utils/number';
 
 type ParsedServer = {
   baseUrl: string;
@@ -23,73 +24,29 @@ export class LNDHUB {
     if (!server) {
       return { baseUrl: '', login: '', password: '' };
     }
-
     let baseUrl = server.split('@')[1];
     if (baseUrl.slice(-1) === '/') {
       baseUrl = baseUrl.slice(0, -1);
     }
-
     const loginAndPassword = server.split('@')[0].substring('lndhub://'.length);
     const [login = '', password = ''] = loginAndPassword.split(':');
     return { baseUrl, login, password };
   }
 
-  static async authorize(
-    baseUrl: string,
-    login: string,
-    password: string,
-    refreshToken?: string,
-    refreshTokenCreatedTime?: number,
-  ): Promise<[boolean, any?]> {
+  static async authorize(baseUrl: string, login: string, password: string): Promise<[boolean, any?]> {
     try {
-      //   let data: { login: string; password: string } | { refresh_token: string };
-      //   let type: 'auth' | 'refresh_token';
-
-      //   if (this.refreshToken && !this.refreshTokenIsExpired()) {
-      //     data = { refresh_token: this.refreshToken };
-      //     type = 'refresh_token';
-      //   } else {
-      //     const { login, password } = this.options as ParsedServer;
-      //     data = { login, password };
-      //     type = 'auth';
-      //   }
-
-      // Remove existing Authorization header
-      //   if (this.options.headers?.['Authorization']) {
-      //     delete this.options.headers['Authorization'];
-      //     this.axiosInstance.defaults.headers.common['Authorization'] = undefined;
-      //   }
-
-      let response: any = null;
-
-      if (refreshToken && !this.refreshTokenIsExpired(refreshTokenCreatedTime)) {
-        const url = baseUrl + '/auth?type=refresh_token';
-        const data = { refresh_token: refreshToken };
-
-        response = await this.axiosInstance.post(url, data);
-      } else {
-        const url = baseUrl + '/auth?type=auth';
-        const data = { login: login, password: password };
-
-        response = await this.axiosInstance.post(url, data);
-      }
-
+      const response: any = await this.axiosInstance.post(`${baseUrl}/auth?type=auth`, {
+        login,
+        password,
+      });
       if (response.status === 200 && response.data) {
-        // const accessTokenCreatedTime = Date.now();
-        // const refreshTokenCreatedTime = Date.now();
         const accessToken = response.data.access_token;
         const refreshToken = response.data.refresh_token;
-        // this.options.headers = this.options.headers || {};
-        // this.options.headers['Authorization'] = `Bearer ${response.access_token}`;
-        // this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.access_token}`;
-
         return [
           true,
           {
             accessToken: accessToken,
-            // accessTokenCreatedTime: accessTokenCreatedTime,
             refreshToken: refreshToken,
-            // refreshTokenCreatedTime: refreshTokenCreatedTime,
           },
         ];
       }
@@ -106,7 +63,6 @@ export class LNDHUB {
       if (baseUrl && login && password) {
         return await this.authorize(baseUrl, login, password);
       }
-
       return [false];
     } catch (e) {
       console.error(e);
@@ -114,52 +70,43 @@ export class LNDHUB {
     }
   }
 
-  // static isAuthorized(): boolean {
-  //   return !!this.accessToken && !this.accessTokenIsExpired();
-  // }
-
-  // static async onAuthorized(): Promise<void> {
-  //   if (this.isAuthorized()) {
-  //     return;
-  //   }
-  //   await this.authorize();
-  // }
-
-  static accessTokenIsExpired(accessTokenCreatedTime?: number): boolean {
-    if (accessTokenCreatedTime) {
-      return Date.now() - accessTokenCreatedTime >= this.accessTokenMaxAge;
-    } else {
-      return false;
-    }
-  }
-
-  static refreshTokenIsExpired(refreshTokenCreatedTime?: number): boolean {
-    if (refreshTokenCreatedTime) {
-      return Date.now() - refreshTokenCreatedTime >= this.refreshTokenMaxAge;
-    } else {
-      return false;
-    }
-  }
-
-  static async payInvoice(invoice: string): Promise<boolean> {
+  static async payInvoice(server: string, invoice: string, accessToken?: string): Promise<boolean> {
     try {
-      const response: any = await this.axiosInstance.post('/payinvoice', { invoice });
-
-      let preimage = '';
-      if (response.payment_preimage) {
-        if (typeof response.payment_preimage === 'string') {
-          preimage = response.payment_preimage;
-        } else if (typeof response.payment_preimage === 'object' && response.payment_preimage.type === 'Buffer') {
-          preimage = Buffer.from(response.payment_preimage.data, 'hex').toString('hex');
-        }
-        if (preimage) {
-          const paymentHash = createHash('sha256').update(Buffer.from(preimage, 'hex')).digest('hex');
-          // Optionally use paymentHash for validation
-          console.log('preimage', preimage);
-        }
+      if (!accessToken || !invoice) {
+        return false;
       }
+      const { baseUrl, login, password } = this.parseServer(server);
+      const response: any = await this.axiosInstance.post(
+        `${baseUrl}/payinvoice`,
+        { invoice },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      if (response.status === 200 && response.data) {
+        console.log('payInvoice', response.data);
 
-      return true;
+        let preimage = '';
+        if (response.data.payment_preimage) {
+          if (typeof response.data.payment_preimage === 'string') {
+            preimage = response.data.payment_preimage;
+          } else if (
+            typeof response.data.payment_preimage === 'object' &&
+            response.data.payment_preimage.type === 'Buffer'
+          ) {
+            preimage = Buffer.from(response.data.payment_preimage.data, 'hex').toString('hex');
+          }
+          if (preimage) {
+            const paymentHash = createHash('sha256').update(Buffer.from(preimage, 'hex')).digest('hex');
+            // Optionally use paymentHash for validation
+            console.log('preimage', preimage);
+          }
+        }
+        return true;
+      }
+      return false;
     } catch (e) {
       console.error(e);
       return false;
@@ -177,13 +124,11 @@ export class LNDHUB {
       if (!accessToken || !amount) {
         return '';
       }
-
       const { baseUrl, login, password } = this.parseServer(server);
-
       const response: any = await this.axiosInstance.post(
         `${baseUrl}/addinvoice`,
         {
-          amt: amount.toString(), // Convert to sats, must be string
+          amt: amount.toString(),
           description_hash: descriptionHash ? descriptionHash : undefined,
           memo: description ? description : undefined,
         },
@@ -193,11 +138,9 @@ export class LNDHUB {
           },
         },
       );
-
-      if (response.status === 200) {
+      if (response.status === 200 && response.data) {
         return response.data.payment_request;
       }
-
       return '';
     } catch (e) {
       console.error(e);
@@ -210,19 +153,15 @@ export class LNDHUB {
       if (!accessToken || !paymentHash) {
         return false;
       }
-
       const { baseUrl, login, password } = this.parseServer(server);
-
       const response: any = await this.axiosInstance.get(`${baseUrl}/checkpayment/${paymentHash}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-
-      if (response.status === 200) {
+      if (response.status === 200 && response.data) {
         return response.data.paid ? true : false;
       }
-
       return false;
     } catch (e) {
       console.error(e);
@@ -230,10 +169,21 @@ export class LNDHUB {
     }
   }
 
-  static async getBalance(): Promise<number> {
+  static async getBalance(server: string, accessToken?: string): Promise<number> {
     try {
-      const response: any = await this.axiosInstance.get('/balance');
-      return parseInt(response['BTC']['AvailableBalance']) * 1000;
+      if (!accessToken) {
+        return 0;
+      }
+      const { baseUrl, login, password } = this.parseServer(server);
+      const response: any = await this.axiosInstance.get(`${baseUrl}/balance`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (response.status === 200 && response.data) {
+        return SatoshisToBtc(response.data.BTC.AvailableBalance);
+      }
+      return 0;
     } catch (e) {
       console.error(e);
       return 0;

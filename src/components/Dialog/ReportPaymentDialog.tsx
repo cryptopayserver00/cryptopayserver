@@ -56,7 +56,7 @@ export default function ReportPaymentDialog(props: DialogType) {
       aria-describedby="alert-dialog-description"
       fullWidth
     >
-      <DialogTitle id="alert-dialog-title">Report an issue</DialogTitle>
+      <DialogTitle id="alert-dialog-title">Report An Issue</DialogTitle>
       <DialogContent>
         <Typography fontWeight={'bold'}>I have an issue in making payment</Typography>
 
@@ -125,7 +125,7 @@ export default function ReportPaymentDialog(props: DialogType) {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button variant={'outlined'} onClick={handleDialogClose}>
+        <Button variant={'contained'} onClick={handleDialogClose}>
           Close
         </Button>
         <Button
@@ -133,6 +133,7 @@ export default function ReportPaymentDialog(props: DialogType) {
           onClick={async () => {
             await onClickSubmitIssue();
           }}
+          color="success"
         >
           Submit
         </Button>

@@ -1,6 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
+import { LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { LNDHUB } from 'packages/lightning/core/lndhub';
+import { LIGHTNING } from 'packages/lightning';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -38,8 +41,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               return res.status(200).json({ message: '', result: false, data: null });
             }
 
+            let balance = 0;
+            switch (item.kind) {
+              case LIGHTNINGNAME.BLINK:
+                break;
+              case LIGHTNINGNAME.CLIGHTNING:
+                break;
+              case LIGHTNINGNAME.LNBITS:
+                break;
+              case LIGHTNINGNAME.LND:
+                break;
+              case LIGHTNINGNAME.LNDHUB:
+                let access_token = '';
+                if (new Date().getTime() > LNDHUB.accessTokenMaxAge + item.updated_at.getTime()) {
+                  // expired
+                  const [isAuthorized, data] = await LIGHTNING.testConnection(LIGHTNINGNAME.LNDHUB, item.server);
+                  if (!isAuthorized) {
+                    break;
+                  }
+                  const update_lightning_network = await prisma.wallet_lightning_networks.update({
+                    data: {
+                      access_token: data.accessToken,
+                      refresh_token: data.refreshToken,
+                    },
+                    where: {
+                      id: item.id,
+                      status: 1,
+                    },
+                  });
+                  if (!update_lightning_network) {
+                    break;
+                  }
+
+                  access_token = data.access_token;
+                } else {
+                  access_token = item.access_token;
+                }
+
+                balance = await LIGHTNING.getBalance(LIGHTNINGNAME.LNDHUB, item.server, access_token);
+
+                break;
+              case LIGHTNINGNAME.OPENNODE:
+                break;
+              default:
+                break;
+            }
+
             datas.push({
               ...item,
+              balance: balance,
               text: `type=${item.kind.toLowerCase()};server=${item.server};`,
               show_amount_satoshis: find_lightning_network_setting.show_amount_satoshis,
               show_hop_hint: find_lightning_network_setting.show_hop_hint,

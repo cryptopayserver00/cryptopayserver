@@ -83,7 +83,7 @@ export default function CreateFundsDialog(props: DialogType) {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button variant={'outlined'} onClick={handleClose}>
+        <Button variant={'contained'} onClick={handleClose}>
           Close
         </Button>
         <Button

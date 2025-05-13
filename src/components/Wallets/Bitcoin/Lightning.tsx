@@ -18,14 +18,18 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import SendLightningAssetsDialog from 'components/Dialog/SendLightningAssetsDialog';
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
+import lightningPayReq from 'bolt11';
+import { BtcToSatoshis } from 'utils/number';
 
 type RowType = {
   id: number;
+  balance: string;
   text: string;
   kind: string;
   server: string;
@@ -44,6 +48,7 @@ const Lightning = () => {
   const [rows, setRows] = useState<RowType[]>([]);
   const [currentRow, setCurrentRow] = useState<RowType>({
     id: 0,
+    balance: '',
     text: '',
     kind: '',
     server: '',
@@ -59,6 +64,8 @@ const Lightning = () => {
   });
   const [page, setPage] = useState<number>(1);
   const [text, setText] = useState<string>('');
+
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   const { getNetwork, getUserId } = useUserPresistStore((state) => state);
   const { getStoreId } = useStorePresistStore((state) => state);
@@ -178,6 +185,7 @@ const Lightning = () => {
           response.data.forEach(async (item: any, index: number) => {
             rt.push({
               id: item.id,
+              balance: item.balance,
               text: item.text,
               kind: item.kind,
               server: item.server,
@@ -210,6 +218,44 @@ const Lightning = () => {
   useEffect(() => {
     init();
   }, []);
+
+  const onClickSendLightningAssets = async (invoice: string) => {
+    try {
+      if (!currentRow || !currentRow.id) {
+        return;
+      }
+
+      if (!invoice || invoice === '') return;
+
+      const decodeInvoice = lightningPayReq.decode(invoice);
+      if (Number(decodeInvoice.satoshis) >= BtcToSatoshis(Number(currentRow?.balance))) {
+        setSnackSeverity('error');
+        setSnackMessage('Insufficient balance, please try again');
+        setSnackOpen(true);
+        return;
+      }
+
+      const response: any = await axios.post(Http.send_lightning_network_transaction, {
+        lightning_id: currentRow.id,
+        invoice: invoice,
+      });
+
+      if (response.result) {
+        setSnackSeverity('success');
+        setSnackMessage('Send successful!');
+        setSnackOpen(true);
+      } else {
+        setSnackSeverity('error');
+        setSnackMessage('Send failed!');
+        setSnackOpen(true);
+      }
+    } catch (e) {
+      setSnackSeverity('error');
+      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackOpen(true);
+      console.error(e);
+    }
+  };
 
   return (
     <Box>
@@ -390,6 +436,7 @@ const Lightning = () => {
                       <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} p={2}>
                         <Typography>Custom Node</Typography>
                         <Typography fontWeight={'bold'}>{item.kind}</Typography>
+                        <Typography fontWeight={'bold'}>{item.balance}</Typography>
                         {item.enabled ? (
                           <Typography color={'green'}>ENABLED</Typography>
                         ) : (
@@ -422,7 +469,7 @@ const Lightning = () => {
                   <Button variant={'contained'}>Public Node Info</Button>
                   <Button
                     variant={'contained'}
-                    color="success"
+                    color={'secondary'}
                     onClick={() => {
                       setText(currentRow.text);
                       setPage(1);
@@ -430,6 +477,20 @@ const Lightning = () => {
                   >
                     Change connection
                   </Button>
+                  <Button
+                    variant={'contained'}
+                    color="success"
+                    onClick={() => {
+                      setOpenDialog(true);
+                    }}
+                  >
+                    Send Lightning Assets
+                  </Button>
+                </Stack>
+
+                <Stack direction={'row'} gap={1} mt={2}>
+                  <Typography>Balance:</Typography>
+                  <Typography fontWeight={'bold'}>{currentRow.balance}</Typography>
                 </Stack>
 
                 <Stack direction={'row'} alignItems={'center'} gap={1} mt={2}>
@@ -557,6 +618,12 @@ const Lightning = () => {
             </Box>
           )}
         </Box>
+
+        <SendLightningAssetsDialog
+          openDialog={openDialog}
+          setOpenDialog={setOpenDialog}
+          onClickSendLightningAssets={onClickSendLightningAssets}
+        />
       </Container>
     </Box>
   );

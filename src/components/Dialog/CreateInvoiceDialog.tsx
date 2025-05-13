@@ -50,7 +50,7 @@ export default function CreateInvoiceDialog(props: DialogType) {
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button variant={'outlined'} onClick={props.handleClose}>
+        <Button variant={'contained'} onClick={props.handleClose}>
           Close
         </Button>
         <Button

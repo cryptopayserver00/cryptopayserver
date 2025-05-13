@@ -12,6 +12,22 @@ export class LIGHTNING {
     }
   }
 
+  static async payInvoice(
+    name: LIGHTNINGNAME,
+    server: string,
+    invoice: string,
+    accessToken?: string,
+  ): Promise<boolean> {
+    if (!invoice) return false;
+
+    switch (name) {
+      case LIGHTNINGNAME.LNDHUB:
+        return await LNDHUB.payInvoice(server, invoice, accessToken);
+      default:
+        return false;
+    }
+  }
+
   static async addInvoice(
     name: LIGHTNINGNAME,
     server: string,
@@ -45,6 +61,15 @@ export class LIGHTNING {
         return await LNDHUB.getInvoiceStatus(server, String(decodeInvoice), accessToken);
       default:
         return false;
+    }
+  }
+
+  static async getBalance(name: LIGHTNINGNAME, server: string, accessToken?: string): Promise<number> {
+    switch (name) {
+      case LIGHTNINGNAME.LNDHUB:
+        return await LNDHUB.getBalance(server, accessToken);
+      default:
+        return 0;
     }
   }
 }
