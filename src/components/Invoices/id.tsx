@@ -165,6 +165,7 @@ const InvoiceDetails = () => {
     if (id) {
       init(id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const countDownTime = () => {

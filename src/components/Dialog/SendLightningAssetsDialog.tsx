@@ -47,6 +47,7 @@ export default function SendLightningAssetsDialog(props: DialogType) {
       setSnackMessage('Parsing error, please try again');
       setSnackOpen(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoice]);
 
   return (

@@ -217,6 +217,7 @@ const Lightning = () => {
 
   useEffect(() => {
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onClickSendLightningAssets = async (invoice: string) => {
@@ -374,14 +375,14 @@ const Lightning = () => {
                         The macaroon parameter expects the HEX value, it can be obtained using this command:
                       </Typography>
                       <Alert icon={false}>
-                        xxd -p -c 256 /root/.lnd/data/chain/bitcoin/mainnet/invoice.macaroon | tr -d '\n'
+                        xxd -p -c 256 /root/.lnd/data/chain/bitcoin/mainnet/invoice.macaroon | tr -d &apos;\n&apos;
                       </Alert>
                       <Typography>
                         You can omit certthumbprint if the certificate is trusted by your machine. The certthumbprint
                         can be obtained using this command:
                       </Typography>
                       <Alert icon={false}>
-                        openssl x509 -noout -fingerprint -sha256 -in /root/.lnd/tls.cert | sed -e 's/.*=//;s/://g'
+                        openssl x509 -noout -fingerprint -sha256 -in /root/.lnd/tls.cert | sed -e &apos;s/.*=//;s/://g&apos;
                       </Alert>
                       <Typography>
                         If your LND REST server is using HTTP or HTTPS with an untrusted certificate, you can set
@@ -403,7 +404,7 @@ const Lightning = () => {
                     <Stack gap={1}>
                       <Alert icon={false}>type=lndhub;server=https://login:password@lndhub.io</Alert>
                       <Typography>
-                        The credentials and server address are shown as a lndhub:// URL on the "Export/Backup" screen in
+                        The credentials and server address are shown as a lndhub:// URL on the &quot;Export/Backup&quot; screen in
                         BlueWallet.
                       </Typography>
                       <Typography>

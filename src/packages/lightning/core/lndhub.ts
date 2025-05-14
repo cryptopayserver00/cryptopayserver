@@ -99,7 +99,7 @@ export class LNDHUB {
             preimage = Buffer.from(response.data.payment_preimage.data, 'hex').toString('hex');
           }
           if (preimage) {
-            const paymentHash = createHash('sha256').update(Buffer.from(preimage, 'hex')).digest('hex');
+            // const paymentHash = createHash('sha256').update(Buffer.from(preimage, 'hex')).digest('hex');
             // Optionally use paymentHash for validation
             console.log('preimage', preimage);
           }
