@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { BtcToMsatoshis, MsatoshisToBtc } from 'utils/number';
 
 // lnd's REST API documentation:
 // https://api.lightning.community/#lnd-rest-api-reference
@@ -10,103 +11,233 @@ export class LND {
     timeout: 50000,
   });
 
-  static async getNodeUri(): Promise<string> {
-    try {
-      const response = await this.getNodeInfo();
-      return response.uris[0];
-    } catch (e) {
-      console.error(e);
+  static parseServer(server: string): string {
+    if (!server) {
       return '';
     }
+    if (server.slice(-1) === '/') {
+      server = server.slice(0, -1);
+    }
+
+    return server;
   }
 
-  static async getNodeInfo(): Promise<any> {
+  static async testConnection(server: string, macaroon?: string, certthumbprint?: string): Promise<[boolean, any?]> {
     try {
-      const response: any = await this.axiosInstance.get('/v1/getinfo');
-      return response;
+      if (!macaroon) {
+        return [false];
+      }
+      if (await this.getNodeInfo(server, macaroon, certthumbprint)) {
+        return [true];
+      }
+      return [false];
     } catch (e) {
       console.error(e);
-      return null;
+      return [false];
     }
   }
 
-  static async openChannel(remoteId: string, localAmt: number, pushAmt: number, makePrivate: boolean): Promise<any> {
+  static async payInvoice(
+    server: string,
+    invoice: string,
+    macaroon?: string,
+    certthumbprint?: string,
+  ): Promise<boolean> {
     try {
-      const response: any = this.axiosInstance.post('/v1/channels', {
-        node_pubkey_string: remoteId,
-        local_funding_amount: localAmt,
-        push_sat: pushAmt,
-        private: makePrivate,
-      });
-
-      return response;
-    } catch (e) {
-      console.error(e);
-      return null;
-    }
-  }
-
-  static async payInvoice(invoice: string): Promise<boolean> {
-    try {
-      const response: any = await this.axiosInstance.post('/v1/channels/transactions', {
-        payment_request: invoice,
-      });
-
-      //   const paymentHash = getTagDataFromPaymentRequest(invoice, 'payment_hash');
-      const preimage = Buffer.from(response.payment_preimage, 'base64').toString('hex');
-      //   return { id: null, preimage };
-
+      if (!macaroon) {
+        return false;
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = await this.axiosInstance.post(
+        `${baseUrl}/v1/channels/transactions`,
+        {
+          payment_request: invoice,
+        },
+        {
+          headers: {
+            'Grpc-Metadata-macaroon': macaroon,
+            cert: certthumbprint,
+          },
+        },
+      );
       console.log('payInvoice', response);
-      return true;
+      if (response.status === 200 && response.data) {
+        //   const paymentHash = getTagDataFromPaymentRequest(invoice, 'payment_hash');
+        const preimage = Buffer.from(response.payment_preimage, 'base64').toString('hex');
+        //   return { id: null, preimage };
+        return true;
+      }
+      return false;
     } catch (e) {
       console.error(e);
       return false;
     }
   }
 
-  static async addInvoice(amount: number, descriptionHash?: string): Promise<string> {
+  static async addInvoice(
+    server: string,
+    amount: number,
+    description?: string,
+    descriptionHash?: string,
+    macaroon?: string,
+    certthumbprint?: string,
+  ): Promise<string> {
     try {
-      const data: { value_msat: number; description_hash?: string } = {
-        value_msat: amount,
-      };
-      if (descriptionHash) {
-        data.description_hash = Buffer.from(descriptionHash, 'hex').toString('base64');
+      if (!macaroon) {
+        return '';
       }
-      const response: any = await this.axiosInstance.post('/v1/invoices', data);
-
-      //   return {
-      //     id: null,
-      //     invoice: result.payment_request,
-      //   };
-      return response.payment_request;
+      const baseUrl = this.parseServer(server);
+      const response: any = await this.axiosInstance.post(
+        `${baseUrl}/v1/invoices`,
+        {
+          value_msat: amount.toString(),
+          description_hash: descriptionHash ? descriptionHash : undefined,
+          memo: description ? description : undefined,
+        },
+        {
+          headers: {
+            'Grpc-Metadata-macaroon': macaroon,
+            cert: certthumbprint,
+          },
+        },
+      );
+      if (response.status === 200 && response.data) {
+        return response.data.payment_request;
+      }
+      return '';
     } catch (e) {
       console.error(e);
       return '';
     }
   }
 
-  static async getInvoiceStatus(paymentHash: string): Promise<any> {
+  static async getInvoiceStatus(
+    server: string,
+    paymentHash: string,
+    macaroon?: string,
+    certthumbprint?: string,
+  ): Promise<boolean> {
     try {
-      const r_hash = encodeURIComponent(paymentHash);
-      const response: any = await this.axiosInstance.get(`/v1/invoice/${r_hash}`);
+      if (!macaroon) {
+        return false;
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = await this.axiosInstance.get(`${baseUrl}/v1/invoice/${paymentHash}`, {
+        headers: {
+          'Grpc-Metadata-macaroon': macaroon,
+          cert: certthumbprint,
+        },
+      });
+      if (response.status === 200 && response.data) {
+        console.log('getInvoiceStatus', response.data);
+        const preimage = (response.r_preimage && Buffer.from(response.r_preimage, 'base64').toString('hex')) || null;
+        return response.data.settled ? true : false;
+      }
+      return false;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
 
-      const preimage = (response.r_preimage && Buffer.from(response.r_preimage, 'base64').toString('hex')) || null;
-      const settled = response.settled === true;
-      //   return { preimage, settled };
-      return response;
+  static async getBalance(server: string, macaroon?: string, certthumbprint?: string): Promise<number> {
+    try {
+      if (!macaroon) {
+        return 0;
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = await this.axiosInstance.get(`${baseUrl}/v1/balance/channels`, {
+        headers: {
+          'Grpc-Metadata-macaroon': macaroon,
+          cert: certthumbprint,
+        },
+      });
+      if (response.status === 200 && response.data) {
+        return MsatoshisToBtc(response.data.local_balance.msat);
+      }
+      return 0;
+    } catch (e) {
+      console.error(e);
+      return 0;
+    }
+  }
+
+  static async getNodeUri(server: string, macaroon?: string, certthumbprint?: string): Promise<string> {
+    try {
+      if (!macaroon) {
+        return '';
+      }
+      const response: any = await this.getNodeInfo(server, macaroon, certthumbprint);
+      if (response.uris && response.uris.length > 0) {
+        return response.uris[0];
+      }
+      return '';
+    } catch (e) {
+      console.error(e);
+      return '';
+    }
+  }
+
+  static async getNodeInfo(server: string, macaroon?: string, certthumbprint?: string): Promise<any> {
+    try {
+      if (!macaroon) {
+        return null;
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = await this.axiosInstance.get(`${baseUrl}/v1/getinfo`, {
+        headers: {
+          'Grpc-Metadata-macaroon': macaroon,
+          cert: certthumbprint,
+        },
+      });
+      console.log('getNodeInfo', response);
+      if (response.status === 200 && response.data) {
+        return response.data;
+      }
+      return null;
     } catch (e) {
       console.error(e);
       return null;
     }
   }
 
-  static async getBalance(): Promise<number> {
+  static async openChannel(
+    server: string,
+    remoteId: string,
+    localAmt: number,
+    pushAmt: number,
+    makePrivate: boolean,
+    macaroon?: string,
+    certthumbprint?: string,
+  ): Promise<boolean> {
     try {
-      const response: any = await this.axiosInstance.get('/v1/balance/channels');
-      return parseInt(response.local_balance.msat);
+      if (!macaroon) {
+        return false;
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = this.axiosInstance.post(
+        `${baseUrl}/v1/channels`,
+        {
+          node_pubkey_string: remoteId,
+          local_funding_amount: localAmt,
+          push_sat: pushAmt,
+          private: makePrivate,
+        },
+        {
+          headers: {
+            'Grpc-Metadata-macaroon': macaroon,
+            cert: certthumbprint,
+          },
+        },
+      );
+      console.log('openChannel', response);
+      if (response.status === 200 && response.data) {
+        return true;
+      }
+      return false;
     } catch (e) {
       console.error(e);
-      return 0;
+      return false;
     }
   }
 }

@@ -68,6 +68,14 @@ export function BtcToSatoshis(btc: number): number {
   return parseInt((btc * 100_000_000).toString());
 }
 
+export function BtcToMsatoshis(btc: number): number {
+  return parseInt((btc * 100_000_000_000).toString());
+}
+
 export function SatoshisToBtc(sats: number): number {
   return sats / 100_000_000;
+}
+
+export function MsatoshisToBtc(sats: number): number {
+  return sats / 100_000_000_000;
 }

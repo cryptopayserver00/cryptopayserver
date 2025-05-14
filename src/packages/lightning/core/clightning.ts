@@ -3,7 +3,7 @@ import axios from 'axios';
 import { LIGHTNINGNAME } from 'packages/constants/blockchain';
 import { randomBytes } from 'crypto';
 
-// https://lightning.readthedocs.io
+// https://docs.corelightning.org/docs/home
 export class CLIGHTNING {
   static lightningName = LIGHTNINGNAME.CLIGHTNING;
 

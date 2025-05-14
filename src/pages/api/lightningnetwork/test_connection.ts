@@ -31,8 +31,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         const type = values['type'].toUpperCase();
         const server = values['server'];
+        const macaroon = values['macaroon'];
+        const certthumbprint = values['certthumbprint'];
 
-        const [isAuthorized, _] = await LIGHTNING.testConnection(type as LIGHTNINGNAME, server);
+        const [isAuthorized, _] = await LIGHTNING.testConnection(
+          type as LIGHTNINGNAME,
+          server,
+          macaroon,
+          certthumbprint,
+        );
 
         if (isAuthorized) {
           return res.status(200).json({ message: '', result: true, data: null });

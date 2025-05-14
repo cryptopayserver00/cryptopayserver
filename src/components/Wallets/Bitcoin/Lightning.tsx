@@ -359,9 +359,9 @@ const Lightning = () => {
                   </AccordionSummary>
                   <AccordionDetails>
                     <Stack gap={1}>
-                      <Alert icon={false}>type=lnd-rest;server=https://mylnd:8080/;macaroon=abef263adfe...</Alert>
+                      <Alert icon={false}>type=lnd;server=https://mylnd:8080/;macaroon=abef263adfe...</Alert>
                       <Alert icon={false}>
-                        type=lnd-rest;server=https://mylnd:8080/;macaroon=abef263adfe...;certthumbprint=abef263adfe...
+                        type=lnd;server=https://mylnd:8080/;macaroon=abef263adfe...;certthumbprint=abef263adfe...
                       </Alert>
                       <Typography>
                         For the macaroon options you need to provide a macaroon with the invoices:write permission (e.g.
