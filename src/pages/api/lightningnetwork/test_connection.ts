@@ -18,10 +18,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const values: Record<string, string> = {};
         String(text)
           .split(';')
+          .filter((line) => line.trim() !== '')
           .forEach((line) => {
-            const [key, value] = line.split('=');
-            if (key && value) {
-              values[key] = value;
+            const [key, ...valueParts] = line.split('=');
+            if (key && valueParts.length > 0) {
+              values[key] = valueParts.join('=');
             }
           });
 
@@ -33,12 +34,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const server = values['server'];
         const macaroon = values['macaroon'];
         const certthumbprint = values['certthumbprint'];
+        const rune = values['rune'];
+
+        if (!Object.values(LIGHTNINGNAME).includes(type as LIGHTNINGNAME)) {
+          return res.status(200).json({ message: '', result: false, data: null });
+        }
 
         const [isAuthorized, _] = await LIGHTNING.testConnection(
           type as LIGHTNINGNAME,
           server,
           macaroon,
           certthumbprint,
+          rune,
         );
 
         if (isAuthorized) {

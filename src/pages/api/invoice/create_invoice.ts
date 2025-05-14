@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { BtcToSatoshis, GenerateOrderIDByTime } from 'utils/number';
+import { BtcToMsatoshis, BtcToSatoshis, GenerateOrderIDByTime } from 'utils/number';
 import { INVOICE_SOURCE_TYPE, NOTIFICATION_TYPE, ORDER_STATUS } from 'packages/constants';
 import { PrismaClient } from '@prisma/client';
 import { CHAINS, LIGHTNINGNAME } from 'packages/constants/blockchain';
@@ -100,10 +100,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 case LIGHTNINGNAME.BLINK:
                   break;
                 case LIGHTNINGNAME.CLIGHTNING:
+                  lightningInvoice = await LIGHTNING.addInvoice(
+                    LIGHTNINGNAME.CLIGHTNING,
+                    find_lightning_network.server,
+                    BtcToMsatoshis(Number(crypto_amount)),
+                    lndDescription,
+                    '',
+                    '',
+                    '',
+                    '',
+                    String(find_lightning_network.rune),
+                  );
                   break;
                 case LIGHTNINGNAME.LNBITS:
                   break;
                 case LIGHTNINGNAME.LND:
+                  lightningInvoice = await LIGHTNING.addInvoice(
+                    LIGHTNINGNAME.LND,
+                    find_lightning_network.server,
+                    BtcToMsatoshis(Number(crypto_amount)),
+                    lndDescription,
+                    '',
+                    '',
+                    String(find_lightning_network.macaroon),
+                    String(find_lightning_network.certthumbprint),
+                  );
                   break;
                 case LIGHTNINGNAME.LNDHUB:
                   let access_token = '';
@@ -132,7 +153,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
                     access_token = data.access_token;
                   } else {
-                    access_token = find_lightning_network.access_token;
+                    access_token = String(find_lightning_network.access_token);
                   }
 
                   lightningInvoice = await LIGHTNING.addInvoice(
@@ -143,7 +164,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                     '',
                     access_token,
                   );
-
                   break;
                 case LIGHTNINGNAME.OPENNODE:
                   break;

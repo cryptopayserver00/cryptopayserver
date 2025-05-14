@@ -385,17 +385,20 @@ model user_roles {
 }
 
 model wallet_lightning_networks {
-  id            Int      @id @default(autoincrement())
-  user_id       Int
-  store_id      Int
-  kind          String
-  server        String   @db.LongText
-  access_token  String   @db.LongText
-  refresh_token String   @db.LongText
-  enabled       Int @default(1)
-  status        Int
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  store_id       Int
+  kind           String
+  server         String   @db.LongText
+  access_token   String?   @db.LongText
+  refresh_token  String?   @db.LongText
+  macaroon       String?   @db.LongText
+  certthumbprint String?   @db.LongText
+  rune           String?   @db.LongText
+  enabled        Int @default(1)
+  status         Int
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 }
 
 model wallet_lightning_network_settings {

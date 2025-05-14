@@ -56,11 +56,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   case LIGHTNINGNAME.BLINK:
                     break;
                   case LIGHTNINGNAME.CLIGHTNING:
-                    break;
+                    lightningInvoiceStatus = await LIGHTNING.getInvoiceStatus(
+                      LIGHTNINGNAME.CLIGHTNING,
+                      lightItem.server,
+                      item.lightning_invoice,
+                      '',
+                      '',
+                      '',
+                      String(lightItem.rune),
+                    );
+                    if (lightningInvoiceStatus) {
+                      break;
+                    }
                   case LIGHTNINGNAME.LNBITS:
                     break;
                   case LIGHTNINGNAME.LND:
-                    break;
+                    lightningInvoiceStatus = await LIGHTNING.getInvoiceStatus(
+                      LIGHTNINGNAME.LND,
+                      lightItem.server,
+                      item.lightning_invoice,
+                      '',
+                      String(lightItem.macaroon),
+                      String(lightItem.certthumbprint),
+                    );
+                    if (lightningInvoiceStatus) {
+                      break;
+                    }
                   case LIGHTNINGNAME.LNDHUB:
                     let access_token = '';
 
@@ -89,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
                       access_token = data.access_token;
                     } else {
-                      access_token = lightItem.access_token;
+                      access_token = String(lightItem.access_token);
                     }
 
                     lightningInvoiceStatus = await LIGHTNING.getInvoiceStatus(
@@ -169,12 +190,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               invoice = await prisma.invoices.update({
                 data: {
                   order_status: ORDER_STATUS.Settled,
+                  block_timestamp: new Date().getTime(),
                   paid: 1,
                 },
                 where: {
                   id: item.id,
                   order_status: ORDER_STATUS.Processing,
-                  block_timestamp: new Date().getTime(),
                   status: 1,
                 },
               });

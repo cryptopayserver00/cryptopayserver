@@ -36,10 +36,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           case LIGHTNINGNAME.BLINK:
             break;
           case LIGHTNINGNAME.CLIGHTNING:
+            isPay = await LIGHTNING.payInvoice(
+              LIGHTNINGNAME.CLIGHTNING,
+              find_lightning_network.server,
+              invoice,
+              '',
+              '',
+              '',
+              String(find_lightning_network.rune),
+            );
             break;
           case LIGHTNINGNAME.LNBITS:
             break;
           case LIGHTNINGNAME.LND:
+            isPay = await LIGHTNING.payInvoice(
+              LIGHTNINGNAME.LND,
+              find_lightning_network.server,
+              invoice,
+              '',
+              String(find_lightning_network.macaroon),
+              String(find_lightning_network.certthumbprint),
+            );
             break;
           case LIGHTNINGNAME.LNDHUB:
             let access_token = '';
@@ -68,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
               access_token = data.access_token;
             } else {
-              access_token = find_lightning_network.access_token;
+              access_token = String(find_lightning_network.access_token);
             }
 
             isPay = await LIGHTNING.payInvoice(
@@ -77,7 +94,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               invoice,
               access_token,
             );
-
             break;
           case LIGHTNINGNAME.OPENNODE:
             break;

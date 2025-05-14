@@ -304,12 +304,13 @@ const Lightning = () => {
                         Core Lightning
                       </Link>
                     </Typography>
-                    via TCP or unix domain socket connection
+                    via HTTPS
                   </AccordionSummary>
                   <AccordionDetails>
                     <Stack gap={1}>
-                      <Alert icon={false}>type=clightning;server=unix://root/.lightning/lightning-rpc</Alert>
-                      <Alert icon={false}>type=clightning;server=tcp://1.1.1.1:27743/</Alert>
+                      <Alert icon={false}>
+                        type=clightning;server=https://cln-regtest-demo.blockstream.com/;rune=YuJqHOZLvCCiL0bY3mT75...
+                      </Alert>
                     </Stack>
                   </AccordionDetails>
                 </Accordion>
@@ -320,7 +321,7 @@ const Lightning = () => {
                         Lightning Charge
                       </Link>
                     </Typography>
-                    via HTTPS
+                    via HTTPS (coming soon)
                   </AccordionSummary>
                   <AccordionDetails>
                     <Alert icon={false}>type=charge;server=https://charge:8080/;api-token=myapitoken...</Alert>
@@ -333,7 +334,7 @@ const Lightning = () => {
                         Eclair
                       </Link>
                     </Typography>
-                    via HTTPS
+                    via HTTPS (coming soon)
                   </AccordionSummary>
                   <AccordionDetails>
                     <Stack gap={1}>

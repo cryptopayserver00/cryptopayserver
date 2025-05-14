@@ -2,8 +2,9 @@ import * as net from 'net';
 import axios from 'axios';
 import { LIGHTNINGNAME } from 'packages/constants/blockchain';
 import { randomBytes } from 'crypto';
+import { MsatoshisToBtc } from 'utils/number';
 
-// https://docs.corelightning.org/docs/home
+// https://docs.corelightning.org/reference
 export class CLIGHTNING {
   static lightningName = LIGHTNINGNAME.CLIGHTNING;
 
@@ -11,176 +12,207 @@ export class CLIGHTNING {
     timeout: 50000,
   });
 
-  static openSocketConnection(unixSockPath: string): Promise<net.Socket> {
-    return new Promise((resolve, reject) => {
-      try {
-        const socket = net.connect(unixSockPath, () => resolve(socket));
-        socket.once('error', reject);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  }
-
-  static async cmd(method: string, params?: any): Promise<any> {
-    // const { clientId, options } = this;
-    // const { delimiter = '\n', jsonrpc = '2.0', unixSockPath = '' } = options;
-
-    const delimiter = '\n',
-      jsonrpc = '2.0',
-      unixSockPath = '';
-
-    try {
-      const socket = await this.openSocketConnection(unixSockPath).catch((error) => {
-        if (/connect EACCES/.test(error.message)) {
-          throw new Error('Could not connect to unix sock: Permission denied');
-        } else if (/connect ENOENT/.test(error.message)) {
-          throw new Error('Could not connect to unix sock: File not found');
-        }
-        throw error;
-      });
-
-      return new Promise((resolve, reject) => {
-        // const id = [clientId, 'cmd', ++this.cmdIncrement].join('-');
-        const id = '';
-        const done = (error?: Error, result?: any) => {
-          socket.destroy();
-          if (error) return reject(error);
-          resolve(result);
-        };
-
-        const onData = (data: Buffer) => {
-          const messages = data.toString().trim().split('\n');
-          messages.forEach((message) => {
-            let json: any;
-            try {
-              json = JSON.parse(message);
-            } catch (error) {
-              // Ignore JSON parsing errors
-            }
-            // if (json && json.id && json.id === id) {
-            if (json && json.id) {
-              if (json.error) {
-                return done(new Error(JSON.stringify(json.error)));
-              }
-              return done(undefined, json.result);
-            }
-          });
-        };
-
-        socket.on('data', onData);
-        socket.write(JSON.stringify({ jsonrpc, method, params, id }) + delimiter);
-      });
-    } catch (e) {
-      console.error(e);
-      return null;
-    }
-  }
-
-  static async getNodeUri(): Promise<string> {
-    try {
-      const response: any = await this.cmd('getinfo');
-      const { id, address } = response;
-      if (address.length === 0) {
-        return '';
-      }
-      const { type, port, address: addr } = address[0];
-      let host = addr;
-      if (type === 'ipv6') {
-        host = `[${host}]`;
-      }
-      const hostname = `${host}:${port}`;
-      return `${id}@${hostname}`;
-    } catch (e) {
-      console.error(e);
+  static parseServer(server: string): string {
+    if (!server) {
       return '';
     }
+    if (server.slice(-1) === '/') {
+      server = server.slice(0, -1);
+    }
+
+    return server;
   }
 
-  static async openChannel(remoteId: string, localAmt: number, pushAmt: number, makePrivate: boolean): Promise<any> {
+  static async testConnection(server: string, rune?: string): Promise<[boolean, any?]> {
     try {
-      const response: any = this.cmd('fundchannel', {
-        id: remoteId,
-        amount: localAmt,
-        announce: !makePrivate,
-        push_msat: pushAmt * 1000,
-      });
-
-      return response;
+      if (!rune) {
+        return [false];
+      }
+      if (await this.getNodeInfo(server, rune)) {
+        return [true];
+      }
+      return [false];
     } catch (e) {
       console.error(e);
-      return null;
+      return [false];
     }
   }
 
-  static async payInvoice(invoice: string): Promise<boolean> {
+  static async payInvoice(server: string, invoice: string, rune?: string): Promise<boolean> {
     try {
-      const response: any = await this.cmd('pay', { bolt11: invoice });
-      const preimage = response.payment_preimage || null;
-      //   return { id: null, preimage };
-      return true;
+      if (!rune) {
+        return false;
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = await this.axiosInstance.post(
+        `${baseUrl}/v1/pay`,
+        {
+          bolt11: invoice,
+        },
+        {
+          headers: {
+            Rune: rune,
+          },
+        },
+      );
+      if (response.status === 201 && response.data) {
+        return response.data.status === 'complete' ? true : false;
+      }
+      return false;
     } catch (e) {
       console.error(e);
       return false;
     }
   }
 
-  static async addInvoice(amount: number, description?: string, descriptionHash?: string): Promise<string> {
+  static async addInvoice(
+    server: string,
+    amount: number,
+    description?: string,
+    descriptionHash?: string,
+    rune?: string,
+  ): Promise<string> {
     try {
-      const params = {
-        msatoshi: amount,
-        label: randomBytes(20).toString('hex'),
-        description: description,
-        deschashonly: true,
-      };
-      const response: any = await this.cmd('invoice', params);
-      //   return {
-      //     id: null,
-      //     invoice: response.bolt11,
-      //   };
-      return response.bolt11;
+      if (!rune) {
+        return '';
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = await this.axiosInstance.post(
+        `${baseUrl}/v1/invoice`,
+        {
+          amount_msat: amount.toString(),
+          description: description ? description : undefined,
+          label: description ? description : undefined,
+        },
+        {
+          headers: {
+            Rune: rune,
+          },
+        },
+      );
+      if (response.status === 201 && response.data) {
+        return response.data.bolt11;
+      }
+      return '';
     } catch (e) {
       console.error(e);
       return '';
     }
   }
 
-  static async getInvoiceStatus(paymentHash: string): Promise<any> {
+  static async getInvoiceStatus(server: string, paymentHash: string, rune?: string): Promise<boolean> {
     try {
-      const params = {
-        payment_hash: paymentHash,
-      };
-      const response: any = await this.cmd('listinvoices', params);
+      if (!rune) {
+        return false;
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = await this.axiosInstance.post(
+        `${baseUrl}/v1/listinvoices`,
+        {
+          payment_hash: paymentHash,
+        },
+        {
+          headers: {
+            Rune: rune,
+          },
+        },
+      );
+      if (response.status === 201 && response.data && response.data.invoices.length > 0) {
+        return response.data.invoices.find((item: any) => item.payment_hash === paymentHash).status === 'paid'
+          ? true
+          : false;
+      }
+      return false;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
 
-      const { status, payment_preimage } = response.invoices[0];
+  static async getBalance(server: string, rune?: string): Promise<number> {
+    try {
+      if (!rune) {
+        return 0;
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = await this.axiosInstance.post(
+        `${baseUrl}/v1/listchannels`,
+        {},
+        {
+          headers: {
+            Rune: rune,
+          },
+        },
+      );
+      if (response.status === 201 && response.data && response.data.channels.length > 0) {
+        const totalAmount = response.data.channels.reduce((sum: number, channel: any) => sum + channel.amount_msat, 0);
+        return MsatoshisToBtc(totalAmount);
+      }
+      return 0;
+    } catch (e) {
+      console.error(e);
+      return 0;
+    }
+  }
 
-      const preimage = payment_preimage || null;
-      const settled = status === 'paid';
-      //   return { preimage, settled };
-      return response;
+  static async getNodeInfo(server: string, rune?: string): Promise<any> {
+    try {
+      if (!rune) {
+        return null;
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = await this.axiosInstance.post(
+        `${baseUrl}/v1/getinfo`,
+        {},
+        {
+          headers: {
+            Rune: rune,
+          },
+        },
+      );
+      if (response.status === 201 && response.data) {
+        return response.data;
+      }
+      return null;
     } catch (e) {
       console.error(e);
       return null;
     }
   }
 
-  static async getBalance(): Promise<number> {
+  static async openChannel(
+    server: string,
+    remoteId: string,
+    localAmt: number,
+    pushAmt: number,
+    makePrivate: boolean,
+    rune?: string,
+  ): Promise<boolean> {
     try {
-      const response: any = await this.cmd('listfunds');
-      let balance = 0;
-      response.channels
-        .filter((channel: any) => channel.state === 'CHANNELD_NORMAL')
-        .forEach((channel: any) => {
-          const { our_amount_msat } = channel;
-          const msat = parseInt(our_amount_msat.substring(0, our_amount_msat.length - 'msat'.length));
-          if (Number.isInteger(msat)) {
-            balance += msat;
-          }
-        });
-      return balance;
+      if (!rune) {
+        return false;
+      }
+      const baseUrl = this.parseServer(server);
+      const response: any = this.axiosInstance.post(
+        `${baseUrl}/v1/fundchannel`,
+        {
+          id: remoteId,
+          amount: localAmt,
+          announce: true,
+        },
+        {
+          headers: {
+            Rune: rune,
+          },
+        },
+      );
+      if (response.status === 201 && response.data) {
+        return true;
+      }
+      return false;
     } catch (e) {
       console.error(e);
-      return 0;
+      return false;
     }
   }
 }

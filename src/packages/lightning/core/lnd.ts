@@ -162,22 +162,6 @@ export class LND {
     }
   }
 
-  static async getNodeUri(server: string, macaroon?: string, certthumbprint?: string): Promise<string> {
-    try {
-      if (!macaroon) {
-        return '';
-      }
-      const response: any = await this.getNodeInfo(server, macaroon, certthumbprint);
-      if (response.uris && response.uris.length > 0) {
-        return response.uris[0];
-      }
-      return '';
-    } catch (e) {
-      console.error(e);
-      return '';
-    }
-  }
-
   static async getNodeInfo(server: string, macaroon?: string, certthumbprint?: string): Promise<any> {
     try {
       if (!macaroon) {

@@ -107,10 +107,10 @@ export default function SendLightningAssetsDialog(props: DialogType) {
                 <Typography>{SatoshisToBtc(Number(decodeInfo?.satoshis)).toFixed(8)} BTC</Typography>
                 <Typography>{new Date(Number(decodeInfo?.timestamp) * 1000).toLocaleString()}</Typography>
                 <Typography>
-                  {decodeInfo?.tags[0].data.toString() ? decodeInfo?.tags[0].data.toString() : 'None'}
+                  {decodeInfo?.tags.find((item) => item.tagName === 'payment_hash')?.data.toString() || 'None'}
                 </Typography>
                 <Typography>
-                  {decodeInfo?.tags[1].data.toString() ? decodeInfo?.tags[1].data.toString() : 'None'}
+                  {decodeInfo?.tags.find((item) => item.tagName === 'description')?.data.toString() || 'None'}
                 </Typography>
               </Box>
             </Stack>
@@ -125,6 +125,7 @@ export default function SendLightningAssetsDialog(props: DialogType) {
           variant={'contained'}
           onClick={async () => {
             await props.onClickSendLightningAssets(invoice);
+            handleDialogClose();
           }}
           color={'success'}
           disabled={decodeInfo ? false : true}

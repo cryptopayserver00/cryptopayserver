@@ -72,10 +72,6 @@ export class LNBITS {
     }
   }
 
-  static async getNodeUri(): Promise<any> {
-    throw new Error('Not supported by this LN service.');
-  }
-
   static async openChannel(remoteId: string, localAmt: number, pushAmt: number, makePrivate: boolean): Promise<any> {
     throw new Error('Not supported by this LN service.');
   }

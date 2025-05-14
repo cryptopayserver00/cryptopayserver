@@ -32,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (find_lightning_network.length > 0) {
           for (const item of find_lightning_network) {
+            let text = '';
             const find_lightning_network_setting = await prisma.wallet_lightning_network_settings.findFirst({
               where: {
                 lnd_id: item.id,
@@ -46,10 +47,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               case LIGHTNINGNAME.BLINK:
                 break;
               case LIGHTNINGNAME.CLIGHTNING:
+                balance = await LIGHTNING.getBalance(
+                  LIGHTNINGNAME.CLIGHTNING,
+                  item.server,
+                  '',
+                  '',
+                  '',
+                  String(item.rune),
+                );
+                text = `type=${item.kind.toLowerCase()};server=${item.server};rune=${item.rune};`;
                 break;
               case LIGHTNINGNAME.LNBITS:
                 break;
               case LIGHTNINGNAME.LND:
+                balance = await LIGHTNING.getBalance(
+                  LIGHTNINGNAME.LND,
+                  item.server,
+                  '',
+                  String(item.macaroon),
+                  String(item.certthumbprint),
+                );
+                text = `type=${item.kind.toLowerCase()};server=${item.server};macaroon=${
+                  item.macaroon
+                };certthumbprint=${item.certthumbprint}`;
                 break;
               case LIGHTNINGNAME.LNDHUB:
                 let access_token = '';
@@ -75,11 +95,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
                   access_token = data.access_token;
                 } else {
-                  access_token = item.access_token;
+                  access_token = String(item.access_token);
                 }
 
                 balance = await LIGHTNING.getBalance(LIGHTNINGNAME.LNDHUB, item.server, access_token);
-
+                text = `type=${item.kind.toLowerCase()};server=${item.server};`;
                 break;
               case LIGHTNINGNAME.OPENNODE:
                 break;
@@ -90,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             datas.push({
               ...item,
               balance: balance,
-              text: `type=${item.kind.toLowerCase()};server=${item.server};`,
+              text: text,
               show_amount_satoshis: find_lightning_network_setting.show_amount_satoshis,
               show_hop_hint: find_lightning_network_setting.show_hop_hint,
               show_unify_url_and_qrcode: find_lightning_network_setting.show_unify_url_and_qrcode,
