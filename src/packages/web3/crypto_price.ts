@@ -14,7 +14,7 @@ export class CRYPTOPRICE {
       const include_24hr_vol = 'true';
       const include_24hr_change = 'true';
       const include_last_updated_at = 'true';
-      const precision = 2;
+      const precision = 8;
 
       const url =
         this.coinGeckoUrl +

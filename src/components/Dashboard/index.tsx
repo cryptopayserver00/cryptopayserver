@@ -21,7 +21,7 @@ import { PAYOUT_STATUS } from 'packages/constants';
 import TransactionDataGrid from 'components/DataList/TransactionDataGrid';
 import InvoiceDataGrid from 'components/DataList/InvoiceDataGrid';
 import PayoutDataGrid from 'components/DataList/PayoutDataGrid';
-import CurrencyDataGrid from 'components/DataList/CurrencyDataGrid';
+import TokenDataGrid from 'components/DataList/TokenDataGrid';
 
 const Dashboard = () => {
   const [enablePasswordWarn, setEnablePasswordWarn] = useState<boolean>(false);
@@ -101,27 +101,13 @@ const Dashboard = () => {
             </Card>
           </Grid>
 
-          {/* <Grid item xs={12}>
+          <Grid item xs={12}>
             <Card variant="outlined">
               <CardContent>
-                <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                  <Typography variant="h5">Wallet Balance</Typography>
-                  <Button
-                    onClick={() => {
-                      // window.location.href = '/currencies';
-                    }}
-                    variant="contained"
-                  >
-                    View All
-                  </Button>
-                </Stack>
-
-                <Box mt={3}>
-                  <CurrencyDataGrid source="dashboard" />
-                </Box>
+                <TokenDataGrid source="dashboard" />
               </CardContent>
             </Card>
-          </Grid> */}
+          </Grid>
 
           {/* <Grid item xs={12}>
             <Card variant="outlined">

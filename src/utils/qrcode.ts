@@ -95,6 +95,10 @@ export function GetImgSrcByCrypto(crypto: COINS): string {
       return baseUrl + '/coin/weth.svg';
     case COINS.WSOL:
       return baseUrl + '/coin/sol.svg';
+    case COINS.SAND:
+      return baseUrl + '/coin/sand.svg';
+    case COINS.CRO:
+      return baseUrl + '/coin/cro.svg';
 
     default:
       return '';
