@@ -172,6 +172,7 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ children, collapse
       <Divider />
       <Box my={1}>
         <Button
+          color={'error'}
           onClick={() => {
             resetUser();
             resetStore();

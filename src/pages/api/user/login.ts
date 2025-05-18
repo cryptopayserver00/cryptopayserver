@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import CryptoJS from 'crypto-js';
 import { PrismaClient } from '@prisma/client';
+import { NOTIFICATION_TYPE } from 'packages/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -24,6 +25,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (!user) {
           return res.status(200).json({ message: '', result: false, data: null });
+        }
+
+        const stores = await prisma.stores.findMany({
+          where: {
+            user_id: user.id,
+            status: 1,
+          },
+        });
+
+        if (stores && stores.length > 0) {
+          const message = `You have a new login: ${new Date().toLocaleString()}`;
+          const notifications = await prisma.notifications.createMany({
+            data: [
+              {
+                user_id: user.id,
+                store_id: stores[0].id,
+                network: 1,
+                label: NOTIFICATION_TYPE.UserUpdates,
+                message: message,
+                url: '',
+                is_seen: 2,
+                status: 1,
+              },
+              {
+                user_id: user.id,
+                store_id: stores[0].id,
+                network: 2,
+                label: NOTIFICATION_TYPE.UserUpdates,
+                message: message,
+                url: '',
+                is_seen: 2,
+                status: 1,
+              },
+            ],
+          });
+
+          if (!notifications) {
+            return res.status(200).json({ message: '', result: false, data: null });
+          }
         }
 
         return res.status(200).json({

@@ -28,13 +28,13 @@ const tiers = [
       'Transaction APIs',
     ],
     buttonText: 'Sign up for free',
-    buttonVariant: 'outlined',
+    buttonVariant: 'contained',
     buttonColor: 'primary',
   },
   {
     title: 'Professional',
     subheader: 'Recommended',
-    price: '0',
+    price: '99',
     description: [
       'Full CryptoPay development platform',
       'All mainnets & testnets',
@@ -51,7 +51,7 @@ const tiers = [
   },
   {
     title: 'Enterprise',
-    price: '0',
+    price: '999',
     description: [
       'Full CryptoPay development platform',
       'All mainnets & testnets',
@@ -63,7 +63,7 @@ const tiers = [
       'Transaction APIs',
     ],
     buttonText: 'Contact us',
-    buttonVariant: 'outlined',
+    buttonVariant: 'contained',
     buttonColor: 'primary',
   },
 ];

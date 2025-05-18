@@ -1290,7 +1290,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://solana.com',
     isMainnet: true,
     coins: SOLANA_COINS,
-    rpc: ['https://api.mainnet-beta.solana.com'],
+    rpc: ['https://solana-mainnet.g.alchemy.com/v2/7aSbxCv3DXvyH8Xno06Mer9tEX2LFSD0'],
     icon: require('assets/chain/solana.svg'),
   },
   {
@@ -1301,7 +1301,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://solana.com',
     isMainnet: false,
     coins: SOLANA_DEVNET_COINS,
-    rpc: ['https://api.devnet.solana.com'],
+    rpc: ['https://solana-devnet.g.alchemy.com/v2/7aSbxCv3DXvyH8Xno06Mer9tEX2LFSD0'],
     icon: require('assets/chain/solana.svg'),
   },
   {
@@ -1356,7 +1356,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     coins: ARBITRUM_COINS,
     rpc: [
       'https://arb1.arbitrum.io/rpc',
-      'https://arbitrum.llamarpc.com',
+      // 'https://arbitrum.llamarpc.com',
       // 'https://arbitrum.meowrpc.com',
       'https://arbitrum.drpc.org',
       'https://arbitrum-one.publicnode.com',
@@ -1453,7 +1453,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     isMainnet: true,
     coins: BASE_COINS,
     rpc: [
-      'https://base.llamarpc.com',
+      // 'https://base.llamarpc.com',
       'https://mainnet.base.org',
       'https://developer-access-mainnet.base.org',
       'https://1rpc.io/base',

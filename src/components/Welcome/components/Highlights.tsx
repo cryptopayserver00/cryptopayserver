@@ -17,7 +17,7 @@ const items = [
     icon: <SettingsSuggestRoundedIcon />,
     title: 'Cost',
     description:
-      'Deploy CryptoPay Server using a VPS, the following types of fees are never charged: Merchant fees, Subscription fees, Transfer fees and Software fees',
+      'Deploy CryptoPay Server using a VPS, the following types of fees are never charged: Merchant fees, Subscription fees, Transfer fees and Software fees.',
   },
   {
     icon: <ConstructionRoundedIcon />,

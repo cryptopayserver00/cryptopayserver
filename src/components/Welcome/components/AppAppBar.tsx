@@ -69,7 +69,7 @@ export default function AppAppBar() {
               <Stack direction={'row'} alignItems={'center'}>
                 <CustomLogo>C</CustomLogo>
                 <Typography fontWeight={'bold'} color="#0098e5" fontSize={16}>
-                  Crypto Pay
+                  CryptoPay
                 </Typography>
               </Stack>
             </Button>
