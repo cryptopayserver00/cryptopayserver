@@ -356,7 +356,7 @@ const PaymentInvoiceDetails = () => {
                 </Grid>
                 <Grid item xs={9}>
                   <Stack direction={'row'} alignItems={'center'} gap={1}>
-                    <Image alt="icon" width={30} height={30} src={GetImgSrcByChain(order.chainId)} />
+                    {order.chainId && <Image alt="icon" width={30} height={30} src={GetImgSrcByChain(order.chainId)} />}
                     <Typography>{FindChainNamesByChains(order.chainId)?.toUpperCase()}</Typography>
                   </Stack>
                 </Grid>
