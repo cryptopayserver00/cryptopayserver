@@ -12,6 +12,7 @@ import { styled } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import { IsValidEmail } from 'utils/verify';
 import { useUserPresistStore } from 'lib/store';
+import { useTranslation } from 'react-i18next';
 
 const StyledBox = styled('div')(({ theme }) => ({
   alignSelf: 'center',
@@ -42,6 +43,8 @@ const StyledBox = styled('div')(({ theme }) => ({
 }));
 
 export default function Hero() {
+  const { t, i18n } = useTranslation('');
+
   const [email, setEmail] = useState<string>('');
 
   const [isLogin, setLogin] = useState<boolean>(false);
@@ -121,7 +124,7 @@ export default function Hero() {
                   window.location.href = `/dashboard`;
                 }}
               >
-                Go to dashboard
+                {t('Go to dashboard')}
               </Button>
             ) : (
               <>

@@ -1,3 +1,4 @@
+import 'utils/i18n';
 import '../styles/index.css';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -6,7 +7,7 @@ import '@fontsource/roboto/700.css';
 
 import Providers from 'components/Common/Providers';
 import type { AppProps } from 'next/app';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 
@@ -32,9 +33,11 @@ const MyApp = ({ Component, pageProps, cookies }: AppProps & { cookies: string |
   }, []);
 
   return (
-    <Providers cookies={cookies}>
-      <Component {...pageProps} />
-    </Providers>
+    <Suspense fallback="loading">
+      <Providers cookies={cookies}>
+        <Component {...pageProps} />
+      </Providers>
+    </Suspense>
   );
 };
 

@@ -1,8 +1,11 @@
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import MetaTags from 'components/Common/MetaTags';
 import { CustomLogo } from 'components/Logo/CustomLogo';
+import { useTranslation } from 'react-i18next';
 
 const Custom404 = () => {
+  const { t, i18n } = useTranslation('');
+
   const onClickButton = async () => {
     window.location.href = '/';
   };
@@ -21,6 +24,9 @@ const Custom404 = () => {
             <Stack direction={'row'} alignItems={'center'}>
               <CustomLogo>C</CustomLogo>
               <Typography fontWeight={'bold'} color="#0098e5" fontSize={'large'}>
+                {t('welcome test')}
+              </Typography>
+              <Typography fontWeight={'bold'} color="#0098e5" fontSize={'large'}>
                 Crypto Pay
               </Typography>
             </Stack>
@@ -36,7 +42,7 @@ const Custom404 = () => {
           </Box>
 
           <Box mt={6}>
-            <Button variant={'contained'} onClick={onClickButton} size='large'>
+            <Button variant={'contained'} onClick={onClickButton} size="large">
               Go Home
             </Button>
           </Box>
