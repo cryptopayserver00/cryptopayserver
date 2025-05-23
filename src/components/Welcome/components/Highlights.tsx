@@ -11,6 +11,7 @@ import SettingsSuggestRoundedIcon from '@mui/icons-material/SettingsSuggestRound
 import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
 import ThumbUpAltRoundedIcon from '@mui/icons-material/ThumbUpAltRounded';
 import { Grid } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const items = [
   {
@@ -49,6 +50,8 @@ const items = [
 ];
 
 export default function Highlights() {
+  const { t, i18n } = useTranslation('');
+
   return (
     <Box
       id="highlights"
@@ -75,11 +78,12 @@ export default function Highlights() {
           }}
         >
           <Typography component="h2" variant="h4" gutterBottom>
-            Highlights
+            {t('Highlights')}
           </Typography>
           <Typography variant="body1" sx={{ color: 'grey.400' }}>
-            CryptoPay Server is code, not a company. There is no third-party between a merchant and a customer. The
-            merchant is always in full control of their funds. There are no processing or subscription fees.
+            {t(
+              'CryptoPay Server is code, not a company. There is no third-party between a merchant and a customer. The merchant is always in full control of their funds. There are no processing or subscription fees.',
+            )}
           </Typography>
         </Box>
         <Grid container spacing={2}>
@@ -99,14 +103,14 @@ export default function Highlights() {
                 }}
               >
                 <Box sx={{ opacity: '50%' }}>{item.icon}</Box>
-                <div>
+                <Box>
                   <Typography gutterBottom sx={{ fontWeight: 'medium' }}>
-                    {item.title}
+                    {t(item.title)}
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'grey.400' }}>
-                    {item.description}
+                    {t(item.description)}
                   </Typography>
-                </div>
+                </Box>
               </Stack>
             </Grid>
           ))}

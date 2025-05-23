@@ -1,26 +1,16 @@
-import { Close, Delete } from '@mui/icons-material';
+import { Delete } from '@mui/icons-material';
 import {
   Box,
   Button,
   Card,
   CardContent,
-  Chip,
   Container,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   FormControl,
-  Grid,
-  Icon,
   IconButton,
-  InputLabel,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   MenuItem,
   Select,
   Stack,
@@ -304,14 +294,9 @@ const ManageAddressBook = () => {
             <Box mb={2}>
               <Typography mb={1}>Network</Typography>
               <FormControl fullWidth>
-                <InputLabel id="demo-simple-select-label" size="small">
-                  Select the network
-                </InputLabel>
                 <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  label="Select the network"
                   size={'small'}
+                  placeholder="Select the network"
                   onChange={(e) => {
                     setNetwork(e.target.value as CHAINNAMES);
                   }}

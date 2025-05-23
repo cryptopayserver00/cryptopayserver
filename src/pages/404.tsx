@@ -24,9 +24,6 @@ const Custom404 = () => {
             <Stack direction={'row'} alignItems={'center'}>
               <CustomLogo>C</CustomLogo>
               <Typography fontWeight={'bold'} color="#0098e5" fontSize={'large'}>
-                {t('welcome test')}
-              </Typography>
-              <Typography fontWeight={'bold'} color="#0098e5" fontSize={'large'}>
                 Crypto Pay
               </Typography>
             </Stack>

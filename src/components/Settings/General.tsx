@@ -1,21 +1,16 @@
-import { AccountCircle, CloudUpload, ReportGmailerrorred } from '@mui/icons-material';
+import { CloudUpload, ReportGmailerrorred } from '@mui/icons-material';
 import {
   Box,
   Button,
-  Container,
   FormControl,
-  Icon,
   IconButton,
   InputAdornment,
-  InputLabel,
   MenuItem,
   OutlinedInput,
   Select,
   Stack,
   styled,
   Switch,
-  Tab,
-  Tabs,
   TextField,
   Typography,
 } from '@mui/material';

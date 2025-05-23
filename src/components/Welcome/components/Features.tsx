@@ -17,6 +17,7 @@ import {
   Receipt,
   SwipeRight,
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 
 const items = [
   {
@@ -117,6 +118,7 @@ interface MobileLayoutProps {
 }
 
 export function MobileLayout({ selectedItemIndex, handleItemClick, selectedFeature }: MobileLayoutProps) {
+  const { t, i18n } = useTranslation('');
   if (!items[selectedItemIndex]) {
     return null;
   }
@@ -134,7 +136,7 @@ export function MobileLayout({ selectedItemIndex, handleItemClick, selectedFeatu
           <Chip
             size="medium"
             key={index}
-            label={title}
+            label={t(title)}
             onClick={() => handleItemClick(index)}
             selected={selectedItemIndex === index}
           />
@@ -163,10 +165,10 @@ export function MobileLayout({ selectedItemIndex, handleItemClick, selectedFeatu
         />
         <Box sx={{ px: 2, pb: 2 }}>
           <Typography gutterBottom sx={{ color: 'text.primary', fontWeight: 'medium' }}>
-            {selectedFeature.title}
+            {t(selectedFeature.title)}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
-            {selectedFeature.description}
+            {t(selectedFeature.description)}
           </Typography>
         </Box>
       </Card>
@@ -175,6 +177,7 @@ export function MobileLayout({ selectedItemIndex, handleItemClick, selectedFeatu
 }
 
 export default function Features() {
+  const { t, i18n } = useTranslation('');
   const [selectedItemIndex, setSelectedItemIndex] = React.useState(0);
 
   const handleItemClick = (index: number) => {
@@ -187,11 +190,12 @@ export default function Features() {
     <Container id="features" sx={{ py: { xs: 8, sm: 16 } }}>
       <Box sx={{ width: { sm: '100%', md: '60%' } }}>
         <Typography component="h2" variant="h4" gutterBottom sx={{ color: 'text.primary' }}>
-          Product features
+          {t('Product features')}
         </Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary', mb: { xs: 2, sm: 4 } }}>
-          The product offers many useful features for merchants. After easily creating a wallet and setting up a store,
-          they can use various features to facilitate both receiving and making payments.
+          {t(
+            'The product offers many useful features for merchants. After easily creating a wallet and setting up a store, they can use various features to facilitate both receiving and making payments.',
+          )}
         </Typography>
       </Box>
       <Box
@@ -201,7 +205,7 @@ export default function Features() {
           gap: 2,
         }}
       >
-        <div>
+        <Box>
           <Box
             sx={{
               display: { xs: 'none', sm: 'flex' },
@@ -248,8 +252,8 @@ export default function Features() {
                 >
                   {icon}
 
-                  <Typography variant="h6">{title}</Typography>
-                  <Typography variant="body2">{description}</Typography>
+                  <Typography variant="h6">{t(title)}</Typography>
+                  <Typography variant="body2">{t(description)}</Typography>
                 </Box>
               </Box>
             ))}
@@ -259,7 +263,7 @@ export default function Features() {
             handleItemClick={handleItemClick}
             selectedFeature={selectedFeature}
           />
-        </div>
+        </Box>
         <Box
           sx={{
             display: { xs: 'none', sm: 'flex' },

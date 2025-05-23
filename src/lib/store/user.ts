@@ -1,3 +1,4 @@
+import { LANGUAGES } from 'packages/constants';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -11,6 +12,7 @@ type UserPerisistState = {
   showSidebar: boolean;
   showProgress: boolean;
   network: 'mainnet' | 'testnet';
+  lang: string;
 };
 
 type UserPerisistAction = {
@@ -32,6 +34,8 @@ type UserPerisistAction = {
   getShowSidebar: () => boolean;
   setShowProgress: (showProgress: boolean) => void;
   getShowProgress: () => boolean;
+  setLang: (lang: string) => void;
+  getLang: () => string;
 
   resetUser: () => void;
 };
@@ -46,6 +50,7 @@ const initialUserState: UserPerisistState = {
   showSidebar: true,
   showProgress: false,
   network: 'mainnet',
+  lang: String(LANGUAGES.find((item) => item.code === 'en')?.code),
 };
 
 export const useUserPresistStore = create(
@@ -71,6 +76,8 @@ export const useUserPresistStore = create(
       getNetwork: () => get().network,
       setShowProgress: (value) => set(() => ({ showProgress: value })),
       getShowProgress: () => get().showProgress,
+      setLang: (value) => set(() => ({ lang: value })),
+      getLang: () => get().lang,
 
       resetUser: () => {
         set(initialUserState);

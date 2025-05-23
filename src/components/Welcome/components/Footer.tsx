@@ -1,31 +1,11 @@
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
-import IconButton from '@mui/material/IconButton';
-import InputLabel from '@mui/material/InputLabel';
-import Link from '@mui/material/Link';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import GithubIcon from '@mui/icons-material/GitHub';
-import TelegramIcon from '@mui/icons-material/Telegram';
-import RssFeedIcon from '@mui/icons-material/RssFeed';
+import { GitHub, RssFeed, Telegram } from '@mui/icons-material';
+import { Box, Button, Container, IconButton, Link, Stack, TextField, Typography } from '@mui/material';
 import { CustomLogo } from 'components/Logo/CustomLogo';
-
-function Copyright() {
-  return (
-    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
-      {'Copyright © '}
-      <Link color="text.secondary" href="#">
-        CryptoPayServer
-      </Link>
-      &nbsp;
-      {new Date().getFullYear()}
-    </Typography>
-  );
-}
+import { useTranslation } from 'react-i18next';
 
 export default function Footer() {
+  const { t, i18n } = useTranslation('');
+
   return (
     <Container
       sx={{
@@ -57,24 +37,23 @@ export default function Footer() {
             <Stack direction={'row'} alignItems={'center'}>
               <CustomLogo>C</CustomLogo>
               <Typography fontWeight={'bold'} color="#0098e5" fontSize={16}>
-                Crypto Pay
+                CryptoPay
               </Typography>
             </Stack>
             <Typography variant="body2" gutterBottom sx={{ fontWeight: 600, mt: 2 }}>
-              Join the newsletter
+              {t('Join the newsletter')}
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-              Subscribe for weekly updates. No spams ever!
+              {t('Subscribe for weekly updates. No spams ever!')}
             </Typography>
-            <InputLabel htmlFor="email-newsletter">Email</InputLabel>
+            <Typography>{t('Email')}</Typography>
             <Stack direction="row" spacing={1} useFlexGap mt={1}>
               <TextField
                 hiddenLabel
                 size="small"
                 variant="outlined"
                 fullWidth
-                aria-label="Enter your email address"
-                placeholder="Your email address"
+                placeholder={t('Your email address')}
                 // slotProps={{
                 //   htmlInput: {
                 //     autoComplete: 'off',
@@ -84,7 +63,7 @@ export default function Footer() {
                 sx={{ width: '250px' }}
               />
               <Button variant="contained" color="primary" size="small" sx={{ flexShrink: 0 }}>
-                Subscribe
+                {t('Subscribe')}
               </Button>
             </Stack>
           </Box>
@@ -97,35 +76,35 @@ export default function Footer() {
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            Software
+            {t('Software')}
           </Typography>
           <Link
             color="text.secondary"
             variant="body2"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/learn/introduction"
           >
-            Introduction
+            {t('Introduction')}
           </Link>
           <Link
             color="text.secondary"
             variant="body2"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/learn/use-case"
           >
-            Use Case
+            {t('Use Case')}
           </Link>
           <Link
             color="text.secondary"
             variant="body2"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/features/apps"
           >
-            Apps
+            {t('Apps')}
           </Link>
           <Link
             color="text.secondary"
             variant="body2"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/getting-started/quickstart"
           >
-            Getting Started
+            {t('Getting Started')}
           </Link>
         </Box>
         <Box
@@ -136,10 +115,10 @@ export default function Footer() {
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            Resources
+            {t('Resources')}
           </Typography>
           <Link color="text.secondary" variant="body2" href="https://cryptopayserver.gitbook.io/cryptopayserver">
-            Documentation
+            {t('Documentation')}
           </Link>
           <Link color="text.secondary" variant="body2" href="https://github.com/cryptopayserver00/cryptopayserver">
             GitHub
@@ -149,14 +128,14 @@ export default function Footer() {
             variant="body2"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/support-and-community/support"
           >
-            Support
+            {t('Support')}
           </Link>
           <Link
             color="text.secondary"
             variant="body2"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/support-and-community/troubleshooting-an-issue-in-cryptopay-server"
           >
-            FAQ
+            {t('FAQ')}
           </Link>
         </Box>
         <Box
@@ -167,19 +146,19 @@ export default function Footer() {
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            Community
+            {t('Community')}
           </Typography>
           <Link color="text.secondary" variant="body2" href="https://cryptopayserver.gitbook.io/cryptopayserver">
-            Blog
+            {t('Blog')}
           </Link>
           <Link color="text.secondary" variant="body2" href="https://t.me/cryptopayserver">
-            Chat
+            {t('Chat')}
           </Link>
           <Link color="text.secondary" variant="body2" href="#">
-            Contribute
+            {t('Contribute')}
           </Link>
           <Link color="text.secondary" variant="body2" href="#">
-            Donate
+            {t('Donate')}
           </Link>
         </Box>
       </Box>
@@ -193,16 +172,23 @@ export default function Footer() {
           borderColor: 'divider',
         }}
       >
-        <div>
+        <Box>
           <Link color="text.secondary" variant="body2" href="#">
-            Privacy Policy
+            {t('Privacy Policy')}
           </Link>
           <Typography sx={{ display: 'inline', mx: 0.5, opacity: 0.5 }}>&nbsp;•&nbsp;</Typography>
           <Link color="text.secondary" variant="body2" href="#">
-            Terms of Service
+            {t('Terms of Service')}
           </Link>
-          <Copyright />
-        </div>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+            {t('Copyright')} ©
+            <Link color="text.secondary" href="#">
+              CryptoPayServer
+            </Link>
+            &nbsp;
+            {new Date().getFullYear()}
+          </Typography>
+        </Box>
         <Stack direction="row" spacing={1} useFlexGap sx={{ justifyContent: 'left', color: 'text.secondary' }}>
           <IconButton
             color="inherit"
@@ -211,7 +197,7 @@ export default function Footer() {
             aria-label="GitHub"
             sx={{ alignSelf: 'center' }}
           >
-            <GithubIcon />
+            <GitHub />
           </IconButton>
           <IconButton
             color="inherit"
@@ -220,10 +206,10 @@ export default function Footer() {
             aria-label="Telegram"
             sx={{ alignSelf: 'center' }}
           >
-            <TelegramIcon />
+            <Telegram />
           </IconButton>
           <IconButton color="inherit" size="small" href="#" aria-label="RssFeed" sx={{ alignSelf: 'center' }}>
-            <RssFeedIcon />
+            <RssFeed />
           </IconButton>
         </Stack>
       </Box>

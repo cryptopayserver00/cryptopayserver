@@ -3,6 +3,7 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/system';
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
 
 const whiteLogos = [
   '/images/binance.svg',
@@ -23,13 +24,14 @@ const darkLogos = [
 ];
 
 export default function LogoCollection() {
+  const { t, i18n } = useTranslation('');
   const theme = useTheme();
   const logos = theme.palette.mode === 'light' ? darkLogos : whiteLogos;
 
   return (
     <Box id="logoCollection" sx={{ py: 4 }}>
       <Typography component="p" variant="subtitle2" align="center" sx={{ color: 'text.secondary' }}>
-        Trusted by the best companies
+        {t('Trusted by the best companies')}
       </Typography>
       <Grid container sx={{ justifyContent: 'center', mt: 0.5, opacity: 0.6 }}>
         {logos.map((logo, index) => (

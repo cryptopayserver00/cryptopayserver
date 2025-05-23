@@ -13,8 +13,10 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ColorModeIconDropdown from './ColorModeIconDropdown';
 import { useEffect, useState } from 'react';
 import { CustomLogo } from 'components/Logo/CustomLogo';
-import { Stack, Typography } from '@mui/material';
+import { Select, Stack, Typography } from '@mui/material';
 import { useUserPresistStore } from 'lib/store';
+import { useTranslation } from 'react-i18next';
+import { LANGUAGES } from 'packages/constants';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: 'flex',
@@ -31,9 +33,11 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 export default function AppAppBar() {
+  const { t, i18n } = useTranslation('');
   const [open, setOpen] = useState(false);
 
   const [isLogin, setLogin] = useState<boolean>(false);
+  const [language, setLanguage] = useState<string>('');
 
   const { getIsLogin } = useUserPresistStore((state) => state);
 
@@ -44,6 +48,8 @@ export default function AppAppBar() {
   useEffect(() => {
     const loginStatus = getIsLogin();
     setLogin(loginStatus);
+    console.log(111, i18n.languages)
+    i18n.changeLanguage('')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -58,10 +64,12 @@ export default function AppAppBar() {
         mt: 'calc(var(--template-frame-height, 0px) + 28px)',
       }}
     >
-      <Container maxWidth="lg">
+      <Container>
         <StyledToolbar variant="dense" disableGutters>
-          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
+          {/* <Stack sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}> */}
+          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} width={'100%'}>
             <Button
+              style={{ width: 200, justifyContent: 'left' }}
               onClick={() => {
                 window.location.href = '/';
               }}
@@ -73,8 +81,9 @@ export default function AppAppBar() {
                 </Typography>
               </Stack>
             </Button>
-            <Box sx={{ display: { xs: 'none', md: 'flex' } }} gap={1} ml={1}>
+            <Stack direction={'row'} sx={{ display: { xs: 'none', md: 'flex' } }} gap={2}>
               <Button
+                style={{ width: 80 }}
                 variant="text"
                 color="info"
                 size="small"
@@ -82,19 +91,10 @@ export default function AppAppBar() {
                   window.location.href = '#features';
                 }}
               >
-                Features
+                {t('Features')}
               </Button>
-              {/* <Button
-                variant="text"
-                color="info"
-                size="small"
-                onClick={() => {
-                  window.location.href = '#testimonials';
-                }}
-              >
-                Testimonials
-              </Button> */}
               <Button
+                style={{ width: 80 }}
                 variant="text"
                 color="info"
                 size="small"
@@ -102,9 +102,10 @@ export default function AppAppBar() {
                   window.location.href = '#highlights';
                 }}
               >
-                Highlights
+                {t('Highlights')}
               </Button>
               <Button
+                style={{ width: 80 }}
                 variant="text"
                 color="info"
                 size="small"
@@ -112,83 +113,85 @@ export default function AppAppBar() {
                   window.location.href = '#pricing';
                 }}
               >
-                Pricing
+                {t('Pricing')}
               </Button>
               <Button
+                style={{ width: 80 }}
                 variant="text"
                 color="info"
                 size="small"
-                sx={{ minWidth: 0 }}
                 onClick={() => {
                   window.location.href = '#faq';
                 }}
               >
-                FAQ
+                {t('FAQ')}
               </Button>
               <Button
+                style={{ width: 80 }}
                 variant="text"
                 size="small"
-                sx={{ minWidth: 0 }}
                 onClick={() => {
                   window.location.href = 'https://cryptopayserver.gitbook.io/cryptopayserver';
                 }}
               >
-                Blog
+                {t('Blog')}
               </Button>
-            </Box>
-          </Box>
-          {isLogin ? (
-            <Box
+            </Stack>
+            <Stack
+              style={{ width: 200, justifyContent: 'right' }}
               sx={{
                 display: { xs: 'none', md: 'flex' },
-                gap: 1,
-                alignItems: 'center',
               }}
-              gap={1}
+              alignItems={'center'}
+              direction={'row'}
+              gap={2}
             >
-              <Button
-                color="primary"
-                variant="contained"
-                size="small"
-                onClick={() => {
-                  window.location.href = '/dashboard';
+              {isLogin ? (
+                <Button
+                  style={{ width: 80 }}
+                  color="primary"
+                  variant="contained"
+                  size="small"
+                  onClick={() => {
+                    window.location.href = '/dashboard';
+                  }}
+                >
+                  {t('Dashboard')}
+                </Button>
+              ) : (
+                <Button
+                  style={{ width: 80 }}
+                  color="primary"
+                  variant="contained"
+                  size="small"
+                  onClick={() => {
+                    window.location.href = '/login';
+                  }}
+                >
+                  {t('Sign in')}
+                </Button>
+              )}
+
+              <Select
+                style={{ width: 80 }}
+                size={'small'}
+                inputProps={{ 'aria-label': 'Without label' }}
+                variant={'standard'}
+                value={language}
+                onChange={(e: any) => {
+                  setLanguage(e.target.value);
                 }}
               >
-                Dashboard
-              </Button>
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                display: { xs: 'none', md: 'flex' },
-                gap: 1,
-                alignItems: 'center',
-              }}
-              gap={1}
-            >
-              <Button
-                color="primary"
-                variant="text"
-                size="small"
-                onClick={() => {
-                  window.location.href = '/login';
-                }}
-              >
-                Sign in
-              </Button>
-              <Button
-                color="primary"
-                variant="contained"
-                size="small"
-                onClick={() => {
-                  window.location.href = '/register';
-                }}
-              >
-                Sign up
-              </Button>
-              <ColorModeIconDropdown />
-            </Box>
-          )}
+                {LANGUAGES &&
+                  LANGUAGES.length > 0 &&
+                  LANGUAGES.map((item, index) => (
+                    <MenuItem value={item.name} key={index}>
+                      {item.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </Stack>
+          </Stack>
 
           <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 1 }}>
             <ColorModeIconDropdown size="medium" />
@@ -222,42 +225,35 @@ export default function AppAppBar() {
                     window.location.href = '#features';
                   }}
                 >
-                  Features
+                  {t('Features')}
                 </MenuItem>
-                {/* <MenuItem
-                  onClick={() => {
-                    window.location.href = '#testimonials';
-                  }}
-                >
-                  Testimonials
-                </MenuItem> */}
                 <MenuItem
                   onClick={() => {
                     window.location.href = '#highlights';
                   }}
                 >
-                  Highlights
+                  {t('Highlights')}
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
                     window.location.href = '#pricing';
                   }}
                 >
-                  Pricing
+                  {t('Pricing')}
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
                     window.location.href = '#faq';
                   }}
                 >
-                  FAQ
+                  {t('FAQ')}
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
                     window.location.href = 'https://cryptopayserver.gitbook.io/cryptopayserver';
                   }}
                 >
-                  Blog
+                  {t('Blog')}
                 </MenuItem>
                 <Divider sx={{ my: 3 }} />
 
@@ -271,36 +267,22 @@ export default function AppAppBar() {
                         window.location.href = '/dashboard';
                       }}
                     >
-                      Dashboard
+                      {t('Dashboard')}
                     </Button>
                   </MenuItem>
                 ) : (
-                  <>
-                    <MenuItem>
-                      <Button
-                        color="primary"
-                        variant="contained"
-                        fullWidth
-                        onClick={() => {
-                          window.location.href = '/register';
-                        }}
-                      >
-                        Sign up
-                      </Button>
-                    </MenuItem>
-                    <MenuItem>
-                      <Button
-                        color="primary"
-                        variant="outlined"
-                        fullWidth
-                        onClick={() => {
-                          window.location.href = '/login';
-                        }}
-                      >
-                        Sign in
-                      </Button>
-                    </MenuItem>
-                  </>
+                  <MenuItem>
+                    <Button
+                      color="primary"
+                      variant="contained"
+                      fullWidth
+                      onClick={() => {
+                        window.location.href = '/login';
+                      }}
+                    >
+                      {t('Sign in')}
+                    </Button>
+                  </MenuItem>
                 )}
               </Box>
             </Drawer>

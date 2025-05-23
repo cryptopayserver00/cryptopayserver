@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import { Grid } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const tiers = [
   {
@@ -69,6 +70,7 @@ const tiers = [
 ];
 
 export default function Pricing() {
+  const { t, i18n } = useTranslation('');
   return (
     <Container
       id="pricing"
@@ -89,12 +91,12 @@ export default function Pricing() {
         }}
       >
         <Typography component="h2" variant="h4" gutterBottom sx={{ color: 'text.primary' }}>
-          Pricing
+          {t('Pricing')}
         </Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-          Plans built for every team.
+          {t('Plans built for every team.')}
           <br />
-          Select services and pricing suitable for your business scope.
+          {t('Select services and pricing suitable for your business scope.')}
         </Typography>
       </Box>
       <Grid container spacing={3} sx={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}>
@@ -134,9 +136,11 @@ export default function Pricing() {
                   ]}
                 >
                   <Typography component="h3" variant="h6">
-                    {tier.title}
+                    {t(tier.title)}
                   </Typography>
-                  {tier.title === 'Professional' && <Chip icon={<AutoAwesomeIcon />} label={tier.subheader} />}
+                  {tier.title === 'Professional' && (
+                    <Chip icon={<AutoAwesomeIcon />} label={t(String(tier.subheader))} />
+                  )}
                 </Box>
                 <Box
                   sx={[
@@ -150,8 +154,8 @@ export default function Pricing() {
                   <Typography component="h3" variant="h2">
                     ${tier.price}
                   </Typography>
-                  <Typography component="h3" variant="h6">
-                    &nbsp; per month
+                  <Typography component="h3" variant="h6" pl={1}>
+                    {t('per month')}
                   </Typography>
                 </Box>
                 <Divider sx={{ my: 2, opacity: 0.8, borderColor: 'divider' }} />
@@ -170,7 +174,7 @@ export default function Pricing() {
                       component={'span'}
                       sx={[tier.title === 'Professional' ? { color: 'grey.50' } : { color: null }]}
                     >
-                      {line}
+                      {t(line)}
                     </Typography>
                   </Box>
                 ))}
@@ -184,7 +188,7 @@ export default function Pricing() {
                     window.location.href = '/register';
                   }}
                 >
-                  {tier.buttonText}
+                  {t(tier.buttonText)}
                 </Button>
               </CardActions>
             </Card>

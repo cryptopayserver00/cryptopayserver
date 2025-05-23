@@ -1,13 +1,11 @@
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
-import InputLabel from '@mui/material/InputLabel';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import { visuallyHidden } from '@mui/utils';
 import { styled } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import { IsValidEmail } from 'utils/verify';
@@ -111,7 +109,7 @@ export default function Hero() {
               width: { sm: '100%', md: '80%' },
             }}
           >
-            Accept Crypto payments. Free, open-source & self-hosted, Crypto payment processor.
+            {t('Accept Crypto payments. Free, open-source & self-hosted, Crypto payment processor.')}
           </Typography>
 
           <Box mt={2}>
@@ -133,27 +131,18 @@ export default function Hero() {
                   spacing={1}
                   useFlexGap
                   sx={{ pt: 2, width: { xs: '100%', sm: '350px' } }}
+                  mb={1}
                 >
-                  <InputLabel htmlFor="email-hero" sx={visuallyHidden}>
-                    Email
-                  </InputLabel>
                   <TextField
                     hiddenLabel
                     size="small"
                     variant="outlined"
-                    aria-label="Enter your email address"
-                    placeholder="Your email address"
+                    placeholder={t('Your email address')}
                     fullWidth
                     value={email}
                     onChange={(e: any) => {
                       setEmail(e.target.value);
                     }}
-                    // slotProps={{
-                    //   htmlInput: {
-                    //     autoComplete: 'off',
-                    //     'aria-label': 'Enter your email address',
-                    //   },
-                    // }}
                   />
                   <Button
                     variant="contained"
@@ -166,13 +155,13 @@ export default function Hero() {
                       }
                     }}
                   >
-                    Start now
+                    {t('Start now')}
                   </Button>
                 </Stack>
                 <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-                  By clicking &quot;Start now&quot; you agree to our&nbsp;
+                  {t('By clicking "Start now" you agree to our')}
                   <Link href="#" color="primary">
-                    Terms & Conditions
+                    {t('Terms & Conditions')}
                   </Link>
                   .
                 </Typography>
