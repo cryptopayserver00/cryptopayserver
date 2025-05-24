@@ -13,9 +13,11 @@ import ControlCameraIcon from '@mui/icons-material/ControlCamera';
 
 import Link from 'next/link';
 import { routes, RouteType } from './Routes';
+import { useTranslation } from 'react-i18next';
 
 const Home = () => {
   const router = useRouter();
+  const { t, i18n } = useTranslation('');
 
   const { snackOpen, snackMessage, snackSeverity, setSnackOpen } = useSnackPresistStore((state) => state);
   const { getIsLogin, getNetwork, setShowSidebar, getShowSidebar, getShowProgress } = useUserPresistStore(
@@ -23,6 +25,7 @@ const Home = () => {
   );
   const { getIsWallet } = useWalletPresistStore((state) => state);
   const { getIsStore } = useStorePresistStore((state) => state);
+  const { getLang, setLang } = useUserPresistStore((state) => state);
 
   const [isLogin, setLogin] = useState<boolean>(false);
   const [isStore, setStore] = useState<boolean>(false);
@@ -31,6 +34,11 @@ const Home = () => {
   const [currentRoute, setCurrentRoute] = useState<RouteType>();
 
   useEffect(() => {
+    if (!getLang() || getLang() === '') {
+      setLang('en');
+      i18n.changeLanguage('en');
+    }
+
     const route = routes.find((item) => item.path === router.pathname);
 
     if (!route) return;
@@ -51,7 +59,7 @@ const Home = () => {
 
     setCurrentRoute(route);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.pathname, getIsLogin, getIsStore, getIsWallet]);
+  }, [router.pathname, getIsLogin, getIsStore, getIsWallet, getLang]);
 
   return (
     <Box height={'100%'}>

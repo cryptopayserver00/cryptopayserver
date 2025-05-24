@@ -17,11 +17,13 @@ import {
   Switch,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Brightness4, DarkMode, PermIdentity, WbSunny } from '@mui/icons-material';
 import { useUserPresistStore } from 'lib/store/user';
 import { useStorePresistStore } from 'lib/store/store';
 import { useWalletPresistStore } from 'lib/store/wallet';
+import { LANGUAGES } from 'packages/constants';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -68,7 +70,9 @@ const StyledCollapsedSidebarFooter = styled.a`
 const codeUrl = 'https://github.com/azouaoui-med/react-pro-sidebar/blob/master/storybook/Playground.tsx';
 
 export const SidebarFooter: React.FC<SidebarFooterProps> = ({ children, collapsed, ...rest }) => {
+  const { t, i18n } = useTranslation('');
   const [openAccountDrawer, setOpenAccountDrawer] = useState(false);
+  const [language, setLanguage] = useState<string>('');
 
   const toggleAccountDrawer = (newOpen: boolean) => () => {
     setOpenAccountDrawer(newOpen);
@@ -85,6 +89,8 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ children, collapse
     getNetwork,
     setNetwork,
     resetUser,
+    getLang,
+    setLang,
   } = useUserPresistStore((state) => state);
   const { resetStore } = useStorePresistStore((state) => state);
   const { resetWallet } = useWalletPresistStore((state) => state);
@@ -98,96 +104,19 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ children, collapse
     window.location.reload();
   };
 
-  const AccountDrawer = (
-    <Box sx={{ width: 250 }} role="presentation" p={2}>
-      <Typography mb={2}>{getUsername()}</Typography>
-      <Divider />
-      <Box my={2}>
-        <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
-          <Typography>Theme</Typography>
-          <Stack direction={'row'} alignItems={'center'}>
-            <IconButton
-              color={getUserTheme() === 'auto' ? 'primary' : 'default'}
-              onClick={() => {
-                setUserTheme('auto');
-              }}
-            >
-              <Brightness4 />
-            </IconButton>
-            <IconButton
-              color={getUserTheme() === 'light' ? 'primary' : 'default'}
-              onClick={() => {
-                setUserTheme('light');
-              }}
-            >
-              <WbSunny />
-            </IconButton>
-            <IconButton
-              color={getUserTheme() === 'dark' ? 'primary' : 'default'}
-              onClick={() => {
-                setUserTheme('dark');
-              }}
-            >
-              <DarkMode />
-            </IconButton>
-          </Stack>
-        </Stack>
-        <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} mt={2}>
-          <Typography>Hide Sensitive Info</Typography>
-          <Box>
-            <Switch
-              {...switchlabel}
-              checked={getUserHideSensitiveInfo()}
-              onChange={handleChangeUserHideSensitiveInfo}
-            />
-          </Box>
-        </Stack>
-        <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} mt={2}>
-          <Typography>Network</Typography>
-          <Select
-            inputProps={{ 'aria-label': 'Without label' }}
-            value={getNetwork()}
-            size={'small'}
-            onChange={handleChangeNetwork}
-          >
-            <MenuItem value={'mainnet'} key={1}>
-              mainnet
-            </MenuItem>
-            <MenuItem value={'testnet'} key={2}>
-              testnet
-            </MenuItem>
-          </Select>
-        </Stack>
-      </Box>
-      <Divider />
-      <Box my={1}>
-        <Button
-          onClick={() => {
-            window.location.href = '/account';
-          }}
-        >
-          Manage Account
-        </Button>
-      </Box>
-      <Divider />
-      <Box my={1}>
-        <Button
-          color={'error'}
-          onClick={() => {
-            resetUser();
-            resetStore();
-            resetWallet();
+  const onChangeLanguage = async (lang: string) => {
+    setLanguage(lang);
+    const code = LANGUAGES.find((item) => item.name === lang)?.code;
+    setLang(code || 'en');
+    i18n.changeLanguage(code || 'en');
+  };
 
-            setTimeout(() => {
-              window.location.href = '/login';
-            }, 1000);
-          }}
-        >
-          Logout
-        </Button>
-      </Box>
-    </Box>
-  );
+  useEffect(() => {
+    if (getLang() && getLang() !== '') {
+      setLanguage(LANGUAGES.find((item) => item.code === String(getLang()))?.name || 'English');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Stack>
@@ -204,7 +133,113 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({ children, collapse
             </Button>
 
             <Drawer open={openAccountDrawer} onClose={toggleAccountDrawer(false)} anchor={'right'}>
-              {AccountDrawer}
+              <Box sx={{ width: 250 }} role="presentation" p={2}>
+                <Typography mb={2}>{getUsername()}</Typography>
+                <Divider />
+                <Box my={2}>
+                  <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
+                    <Typography>Theme</Typography>
+                    <Stack direction={'row'} alignItems={'center'}>
+                      <IconButton
+                        color={getUserTheme() === 'auto' ? 'primary' : 'default'}
+                        onClick={() => {
+                          setUserTheme('auto');
+                        }}
+                      >
+                        <Brightness4 />
+                      </IconButton>
+                      <IconButton
+                        color={getUserTheme() === 'light' ? 'primary' : 'default'}
+                        onClick={() => {
+                          setUserTheme('light');
+                        }}
+                      >
+                        <WbSunny />
+                      </IconButton>
+                      <IconButton
+                        color={getUserTheme() === 'dark' ? 'primary' : 'default'}
+                        onClick={() => {
+                          setUserTheme('dark');
+                        }}
+                      >
+                        <DarkMode />
+                      </IconButton>
+                    </Stack>
+                  </Stack>
+                  <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} mt={2}>
+                    <Typography>Hide Sensitive Info</Typography>
+                    <Box>
+                      <Switch
+                        {...switchlabel}
+                        checked={getUserHideSensitiveInfo()}
+                        onChange={handleChangeUserHideSensitiveInfo}
+                      />
+                    </Box>
+                  </Stack>
+                  <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} mt={2}>
+                    <Typography>Network</Typography>
+                    <Select
+                      inputProps={{ 'aria-label': 'Without label' }}
+                      value={getNetwork()}
+                      size={'small'}
+                      onChange={handleChangeNetwork}
+                    >
+                      <MenuItem value={'mainnet'} key={1}>
+                        mainnet
+                      </MenuItem>
+                      <MenuItem value={'testnet'} key={2}>
+                        testnet
+                      </MenuItem>
+                    </Select>
+                  </Stack>
+                  <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'} mt={2}>
+                    <Typography>Language</Typography>
+                    <Select
+                      size={'small'}
+                      inputProps={{ 'aria-label': 'Without label' }}
+                      value={language}
+                      onChange={(e: any) => {
+                        onChangeLanguage(e.target.value);
+                      }}
+                    >
+                      {LANGUAGES &&
+                        LANGUAGES.length > 0 &&
+                        LANGUAGES.map((item, index) => (
+                          <MenuItem value={item.name} key={index}>
+                            {item.name}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </Stack>
+                </Box>
+                <Divider />
+                <Box my={1}>
+                  <Button
+                    onClick={() => {
+                      window.location.href = '/account';
+                    }}
+                  >
+                    Manage Account
+                  </Button>
+                </Box>
+                <Divider />
+                <Box my={1}>
+                  <Button
+                    color={'error'}
+                    onClick={() => {
+                      resetUser();
+                      resetStore();
+                      resetWallet();
+
+                      setTimeout(() => {
+                        window.location.href = '/login';
+                      }, 1000);
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </Box>
+              </Box>
             </Drawer>
           </Box>
         </StyledSidebarFooter>

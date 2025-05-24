@@ -39,7 +39,7 @@ export default function AppAppBar() {
   const [isLogin, setLogin] = useState<boolean>(false);
   const [language, setLanguage] = useState<string>('');
 
-  const { getIsLogin } = useUserPresistStore((state) => state);
+  const { getIsLogin, getLang, setLang } = useUserPresistStore((state) => state);
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
@@ -48,10 +48,18 @@ export default function AppAppBar() {
   useEffect(() => {
     const loginStatus = getIsLogin();
     setLogin(loginStatus);
-    console.log(111, i18n.languages)
-    i18n.changeLanguage('')
+    if (getLang() && getLang() !== '') {
+      setLanguage(LANGUAGES.find((item) => item.code === String(getLang()))?.name || 'English');
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const onChangeLanguage = async (lang: string) => {
+    setLanguage(lang);
+    const code = LANGUAGES.find((item) => item.name === lang)?.code;
+    setLang(code || 'en');
+    i18n.changeLanguage(code || 'en');
+  };
 
   return (
     <AppBar
@@ -144,7 +152,7 @@ export default function AppAppBar() {
               }}
               alignItems={'center'}
               direction={'row'}
-              gap={2}
+              gap={4}
             >
               {isLogin ? (
                 <Button
@@ -179,7 +187,7 @@ export default function AppAppBar() {
                 variant={'standard'}
                 value={language}
                 onChange={(e: any) => {
-                  setLanguage(e.target.value);
+                  onChangeLanguage(e.target.value);
                 }}
               >
                 {LANGUAGES &&

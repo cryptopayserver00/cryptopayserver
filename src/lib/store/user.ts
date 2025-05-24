@@ -50,7 +50,7 @@ const initialUserState: UserPerisistState = {
   showSidebar: true,
   showProgress: false,
   network: 'mainnet',
-  lang: String(LANGUAGES.find((item) => item.code === 'en')?.code),
+  lang: '',
 };
 
 export const useUserPresistStore = create(
