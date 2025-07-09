@@ -429,9 +429,13 @@ const PullPaymentsDetails = () => {
               </Stack>
 
               <Stack direction={'row'} alignItems={'center'} gap={0.5}>
-                <Link href={'#'}>Terms</Link>
+                <Link href={'#'} underline="hover" color={'#000'}>
+                  Terms
+                </Link>
                 <Typography>·</Typography>
-                <Link href={'#'}>Privacy</Link>
+                <Link href={'#'} underline="hover" color={'#000'}>
+                  Privacy
+                </Link>
               </Stack>
             </Stack>
           </Grid>

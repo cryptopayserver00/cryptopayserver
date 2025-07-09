@@ -44,9 +44,7 @@ export default function Footer() {
             <Typography gutterBottom sx={{ fontWeight: 600, mt: 4 }}>
               {t('Join the newsletter')}
             </Typography>
-            <Typography sx={{ color: 'text.secondary', mb: 4 }}>
-              {t('Subscribe for weekly updates. No spams ever!')}
-            </Typography>
+            <Typography sx={{ color: '#000', mb: 4 }}>{t('Subscribe for weekly updates. No spams ever!')}</Typography>
             <Typography>{t('Email')}</Typography>
             <Stack direction="row" spacing={1} useFlexGap mt={1}>
               <TextField
@@ -78,28 +76,20 @@ export default function Footer() {
         >
           <Typography sx={{ fontWeight: 'medium' }}>{t('Software')}</Typography>
           <Link
-            color="text.secondary"
+            color="#000"
             underline="hover"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/learn/introduction"
           >
             {t('Introduction')}
           </Link>
-          <Link
-            color="text.secondary"
-            underline="hover"
-            href="https://cryptopayserver.gitbook.io/cryptopayserver/learn/use-case"
-          >
+          <Link color="#000" underline="hover" href="https://cryptopayserver.gitbook.io/cryptopayserver/learn/use-case">
             {t('Use Case')}
           </Link>
-          <Link
-            color="text.secondary"
-            underline="hover"
-            href="https://cryptopayserver.gitbook.io/cryptopayserver/features/apps"
-          >
+          <Link color="#000" underline="hover" href="https://cryptopayserver.gitbook.io/cryptopayserver/features/apps">
             {t('Apps')}
           </Link>
           <Link
-            color="text.secondary"
+            color="#000"
             underline="hover"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/getting-started/quickstart"
           >
@@ -114,21 +104,21 @@ export default function Footer() {
           }}
         >
           <Typography sx={{ fontWeight: 'medium' }}>{t('Resources')}</Typography>
-          <Link color="text.secondary" underline="hover" href="https://cryptopayserver.gitbook.io/cryptopayserver">
+          <Link color="#000" underline="hover" href="https://cryptopayserver.gitbook.io/cryptopayserver">
             {t('Documentation')}
           </Link>
-          <Link color="text.secondary" underline="hover" href="https://github.com/cryptopayserver00/cryptopayserver">
+          <Link color="#000" underline="hover" href="https://github.com/cryptopayserver00/cryptopayserver">
             GitHub
           </Link>
           <Link
-            color="text.secondary"
+            color="#000"
             underline="hover"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/support-and-community/support"
           >
             {t('Support')}
           </Link>
           <Link
-            color="text.secondary"
+            color="#000"
             underline="hover"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/support-and-community/troubleshooting-an-issue-in-cryptopay-server"
           >
@@ -143,16 +133,16 @@ export default function Footer() {
           }}
         >
           <Typography sx={{ fontWeight: 'medium' }}>{t('Community')}</Typography>
-          <Link color="text.secondary" underline="hover" href="https://cryptopayserver.gitbook.io/cryptopayserver">
+          <Link color="#000" underline="hover" href="https://cryptopayserver.gitbook.io/cryptopayserver">
             {t('Blog')}
           </Link>
-          <Link color="text.secondary" underline="hover" href="https://t.me/cryptopayserver">
+          <Link color="#000" underline="hover" href="https://t.me/cryptopayserver">
             {t('Chat')}
           </Link>
-          <Link color="text.secondary" underline="hover" href="#">
+          <Link color="#000" underline="hover" href="#">
             {t('Contribute')}
           </Link>
-          <Link color="text.secondary" underline="hover" href="#">
+          <Link color="#000" underline="hover" href="#">
             {t('Donate')}
           </Link>
         </Box>
@@ -168,23 +158,23 @@ export default function Footer() {
         }}
       >
         <Box>
-          <Link color="text.secondary" href="#">
+          <Link color="#000" href="#" underline="hover">
             {t('Privacy Policy')}
           </Link>
           <Typography sx={{ display: 'inline', mx: 0.5, opacity: 0.5 }}>&nbsp;•&nbsp;</Typography>
-          <Link color="text.secondary" href="#">
+          <Link color="#000" href="#" underline="hover">
             {t('Terms of Service')}
           </Link>
-          <Typography sx={{ color: 'text.secondary', mt: 1 }}>
+          <Typography sx={{ color: '#000', mt: 1 }}>
             {t('Copyright')} ©
-            <Link color="text.secondary" href="#">
+            <Link color="#000" href="#" underline="hover">
               CryptoPayServer
             </Link>
             &nbsp;
             {new Date().getFullYear()}
           </Typography>
         </Box>
-        <Stack direction="row" spacing={1} useFlexGap sx={{ justifyContent: 'left', color: 'text.secondary' }}>
+        <Stack direction="row" spacing={1} useFlexGap sx={{ justifyContent: 'left', color: '#000' }}>
           <IconButton
             color="inherit"
             size="small"

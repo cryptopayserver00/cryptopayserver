@@ -123,7 +123,7 @@ export default function Hero() {
                     {t('Start now')}
                   </Button>
                 </Stack>
-                <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+                <Typography variant="caption" color="#000" sx={{ textAlign: 'center' }}>
                   {t('By clicking "Start now" you agree to our')}
                   <Link href="#" color="primary">
                     {t('Terms & Conditions')}

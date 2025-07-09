@@ -13,6 +13,7 @@ import {
   Grid,
   Chip,
   Divider,
+  Link,
 } from '@mui/material';
 import { useSnackPresistStore } from 'lib/store';
 import { useRouter } from 'next/router';
@@ -23,7 +24,6 @@ import { QRCodeSVG } from 'qrcode.react';
 import { OmitMiddleString } from 'utils/strings';
 import { CURRENCY_SYMBOLS, ORDER_STATUS, WALLET } from 'packages/constants';
 import { GetImgSrcByChain, GetImgSrcByCrypto } from 'utils/qrcode';
-import Link from 'next/link';
 import {
   FindChainNamesByChains,
   FindTokenByChainIdsAndSymbol,
@@ -411,9 +411,13 @@ const InvoiceDetails = () => {
               </Stack>
 
               <Stack direction={'row'} alignItems={'center'} gap={0.5}>
-                <Link href={'#'}>Terms</Link>
+                <Link href={'#'} underline="hover" color={'#000'}>
+                  Terms
+                </Link>
                 <Typography>·</Typography>
-                <Link href={'#'}>Privacy</Link>
+                <Link href={'#'} underline="hover" color={'#000'}>
+                  Privacy
+                </Link>
               </Stack>
             </Stack>
           </Grid>
