@@ -1,44 +1,9 @@
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
-import Link from '@mui/material/Link';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-
-import { styled } from '@mui/material/styles';
+import { Typography, TextField, Stack, Link, Container, Button, Box } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { IsValidEmail } from 'utils/verify';
 import { useUserPresistStore } from 'lib/store';
 import { useTranslation } from 'react-i18next';
-
-const StyledBox = styled('div')(({ theme }) => ({
-  alignSelf: 'center',
-  width: '100%',
-  height: 400,
-  marginTop: theme.spacing(8),
-  // borderRadius: (theme.vars || theme).shape.borderRadius,
-  borderRadius: 10,
-  outline: '6px solid',
-  outlineColor: 'hsla(220, 25%, 80%, 0.2)',
-  border: '1px solid',
-  borderColor: 'gray',
-  // borderColor: (theme.vars || theme).palette.grey[200],
-  boxShadow: '0 0 12px 8px hsla(220, 25%, 80%, 0.2)',
-  backgroundImage: `url(./images/dashboard.png)`,
-  backgroundSize: 'cover',
-  [theme.breakpoints.up('sm')]: {
-    marginTop: theme.spacing(10),
-    height: 700,
-  },
-  ...theme.applyStyles('dark', {
-    boxShadow: '0 0 24px 12px hsla(210, 100%, 25%, 0.2)',
-    backgroundImage: `url(./images/dashboard.png)`,
-    outlineColor: 'hsla(220, 20%, 42%, 0.1)',
-    // borderColor: (theme.vars || theme).palette.grey[700],
-    borderColor: 'gray',
-  }),
-}));
+import TokenDataGrid from 'components/DataList/TokenDataGrid';
 
 export default function Hero() {
   const { t, i18n } = useTranslation('');
@@ -169,7 +134,9 @@ export default function Hero() {
             )}
           </Box>
         </Stack>
-        <StyledBox />
+        <Box mt={10}>
+          <TokenDataGrid source={'dashboard'} />
+        </Box>
       </Container>
     </Box>
   );

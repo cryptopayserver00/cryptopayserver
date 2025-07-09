@@ -10,6 +10,7 @@ import { Http } from 'utils/http/http';
 import { GetImgSrcByCrypto } from 'utils/qrcode';
 import Image from 'next/image';
 import { FormatNumberToEnglish } from 'utils/strings';
+import { useTranslation } from 'react-i18next';
 
 type RowType = {
   id: number;
@@ -27,7 +28,8 @@ type GridType = {
   source: 'dashboard' | 'none';
 };
 
-export default function CurrencyDataGrid(props: GridType) {
+export default function TokenDataGrid(props: GridType) {
+  const { t, i18n } = useTranslation('');
   const { source } = props;
   const [rows, setRows] = useState<RowType[]>([]);
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
@@ -36,7 +38,7 @@ export default function CurrencyDataGrid(props: GridType) {
     { field: 'id', headerName: 'ID', width: 100 },
     {
       field: 'coin',
-      headerName: 'Name',
+      headerName: t('Name'),
       width: 200,
       renderCell: ({ row }) => (
         <Stack direction={'row'} alignItems={'center'} height={'100%'}>
@@ -51,7 +53,7 @@ export default function CurrencyDataGrid(props: GridType) {
     },
     {
       field: 'price',
-      headerName: 'Price',
+      headerName: t('Price'),
       width: 200,
     },
     {
@@ -66,12 +68,12 @@ export default function CurrencyDataGrid(props: GridType) {
     },
     {
       field: 'marketCapStr',
-      headerName: 'Market Cap',
+      headerName: t('Market Cap'),
       width: 200,
     },
     {
       field: 'twentyFourHVol',
-      headerName: 'Volume(24h)',
+      headerName: t('Volume') + '(24h)',
       width: 200,
     },
   ];
@@ -120,7 +122,7 @@ export default function CurrencyDataGrid(props: GridType) {
       }
     } catch (e) {
       setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
+      setSnackMessage(t('The network error occurred. Please try again later.'));
       setSnackOpen(true);
       console.error(e);
     }

@@ -92,5 +92,18 @@
   "Donate": "Donate",
   "Privacy Policy": "Privacy Policy",
   "Terms of Service": "Terms of Service",
-  "Copyright": "Copyright"
+  "Copyright": "Copyright",
+  "Name": "Name",
+  "Price": "Price",
+  "Market Cap": "Market Cap",
+  "Volume": "Volume",
+  "The network error occurred. Please try again later.": "The network error occurred. Please try again later.",
+  "Order Id": "Order Id",
+  "Fiat Amount": "Fiat Amount",
+  "Chain": "Chain",
+  "Crypto Amount": "Crypto Amount",
+  "Source Type": "Source Type",
+  "Order Status": "Order Status",
+  "Created Date": "Created Date",
+  "Expiration Date": "Expiration Date"
 }

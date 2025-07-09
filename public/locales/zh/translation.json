@@ -92,5 +92,18 @@
   "Donate": "捐款",
   "Privacy Policy": "隐私政策",
   "Terms of Service": "服务条款",
-  "Copyright": "版权"
+  "Copyright": "版权",
+  "Name": "名称",
+  "Price": "价格",
+  "Market Cap": "市值",
+  "Volume": "总量",
+  "The network error occurred. Please try again later.": "网络错误发生。请稍后再试。",
+  "Order Id": "订单编号",
+  "Fiat Amount": "法定货币金额",
+  "Chain": "区块链",
+  "Crypto Amount": "加密货币金额",
+  "Source Type": "来源类型",
+  "Order Status": "订单状态",
+  "Created Date": "创建日期",
+  "Expiration Date": "到期日期"
 }

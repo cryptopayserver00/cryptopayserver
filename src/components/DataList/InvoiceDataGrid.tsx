@@ -4,6 +4,7 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import { CURRENCY_SYMBOLS } from 'packages/constants';
 import { CHAINNAMES } from 'packages/constants/blockchain';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'utils/http/axios';
 import { Http } from 'utils/http/http';
 import { FindChainNamesByChains } from 'utils/web3';
@@ -28,6 +29,7 @@ type GridType = {
 };
 
 export default function InvoiceDataGrid(props: GridType) {
+  const { t, i18n } = useTranslation('');
   const { source } = props;
 
   const [rows, setRows] = useState<RowType[]>([]);
@@ -40,42 +42,42 @@ export default function InvoiceDataGrid(props: GridType) {
     { field: 'id', headerName: 'ID', width: 50 },
     {
       field: 'orderId',
-      headerName: 'Order Id',
+      headerName: t('Order Id'),
       width: 200,
     },
     {
       field: 'fiatAmount',
-      headerName: 'Fiat Amount',
+      headerName: t('Fiat Amount'),
       width: 100,
     },
     {
       field: 'chain',
-      headerName: 'Chain',
+      headerName: t('Chain'),
       width: 100,
     },
     {
       field: 'cryptoAmount',
-      headerName: 'Crypto Amount',
+      headerName: t('Crypto Amount'),
       width: 150,
     },
     {
       field: 'sourceType',
-      headerName: 'Source Type',
+      headerName: t('Source Type'),
       width: 140,
     },
     {
       field: 'orderStatus',
-      headerName: 'Order Status',
+      headerName: t('Order Status'),
       width: 140,
     },
     {
       field: 'createdDate',
-      headerName: 'Created Date',
+      headerName: t('Created Date'),
       width: 200,
     },
     {
       field: 'expirationDate',
-      headerName: 'Expiration Date',
+      headerName: t('Expiration Date'),
       width: 200,
     },
   ];

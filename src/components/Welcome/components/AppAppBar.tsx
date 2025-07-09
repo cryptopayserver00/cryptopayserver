@@ -1,22 +1,25 @@
 import { styled, alpha } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Container from '@mui/material/Container';
-import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
-import Drawer from '@mui/material/Drawer';
-import MenuIcon from '@mui/icons-material/Menu';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import {
+  Box,
+  AppBar,
+  Toolbar,
+  Button,
+  IconButton,
+  Container,
+  Divider,
+  MenuItem,
+  Drawer,
+  Select,
+  Stack,
+  Typography,
+} from '@mui/material';
 import ColorModeIconDropdown from './ColorModeIconDropdown';
 import { useEffect, useState } from 'react';
 import { CustomLogo } from 'components/Logo/CustomLogo';
-import { Select, Stack, Typography } from '@mui/material';
 import { useUserPresistStore } from 'lib/store';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES } from 'packages/constants';
+import { CloseRounded, Menu } from '@mui/icons-material';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: 'flex',
@@ -74,7 +77,6 @@ export default function AppAppBar() {
     >
       <Container>
         <StyledToolbar variant="dense" disableGutters>
-          {/* <Stack sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}> */}
           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'} width={'100%'}>
             <Button
               style={{ width: 200, justifyContent: 'left' }}
@@ -91,7 +93,7 @@ export default function AppAppBar() {
             </Button>
             <Stack direction={'row'} sx={{ display: { xs: 'none', md: 'flex' } }} gap={2}>
               <Button
-                style={{ width: 80 }}
+                style={{ width: 100 }}
                 variant="text"
                 color="info"
                 size="small"
@@ -102,7 +104,7 @@ export default function AppAppBar() {
                 {t('Features')}
               </Button>
               <Button
-                style={{ width: 80 }}
+                style={{ width: 100 }}
                 variant="text"
                 color="info"
                 size="small"
@@ -113,7 +115,7 @@ export default function AppAppBar() {
                 {t('Highlights')}
               </Button>
               <Button
-                style={{ width: 80 }}
+                style={{ width: 100 }}
                 variant="text"
                 color="info"
                 size="small"
@@ -124,7 +126,7 @@ export default function AppAppBar() {
                 {t('Pricing')}
               </Button>
               <Button
-                style={{ width: 80 }}
+                style={{ width: 100 }}
                 variant="text"
                 color="info"
                 size="small"
@@ -135,7 +137,7 @@ export default function AppAppBar() {
                 {t('FAQ')}
               </Button>
               <Button
-                style={{ width: 80 }}
+                style={{ width: 100 }}
                 variant="text"
                 size="small"
                 onClick={() => {
@@ -146,44 +148,16 @@ export default function AppAppBar() {
               </Button>
             </Stack>
             <Stack
-              style={{ width: 200, justifyContent: 'right' }}
               sx={{
                 display: { xs: 'none', md: 'flex' },
               }}
+              justifyContent={'right'}
+              width={200}
               alignItems={'center'}
               direction={'row'}
-              gap={4}
+              gap={2}
             >
-              {isLogin ? (
-                <Button
-                  style={{ width: 80 }}
-                  color="primary"
-                  variant="contained"
-                  size="small"
-                  onClick={() => {
-                    window.location.href = '/dashboard';
-                  }}
-                >
-                  {t('Dashboard')}
-                </Button>
-              ) : (
-                <Button
-                  style={{ width: 80 }}
-                  color="primary"
-                  variant="contained"
-                  size="small"
-                  onClick={() => {
-                    window.location.href = '/login';
-                  }}
-                >
-                  {t('Sign in')}
-                </Button>
-              )}
-
               <Select
-                style={{ width: 80 }}
-                size={'small'}
-                inputProps={{ 'aria-label': 'Without label' }}
                 variant={'standard'}
                 value={language}
                 onChange={(e: any) => {
@@ -198,13 +172,35 @@ export default function AppAppBar() {
                     </MenuItem>
                   ))}
               </Select>
+
+              {isLogin ? (
+                <Button
+                  color="primary"
+                  variant="contained"
+                  onClick={() => {
+                    window.location.href = '/dashboard';
+                  }}
+                >
+                  {t('Dashboard')}
+                </Button>
+              ) : (
+                <Button
+                  color="primary"
+                  variant="contained"
+                  onClick={() => {
+                    window.location.href = '/login';
+                  }}
+                >
+                  {t('Sign in')}
+                </Button>
+              )}
             </Stack>
           </Stack>
 
           <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 1 }}>
             <ColorModeIconDropdown size="medium" />
             <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
-              <MenuIcon />
+              <Menu />
             </IconButton>
             <Drawer
               anchor="top"
@@ -224,7 +220,7 @@ export default function AppAppBar() {
                   }}
                 >
                   <IconButton onClick={toggleDrawer(false)}>
-                    <CloseRoundedIcon />
+                    <CloseRounded />
                   </IconButton>
                 </Box>
 

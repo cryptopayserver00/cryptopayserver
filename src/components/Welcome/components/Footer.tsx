@@ -36,14 +36,15 @@ export default function Footer() {
           <Box sx={{ width: { xs: '100%', sm: '60%' } }}>
             <Stack direction={'row'} alignItems={'center'}>
               <CustomLogo>C</CustomLogo>
-              <Typography fontWeight={'bold'} color="#0098e5" fontSize={16}>
-                CryptoPay
+              <Typography fontWeight={'bold'} color="#0098e5" fontSize={'large'}>
+                Crypto Pay Server
               </Typography>
             </Stack>
-            <Typography variant="body2" gutterBottom sx={{ fontWeight: 600, mt: 2 }}>
+
+            <Typography gutterBottom sx={{ fontWeight: 600, mt: 4 }}>
               {t('Join the newsletter')}
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+            <Typography sx={{ color: 'text.secondary', mb: 4 }}>
               {t('Subscribe for weekly updates. No spams ever!')}
             </Typography>
             <Typography>{t('Email')}</Typography>
@@ -75,33 +76,31 @@ export default function Footer() {
             gap: 1,
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            {t('Software')}
-          </Typography>
+          <Typography sx={{ fontWeight: 'medium' }}>{t('Software')}</Typography>
           <Link
             color="text.secondary"
-            variant="body2"
+            underline="hover"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/learn/introduction"
           >
             {t('Introduction')}
           </Link>
           <Link
             color="text.secondary"
-            variant="body2"
+            underline="hover"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/learn/use-case"
           >
             {t('Use Case')}
           </Link>
           <Link
             color="text.secondary"
-            variant="body2"
+            underline="hover"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/features/apps"
           >
             {t('Apps')}
           </Link>
           <Link
             color="text.secondary"
-            variant="body2"
+            underline="hover"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/getting-started/quickstart"
           >
             {t('Getting Started')}
@@ -114,25 +113,23 @@ export default function Footer() {
             gap: 1,
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            {t('Resources')}
-          </Typography>
-          <Link color="text.secondary" variant="body2" href="https://cryptopayserver.gitbook.io/cryptopayserver">
+          <Typography sx={{ fontWeight: 'medium' }}>{t('Resources')}</Typography>
+          <Link color="text.secondary" underline="hover" href="https://cryptopayserver.gitbook.io/cryptopayserver">
             {t('Documentation')}
           </Link>
-          <Link color="text.secondary" variant="body2" href="https://github.com/cryptopayserver00/cryptopayserver">
+          <Link color="text.secondary" underline="hover" href="https://github.com/cryptopayserver00/cryptopayserver">
             GitHub
           </Link>
           <Link
             color="text.secondary"
-            variant="body2"
+            underline="hover"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/support-and-community/support"
           >
             {t('Support')}
           </Link>
           <Link
             color="text.secondary"
-            variant="body2"
+            underline="hover"
             href="https://cryptopayserver.gitbook.io/cryptopayserver/support-and-community/troubleshooting-an-issue-in-cryptopay-server"
           >
             {t('FAQ')}
@@ -145,19 +142,17 @@ export default function Footer() {
             gap: 1,
           }}
         >
-          <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-            {t('Community')}
-          </Typography>
-          <Link color="text.secondary" variant="body2" href="https://cryptopayserver.gitbook.io/cryptopayserver">
+          <Typography sx={{ fontWeight: 'medium' }}>{t('Community')}</Typography>
+          <Link color="text.secondary" underline="hover" href="https://cryptopayserver.gitbook.io/cryptopayserver">
             {t('Blog')}
           </Link>
-          <Link color="text.secondary" variant="body2" href="https://t.me/cryptopayserver">
+          <Link color="text.secondary" underline="hover" href="https://t.me/cryptopayserver">
             {t('Chat')}
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" underline="hover" href="#">
             {t('Contribute')}
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" underline="hover" href="#">
             {t('Donate')}
           </Link>
         </Box>
@@ -173,14 +168,14 @@ export default function Footer() {
         }}
       >
         <Box>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" href="#">
             {t('Privacy Policy')}
           </Link>
           <Typography sx={{ display: 'inline', mx: 0.5, opacity: 0.5 }}>&nbsp;•&nbsp;</Typography>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link color="text.secondary" href="#">
             {t('Terms of Service')}
           </Link>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+          <Typography sx={{ color: 'text.secondary', mt: 1 }}>
             {t('Copyright')} ©
             <Link color="text.secondary" href="#">
               CryptoPayServer
