@@ -7,7 +7,7 @@ export type BlockScanWalletType = {
 };
 
 export class BLOCKSCAN {
-  static baseUrl = 'https://api.cryptopayserver.xyz/api';
+  static baseUrl = 'https://api.cryptopayserver.online/api';
 
   static axiosInstance = axios.create({
     timeout: 50000,

@@ -12,8 +12,8 @@ const queryClient = new QueryClient();
 const metadata = {
   name: 'Cryptopayserver',
   description: 'Free services to help you buy and sell products and collect cryptocurrencies.',
-  url: 'https://cryptopayserver.xyz',
-  icons: ['https://cryptopayserver.xyz/favicon.ico'],
+  url: 'https://cryptopayserver.online',
+  icons: ['https://cryptopayserver.online/favicon.ico'],
 };
 
 createAppKit({

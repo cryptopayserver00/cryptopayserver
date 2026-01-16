@@ -21,7 +21,7 @@ import { Http } from 'utils/http/http';
 import { IsValidEmail, isValidPassword } from 'utils/verify';
 
 const Login = () => {
-  const [email, setEmail] = useState<string>('test@cryptopayserver.xyz');
+  const [email, setEmail] = useState<string>('test@cryptopayserver.online');
   const [password, setPassword] = useState<string>('bUvJZEmnipC!Wr,6');
 
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
@@ -133,7 +133,7 @@ const Login = () => {
                     onChange={(e) => {
                       setEmail(e.target.value);
                     }}
-                    placeholder="test@cryptopayserver.xyz"
+                    placeholder="test@cryptopayserver.online"
                   />
                 </Box>
               </Box>

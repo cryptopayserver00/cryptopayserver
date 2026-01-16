@@ -1,7 +1,7 @@
 {
-  "id": "com.cryptopayserver",
-  "name": "Crypto Pay Server",
-  "short_name": "cryptopayserver",
+  "id": "online.cryptopayserver",
+  "name": "CryptoPayServer",
+  "short_name": "cryptopay",
   "start_url": "/",
   "background_color": "#f8f9fa",
   "theme_color": "#ffffff",

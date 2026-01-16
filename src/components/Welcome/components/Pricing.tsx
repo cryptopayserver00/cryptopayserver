@@ -35,7 +35,7 @@ const tiers = [
   {
     title: 'Professional',
     subheader: 'Recommended',
-    price: '99',
+    price: '9.9',
     description: [
       'Full CryptoPay development platform',
       'All mainnets & testnets',
@@ -52,7 +52,7 @@ const tiers = [
   },
   {
     title: 'Enterprise',
-    price: '999',
+    price: '19.9',
     description: [
       'Full CryptoPay development platform',
       'All mainnets & testnets',

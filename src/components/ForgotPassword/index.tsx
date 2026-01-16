@@ -87,7 +87,6 @@ const ForgotPassword = () => {
                     onChange={(e) => {
                       setEmail(e.target.value);
                     }}
-                    placeholder="test@cryptopayserver.xyz"
                   />
                 </Box>
               </Box>
