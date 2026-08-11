@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from '@/packages/constants/blockchain';
 import {
   AssetBalance,
   ChainAccountType,
@@ -11,8 +11,8 @@ import {
   TRANSACTIONSTATUS,
 } from '../types';
 import { ethers } from 'ethers';
-import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from 'utils/web3';
-import { GetBlockchainTxUrl } from 'utils/chain/ton';
+import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from '@/utils/web3';
+import { GetBlockchainTxUrl } from '@/utils/chain/ton';
 import { BLOCKSCAN } from '../block_scan';
 import { keyPairFromSecretKey, keyPairFromSeed, mnemonicToPrivateKey, mnemonicToWalletKey } from '@ton/crypto';
 import {

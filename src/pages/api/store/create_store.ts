@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { CHAINS } from 'packages/constants/blockchain';
+import { CHAINS } from '@/packages/constants/blockchain';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { NOTIFICATION, NOTIFICATIONS } from 'packages/constants';
+import { NOTIFICATION, NOTIFICATIONS } from '@/packages/constants';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {

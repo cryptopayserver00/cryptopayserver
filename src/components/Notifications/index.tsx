@@ -1,69 +1,249 @@
-import { Settings } from '@mui/icons-material';
+// import { Settings } from '@mui/icons-material';
+// import {
+//   Box,
+//   Button,
+//   Container,
+//   IconButton,
+//   Paper,
+//   Stack,
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableContainer,
+//   TableHead,
+//   TableRow,
+//   Typography,
+// } from '@mui/material';
+// import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store';
+// import { useEffect, useState } from 'react';
+// import axios from '@/utils/http/axios';
+// import { Http } from '@/utils/http/http';
+
+// const Notifications = () => {
+//   return (
+//     <Box>
+//       <Container>
+//         <Box pt={5}>
+//           <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+//             <Typography variant="h6">Notifications</Typography>
+//             <IconButton
+//               size={'large'}
+//               aria-label="toggle password visibility"
+//               onClick={() => {
+//                 window.location.href = '/account?tab=notifications';
+//               }}
+//               edge="end"
+//             >
+//               <Settings />
+//             </IconButton>
+//           </Stack>
+
+//           <Box mt={5}>
+//             <NotificationsTab />
+//           </Box>
+//         </Box>
+//       </Container>
+//     </Box>
+//   );
+// };
+
+// export default Notifications;
+
+// type RowType = {
+//   id: number;
+//   label: string;
+//   message: string;
+//   isSeen: number;
+//   date: string;
+//   url: string;
+// };
+
+// function NotificationsTab() {
+//   const { getStoreId } = useStorePresistStore((state) => state);
+//   const { getUserId, getNetwork } = useUserPresistStore((state) => state);
+//   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
+
+//   const [rows, setRows] = useState<RowType[]>([]);
+
+//   const init = async () => {
+//     try {
+//       const response: any = await axios.get(Http.find_notification, {
+//         params: {
+//           store_id: getStoreId(),
+//           network: getNetwork() === 'mainnet' ? 1 : 2,
+//         },
+//       });
+
+//       if (response.result) {
+//         if (response.data.length > 0) {
+//           let rt: RowType[] = [];
+//           response.data.forEach(async (item: any, index: number) => {
+//             rt.push({
+//               id: item.id,
+//               label: item.label,
+//               message: item.message,
+//               isSeen: item.is_seen,
+//               date: new Date(item.created_at).toLocaleString(),
+//               url: item.url,
+//             });
+//           });
+//           setRows(rt);
+//         } else {
+//           setRows([]);
+//         }
+//       } else {
+//         setSnackSeverity('error');
+//         setSnackMessage('Can not find the data on site!');
+//         setSnackOpen(true);
+//       }
+//     } catch (e) {
+//       setSnackSeverity('error');
+//       setSnackMessage('The network error occurred. Please try again later.');
+//       setSnackOpen(true);
+//       console.error(e);
+//     }
+//   };
+
+//   useEffect(() => {
+//     init();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, []);
+
+//   const onClickSeen = async (id: number, isSeen: number) => {
+//     try {
+//       const response: any = await axios.put(Http.update_notification, {
+//         id: id,
+//         is_seen: isSeen === 1 ? 2 : 1,
+//       });
+
+//       if (response.result) {
+//         setSnackSeverity('success');
+//         setSnackMessage('update Successful!');
+//         setSnackOpen(true);
+
+//         await init();
+//       }
+//     } catch (e) {
+//       setSnackSeverity('error');
+//       setSnackMessage('The network error occurred. Please try again later.');
+//       setSnackOpen(true);
+//       console.error(e);
+//     }
+//   };
+
+//   return (
+//     <TableContainer component={Paper}>
+//       <Table sx={{ minWidth: 650 }} aria-label="simple table">
+//         <TableHead>
+//           <TableRow>
+//             <TableCell>Message</TableCell>
+//             <TableCell>Date</TableCell>
+//             <TableCell align="right">Actions</TableCell>
+//           </TableRow>
+//         </TableHead>
+//         <TableBody>
+//           {rows && rows.length > 0 ? (
+//             <>
+//               {rows.map((row) => (
+//                 <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+//                   <TableCell>{row.message}</TableCell>
+//                   <TableCell component="th" scope="row">
+//                     {row.date}
+//                   </TableCell>
+//                   <TableCell align="right">
+//                     <Button
+//                       onClick={() => {
+//                         window.location.href = row.url;
+//                       }}
+//                     >
+//                       Details
+//                     </Button>
+//                     <Button
+//                       onClick={() => {
+//                         onClickSeen(row.id, row.isSeen);
+//                       }}
+//                     >
+//                       {row.isSeen === 1 ? 'Mark as unseen' : 'Mark as seen'}
+//                     </Button>
+//                   </TableCell>
+//                 </TableRow>
+//               ))}
+//             </>
+//           ) : (
+//             <TableRow>
+//               <TableCell colSpan={100} align="center">
+//                 No rows
+//               </TableCell>
+//             </TableRow>
+//           )}
+//         </TableBody>
+//       </Table>
+//     </TableContainer>
+//   );
+// }
+
+import { Settings } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
+import { Button } from '@/components/ui/button'
 import {
-  Box,
-  Button,
-  Container,
-  IconButton,
-  Paper,
-  Stack,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Typography,
-} from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
+} from '@/components/ui/table'
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
+import axios from '@/utils/http/axios'
+import { Http } from '@/utils/http/http'
+import { cn } from '@/lib/utils'
 
 const Notifications = () => {
   return (
-    <Box>
-      <Container>
-        <Box pt={5}>
-          <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
-            <Typography variant="h6">Notifications</Typography>
-            <IconButton
-              size={'large'}
-              aria-label="toggle password visibility"
+    <div>
+      <div className="mx-auto max-w-screen-lg px-4">
+        <div className="pt-10">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Notifications</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="notification settings"
               onClick={() => {
-                window.location.href = '/account?tab=notifications';
+                window.location.href = '/account?tab=notifications'
               }}
-              edge="end"
             >
-              <Settings />
-            </IconButton>
-          </Stack>
+              <Settings className="h-5 w-5" />
+            </Button>
+          </div>
 
-          <Box mt={5}>
+          <div className="mt-6">
             <NotificationsTab />
-          </Box>
-        </Box>
-      </Container>
-    </Box>
-  );
-};
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
-export default Notifications;
+export default Notifications
 
 type RowType = {
-  id: number;
-  label: string;
-  message: string;
-  isSeen: number;
-  date: string;
-  url: string;
-};
+  id: number
+  label: string
+  message: string
+  isSeen: number
+  date: string
+  url: string
+}
 
 function NotificationsTab() {
-  const { getStoreId } = useStorePresistStore((state) => state);
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state);
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
+  const { getStoreId } = useStorePresistStore((state) => state)
+  const { getUserId, getNetwork } = useUserPresistStore((state) => state)
+  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
 
-  const [rows, setRows] = useState<RowType[]>([]);
+  const [rows, setRows] = useState<RowType[]>([])
 
   const init = async () => {
     try {
@@ -72,11 +252,11 @@ function NotificationsTab() {
           store_id: getStoreId(),
           network: getNetwork() === 'mainnet' ? 1 : 2,
         },
-      });
+      })
 
       if (response.result) {
         if (response.data.length > 0) {
-          let rt: RowType[] = [];
+          let rt: RowType[] = []
           response.data.forEach(async (item: any, index: number) => {
             rt.push({
               id: item.id,
@@ -85,99 +265,106 @@ function NotificationsTab() {
               isSeen: item.is_seen,
               date: new Date(item.created_at).toLocaleString(),
               url: item.url,
-            });
-          });
-          setRows(rt);
+            })
+          })
+          setRows(rt)
         } else {
-          setRows([]);
+          setRows([])
         }
       } else {
-        setSnackSeverity('error');
-        setSnackMessage('Can not find the data on site!');
-        setSnackOpen(true);
+        setSnackSeverity('error')
+        setSnackMessage('Can not find the data on site!')
+        setSnackOpen(true)
       }
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+      setSnackSeverity('error')
+      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackOpen(true)
+      console.error(e)
     }
-  };
+  }
 
   useEffect(() => {
-    init();
+    init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
   const onClickSeen = async (id: number, isSeen: number) => {
     try {
       const response: any = await axios.put(Http.update_notification, {
         id: id,
         is_seen: isSeen === 1 ? 2 : 1,
-      });
+      })
 
       if (response.result) {
-        setSnackSeverity('success');
-        setSnackMessage('update Successful!');
-        setSnackOpen(true);
+        setSnackSeverity('success')
+        setSnackMessage('update Successful!')
+        setSnackOpen(true)
 
-        await init();
+        await init()
       }
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+      setSnackSeverity('error')
+      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackOpen(true)
+      console.error(e)
     }
-  };
+  }
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="simple table">
-        <TableHead>
+    <div className="rounded-lg border">
+      <Table>
+        <TableHeader>
           <TableRow>
-            <TableCell>Message</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell align="right">Actions</TableCell>
+            <TableHead>Message</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
-        </TableHead>
+        </TableHeader>
         <TableBody>
           {rows && rows.length > 0 ? (
-            <>
-              {rows.map((row) => (
-                <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                  <TableCell>{row.message}</TableCell>
-                  <TableCell component="th" scope="row">
-                    {row.date}
-                  </TableCell>
-                  <TableCell align="right">
-                    <Button
-                      onClick={() => {
-                        window.location.href = row.url;
-                      }}
-                    >
-                      Details
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        onClickSeen(row.id, row.isSeen);
-                      }}
-                    >
-                      {row.isSeen === 1 ? 'Mark as unseen' : 'Mark as seen'}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </>
+            rows.map((row) => (
+              <TableRow key={row.id} className={cn(row.isSeen !== 1 && 'bg-muted/40')}>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {row.isSeen !== 1 && (
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+                    )}
+                    <span className={cn(row.isSeen !== 1 && 'font-medium')}>{row.message}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground">{row.date}</TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      window.location.href = row.url
+                    }}
+                  >
+                    Details
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      onClickSeen(row.id, row.isSeen)
+                    }}
+                  >
+                    {row.isSeen === 1 ? 'Mark as unseen' : 'Mark as seen'}
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
           ) : (
             <TableRow>
-              <TableCell colSpan={100} align="center">
+              <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
                 No rows
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
-    </TableContainer>
-  );
+    </div>
+  )
 }

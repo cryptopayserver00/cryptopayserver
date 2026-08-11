@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
 import { createHash } from 'crypto';
-import { SatoshisToBtc } from 'utils/number';
+import { SatoshisToBtc } from '@/utils/number';
 
 type ParsedServer = {
   baseUrl: string;

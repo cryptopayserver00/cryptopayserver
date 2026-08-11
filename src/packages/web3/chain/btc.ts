@@ -1,6 +1,6 @@
 import * as bitcoin from 'bitcoinjs-lib';
 import { toXOnly } from 'bitcoinjs-lib/src/psbt/bip371';
-import { CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
+import { CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from '@/packages/constants/blockchain';
 import {
   AssetBalance,
   BTCFeeRate,
@@ -17,10 +17,10 @@ import BIP32Factory from 'bip32';
 import * as ecc from 'tiny-secp256k1';
 import { ECPairFactory } from 'ecpair';
 import axios from 'axios';
-import { BigAdd, BigSub, BigDiv, BigMul } from 'utils/number';
+import { BigAdd, BigSub, BigDiv, BigMul } from '@/utils/number';
 import { ethers } from 'ethers';
 import Big from 'big.js';
-import { GetBlockchainTxUrl, GetBlockstreamApi, GetNodeApi } from 'utils/chain/btc';
+import { GetBlockchainTxUrl, GetBlockstreamApi, GetNodeApi } from '@/utils/chain/btc';
 
 export class BTC {
   static chain = CHAINS.BITCOIN;

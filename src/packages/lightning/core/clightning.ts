@@ -1,8 +1,8 @@
 import * as net from 'net';
 import axios from 'axios';
-import { LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
 import { randomBytes } from 'crypto';
-import { MsatoshisToBtc } from 'utils/number';
+import { MsatoshisToBtc } from '@/utils/number';
 
 // https://docs.corelightning.org/reference
 export class CLIGHTNING {

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from '@/packages/constants/blockchain';
 import {
   AssetBalance,
   ChainAccountType,
@@ -19,10 +19,10 @@ import { HDKey } from 'ethereum-cryptography/hdkey.js';
 import { ethers, Wallet, Contract } from 'ethers';
 import { RPC } from '../rpc';
 import { ERC20Abi } from '../abi/erc20';
-import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from 'utils/web3';
-import { BigMul } from 'utils/number';
+import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from '@/utils/web3';
+import { BigMul } from '@/utils/number';
 import Big from 'big.js';
-import { GetBlockchainTxUrl } from 'utils/chain/eth';
+import { GetBlockchainTxUrl } from '@/utils/chain/eth';
 import { BLOCKSCAN } from '../block_scan';
 
 export class ETH {

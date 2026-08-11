@@ -1,6 +1,6 @@
 import * as bitcoin from 'bitcoinjs-lib';
 import axios from 'axios';
-import { CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
+import { CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from '@/packages/constants/blockchain';
 import {
   AssetBalance,
   BTCFeeRate,
@@ -15,8 +15,8 @@ import {
 import * as ecc from 'tiny-secp256k1';
 import BIP32Factory from 'bip32';
 import { ECPairFactory } from 'ecpair';
-import { GetBlockchainTxUrl, GetNodeApi } from 'utils/chain/ltc';
-import { BigAdd, BigDiv, BigMul, BigSub } from 'utils/number';
+import { GetBlockchainTxUrl, GetNodeApi } from '@/utils/chain/ltc';
+import { BigAdd, BigDiv, BigMul, BigSub } from '@/utils/number';
 import Big from 'big.js';
 import { ethers } from 'ethers';
 

@@ -21,13 +21,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
 import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
 import { AccountBalanceWallet, ExpandMore, ReportGmailerrorred } from '@mui/icons-material';
 import Image from 'next/image';
-import { BLOCKCHAINNAMES, CHAINNAMES, CHAINS, COINS } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINNAMES, CHAINS, COINS } from '@/packages/constants/blockchain';
 
 type blockchainCoinType = {
   chainId: CHAINS;

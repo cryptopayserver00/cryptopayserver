@@ -13,22 +13,22 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import { CHAINS, COINS } from 'packages/constants/blockchain';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
+import { CHAINS, COINS } from '@/packages/constants/blockchain';
 import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
 import Image from 'next/image';
-import { OmitMiddleString } from 'utils/strings';
-import { GetBlockchainTxUrl } from 'utils/chain/solana';
+import { OmitMiddleString } from '@/utils/strings';
+import { GetBlockchainTxUrl } from '@/utils/chain/solana';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import Link from 'next/link';
-import { COINGECKO_IDS, PAYOUT_STATUS } from 'packages/constants';
+import { COINGECKO_IDS, PAYOUT_STATUS } from '@/packages/constants';
 import { useRouter } from 'next/router';
-import { BigDiv } from 'utils/number';
-import { GetImgSrcByChain, GetImgSrcByCrypto } from 'utils/qrcode';
-import { FindChainNamesByChains } from 'utils/web3';
+import { BigDiv } from '@/utils/number';
+import { GetImgSrcByChain, GetImgSrcByCrypto } from '@/utils/qrcode';
+import { FindChainNamesByChains } from '@/utils/web3';
 
 type Coin = {
   [currency: string]: string;

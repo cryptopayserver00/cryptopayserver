@@ -1,82 +1,174 @@
-import { ExpandMore } from '@mui/icons-material';
+// import { ExpandMore } from '@mui/icons-material';
+// import {
+//   Accordion,
+//   AccordionDetails,
+//   AccordionSummary,
+//   Box,
+//   Button,
+//   Card,
+//   CardContent,
+//   Typography,
+// } from '@mui/material';
+// import Image from 'next/image';
+// import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from '@/packages/constants/blockchain';
+// import { useEffect, useState } from 'react';
+// import CreateFreeFundsDialog from '@/components/Dialog/CreateFreeFundsDialog';
+
+// type SelectType = {
+//   network: number;
+//   amount: number;
+//   currency: string;
+//   onClickCoin: (item: COIN, address: string, amount: number) => Promise<void>;
+// };
+
+// export default function FreeCoinSelectChainAndCryptoCard(props: SelectType) {
+//   const [expanded, setExpanded] = useState<string | false>(false);
+//   const [blockchains, setBlockchains] = useState<BLOCKCHAIN[]>([]);
+//   const [selectCoinItem, setSelectCoinItem] = useState<COIN>();
+
+//   const [open, setOpen] = useState<boolean>(false);
+
+//   const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+//     setExpanded(isExpanded ? panel : false);
+//   };
+
+//   useEffect(() => {
+//     const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
+//     setBlockchains(value);
+//   }, [props.network]);
+
+//   return (
+//     <Box>
+//       <Card>
+//         <CardContent>
+//           <Typography variant={'h5'} textAlign={'center'} mt={1}>
+//             Select Chain and Crypto
+//           </Typography>
+//         </CardContent>
+//       </Card>
+//       <Box mt={2}>
+//         {blockchains &&
+//           blockchains.length > 0 &&
+//           blockchains.map((item, index) => (
+//             <Accordion expanded={expanded === item.name} onChange={handleChange(item.name)} key={index}>
+//               <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1bh-content">
+//                 <Typography sx={{ width: '33%', flexShrink: 0 }} fontWeight={'bold'}>
+//                   {item.name.toUpperCase()}
+//                 </Typography>
+//                 <Typography sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
+//               </AccordionSummary>
+//               {item.coins &&
+//                 item.coins.length > 0 &&
+//                 item.coins.map((coinItem: COIN, coinIndex) => (
+//                   <AccordionDetails key={coinIndex}>
+//                     <Button
+//                       fullWidth
+//                       onClick={async () => {
+//                         setSelectCoinItem(coinItem);
+
+//                         setOpen(true);
+//                       }}
+//                     >
+//                       <Image src={coinItem.icon} alt="icon" width={50} height={50} />
+//                       <Typography ml={2}>{coinItem.name}</Typography>
+//                     </Button>
+//                   </AccordionDetails>
+//                 ))}
+//             </Accordion>
+//           ))}
+//       </Box>
+
+//       <CreateFreeFundsDialog
+//         network={props.network}
+//         selectCoinItem={selectCoinItem as COIN}
+//         openDialog={open}
+//         setOpenDialog={setOpen}
+//         onClickCoin={props.onClickCoin}
+//       />
+//     </Box>
+//   );
+// }
+
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import {
   Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-} from '@mui/material';
-import Image from 'next/image';
-import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from 'packages/constants/blockchain';
-import { useEffect, useState } from 'react';
-import CreateFreeFundsDialog from 'components/Dialog/CreateFreeFundsDialog';
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from '@/packages/constants/blockchain'
+import CreateFreeFundsDialog from '@/components/Dialog/CreateFreeFundsDialog'
 
 type SelectType = {
-  network: number;
-  amount: number;
-  currency: string;
-  onClickCoin: (item: COIN, address: string, amount: number) => Promise<void>;
-};
+  network: number
+  amount: number
+  currency: string
+  onClickCoin: (item: COIN, address: string, amount: number) => Promise<void>
+}
 
 export default function FreeCoinSelectChainAndCryptoCard(props: SelectType) {
-  const [expanded, setExpanded] = useState<string | false>(false);
-  const [blockchains, setBlockchains] = useState<BLOCKCHAIN[]>([]);
-  const [selectCoinItem, setSelectCoinItem] = useState<COIN>();
-
-  const [open, setOpen] = useState<boolean>(false);
-
-  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : false);
-  };
+  const [blockchains, setBlockchains] = useState<BLOCKCHAIN[]>([])
+  const [selectCoinItem, setSelectCoinItem] = useState<COIN>()
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const value = BLOCKCHAINNAMES.filter((item: any) => (props.network === 1 ? item.isMainnet : !item.isMainnet));
-    setBlockchains(value);
-  }, [props.network]);
+    const value = BLOCKCHAINNAMES.filter((item: any) =>
+      props.network === 1 ? item.isMainnet : !item.isMainnet
+    )
+    setBlockchains(value)
+  }, [props.network])
 
   return (
-    <Box>
+    <div className="space-y-4">
+      {/* Header */}
       <Card>
-        <CardContent>
-          <Typography variant={'h5'} textAlign={'center'} mt={1}>
-            Select Chain and Crypto
-          </Typography>
-        </CardContent>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-center text-lg">Select Chain and Crypto</CardTitle>
+        </CardHeader>
       </Card>
-      <Box mt={2}>
-        {blockchains &&
-          blockchains.length > 0 &&
-          blockchains.map((item, index) => (
-            <Accordion expanded={expanded === item.name} onChange={handleChange(item.name)} key={index}>
-              <AccordionSummary expandIcon={<ExpandMore />} aria-controls="panel1bh-content">
-                <Typography sx={{ width: '33%', flexShrink: 0 }} fontWeight={'bold'}>
-                  {item.name.toUpperCase()}
-                </Typography>
-                <Typography sx={{ color: 'text.secondary' }}>{item.desc}</Typography>
-              </AccordionSummary>
-              {item.coins &&
-                item.coins.length > 0 &&
-                item.coins.map((coinItem: COIN, coinIndex) => (
-                  <AccordionDetails key={coinIndex}>
-                    <Button
-                      fullWidth
-                      onClick={async () => {
-                        setSelectCoinItem(coinItem);
 
-                        setOpen(true);
-                      }}
-                    >
-                      <Image src={coinItem.icon} alt="icon" width={50} height={50} />
-                      <Typography ml={2}>{coinItem.name}</Typography>
-                    </Button>
-                  </AccordionDetails>
+      {/* Chain Accordion */}
+      <Accordion type="single" collapsible className="w-full space-y-2">
+        {blockchains?.map((item) => (
+          <AccordionItem key={item.name} value={item.name} className="rounded-lg border px-4">
+            <AccordionTrigger className="hover:no-underline py-4">
+              <div className="flex items-center gap-4 text-left">
+                <span className="font-semibold uppercase tracking-wide min-w-[100px]">
+                  {item.name}
+                </span>
+                <span className="text-sm text-muted-foreground font-normal">{item.desc}</span>
+              </div>
+            </AccordionTrigger>
+
+            <AccordionContent>
+              <div className="grid gap-1 pb-2">
+                {item.coins?.map((coinItem: COIN) => (
+                  <button
+                    key={coinItem.name}
+                    type="button"
+                    onClick={() => {
+                      setSelectCoinItem(coinItem)
+                      setOpen(true)
+                    }}
+                    className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                  >
+                    <Image
+                      src={coinItem.icon}
+                      alt={coinItem.name}
+                      width={40}
+                      height={40}
+                      className="rounded-full"
+                    />
+                    <span className="text-sm font-medium">{coinItem.name}</span>
+                  </button>
                 ))}
-            </Accordion>
-          ))}
-      </Box>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
 
       <CreateFreeFundsDialog
         network={props.network}
@@ -85,6 +177,6 @@ export default function FreeCoinSelectChainAndCryptoCard(props: SelectType) {
         setOpenDialog={setOpen}
         onClickCoin={props.onClickCoin}
       />
-    </Box>
-  );
+    </div>
+  )
 }

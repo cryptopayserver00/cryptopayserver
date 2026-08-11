@@ -1,118 +1,236 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Checkbox,
-  Container,
-  FormControlLabel,
-  Snackbar,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+// import {
+//   Alert,
+//   Box,
+//   Button,
+//   Card,
+//   CardContent,
+//   Checkbox,
+//   Container,
+//   FormControlLabel,
+//   Snackbar,
+//   Stack,
+//   TextField,
+//   Typography,
+// } from '@mui/material';
 
-import { CustomLogo } from 'components/Logo/CustomLogo';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
-import { IsValidEmail } from 'utils/verify';
+// import { CustomLogo } from '@/components/Logo/CustomLogo';
+// import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
+// import { useEffect, useState } from 'react';
+// import axios from '@/utils/http/axios';
+// import { Http } from '@/utils/http/http';
+// import { IsValidEmail } from '@/utils/verify';
+
+// const ForgotPassword = () => {
+//   const [email, setEmail] = useState<string>('');
+
+//   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
+//   const { getIsLogin } = useUserPresistStore((state) => state);
+
+//   const onResetPassword = async () => {
+//     try {
+//       if (!email || email === '' || !IsValidEmail(email)) {
+//         setSnackSeverity('error');
+//         setSnackMessage('Incorrect email input');
+//         setSnackOpen(true);
+//         return;
+//       }
+
+//       const response: any = await axios.get(Http.send_reset_email, {
+//         params: {
+//           email: email,
+//         },
+//       });
+//       if (response.result) {
+//         setSnackSeverity('success');
+//         setSnackMessage('Email already sent');
+//         setSnackOpen(true);
+//       } else {
+//         setSnackSeverity('error');
+//         setSnackMessage('Incorrect email');
+//         setSnackOpen(true);
+//       }
+//     } catch (e) {
+//       setSnackSeverity('error');
+//       setSnackMessage('The network error occurred. Please try again later.');
+//       setSnackOpen(true);
+//       console.error(e);
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (getIsLogin()) {
+//       window.location.href = '/dashboard';
+//     }
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, []);
+
+//   return (
+//     <Box>
+//       <Container>
+//         <Stack alignItems={'center'} mt={8}>
+//           <CustomLogo style={{ width: 50, height: 50 }}>C</CustomLogo>
+//           <Typography variant="h5" fontWeight={'bold'} mt={4}>
+//             Welcome to your CryptoPay Server
+//           </Typography>
+
+//           <Card sx={{ minWidth: 450, mt: 4, padding: 2 }}>
+//             <CardContent>
+//               <Typography variant="h5">Forgot Password</Typography>
+//               <Box mt={3}>
+//                 <Typography>Email</Typography>
+//                 <Box mt={1}>
+//                   <TextField
+//                     fullWidth
+//                     hiddenLabel
+//                     size="small"
+//                     value={email}
+//                     onChange={(e) => {
+//                       setEmail(e.target.value);
+//                     }}
+//                   />
+//                 </Box>
+//               </Box>
+
+//               <Box mt={3}>
+//                 <Button fullWidth variant={'contained'} size={'large'} onClick={onResetPassword}>
+//                   Send reset email
+//                 </Button>
+//               </Box>
+//               <Box mt={2}>
+//                 <Button
+//                   fullWidth
+//                   size={'large'}
+//                   onClick={() => {
+//                     window.location.href = '/login';
+//                   }}
+//                 >
+//                   Return to Login
+//                 </Button>
+//               </Box>
+//             </CardContent>
+//           </Card>
+//         </Stack>
+//       </Container>
+//     </Box>
+//   );
+// };
+
+// export default ForgotPassword;
+
+import { useEffect, useState } from 'react'
+import { Loader2 } from 'lucide-react'
+
+import { CustomLogo } from '@/components/Logo/CustomLogo'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useSnackPresistStore, useUserPresistStore } from '@/lib/store'
+import axios from '@/utils/http/axios'
+import { Http } from '@/utils/http/http'
+import { IsValidEmail } from '@/utils/verify'
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState<string>('');
+  const [email, setEmail] = useState<string>('')
+  const [loading, setLoading] = useState(false)
 
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state);
-  const { getIsLogin } = useUserPresistStore((state) => state);
+  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { getIsLogin } = useUserPresistStore((state) => state)
+
+  const showSnack = (severity: 'success' | 'error', message: string) => {
+    setSnackSeverity(severity)
+    setSnackMessage(message)
+    setSnackOpen(true)
+  }
 
   const onResetPassword = async () => {
-    try {
-      if (!email || email === '' || !IsValidEmail(email)) {
-        setSnackSeverity('error');
-        setSnackMessage('Incorrect email input');
-        setSnackOpen(true);
-        return;
-      }
+    if (!email || email === '' || !IsValidEmail(email)) {
+      showSnack('error', 'Incorrect email input')
+      return
+    }
 
+    try {
+      setLoading(true)
       const response: any = await axios.get(Http.send_reset_email, {
-        params: {
-          email: email,
-        },
-      });
+        params: { email },
+      })
+
       if (response.result) {
-        setSnackSeverity('success');
-        setSnackMessage('Email already sent');
-        setSnackOpen(true);
+        showSnack('success', 'Email already sent')
       } else {
-        setSnackSeverity('error');
-        setSnackMessage('Incorrect email');
-        setSnackOpen(true);
+        showSnack('error', 'Incorrect email')
       }
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+      showSnack('error', 'The network error occurred. Please try again later.')
+      console.error(e)
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
     if (getIsLogin()) {
-      window.location.href = '/dashboard';
+      window.location.href = '/dashboard'
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
   return (
-    <Box>
-      <Container>
-        <Stack alignItems={'center'} mt={8}>
+    <div className="min-h-screen bg-muted/30">
+      <div className="mx-auto max-w-screen-sm px-4">
+        <div className="flex flex-col items-center pt-16 sm:pt-24">
           <CustomLogo style={{ width: 50, height: 50 }}>C</CustomLogo>
-          <Typography variant="h5" fontWeight={'bold'} mt={4}>
+
+          <h1 className="mt-8 text-center text-2xl font-bold tracking-tight">
             Welcome to your CryptoPay Server
-          </Typography>
+          </h1>
 
-          <Card sx={{ minWidth: 450, mt: 4, padding: 2 }}>
+          <Card className="mt-8 w-full max-w-[450px] border-none shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-2xl">Forgot Password</CardTitle>
+            </CardHeader>
+
             <CardContent>
-              <Typography variant="h5">Forgot Password</Typography>
-              <Box mt={3}>
-                <Typography>Email</Typography>
-                <Box mt={1}>
-                  <TextField
-                    fullWidth
-                    hiddenLabel
-                    size="small"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                    }}
-                  />
-                </Box>
-              </Box>
-
-              <Box mt={3}>
-                <Button fullWidth variant={'contained'} size={'large'} onClick={onResetPassword}>
-                  Send reset email
-                </Button>
-              </Box>
-              <Box mt={2}>
-                <Button
-                  fullWidth
-                  size={'large'}
-                  onClick={() => {
-                    window.location.href = '/login';
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') onResetPassword()
                   }}
-                >
-                  Return to Login
-                </Button>
-              </Box>
+                  placeholder="you@example.com"
+                />
+              </div>
+
+              <Button
+                className="mt-6 w-full"
+                size="lg"
+                onClick={onResetPassword}
+                disabled={loading}
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Send reset email
+              </Button>
+
+              <Button
+                className="mt-2 w-full"
+                size="lg"
+                variant="ghost"
+                onClick={() => {
+                  window.location.href = '/login'
+                }}
+              >
+                Return to Login
+              </Button>
             </CardContent>
           </Card>
-        </Stack>
-      </Container>
-    </Box>
-  );
-};
+        </div>
+      </div>
+    </div>
+  )
+}
 
-export default ForgotPassword;
+export default ForgotPassword

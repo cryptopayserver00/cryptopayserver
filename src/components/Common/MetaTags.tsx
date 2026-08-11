@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import Head from 'next/head';
-import { APP_DESCRIPTION, APP_NAME } from 'packages/constants';
+import { APP_DESCRIPTION, APP_NAME } from '@/packages/constants';
 import { useRouter } from 'next/router';
 
 type Props = {

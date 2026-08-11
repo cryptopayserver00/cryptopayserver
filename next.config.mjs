@@ -40,6 +40,10 @@ cron.schedule('*/60 * * * * *', async () => {
 });
 
 const nextConfig = {
+  allowedDevOrigins: ['127.0.0.1'],
+  serverExternalPackages: ['@walletconnect/logger'],
+  output: 'standalone',
+
   reactStrictMode: true,
   swcMinify: true,
   transpilePackages: ['@mui/x-charts', '@mui/x-date-pickers'],

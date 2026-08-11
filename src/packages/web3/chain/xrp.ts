@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from '@/packages/constants/blockchain';
 import {
   AssetBalance,
   ChainAccountType,
@@ -10,8 +10,8 @@ import {
   TransactionDetail,
 } from '../types';
 import { Client, convertHexToString, dropsToXrp, isValidAddress, Wallet, xrpToDrops } from 'xrpl';
-import { NonstandardCurrencyCode, DecodeNonstandardCurrencyCode } from 'utils/strings';
-import { FindTokenByChainIdsAndContractAddress } from 'utils/web3';
+import { NonstandardCurrencyCode, DecodeNonstandardCurrencyCode } from '@/utils/strings';
+import { FindTokenByChainIdsAndContractAddress } from '@/utils/web3';
 import { ethers } from 'ethers';
 
 export class XRP {

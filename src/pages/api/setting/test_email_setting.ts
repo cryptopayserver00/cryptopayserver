@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
-import { EMAIL } from 'utils/email';
+import { EMAIL } from '@/utils/email';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

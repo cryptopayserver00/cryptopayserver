@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { CRYPTOPRICE } from 'packages/web3/crypto_price';
+import { CRYPTOPRICE } from '@/packages/web3/crypto_price';
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

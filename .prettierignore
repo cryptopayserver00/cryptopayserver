@@ -1,4 +1,5 @@
-# Ignore artifacts:
+.next
+node_modules
+out
 build
 coverage
-.next

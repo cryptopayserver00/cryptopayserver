@@ -1,4 +1,4 @@
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from '@/packages/constants/blockchain';
 import {
   AssetBalance,
   ChainAccountType,
@@ -22,15 +22,15 @@ import {
 } from '@solana/web3.js';
 import { ethers } from 'ethers';
 import { RPC } from '../rpc';
-import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from 'utils/web3';
+import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from '@/utils/web3';
 import {
   AccountLayout,
   createTransferInstruction,
   getOrCreateAssociatedTokenAccount,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import { GetBlockchainTxUrl } from 'utils/chain/solana';
-import { BigMul } from 'utils/number';
+import { GetBlockchainTxUrl } from '@/utils/chain/solana';
+import { BigMul } from '@/utils/number';
 import bs58 from 'bs58';
 
 export class SOLANA {

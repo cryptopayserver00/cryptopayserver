@@ -1,9 +1,9 @@
 import { Typography, TextField, Stack, Link, Container, Button, Box } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { IsValidEmail } from 'utils/verify';
-import { useUserPresistStore } from 'lib/store';
+import { IsValidEmail } from '@/utils/verify';
+import { useUserPresistStore } from '@/lib/store';
 import { useTranslation } from 'react-i18next';
-import TokenDataGrid from 'components/DataList/TokenDataGrid';
+import TokenDataGrid from '@/components/DataList/TokenDataGrid';
 
 export default function Hero() {
   const { t, i18n } = useTranslation('');

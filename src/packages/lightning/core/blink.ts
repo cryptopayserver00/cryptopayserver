@@ -1,6 +1,6 @@
 import * as net from 'net';
 import axios from 'axios';
-import { LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
 
 type ParsedConnectionString = {
   baseUrl: string;

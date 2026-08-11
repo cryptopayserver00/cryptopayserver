@@ -10,7 +10,7 @@ import {
 import { Bip39 } from './bip39';
 import { BTC } from './chain/btc';
 import { ETH } from './chain/eth';
-import { CHAINIDS, CHAINS, COIN } from 'packages/constants/blockchain';
+import { CHAINIDS, CHAINS, COIN } from '@/packages/constants/blockchain';
 import { SOLANA } from './chain/solana';
 import { BSC } from './chain/bsc';
 import { LTC } from './chain/ltc';

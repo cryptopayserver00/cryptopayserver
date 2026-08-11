@@ -24,17 +24,17 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
 import Link from 'next/link';
-import { CHAINS, COINS } from 'packages/constants/blockchain';
-import { SolanaTransactionDetail } from 'packages/web3/types';
+import { CHAINS, COINS } from '@/packages/constants/blockchain';
+import { SolanaTransactionDetail } from '@/packages/web3/types';
 import { useEffect, useState } from 'react';
-import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/solana';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
-import SolanaSVG from 'assets/chain/solana.svg';
+import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from '@/utils/chain/solana';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
+import SolanaSVG from '@/assets/chain/solana.svg';
 import Image from 'next/image';
-import { GetImgSrcByCrypto } from 'utils/qrcode';
+import { GetImgSrcByCrypto } from '@/utils/qrcode';
 
 type walletType = {
   id: number;

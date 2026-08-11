@@ -1,80 +1,71 @@
-import Dashboard from 'components/Dashboard';
-import Settings from 'components/Settings';
-import Bitcoin from 'components/Wallets/Bitcoin';
-import Lightning from 'components/Wallets/Bitcoin/Lightning';
-import Shopify from 'components/Plugins/Shopify';
-import Pointofsale from 'components/Plugins/Pointofsale';
-import Paybutton from 'components/Plugins/Paybutton';
-import Crowdfund from 'components/Plugins/Crowdfund';
-import Account from 'components/Account';
-import Notifications from 'components/Notifications';
-import Login from 'components/Login';
-import Register from 'components/Register';
-import ForgotPassword from 'components/ForgotPassword';
-import CreateStore from 'components/Stores/Create';
-import CreateWallet from 'components/Wallet/Create';
-import WalletImport from 'components/Wallet/Import';
-import GenerateWallet from 'components/Wallet/Generate';
-import SetPassword from 'components/Wallet/SetPassword';
-import PhraseIntro from 'components/Wallet/Phrase/Intro';
-import PhraseBackup from 'components/Wallet/Phrase/Backup';
-import PhraseBackupConfirm from 'components/Wallet/Phrase/Backup/Confirm';
-import ImportMnemonicPhraseOrPrivateKey from 'components/Wallet/Import/MnemonicPhraseOrPrivateKey';
-import Ethereum from 'components/Wallets/Ethereum';
-import Litecoin from 'components/Wallets/Litecoin';
-import Solana from 'components/Wallets/Solana';
-import Ton from 'components/Wallets/Ton';
-import Tron from 'components/Wallets/Tron';
-import Bsc from 'components/Wallets/Bsc';
-import BitcoinSend from 'components/Wallets/Bitcoin/Send';
-import InvoicesDetails from 'components/Invoices/id';
-import Manage from 'components/Wallets/Manage';
-import WalletsReceive from 'components/Wallets/Receive';
-import WalletsSend from 'components/Wallets/Send';
-import SolanaSend from 'components/Wallets/Solana/Send';
-import LitecoinSend from 'components/Wallets/Litecoin/Send';
-import TronSend from 'components/Wallets/Tron/Send';
-import TonSend from 'components/Wallets/Ton/Send';
-import PaymentTransactions from 'components/Payments/Transactions';
-import PaymentInvoices from 'components/Payments/Invoices';
-import PaymentInvoiceDetails from 'components/Payments/Invoices/id';
-import Reporting from 'components/Payments/Reporting';
-import Requests from 'components/Payments/Requests';
-import Pullpayments from 'components/Payments/Pullpayments';
-import Payouts from 'components/Payments/Payouts';
-import PaymentRequestsDetails from 'components/PaymentRequests/id';
-import PullPaymentsDetails from 'components/PullPayments/id';
-import FreeCoin from 'components/FreeCoin';
-import Welcome from 'components/Welcome';
-import React from 'react';
-import XRP from 'components/Wallets/Xrp';
-import XrpSend from 'components/Wallets/Xrp/Send';
-import BitcoinCash from 'components/Wallets/BitcoinCash';
-import BitcoinCashSend from 'components/Wallets/BitcoinCash/Send';
-import Arbitrum from 'components/Wallets/Arbitrum';
-import ArbitrumNova from 'components/Wallets/ArbitrumNova';
-import Avalanche from 'components/Wallets/Avalanche';
-import Polygon from 'components/Wallets/Polygon';
-import Base from 'components/Wallets/Base';
-import Optimism from 'components/Wallets/Optimism';
-import ManagePassword from 'components/Wallets/Manage/Password';
-import ManagePrivateKey from 'components/Wallets/Manage/PrivateKey';
-import ManageAudit from 'components/Wallets/Manage/Audit';
-import ManageWallet from 'components/Wallets/Manage/Wallet';
-import ManageNetwork from 'components/Wallets/Manage/Network';
-import ManageAddressBook from 'components/Wallets/Manage/AddressBook';
-import MyAssets from 'components/Wallets/Assets';
-import AssetsToken from 'components/Wallets/Assets/token';
-
-export type RouteType = {
-  path: string;
-  name: string;
-  title: string;
-  component: any;
-  enableSidebar: boolean;
-  needLogin: boolean;
-  enableInnerFooter: boolean;
-};
+import { RouteType } from '@/utils/types'
+import Dashboard from '@/components/Dashboard'
+import Settings from '@/components/Settings'
+import Bitcoin from '@/components/Wallets/Bitcoin'
+import Lightning from '@/components/Wallets/Bitcoin/Lightning'
+import Shopify from '@/components/Plugins/Shopify'
+import Pointofsale from '@/components/Plugins/Pointofsale'
+import Paybutton from '@/components/Plugins/Paybutton'
+import Crowdfund from '@/components/Plugins/Crowdfund'
+import Account from '@/components/Account'
+import Notifications from '@/components/Notifications'
+import Login from '@/components/Login'
+import Register from '@/components/Register'
+import ForgotPassword from '@/components/ForgotPassword'
+import CreateStore from '@/components/Stores/Create'
+import CreateWallet from '@/components/Wallet/Create'
+import WalletImport from '@/components/Wallet/Import'
+import GenerateWallet from '@/components/Wallet/Generate'
+import SetPassword from '@/components/Wallet/SetPassword'
+import PhraseIntro from '@/components/Wallet/Phrase/Intro'
+import PhraseBackup from '@/components/Wallet/Phrase/Backup'
+import PhraseBackupConfirm from '@/components/Wallet/Phrase/Backup/Confirm'
+import ImportMnemonicPhraseOrPrivateKey from '@/components/Wallet/Import/MnemonicPhraseOrPrivateKey'
+import Ethereum from '@/components/Wallets/Ethereum'
+import Litecoin from '@/components/Wallets/Litecoin'
+import Solana from '@/components/Wallets/Solana'
+import Ton from '@/components/Wallets/Ton'
+import Tron from '@/components/Wallets/Tron'
+import Bsc from '@/components/Wallets/Bsc'
+import BitcoinSend from '@/components/Wallets/Bitcoin/Send'
+import InvoicesDetails from '@/components/Invoices/id'
+import Manage from '@/components/Wallets/Manage'
+import WalletsReceive from '@/components/Wallets/Receive'
+import WalletsSend from '@/components/Wallets/Send'
+import SolanaSend from '@/components/Wallets/Solana/Send'
+import LitecoinSend from '@/components/Wallets/Litecoin/Send'
+import TronSend from '@/components/Wallets/Tron/Send'
+import TonSend from '@/components/Wallets/Ton/Send'
+import PaymentTransactions from '@/components/Payments/Transactions'
+import PaymentInvoices from '@/components/Payments/Invoices'
+import PaymentInvoiceDetails from '@/components/Payments/Invoices/id'
+import Reporting from '@/components/Payments/Reporting'
+import Requests from '@/components/Payments/Requests'
+import Pullpayments from '@/components/Payments/Pullpayments'
+import Payouts from '@/components/Payments/Payouts'
+import PaymentRequestsDetails from '@/components/PaymentRequests/id'
+import PullPaymentsDetails from '@/components/PullPayments/id'
+import FreeCoin from '@/components/FreeCoin'
+import Welcome from '@/components/Welcome'
+import React from 'react'
+import XRP from '@/components/Wallets/Xrp'
+import XrpSend from '@/components/Wallets/Xrp/Send'
+import BitcoinCash from '@/components/Wallets/BitcoinCash'
+import BitcoinCashSend from '@/components/Wallets/BitcoinCash/Send'
+import Arbitrum from '@/components/Wallets/Arbitrum'
+import ArbitrumNova from '@/components/Wallets/ArbitrumNova'
+import Avalanche from '@/components/Wallets/Avalanche'
+import Polygon from '@/components/Wallets/Polygon'
+import Base from '@/components/Wallets/Base'
+import Optimism from '@/components/Wallets/Optimism'
+import ManagePassword from '@/components/Wallets/Manage/Password'
+import ManagePrivateKey from '@/components/Wallets/Manage/PrivateKey'
+import ManageAudit from '@/components/Wallets/Manage/Audit'
+import ManageWallet from '@/components/Wallets/Manage/Wallet'
+import ManageNetwork from '@/components/Wallets/Manage/Network'
+import ManageAddressBook from '@/components/Wallets/Manage/AddressBook'
+import MyAssets from '@/components/Wallets/Assets'
+import AssetsToken from '@/components/Wallets/Assets/token'
 
 export const routes: RouteType[] = [
   {
@@ -83,8 +74,9 @@ export const routes: RouteType[] = [
     title: 'Home',
     component: <Welcome />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: false,
-    enableInnerFooter: false,
   },
   {
     path: '/login',
@@ -92,8 +84,9 @@ export const routes: RouteType[] = [
     title: 'Login',
     component: <Login />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: false,
-    enableInnerFooter: true,
   },
   {
     path: '/register',
@@ -101,8 +94,9 @@ export const routes: RouteType[] = [
     title: 'Register',
     component: <Register />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: false,
-    enableInnerFooter: true,
   },
   {
     path: '/forgot-password',
@@ -110,8 +104,9 @@ export const routes: RouteType[] = [
     title: 'ForgotPassword',
     component: <ForgotPassword />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: false,
-    enableInnerFooter: true,
   },
   {
     path: '/dashboard',
@@ -119,8 +114,9 @@ export const routes: RouteType[] = [
     title: 'Dashboard',
     component: <Dashboard />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/settings',
@@ -128,8 +124,9 @@ export const routes: RouteType[] = [
     title: 'Settings',
     component: <Settings />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/bitcoin',
@@ -137,8 +134,9 @@ export const routes: RouteType[] = [
     title: 'Bitcoin',
     component: <Bitcoin />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/bitcoin/send',
@@ -146,8 +144,9 @@ export const routes: RouteType[] = [
     title: 'BitcoinSend',
     component: <BitcoinSend />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/bitcoin/lightning',
@@ -155,8 +154,9 @@ export const routes: RouteType[] = [
     title: 'Lightning',
     component: <Lightning />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/ethereum',
@@ -164,8 +164,9 @@ export const routes: RouteType[] = [
     title: 'Ethereum',
     component: <Ethereum />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/send',
@@ -173,8 +174,9 @@ export const routes: RouteType[] = [
     title: 'WalletsSend',
     component: <WalletsSend />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/receive',
@@ -182,8 +184,9 @@ export const routes: RouteType[] = [
     title: 'WalletsReceive',
     component: <WalletsReceive />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: false,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/solana',
@@ -191,8 +194,9 @@ export const routes: RouteType[] = [
     title: 'Solana',
     component: <Solana />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/solana/send',
@@ -200,8 +204,9 @@ export const routes: RouteType[] = [
     title: 'SolanaSend',
     component: <SolanaSend />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/bsc',
@@ -209,8 +214,9 @@ export const routes: RouteType[] = [
     title: 'Bsc',
     component: <Bsc />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/litecoin',
@@ -218,8 +224,9 @@ export const routes: RouteType[] = [
     title: 'Litecoin',
     component: <Litecoin />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/litecoin/send',
@@ -227,8 +234,9 @@ export const routes: RouteType[] = [
     title: 'LitecoinSend',
     component: <LitecoinSend />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/tron',
@@ -236,8 +244,9 @@ export const routes: RouteType[] = [
     title: 'Tron',
     component: <Tron />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/tron/send',
@@ -245,8 +254,9 @@ export const routes: RouteType[] = [
     title: 'TronSend',
     component: <TronSend />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/ton',
@@ -254,8 +264,9 @@ export const routes: RouteType[] = [
     title: 'Ton',
     component: <Ton />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/ton/send',
@@ -263,8 +274,9 @@ export const routes: RouteType[] = [
     title: 'TonSend',
     component: <TonSend />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/xrp',
@@ -272,8 +284,9 @@ export const routes: RouteType[] = [
     title: 'Xrp',
     component: <XRP />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/xrp/send',
@@ -281,8 +294,9 @@ export const routes: RouteType[] = [
     title: 'XrpSend',
     component: <XrpSend />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/bitcoincash',
@@ -290,8 +304,9 @@ export const routes: RouteType[] = [
     title: 'BitcoinCash',
     component: <BitcoinCash />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/bitcoincash/send',
@@ -299,8 +314,9 @@ export const routes: RouteType[] = [
     title: 'BitcoinCashSend',
     component: <BitcoinCashSend />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/arbitrum',
@@ -308,8 +324,9 @@ export const routes: RouteType[] = [
     title: 'Arbitrum',
     component: <Arbitrum />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/arbitrumnova',
@@ -317,8 +334,9 @@ export const routes: RouteType[] = [
     title: 'ArbitrumNova',
     component: <ArbitrumNova />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/avalanche',
@@ -326,8 +344,9 @@ export const routes: RouteType[] = [
     title: 'Avalanche',
     component: <Avalanche />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/polygon',
@@ -335,8 +354,9 @@ export const routes: RouteType[] = [
     title: 'Polygon',
     component: <Polygon />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/base',
@@ -344,8 +364,9 @@ export const routes: RouteType[] = [
     title: 'Base',
     component: <Base />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/optimism',
@@ -353,8 +374,9 @@ export const routes: RouteType[] = [
     title: 'Optimism',
     component: <Optimism />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/assets',
@@ -362,8 +384,9 @@ export const routes: RouteType[] = [
     title: 'Assets',
     component: <MyAssets />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/assets/token',
@@ -371,8 +394,9 @@ export const routes: RouteType[] = [
     title: 'AssetsToken',
     component: <AssetsToken />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/manage',
@@ -380,8 +404,9 @@ export const routes: RouteType[] = [
     title: 'Manage',
     component: <Manage />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/manage/password',
@@ -389,8 +414,9 @@ export const routes: RouteType[] = [
     title: 'ManagePassword',
     component: <ManagePassword />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/manage/privatekey',
@@ -398,8 +424,9 @@ export const routes: RouteType[] = [
     title: 'ManagePrivateKey',
     component: <ManagePrivateKey />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/manage/audit',
@@ -407,8 +434,9 @@ export const routes: RouteType[] = [
     title: 'ManageAudit',
     component: <ManageAudit />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/manage/wallet',
@@ -416,8 +444,9 @@ export const routes: RouteType[] = [
     title: 'ManageWallet',
     component: <ManageWallet />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/manage/network',
@@ -425,8 +454,9 @@ export const routes: RouteType[] = [
     title: 'ManageNetwork',
     component: <ManageNetwork />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallets/manage/addressbook',
@@ -434,8 +464,9 @@ export const routes: RouteType[] = [
     title: 'ManageAddressBook',
     component: <ManageAddressBook />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/payments/transactions',
@@ -443,8 +474,9 @@ export const routes: RouteType[] = [
     title: 'PaymentTransactions',
     component: <PaymentTransactions />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/payments/invoices',
@@ -452,8 +484,9 @@ export const routes: RouteType[] = [
     title: 'PaymentInvoices',
     component: <PaymentInvoices />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/payments/invoices/[id]',
@@ -461,8 +494,9 @@ export const routes: RouteType[] = [
     title: 'PaymentInvoiceDetails',
     component: <PaymentInvoiceDetails />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/payments/reporting',
@@ -470,8 +504,9 @@ export const routes: RouteType[] = [
     title: 'Reporting',
     component: <Reporting />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/payments/requests',
@@ -479,8 +514,9 @@ export const routes: RouteType[] = [
     title: 'Requests',
     component: <Requests />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/payments/pullpayments',
@@ -488,8 +524,9 @@ export const routes: RouteType[] = [
     title: 'Pullpayments',
     component: <Pullpayments />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/payments/payouts',
@@ -497,8 +534,9 @@ export const routes: RouteType[] = [
     title: 'Payouts',
     component: <Payouts />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/plugins/shopify',
@@ -506,8 +544,9 @@ export const routes: RouteType[] = [
     title: 'Shopify',
     component: <Shopify />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/plugins/pointofsale',
@@ -515,8 +554,9 @@ export const routes: RouteType[] = [
     title: 'Pointofsale',
     component: <Pointofsale />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/plugins/paybutton',
@@ -524,8 +564,9 @@ export const routes: RouteType[] = [
     title: 'Paybutton',
     component: <Paybutton />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/plugins/crowdfund',
@@ -533,8 +574,9 @@ export const routes: RouteType[] = [
     title: 'Crowdfund',
     component: <Crowdfund />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/account',
@@ -542,8 +584,9 @@ export const routes: RouteType[] = [
     title: 'Account',
     component: <Account />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/notifications',
@@ -551,8 +594,9 @@ export const routes: RouteType[] = [
     title: 'Notifications',
     component: <Notifications />,
     enableSidebar: true,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/stores/create',
@@ -560,8 +604,9 @@ export const routes: RouteType[] = [
     title: 'CreateStore',
     component: <CreateStore />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallet/create',
@@ -569,8 +614,9 @@ export const routes: RouteType[] = [
     title: 'CreateWallet',
     component: <CreateWallet />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallet/import',
@@ -578,8 +624,9 @@ export const routes: RouteType[] = [
     title: 'WalletImport',
     component: <WalletImport />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallet/import/mnemonicphrase',
@@ -587,8 +634,9 @@ export const routes: RouteType[] = [
     title: 'ImportMnemonicPhraseOrPrivateKey',
     component: <ImportMnemonicPhraseOrPrivateKey />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallet/generate',
@@ -596,8 +644,9 @@ export const routes: RouteType[] = [
     title: 'GenerateWallet',
     component: <GenerateWallet />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallet/setPassword',
@@ -605,8 +654,9 @@ export const routes: RouteType[] = [
     title: 'SetPassword',
     component: <SetPassword />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallet/phrase/intro',
@@ -614,8 +664,9 @@ export const routes: RouteType[] = [
     title: 'PhraseIntro',
     component: <PhraseIntro />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallet/phrase/backup',
@@ -623,8 +674,9 @@ export const routes: RouteType[] = [
     title: 'PhraseBackup',
     component: <PhraseBackup />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/wallet/phrase/backup/confirm',
@@ -632,8 +684,9 @@ export const routes: RouteType[] = [
     title: 'PhraseBackupConfirm',
     component: <PhraseBackupConfirm />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: true,
-    enableInnerFooter: true,
   },
   {
     path: '/invoices/[id]',
@@ -641,8 +694,9 @@ export const routes: RouteType[] = [
     title: 'InvoicesDetails',
     component: <InvoicesDetails />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: false,
-    enableInnerFooter: true,
   },
   {
     path: '/payment-requests/[id]',
@@ -650,8 +704,9 @@ export const routes: RouteType[] = [
     title: 'PaymentRequestsDetails',
     component: <PaymentRequestsDetails />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: false,
-    enableInnerFooter: true,
   },
   {
     path: '/pull-payments/[id]',
@@ -659,8 +714,9 @@ export const routes: RouteType[] = [
     title: 'PullPaymentsDetails',
     component: <PullPaymentsDetails />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: false,
-    enableInnerFooter: true,
   },
   {
     path: '/freecoin',
@@ -668,7 +724,8 @@ export const routes: RouteType[] = [
     title: 'FreeCoin',
     component: <FreeCoin />,
     enableSidebar: false,
+    enableHomeHeader: true,
+    enableHomeFooter: true,
     needLogin: false,
-    enableInnerFooter: true,
   },
-];
+]

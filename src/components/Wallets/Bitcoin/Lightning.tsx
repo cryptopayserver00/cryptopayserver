@@ -18,14 +18,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import SendLightningAssetsDialog from 'components/Dialog/SendLightningAssetsDialog';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
+import SendLightningAssetsDialog from '@/components/Dialog/SendLightningAssetsDialog';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
 import lightningPayReq from 'bolt11';
-import { BtcToSatoshis } from 'utils/number';
+import { BtcToSatoshis } from '@/utils/number';
 
 type RowType = {
   id: number;

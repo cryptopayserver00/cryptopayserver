@@ -6,7 +6,7 @@ import {
   CHAINS,
   COIN,
   COINS,
-} from 'packages/constants/blockchain';
+} from '@/packages/constants/blockchain';
 import {
   GetBlockchainAddressUrl as GetBTCBlockchainAddressUrl,
   GetBlockchainTxUrl as GetBTCBlockchainTxUrl,

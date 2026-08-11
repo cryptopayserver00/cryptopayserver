@@ -22,14 +22,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import { useSnackPresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
 import Image from 'next/image';
-import { BLOCKCHAIN, BLOCKCHAINNAMES } from 'packages/constants/blockchain';
+import { BLOCKCHAIN, BLOCKCHAINNAMES } from '@/packages/constants/blockchain';
 import { useEffect, useState } from 'react';
 import { VisibilityOff } from '@mui/icons-material';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
-import { FindChainIdsByChainNames, GetBlockchainAddressUrlByChainIds } from 'utils/web3';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
+import { FindChainIdsByChainNames, GetBlockchainAddressUrlByChainIds } from '@/utils/web3';
 import Link from 'next/link';
 
 type RowType = {

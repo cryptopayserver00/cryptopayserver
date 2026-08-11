@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { WEB3 } from 'packages/web3';
+import { WEB3 } from '@/packages/web3';
 import { PrismaClient } from '@prisma/client';
-import { CHAINS, COINS } from 'packages/constants/blockchain';
-import { CRYPTOPRICE } from 'packages/web3/crypto_price';
-import { COINGECKO_IDS, CURRENCY, CURRENCY_SYMBOLS } from 'packages/constants';
-import { BigMul } from 'utils/number';
+import { CHAINS, COINS } from '@/packages/constants/blockchain';
+import { CRYPTOPRICE } from '@/packages/web3/crypto_price';
+import { COINGECKO_IDS, CURRENCY, CURRENCY_SYMBOLS } from '@/packages/constants';
+import { BigMul } from '@/utils/number';
 
 type CoinType = {
   coin: string;

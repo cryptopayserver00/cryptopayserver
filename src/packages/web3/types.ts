@@ -1,5 +1,5 @@
 import { BigNumberish } from 'ethers';
-import { CHAINIDS, CHAINS, COIN, COINS } from 'packages/constants/blockchain';
+import { CHAINIDS, CHAINS, COIN, COINS } from '@/packages/constants/blockchain';
 
 export type WalletAccountType = {
   isGenerate: boolean;

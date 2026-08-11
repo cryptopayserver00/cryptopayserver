@@ -15,10 +15,10 @@ import {
 } from '@mui/material';
 import ColorModeIconDropdown from './ColorModeIconDropdown';
 import { useEffect, useState } from 'react';
-import { CustomLogo } from 'components/Logo/CustomLogo';
-import { useUserPresistStore } from 'lib/store';
+import { CustomLogo } from '@/components/Logo/CustomLogo';
+import { useUserPresistStore } from '@/lib/store';
 import { useTranslation } from 'react-i18next';
-import { LANGUAGES } from 'packages/constants';
+import { LANGUAGES } from '@/packages/constants';
 import { CloseRounded, Menu } from '@mui/icons-material';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {

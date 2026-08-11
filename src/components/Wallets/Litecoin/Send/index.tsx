@@ -15,20 +15,20 @@ import {
 } from '@mui/material';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import { CHAINS, COINS } from 'packages/constants/blockchain';
-import { OmitMiddleString } from 'utils/strings';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
+import { CHAINS, COINS } from '@/packages/constants/blockchain';
+import { OmitMiddleString } from '@/utils/strings';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import Link from 'next/link';
-import { GetBlockchainTxUrl } from 'utils/chain/ltc';
-import { COINGECKO_IDS, PAYOUT_STATUS } from 'packages/constants';
+import { GetBlockchainTxUrl } from '@/utils/chain/ltc';
+import { COINGECKO_IDS, PAYOUT_STATUS } from '@/packages/constants';
 import { useRouter } from 'next/router';
-import { BigDiv, BigSub } from 'utils/number';
-import { GetImgSrcByChain, GetImgSrcByCrypto } from 'utils/qrcode';
-import { FindChainNamesByChains } from 'utils/web3';
+import { BigDiv, BigSub } from '@/utils/number';
+import { GetImgSrcByChain, GetImgSrcByCrypto } from '@/utils/qrcode';
+import { FindChainNamesByChains } from '@/utils/web3';
 
 const fee_byte_length = 140;
 

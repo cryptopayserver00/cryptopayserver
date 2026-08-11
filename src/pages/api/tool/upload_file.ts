@@ -3,7 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import fs from 'fs';
 import path from 'path';
 import formidable from 'formidable';
-import { FILE_TYPE } from 'packages/constants';
+import { FILE_TYPE } from '@/packages/constants';
 
 // Turn off the default body parser because multipart/form is to be handled - data
 export const config = {

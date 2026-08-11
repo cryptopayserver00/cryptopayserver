@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { TestNetWallet, Wallet } from 'mainnet-js';
-import { CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
+import { CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from '@/packages/constants/blockchain';
 import { AssetBalance, ChainAccountType, QRCodeText, SendTransaction, TransactionDetail } from '../types';
 import { ethers } from 'ethers';
-import { FindTokenByChainIdsAndContractAddress } from 'utils/web3';
+import { FindTokenByChainIdsAndContractAddress } from '@/utils/web3';
 
 export class BITCOINCASH {
   static chain = CHAINS.BITCOINCASH;

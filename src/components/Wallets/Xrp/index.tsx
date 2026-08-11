@@ -17,20 +17,20 @@ import {
   Card,
   CardContent,
 } from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import { CHAINNAMES, CHAINS, COINS } from 'packages/constants/blockchain';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
+import { CHAINNAMES, CHAINS, COINS } from '@/packages/constants/blockchain';
 import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
-import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/xrp';
-import { EthereumTransactionDetail } from 'packages/web3/types';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
+import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from '@/utils/chain/xrp';
+import { EthereumTransactionDetail } from '@/packages/web3/types';
 import Link from 'next/link';
-import XrpSVG from 'assets/chain/xrp.svg';
+import XrpSVG from '@/assets/chain/xrp.svg';
 import Image from 'next/image';
-import TransactionsTab from 'components/Tab/TransactionTab';
-import { GetImgSrcByCrypto } from 'utils/qrcode';
-import { FindCoinsByMainnetAndName } from 'utils/web3';
-import { DecodeNonstandardCurrencyCode } from 'utils/strings';
+import TransactionsTab from '@/components/Tab/TransactionTab';
+import { GetImgSrcByCrypto } from '@/utils/qrcode';
+import { FindCoinsByMainnetAndName } from '@/utils/web3';
+import { DecodeNonstandardCurrencyCode } from '@/utils/strings';
 
 type walletType = {
   id: number;

@@ -2,15 +2,15 @@ import { Box, Button, Container, IconButton, Paper, Stack, Typography } from '@m
 import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ContentCopy, Send } from '@mui/icons-material';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
-import { useSnackPresistStore } from 'lib/store';
-import { GetImgSrcByCrypto } from 'utils/qrcode';
-import TransactionDataGrid from 'components/DataList/TransactionDataGrid';
-import { FindChainNamesByChains } from 'utils/web3';
-import { CHAINS, COIN, COINS } from 'packages/constants/blockchain';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
+import { useSnackPresistStore } from '@/lib/store';
+import { GetImgSrcByCrypto } from '@/utils/qrcode';
+import TransactionDataGrid from '@/components/DataList/TransactionDataGrid';
+import { FindChainNamesByChains } from '@/utils/web3';
+import { CHAINS, COIN, COINS } from '@/packages/constants/blockchain';
 import { useRouter } from 'next/router';
-import WalletConnectButton from 'components/Button/WalletConnectButton';
+import WalletConnectButton from '@/components/Button/WalletConnectButton';
 
 const WalletsReceive = () => {
   const router = useRouter();

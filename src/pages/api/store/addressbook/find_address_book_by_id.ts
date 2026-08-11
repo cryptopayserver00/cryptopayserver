@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { ResponseData, CorsMiddleware, CorsMethod } from 'pages/api';
+import { ResponseData, CorsMiddleware, CorsMethod } from '@/pages/api';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {

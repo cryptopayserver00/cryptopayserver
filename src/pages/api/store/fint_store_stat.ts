@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
-import { STORE_STAT_ITEM_TYPE, STORE_STAT_TIME_TYPE } from 'packages/constants';
+import { STORE_STAT_ITEM_TYPE, STORE_STAT_TIME_TYPE } from '@/packages/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

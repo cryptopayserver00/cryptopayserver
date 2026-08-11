@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { GetAllMainnetChainIds, GetAllTestnetChainIds } from 'utils/web3';
+import { GetAllMainnetChainIds, GetAllTestnetChainIds } from '@/utils/web3';
 import { PrismaClient } from '@prisma/client';
-import { BLOCKSCAN } from 'packages/web3/block_scan';
-import { WEB3 } from 'packages/web3';
+import { BLOCKSCAN } from '@/packages/web3/block_scan';
+import { WEB3 } from '@/packages/web3';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

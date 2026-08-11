@@ -1,102 +1,516 @@
-import { Check, Clear } from '@mui/icons-material';
+// import { Check, Clear } from '@mui/icons-material';
+// import {
+//   Box,
+//   Button,
+//   Card,
+//   CardContent,
+//   Checkbox,
+//   Paper,
+//   Stack,
+//   Table,
+//   TableBody,
+//   TableCell,
+//   TableContainer,
+//   TableHead,
+//   TableRow,
+//   TextField,
+//   Typography,
+// } from '@mui/material';
+// import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store';
+// import { ROLEPERMISSION, ROLEPERMISSIONS, USER_ROLE } from '@/packages/constants';
+// import { useEffect, useState } from 'react';
+// import axios from '@/utils/http/axios';
+// import { Http } from '@/utils/http/http';
+
+// const Roles = () => {
+//   const [page, setPage] = useState<number>(1);
+
+//   const [id, setId] = useState<number>(0);
+//   const [role, setRole] = useState<string>('');
+//   const [permissions, setPermissions] = useState<ROLEPERMISSION[]>(ROLEPERMISSIONS);
+
+//   const { getUserId } = useUserPresistStore((state) => state);
+//   const { getStoreId } = useStorePresistStore((state) => state);
+//   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
+
+//   const onClickSave = async () => {
+//     if (id && id > 0) {
+//       try {
+//         if (!permissions || permissions.length === 0) {
+//           return;
+//         }
+
+//         let ids: number[] = [];
+//         permissions.forEach((item) => {
+//           if (item.status) {
+//             ids.push(item.id);
+//           }
+//         });
+
+//         if (ids.length === 0) {
+//           setSnackSeverity('error');
+//           setSnackMessage('Please turn on at least one permissions!');
+//           setSnackOpen(true);
+//           return;
+//         }
+
+//         const response: any = await axios.put(Http.update_role_by_id, {
+//           id: id,
+//           role: role,
+//           permissions: ids.join(','),
+//         });
+
+//         if (response.result) {
+//           setSnackSeverity('success');
+//           setSnackMessage('Save successful!');
+//           setSnackOpen(true);
+
+//           setPage(1);
+//         } else {
+//           setSnackSeverity('error');
+//           setSnackMessage('Save failed!');
+//           setSnackOpen(true);
+//         }
+//       } catch (e) {
+//         setSnackSeverity('error');
+//         setSnackMessage('The network error occurred. Please try again later.');
+//         setSnackOpen(true);
+//         console.error(e);
+//       } finally {
+//         clearData();
+//       }
+//     } else {
+//       try {
+//         if (!permissions || permissions.length === 0) {
+//           return;
+//         }
+
+//         let ids: number[] = [];
+//         permissions.forEach((item) => {
+//           if (item.status) {
+//             ids.push(item.id);
+//           }
+//         });
+
+//         if (ids.length === 0) {
+//           setSnackSeverity('error');
+//           setSnackMessage('Please turn on at least one permissions!');
+//           setSnackOpen(true);
+//           return;
+//         }
+
+//         const response: any = await axios.post(Http.create_role, {
+//           user_id: getUserId(),
+//           store_id: getStoreId(),
+//           role: role,
+//           permissions: ids.join(','),
+//         });
+
+//         if (response.result) {
+//           setSnackSeverity('success');
+//           setSnackMessage('Save successful!');
+//           setSnackOpen(true);
+
+//           setPage(1);
+//         } else {
+//           setSnackSeverity('error');
+//           setSnackMessage('Save failed!');
+//           setSnackOpen(true);
+//         }
+//       } catch (e) {
+//         setSnackSeverity('error');
+//         setSnackMessage('The network error occurred. Please try again later.');
+//         setSnackOpen(true);
+//         console.error(e);
+//       } finally {
+//         clearData();
+//       }
+//     }
+//   };
+
+//   const clearData = () => {
+//     setId(0);
+//     setRole('');
+//     setPermissions(() =>
+//       ROLEPERMISSIONS.map((item) => ({
+//         ...item,
+//         status: false,
+//       })),
+//     );
+//   };
+
+//   const editPermissions = async (id: number, role: string, permissionids: number[]) => {
+//     setId(id);
+//     setRole(role);
+
+//     if (permissionids.length > 0) {
+//       const newPermissions = ROLEPERMISSIONS.map((item) => ({
+//         ...item,
+//         status: permissionids.includes(Number(item.id)),
+//       }));
+//       setPermissions(newPermissions);
+//     }
+
+//     setPage(2);
+//   };
+
+//   return (
+//     <Box>
+//       {page === 1 && (
+//         <>
+//           <Stack direction={'row'} justifyContent={'space-between'}>
+//             <Typography variant="h6">Roles</Typography>
+
+//             <Button
+//               variant={'contained'}
+//               size="large"
+//               onClick={() => {
+//                 setPage(2);
+//               }}
+//             >
+//               Add Roles
+//             </Button>
+//           </Stack>
+//           <Box mt={5}>
+//             <StoreRoles editPermissions={editPermissions} />
+//           </Box>
+//         </>
+//       )}
+
+//       {page === 2 && (
+//         <>
+//           <Stack direction={'row'} justifyContent={'space-between'}>
+//             <Typography variant="h6">Create role</Typography>
+
+//             <Stack direction={'row'} alignItems={'center'} gap={2}>
+//               <Button
+//                 variant={'contained'}
+//                 size="large"
+//                 onClick={() => {
+//                   clearData();
+//                   setPage(1);
+//                 }}
+//               >
+//                 Return
+//               </Button>
+//               <Button
+//                 variant={'contained'}
+//                 size="large"
+//                 onClick={async () => {
+//                   await onClickSave();
+//                 }}
+//                 color={'success'}
+//               >
+//                 Save
+//               </Button>
+//             </Stack>
+//           </Stack>
+//           <Box mt={3}>
+//             <Typography mb={1} fontSize={14}>
+//               Role
+//             </Typography>
+//             <TextField
+//               hiddenLabel
+//               size="small"
+//               value={role}
+//               onChange={(e) => {
+//                 setRole(e.target.value);
+//               }}
+//             />
+//           </Box>
+//           <Box mt={3}>
+//             <Typography>Permissions</Typography>
+//             <Box mt={2}>
+//               {permissions &&
+//                 permissions.length > 0 &&
+//                 permissions.map((item, index) => (
+//                   <Box mb={2} key={index}>
+//                     <Card>
+//                       <CardContent>
+//                         <Stack direction={'row'} alignItems={'flex-start'}>
+//                           <Checkbox
+//                             style={{ padding: 0 }}
+//                             checked={item.status}
+//                             onChange={() => {
+//                               const newPermissions = [...permissions];
+//                               newPermissions[index].status = !newPermissions[index].status;
+//                               setPermissions(newPermissions);
+//                             }}
+//                           />
+//                           <Box ml={1}>
+//                             <Stack direction={'row'} alignItems={'center'}>
+//                               <Typography fontWeight={'bold'}>{item.title}</Typography>
+//                               <Typography ml={1}>{item.tag}</Typography>
+//                             </Stack>
+//                             <Typography mt={1} fontSize={14}>
+//                               {item.description}
+//                             </Typography>
+//                           </Box>
+//                         </Stack>
+//                       </CardContent>
+//                     </Card>
+//                   </Box>
+//                 ))}
+//             </Box>
+//           </Box>
+//         </>
+//       )}
+//     </Box>
+//   );
+// };
+
+// export default Roles;
+
+// type RowType = {
+//   id: number;
+//   rid: number;
+//   role: string;
+//   permissionids: number[];
+//   permissions: string[];
+//   inUse: boolean;
+// };
+
+// type TableType = {
+//   editPermissions: (id: number, role: string, permissionids: number[]) => void;
+// };
+
+// function StoreRoles(props: TableType) {
+//   const [rows, setRows] = useState<RowType[]>([]);
+
+//   const { getUserId } = useUserPresistStore((state) => state);
+//   const { getStoreId } = useStorePresistStore((state) => state);
+//   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
+
+//   const init = async () => {
+//     try {
+//       const response: any = await axios.get(Http.find_role, {
+//         params: {
+//           user_id: getUserId(),
+//           store_id: getStoreId(),
+//         },
+//       });
+
+//       if (response.result) {
+//         if (response.data.length > 0) {
+//           let rt: RowType[] = [];
+//           response.data.forEach(async (item: any, index: number) => {
+//             var permissions: string[] = [];
+//             var permissionids: number[] = [];
+//             if (item.permissions) {
+//               const roleids = item.permissions.split(',');
+//               if (roleids.length > 0) {
+//                 roleids.map((roleItem: number) => {
+//                   permissionids.push(Number(roleItem));
+//                   permissions.push(ROLEPERMISSIONS[roleItem - 1].title);
+//                 });
+//               }
+//             }
+//             rt.push({
+//               id: index + 1,
+//               rid: item.id,
+//               role: item.role,
+//               permissions: permissions,
+//               permissionids: permissionids,
+//               inUse: true,
+//             });
+//           });
+//           setRows(rt);
+//         } else {
+//           setRows([]);
+//         }
+//       }
+//     } catch (e) {
+//       setSnackSeverity('error');
+//       setSnackMessage('The network error occurred. Please try again later.');
+//       setSnackOpen(true);
+//       console.error(e);
+//     }
+//   };
+
+//   const onClickRemove = async (id: number) => {
+//     try {
+//       const response: any = await axios.put(Http.delete_role_by_id, {
+//         id: id,
+//       });
+
+//       if (response.result) {
+//         await init();
+
+//         setSnackSeverity('success');
+//         setSnackMessage('remvoe Success.');
+//         setSnackOpen(true);
+//       }
+//     } catch (e) {
+//       setSnackSeverity('error');
+//       setSnackMessage('The network error occurred. Please try again later.');
+//       setSnackOpen(true);
+//       console.error(e);
+//     }
+//   };
+
+//   useEffect(() => {
+//     init();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, []);
+
+//   return (
+//     <TableContainer component={Paper}>
+//       <Table sx={{ minWidth: 650 }} aria-label="simple table">
+//         <TableHead>
+//           <TableRow>
+//             <TableCell>Role</TableCell>
+//             <TableCell>Permissions</TableCell>
+//             <TableCell>In use</TableCell>
+//             <TableCell align="right">Actions</TableCell>
+//           </TableRow>
+//         </TableHead>
+//         <TableBody>
+//           {rows && rows.length > 0 ? (
+//             <>
+//               {rows.map((row) => (
+//                 <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+//                   <TableCell component="th" scope="row">
+//                     {row.role}
+//                   </TableCell>
+//                   <TableCell>
+//                     {row.permissions.map((item: string, index: number) => (
+//                       <Typography key={index}>{item}</Typography>
+//                     ))}
+//                   </TableCell>
+//                   <TableCell>{row.inUse ? <Check color="success" /> : <Clear color={'error'} />}</TableCell>
+//                   <TableCell align="right" width={200}>
+//                     {!Object.values(USER_ROLE).includes(row.role) && (
+//                       <>
+//                         <Button
+//                           onClick={() => {
+//                             props.editPermissions(row.rid, row.role, row.permissionids);
+//                           }}
+//                         >
+//                           Edit
+//                         </Button>
+//                         <Button
+//                           onClick={() => {
+//                             onClickRemove(row.rid);
+//                           }}
+//                         >
+//                           Remove
+//                         </Button>
+//                       </>
+//                     )}
+//                   </TableCell>
+//                 </TableRow>
+//               ))}
+//             </>
+//           ) : (
+//             <TableRow>
+//               <TableCell colSpan={100} align="center">
+//                 No rows
+//               </TableCell>
+//             </TableRow>
+//           )}
+//         </TableBody>
+//       </Table>
+//     </TableContainer>
+//   );
+// }
+
+import { useEffect, useState } from 'react'
+import { Check, X } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Card, CardContent } from '@/components/ui/card'
 import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Checkbox,
-  Paper,
-  Stack,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { ROLEPERMISSION, ROLEPERMISSIONS, USER_ROLE } from 'packages/constants';
-import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
+} from '@/components/ui/table'
 
-const Roles = () => {
-  const [page, setPage] = useState<number>(1);
+import { ROLEPERMISSION, ROLEPERMISSIONS, USER_ROLE } from '@/packages/constants'
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
+import axios from '@/utils/http/axios'
+import { Http } from '@/utils/http/http'
 
-  const [id, setId] = useState<number>(0);
-  const [role, setRole] = useState<string>('');
-  const [permissions, setPermissions] = useState<ROLEPERMISSION[]>(ROLEPERMISSIONS);
+export const Roles = () => {
+  const [page, setPage] = useState<number>(1)
 
-  const { getUserId } = useUserPresistStore((state) => state);
-  const { getStoreId } = useStorePresistStore((state) => state);
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
+  const [id, setId] = useState<number>(0)
+  const [role, setRole] = useState<string>('')
+  const [permissions, setPermissions] = useState<ROLEPERMISSION[]>(ROLEPERMISSIONS)
+
+  const { getUserId } = useUserPresistStore((state) => state)
+  const { getStoreId } = useStorePresistStore((state) => state)
+  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
 
   const onClickSave = async () => {
     if (id && id > 0) {
       try {
         if (!permissions || permissions.length === 0) {
-          return;
+          return
         }
 
-        let ids: number[] = [];
+        let ids: number[] = []
         permissions.forEach((item) => {
           if (item.status) {
-            ids.push(item.id);
+            ids.push(item.id)
           }
-        });
+        })
 
         if (ids.length === 0) {
-          setSnackSeverity('error');
-          setSnackMessage('Please turn on at least one permissions!');
-          setSnackOpen(true);
-          return;
+          setSnackSeverity('error')
+          setSnackMessage('Please turn on at least one permissions!')
+          setSnackOpen(true)
+          return
         }
 
         const response: any = await axios.put(Http.update_role_by_id, {
           id: id,
           role: role,
           permissions: ids.join(','),
-        });
+        })
 
         if (response.result) {
-          setSnackSeverity('success');
-          setSnackMessage('Save successful!');
-          setSnackOpen(true);
+          setSnackSeverity('success')
+          setSnackMessage('Save successful!')
+          setSnackOpen(true)
 
-          setPage(1);
+          setPage(1)
         } else {
-          setSnackSeverity('error');
-          setSnackMessage('Save failed!');
-          setSnackOpen(true);
+          setSnackSeverity('error')
+          setSnackMessage('Save failed!')
+          setSnackOpen(true)
         }
       } catch (e) {
-        setSnackSeverity('error');
-        setSnackMessage('The network error occurred. Please try again later.');
-        setSnackOpen(true);
-        console.error(e);
+        setSnackSeverity('error')
+        setSnackMessage('The network error occurred. Please try again later.')
+        setSnackOpen(true)
+        console.error(e)
       } finally {
-        clearData();
+        clearData()
       }
     } else {
       try {
         if (!permissions || permissions.length === 0) {
-          return;
+          return
         }
 
-        let ids: number[] = [];
+        let ids: number[] = []
         permissions.forEach((item) => {
           if (item.status) {
-            ids.push(item.id);
+            ids.push(item.id)
           }
-        });
+        })
 
         if (ids.length === 0) {
-          setSnackSeverity('error');
-          setSnackMessage('Please turn on at least one permissions!');
-          setSnackOpen(true);
-          return;
+          setSnackSeverity('error')
+          setSnackMessage('Please turn on at least one permissions!')
+          setSnackOpen(true)
+          return
         }
 
         const response: any = await axios.post(Http.create_role, {
@@ -104,182 +518,184 @@ const Roles = () => {
           store_id: getStoreId(),
           role: role,
           permissions: ids.join(','),
-        });
+        })
 
         if (response.result) {
-          setSnackSeverity('success');
-          setSnackMessage('Save successful!');
-          setSnackOpen(true);
+          setSnackSeverity('success')
+          setSnackMessage('Save successful!')
+          setSnackOpen(true)
 
-          setPage(1);
+          setPage(1)
         } else {
-          setSnackSeverity('error');
-          setSnackMessage('Save failed!');
-          setSnackOpen(true);
+          setSnackSeverity('error')
+          setSnackMessage('Save failed!')
+          setSnackOpen(true)
         }
       } catch (e) {
-        setSnackSeverity('error');
-        setSnackMessage('The network error occurred. Please try again later.');
-        setSnackOpen(true);
-        console.error(e);
+        setSnackSeverity('error')
+        setSnackMessage('The network error occurred. Please try again later.')
+        setSnackOpen(true)
+        console.error(e)
       } finally {
-        clearData();
+        clearData()
       }
     }
-  };
+  }
 
   const clearData = () => {
-    setId(0);
-    setRole('');
+    setId(0)
+    setRole('')
     setPermissions(() =>
       ROLEPERMISSIONS.map((item) => ({
         ...item,
         status: false,
-      })),
-    );
-  };
+      }))
+    )
+  }
 
   const editPermissions = async (id: number, role: string, permissionids: number[]) => {
-    setId(id);
-    setRole(role);
+    setId(id)
+    setRole(role)
 
     if (permissionids.length > 0) {
       const newPermissions = ROLEPERMISSIONS.map((item) => ({
         ...item,
         status: permissionids.includes(Number(item.id)),
-      }));
-      setPermissions(newPermissions);
+      }))
+      setPermissions(newPermissions)
     }
 
-    setPage(2);
-  };
+    setPage(2)
+  }
 
   return (
-    <Box>
+    <div className="space-y-6">
       {page === 1 && (
-        <>
-          <Stack direction={'row'} justifyContent={'space-between'}>
-            <Typography variant="h6">Roles</Typography>
-
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold tracking-tight text-foreground">Roles</h3>
             <Button
-              variant={'contained'}
-              size="large"
+              size="lg"
               onClick={() => {
-                setPage(2);
+                setPage(2)
               }}
             >
               Add Roles
             </Button>
-          </Stack>
-          <Box mt={5}>
+          </div>
+          <div>
             <StoreRoles editPermissions={editPermissions} />
-          </Box>
-        </>
+          </div>
+        </div>
       )}
 
       {page === 2 && (
-        <>
-          <Stack direction={'row'} justifyContent={'space-between'}>
-            <Typography variant="h6">Create role</Typography>
+        <div className="space-y-6 max-w-2xl">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold tracking-tight text-foreground">Create role</h3>
 
-            <Stack direction={'row'} alignItems={'center'} gap={2}>
+            <div className="flex items-center gap-3">
               <Button
-                variant={'contained'}
-                size="large"
+                variant="outline"
+                size="lg"
                 onClick={() => {
-                  clearData();
-                  setPage(1);
+                  clearData()
+                  setPage(1)
                 }}
               >
                 Return
               </Button>
               <Button
-                variant={'contained'}
-                size="large"
+                size="lg"
                 onClick={async () => {
-                  await onClickSave();
+                  await onClickSave()
                 }}
-                color={'success'}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
               >
                 Save
               </Button>
-            </Stack>
-          </Stack>
-          <Box mt={3}>
-            <Typography mb={1} fontSize={14}>
-              Role
-            </Typography>
-            <TextField
-              hiddenLabel
-              size="small"
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="role-name">Role</Label>
+            <Input
+              id="role-name"
+              className="max-w-md"
               value={role}
               onChange={(e) => {
-                setRole(e.target.value);
+                setRole(e.target.value)
               }}
             />
-          </Box>
-          <Box mt={3}>
-            <Typography>Permissions</Typography>
-            <Box mt={2}>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <Label className="text-base font-medium">Permissions</Label>
+            <div className="space-y-3">
               {permissions &&
                 permissions.length > 0 &&
                 permissions.map((item, index) => (
-                  <Box mb={2} key={index}>
-                    <Card>
-                      <CardContent>
-                        <Stack direction={'row'} alignItems={'flex-start'}>
-                          <Checkbox
-                            style={{ padding: 0 }}
-                            checked={item.status}
-                            onChange={() => {
-                              const newPermissions = [...permissions];
-                              newPermissions[index].status = !newPermissions[index].status;
-                              setPermissions(newPermissions);
-                            }}
-                          />
-                          <Box ml={1}>
-                            <Stack direction={'row'} alignItems={'center'}>
-                              <Typography fontWeight={'bold'}>{item.title}</Typography>
-                              <Typography ml={1}>{item.tag}</Typography>
-                            </Stack>
-                            <Typography mt={1} fontSize={14}>
-                              {item.description}
-                            </Typography>
-                          </Box>
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                  </Box>
+                  <Card key={index} className="border shadow-none">
+                    <CardContent className="p-4">
+                      <div className="flex items-start space-x-3">
+                        <Checkbox
+                          id={`perm-${item.id}`}
+                          checked={item.status}
+                          onCheckedChange={() => {
+                            const newPermissions = [...permissions]
+                            newPermissions[index].status = !newPermissions[index].status
+                            setPermissions(newPermissions)
+                          }}
+                          className="mt-0.5"
+                        />
+                        <div className="space-y-1 leading-none">
+                          <div className="flex items-center gap-2">
+                            <label
+                              htmlFor={`perm-${item.id}`}
+                              className="text-sm font-semibold cursor-pointer text-foreground"
+                            >
+                              {item.title}
+                            </label>
+                            <span className="text-xs text-muted-foreground">{item.tag}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
-            </Box>
-          </Box>
-        </>
+            </div>
+          </div>
+        </div>
       )}
-    </Box>
-  );
-};
+    </div>
+  )
+}
 
-export default Roles;
+export default Roles
 
+// ==========================================
+// 3. StoreRoles Table Component
+// ==========================================
 type RowType = {
-  id: number;
-  rid: number;
-  role: string;
-  permissionids: number[];
-  permissions: string[];
-  inUse: boolean;
-};
+  id: number
+  rid: number
+  role: string
+  permissionids: number[]
+  permissions: string[]
+  inUse: boolean
+}
 
 type TableType = {
-  editPermissions: (id: number, role: string, permissionids: number[]) => void;
-};
+  editPermissions: (id: number, role: string, permissionids: number[]) => void
+}
 
 function StoreRoles(props: TableType) {
-  const [rows, setRows] = useState<RowType[]>([]);
+  const [rows, setRows] = useState<RowType[]>([])
 
-  const { getUserId } = useUserPresistStore((state) => state);
-  const { getStoreId } = useStorePresistStore((state) => state);
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
+  const { getUserId } = useUserPresistStore((state) => state)
+  const { getStoreId } = useStorePresistStore((state) => state)
+  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
 
   const init = async () => {
     try {
@@ -288,21 +704,21 @@ function StoreRoles(props: TableType) {
           user_id: getUserId(),
           store_id: getStoreId(),
         },
-      });
+      })
 
       if (response.result) {
         if (response.data.length > 0) {
-          let rt: RowType[] = [];
-          response.data.forEach(async (item: any, index: number) => {
-            var permissions: string[] = [];
-            var permissionids: number[] = [];
+          let rt: RowType[] = []
+          response.data.forEach((item: any, index: number) => {
+            var permissions: string[] = []
+            var permissionids: number[] = []
             if (item.permissions) {
-              const roleids = item.permissions.split(',');
+              const roleids = item.permissions.split(',')
               if (roleids.length > 0) {
                 roleids.map((roleItem: number) => {
-                  permissionids.push(Number(roleItem));
-                  permissions.push(ROLEPERMISSIONS[roleItem - 1].title);
-                });
+                  permissionids.push(Number(roleItem))
+                  permissions.push(ROLEPERMISSIONS[roleItem - 1].title)
+                })
               }
             }
             rt.push({
@@ -312,104 +728,115 @@ function StoreRoles(props: TableType) {
               permissions: permissions,
               permissionids: permissionids,
               inUse: true,
-            });
-          });
-          setRows(rt);
+            })
+          })
+          setRows(rt)
         } else {
-          setRows([]);
+          setRows([])
         }
       }
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+      setSnackSeverity('error')
+      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackOpen(true)
+      console.error(e)
     }
-  };
+  }
 
   const onClickRemove = async (id: number) => {
     try {
       const response: any = await axios.put(Http.delete_role_by_id, {
         id: id,
-      });
+      })
 
       if (response.result) {
-        await init();
+        await init()
 
-        setSnackSeverity('success');
-        setSnackMessage('remvoe Success.');
-        setSnackOpen(true);
+        setSnackSeverity('success')
+        setSnackMessage('remvoe Success.')
+        setSnackOpen(true)
       }
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+      setSnackSeverity('error')
+      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackOpen(true)
+      console.error(e)
     }
-  };
+  }
 
   useEffect(() => {
-    init();
+    init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="simple table">
-        <TableHead>
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
           <TableRow>
-            <TableCell>Role</TableCell>
-            <TableCell>Permissions</TableCell>
-            <TableCell>In use</TableCell>
-            <TableCell align="right">Actions</TableCell>
+            <TableHead>Role</TableHead>
+            <TableHead>Permissions</TableHead>
+            <TableHead>In use</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
-        </TableHead>
+        </TableHeader>
         <TableBody>
           {rows && rows.length > 0 ? (
-            <>
-              {rows.map((row) => (
-                <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                  <TableCell component="th" scope="row">
-                    {row.role}
-                  </TableCell>
-                  <TableCell>
+            rows.map((row) => (
+              <TableRow key={row.id}>
+                <TableCell className="font-medium">{row.role}</TableCell>
+                <TableCell>
+                  <div className="space-y-0.5">
                     {row.permissions.map((item: string, index: number) => (
-                      <Typography key={index}>{item}</Typography>
+                      <p key={index} className="text-sm">
+                        {item}
+                      </p>
                     ))}
-                  </TableCell>
-                  <TableCell>{row.inUse ? <Check color="success" /> : <Clear color={'error'} />}</TableCell>
-                  <TableCell align="right" width={200}>
-                    {!Object.values(USER_ROLE).includes(row.role) && (
-                      <>
-                        <Button
-                          onClick={() => {
-                            props.editPermissions(row.rid, row.role, row.permissionids);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            onClickRemove(row.rid);
-                          }}
-                        >
-                          Remove
-                        </Button>
-                      </>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {row.inUse ? (
+                    <Check className="h-5 w-5 text-emerald-600" />
+                  ) : (
+                    <X className="h-5 w-5 text-destructive" />
+                  )}
+                </TableCell>
+                <TableCell className="text-right w-[200px]">
+                  {!Object.values(USER_ROLE).includes(row.role) && (
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          props.editPermissions(row.rid, row.role, row.permissionids)
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => {
+                          onClickRemove(row.rid)
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))
           ) : (
             <TableRow>
-              <TableCell colSpan={100} align="center">
+              <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
                 No rows
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
-    </TableContainer>
-  );
+    </div>
+  )
 }

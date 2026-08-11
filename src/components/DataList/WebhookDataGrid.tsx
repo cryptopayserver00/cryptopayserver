@@ -1,146 +1,321 @@
-import { Check, Clear } from '@mui/icons-material';
-import { Button, Stack } from '@mui/material';
-import Box from '@mui/material/Box';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 'lib/store';
-import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
+// import { Check, Clear } from '@mui/icons-material';
+// import { Button, Stack } from '@mui/material';
+// import Box from '@mui/material/Box';
+// import { DataGrid, GridColDef } from '@mui/x-data-grid';
+// import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store';
+// import { useEffect, useState } from 'react';
+// import axios from '@/utils/http/axios';
+// import { Http } from '@/utils/http/http';
+
+// type RowType = {
+//   id: number;
+//   webhookId: number;
+//   automaticRedelivery: number;
+//   enabled: number;
+//   eventType: number;
+//   payloadUrl: string;
+//   secret: string;
+//   status: number;
+// };
+
+// type GridType = {
+//   source: 'dashboard' | 'none';
+//   setIsWebhook: (value: boolean) => void;
+//   setPayloadUrl: (value: string) => void;
+//   setSecret: (value: string) => void;
+//   setShowAutomaticRedelivery: (value: boolean) => void;
+//   setShowEnabled: (value: boolean) => void;
+//   setEventType: (value: number) => void;
+//   setModifyId: (value: number) => void;
+// };
+
+// export default function WebhookDataGrid(props: GridType) {
+//   const [rows, setRows] = useState<RowType[]>([]);
+//   const [open, setOpen] = useState(false);
+//   const [selectedValue, setSelectedValue] = useState<RowType>();
+
+//   const { getStoreId } = useStorePresistStore((state) => state);
+//   const { getUserId } = useUserPresistStore((state) => state);
+//   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
+
+//   const onClickRow = async (e: RowType) => {
+//     setSelectedValue(e);
+//     setOpen(true);
+//   };
+
+//   const onClickTest = async (params: any) => {
+//     try {
+//       await axios.get(params.payloadUrl);
+
+//       setSnackSeverity('success');
+//       setSnackMessage('Testing successful!');
+//       setSnackOpen(true);
+//     } catch (e) {
+//       setSnackSeverity('error');
+//       setSnackMessage('Testing failed!');
+//       setSnackOpen(true);
+//       console.error(e);
+//     }
+//   };
+
+//   const onClickModify = async (params: any) => {
+//     if (params) {
+//       props.setModifyId(params.webhookId);
+//       props.setEventType(params.eventType);
+//       props.setPayloadUrl(params.payloadUrl);
+//       props.setSecret(params.secret);
+//       props.setShowAutomaticRedelivery(params.automaticRedelivery === 1 ? true : false);
+//       props.setShowEnabled(params.enabled === 1 ? true : false);
+//       props.setIsWebhook(true);
+//     }
+//   };
+
+//   const onClickDelete = async (params: any) => {
+//     try {
+//       const response: any = await axios.put(Http.delete_webhook_setting_by_id, {
+//         id: params.webhookId,
+//       });
+
+//       if (response.result) {
+//         setSnackSeverity('success');
+//         setSnackMessage('Delete successful!');
+//         setSnackOpen(true);
+
+//         await init();
+//       } else {
+//         setSnackSeverity('error');
+//         setSnackMessage('Delete failed!');
+//         setSnackOpen(true);
+//       }
+//     } catch (e) {
+//       setSnackSeverity('error');
+//       setSnackMessage('The network error occurred. Please try again later.');
+//       setSnackOpen(true);
+//       console.error(e);
+//     }
+//   };
+
+//   const columns: GridColDef<(typeof rows)[number]>[] = [
+//     {
+//       field: 'enabled',
+//       headerName: 'Status',
+//       width: 200,
+//       renderCell: (params) => (params.value === 1 ? <Check color="success" /> : <Clear color={'error'} />),
+//     },
+//     {
+//       field: 'payloadUrl',
+//       headerName: 'Url',
+//       width: 300,
+//     },
+//     {
+//       field: 'actions',
+//       headerName: 'Actions',
+//       type: 'actions',
+//       width: 600,
+//       getActions: ({ row }) => {
+//         return [
+//           <>
+//             <Button
+//               onClick={() => {
+//                 onClickTest(row);
+//               }}
+//             >
+//               Test
+//             </Button>
+//             <Button
+//               onClick={() => {
+//                 onClickModify(row);
+//               }}
+//             >
+//               Modify
+//             </Button>
+//             <Button
+//               onClick={() => {
+//                 onClickDelete(row);
+//               }}
+//             >
+//               Delete
+//             </Button>
+//           </>,
+//         ];
+//       },
+//     },
+//   ];
+
+//   const init = async () => {
+//     try {
+//       const response: any = await axios.get(Http.find_webhook_setting, {
+//         params: {
+//           store_id: getStoreId(),
+//           user_id: getUserId(),
+//         },
+//       });
+
+//       if (response.result) {
+//         if (response.data.length > 0) {
+//           let rt: RowType[] = [];
+//           response.data.forEach((item: any, index: number) => {
+//             rt.push({
+//               id: index + 1,
+//               webhookId: item.id,
+//               automaticRedelivery: item.automatic_redelivery,
+//               enabled: item.enabled,
+//               eventType: item.event_type,
+//               payloadUrl: item.payload_url,
+//               secret: item.secret,
+//               status: item.status,
+//             });
+//           });
+//           setRows(rt);
+//         } else {
+//           setRows([]);
+//         }
+//       } else {
+//         setSnackSeverity('error');
+//         setSnackMessage('Can not find the data on site!');
+//         setSnackOpen(true);
+//       }
+//     } catch (e) {
+//       setSnackSeverity('error');
+//       setSnackMessage('The network error occurred. Please try again later.');
+//       setSnackOpen(true);
+//       console.error(e);
+//     }
+//   };
+
+//   useEffect(() => {
+//     init();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, []);
+
+//   return (
+//     <Box>
+//       <DataGrid
+//         autoHeight
+//         rows={rows}
+//         columns={columns}
+//         initialState={{
+//           pagination: {
+//             paginationModel: {
+//               pageSize: 10,
+//             },
+//           },
+//         }}
+//         pageSizeOptions={[10]}
+//         onRowClick={(e: any) => {
+//           onClickRow(e.row);
+//         }}
+//         // checkboxSelection
+//         // disableRowSelectionOnClick
+//         hideFooter={props.source === 'dashboard' ? true : false}
+//         disableColumnMenu
+//       />
+//     </Box>
+//   );
+// }
+
+import { useEffect, useState } from 'react'
+import { Check, X, FlaskConical, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
+import axios from '@/utils/http/axios'
+import { Http } from '@/utils/http/http'
 
 type RowType = {
-  id: number;
-  webhookId: number;
-  automaticRedelivery: number;
-  enabled: number;
-  eventType: number;
-  payloadUrl: string;
-  secret: string;
-  status: number;
-};
+  id: number
+  webhookId: number
+  automaticRedelivery: number
+  enabled: number
+  eventType: number
+  payloadUrl: string
+  secret: string
+  status: number
+}
 
 type GridType = {
-  source: 'dashboard' | 'none';
-  setIsWebhook: (value: boolean) => void;
-  setPayloadUrl: (value: string) => void;
-  setSecret: (value: string) => void;
-  setShowAutomaticRedelivery: (value: boolean) => void;
-  setShowEnabled: (value: boolean) => void;
-  setEventType: (value: number) => void;
-  setModifyId: (value: number) => void;
-};
+  source: 'dashboard' | 'none'
+  setIsWebhook: (value: boolean) => void
+  setPayloadUrl: (value: string) => void
+  setSecret: (value: string) => void
+  setShowAutomaticRedelivery: (value: boolean) => void
+  setShowEnabled: (value: boolean) => void
+  setEventType: (value: number) => void
+  setModifyId: (value: number) => void
+}
+
+const PAGE_SIZE = 10
 
 export default function WebhookDataGrid(props: GridType) {
-  const [rows, setRows] = useState<RowType[]>([]);
-  const [open, setOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState<RowType>();
+  const [rows, setRows] = useState<RowType[]>([])
+  const [page, setPage] = useState(0)
+  const [testingId, setTestingId] = useState<number | null>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
-  const { getStoreId } = useStorePresistStore((state) => state);
-  const { getUserId } = useUserPresistStore((state) => state);
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
+  const { getStoreId } = useStorePresistStore((state) => state)
+  const { getUserId } = useUserPresistStore((state) => state)
+  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
 
-  const onClickRow = async (e: RowType) => {
-    setSelectedValue(e);
-    setOpen(true);
-  };
-
-  const onClickTest = async (params: any) => {
+  const onClickTest = async (row: RowType) => {
     try {
-      await axios.get(params.payloadUrl);
-
-      setSnackSeverity('success');
-      setSnackMessage('Testing successful!');
-      setSnackOpen(true);
+      setTestingId(row.webhookId)
+      await axios.get(row.payloadUrl)
+      setSnackSeverity('success')
+      setSnackMessage('Testing successful!')
+      setSnackOpen(true)
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('Testing failed!');
-      setSnackOpen(true);
-      console.error(e);
+      setSnackSeverity('error')
+      setSnackMessage('Testing failed!')
+      setSnackOpen(true)
+      console.error(e)
+    } finally {
+      setTestingId(null)
     }
-  };
+  }
 
-  const onClickModify = async (params: any) => {
-    if (params) {
-      props.setModifyId(params.webhookId);
-      props.setEventType(params.eventType);
-      props.setPayloadUrl(params.payloadUrl);
-      props.setSecret(params.secret);
-      props.setShowAutomaticRedelivery(params.automaticRedelivery === 1 ? true : false);
-      props.setShowEnabled(params.enabled === 1 ? true : false);
-      props.setIsWebhook(true);
-    }
-  };
+  const onClickModify = (row: RowType) => {
+    props.setModifyId(row.webhookId)
+    props.setEventType(row.eventType)
+    props.setPayloadUrl(row.payloadUrl)
+    props.setSecret(row.secret)
+    props.setShowAutomaticRedelivery(row.automaticRedelivery === 1)
+    props.setShowEnabled(row.enabled === 1)
+    props.setIsWebhook(true)
+  }
 
-  const onClickDelete = async (params: any) => {
+  const onClickDelete = async (row: RowType) => {
     try {
+      setDeletingId(row.webhookId)
       const response: any = await axios.put(Http.delete_webhook_setting_by_id, {
-        id: params.webhookId,
-      });
+        id: row.webhookId,
+      })
 
       if (response.result) {
-        setSnackSeverity('success');
-        setSnackMessage('Delete successful!');
-        setSnackOpen(true);
-
-        await init();
+        setSnackSeverity('success')
+        setSnackMessage('Delete successful!')
+        setSnackOpen(true)
+        await init()
       } else {
-        setSnackSeverity('error');
-        setSnackMessage('Delete failed!');
-        setSnackOpen(true);
+        setSnackSeverity('error')
+        setSnackMessage('Delete failed!')
+        setSnackOpen(true)
       }
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+      setSnackSeverity('error')
+      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackOpen(true)
+      console.error(e)
+    } finally {
+      setDeletingId(null)
     }
-  };
-
-  const columns: GridColDef<(typeof rows)[number]>[] = [
-    {
-      field: 'enabled',
-      headerName: 'Status',
-      width: 200,
-      renderCell: (params) => (params.value === 1 ? <Check color="success" /> : <Clear color={'error'} />),
-    },
-    {
-      field: 'payloadUrl',
-      headerName: 'Url',
-      width: 300,
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      type: 'actions',
-      width: 600,
-      getActions: ({ row }) => {
-        return [
-          <>
-            <Button
-              onClick={() => {
-                onClickTest(row);
-              }}
-            >
-              Test
-            </Button>
-            <Button
-              onClick={() => {
-                onClickModify(row);
-              }}
-            >
-              Modify
-            </Button>
-            <Button
-              onClick={() => {
-                onClickDelete(row);
-              }}
-            >
-              Delete
-            </Button>
-          </>,
-        ];
-      },
-    },
-  ];
+  }
 
   const init = async () => {
     try {
@@ -149,67 +324,146 @@ export default function WebhookDataGrid(props: GridType) {
           store_id: getStoreId(),
           user_id: getUserId(),
         },
-      });
+      })
 
       if (response.result) {
         if (response.data.length > 0) {
-          let rt: RowType[] = [];
-          response.data.forEach((item: any, index: number) => {
-            rt.push({
-              id: index + 1,
-              webhookId: item.id,
-              automaticRedelivery: item.automatic_redelivery,
-              enabled: item.enabled,
-              eventType: item.event_type,
-              payloadUrl: item.payload_url,
-              secret: item.secret,
-              status: item.status,
-            });
-          });
-          setRows(rt);
+          const rt: RowType[] = response.data.map((item: any, index: number) => ({
+            id: index + 1,
+            webhookId: item.id,
+            automaticRedelivery: item.automatic_redelivery,
+            enabled: item.enabled,
+            eventType: item.event_type,
+            payloadUrl: item.payload_url,
+            secret: item.secret,
+            status: item.status,
+          }))
+          setRows(rt)
         } else {
-          setRows([]);
+          setRows([])
         }
       } else {
-        setSnackSeverity('error');
-        setSnackMessage('Can not find the data on site!');
-        setSnackOpen(true);
+        setSnackSeverity('error')
+        setSnackMessage('Can not find the data on site!')
+        setSnackOpen(true)
       }
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+      setSnackSeverity('error')
+      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackOpen(true)
+      console.error(e)
     }
-  };
+  }
 
   useEffect(() => {
-    init();
+    init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
+
+  const displayRows = props.source === 'dashboard' ? rows.slice(0, PAGE_SIZE) : rows
+
+  const totalPages = Math.ceil(displayRows.length / PAGE_SIZE)
+  const pagedRows =
+    props.source === 'dashboard'
+      ? displayRows
+      : displayRows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
-    <Box>
-      <DataGrid
-        autoHeight
-        rows={rows}
-        columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 10,
-            },
-          },
-        }}
-        pageSizeOptions={[10]}
-        onRowClick={(e: any) => {
-          onClickRow(e.row);
-        }}
-        // checkboxSelection
-        // disableRowSelectionOnClick
-        hideFooter={props.source === 'dashboard' ? true : false}
-        disableColumnMenu
-      />
-    </Box>
-  );
+    <div className="w-full space-y-4">
+      <div className="rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">Status</TableHead>
+              <TableHead>Url</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pagedRows.length > 0 ? (
+              pagedRows.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell>
+                    {row.enabled === 1 ? (
+                      <Check className="h-5 w-5 text-emerald-600" />
+                    ) : (
+                      <X className="h-5 w-5 text-red-500" />
+                    )}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs max-w-md truncate">
+                    {row.payloadUrl}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-1.5"
+                        disabled={testingId === row.webhookId}
+                        onClick={() => onClickTest(row)}
+                      >
+                        <FlaskConical className="h-3.5 w-3.5" />
+                        {testingId === row.webhookId ? 'Testing...' : 'Test'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-1.5"
+                        onClick={() => onClickModify(row)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                        Modify
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-1.5 text-destructive hover:text-destructive"
+                        disabled={deletingId === row.webhookId}
+                        onClick={() => onClickDelete(row)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        {deletingId === row.webhookId ? 'Deleting...' : 'Delete'}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                  No webhooks found
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {props.source !== 'dashboard' && totalPages > 1 && (
+        <div className="flex items-center justify-end gap-2">
+          <span className="text-sm text-muted-foreground">
+            Page {page + 1} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            disabled={page === 0}
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            disabled={page >= totalPages - 1}
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </div>
+  )
 }

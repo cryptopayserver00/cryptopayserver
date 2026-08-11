@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import CryptoJS from 'crypto-js';
 import { PrismaClient } from '@prisma/client';
-import { NOTIFICATION_TYPE } from 'packages/constants';
+import { NOTIFICATION_TYPE } from '@/packages/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

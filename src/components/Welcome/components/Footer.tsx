@@ -1,6 +1,6 @@
 import { GitHub, RssFeed, Telegram } from '@mui/icons-material';
 import { Box, Button, Container, IconButton, Link, Stack, TextField, Typography } from '@mui/material';
-import { CustomLogo } from 'components/Logo/CustomLogo';
+import { CustomLogo } from '@/components/Logo/CustomLogo';
 import { useTranslation } from 'react-i18next';
 
 export default function Footer() {

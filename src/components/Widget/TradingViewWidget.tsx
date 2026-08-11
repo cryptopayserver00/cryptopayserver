@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { COINPAIR } from 'packages/constants';
+import { COINPAIR } from '@/packages/constants';
 import React, { useEffect, useRef, memo } from 'react';
 
 type WidgetType = {

@@ -16,12 +16,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore, useWalletPresistStore } from 'lib/store';
+import { useSnackPresistStore, useWalletPresistStore } from '@/lib/store';
 import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
 import { TaskAlt, Close, VisibilityOff, Visibility } from '@mui/icons-material';
-import { isValidPassword } from 'utils/verify';
+import { isValidPassword } from '@/utils/verify';
 
 const ManagePassword = () => {
   const [password, setPassword] = useState<string>('');

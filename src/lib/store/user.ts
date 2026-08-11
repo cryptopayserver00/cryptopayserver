@@ -1,44 +1,47 @@
-import { LANGUAGES } from 'packages/constants';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { LANGUAGES } from '@/packages/constants'
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 type UserPerisistState = {
-  userId: number;
-  userEmail: string;
-  username: string;
-  isLogin: boolean;
-  userTheme: 'auto' | 'light' | 'dark';
-  userHideSensitiveInfo: boolean;
-  showSidebar: boolean;
-  showProgress: boolean;
-  network: 'mainnet' | 'testnet';
-  lang: string;
-};
+  userId: number
+  userEmail: string
+  username: string
+  isLogin: boolean
+  userTheme: 'auto' | 'light' | 'dark'
+  userHideSensitiveInfo: boolean
+  // showSidebar: boolean;
+  showProgress: boolean
+  sidebarCollapsed: boolean
+  network: 'mainnet' | 'testnet'
+  lang: string
+}
 
 type UserPerisistAction = {
-  setUserId: (userId: number) => void;
-  getUserId: () => number;
-  setUserEmail: (userEmail: string) => void;
-  getUserEmail: () => string;
-  setUsername: (username: string) => void;
-  getUsername: () => string;
-  setIsLogin: (isLogin: boolean) => void;
-  getIsLogin: () => boolean;
-  setUserTheme: (theme: 'auto' | 'light' | 'dark') => void;
-  getUserTheme: () => string;
-  setUserHideSensitiveInfo: (userHideSensitiveInfo: boolean) => void;
-  getUserHideSensitiveInfo: () => boolean;
-  setNetwork: (network: 'mainnet' | 'testnet') => void;
-  getNetwork: () => string;
-  setShowSidebar: (showSidebar: boolean) => void;
-  getShowSidebar: () => boolean;
-  setShowProgress: (showProgress: boolean) => void;
-  getShowProgress: () => boolean;
-  setLang: (lang: string) => void;
-  getLang: () => string;
+  setUserId: (userId: number) => void
+  getUserId: () => number
+  setUserEmail: (userEmail: string) => void
+  getUserEmail: () => string
+  setUsername: (username: string) => void
+  getUsername: () => string
+  setIsLogin: (isLogin: boolean) => void
+  getIsLogin: () => boolean
+  setUserTheme: (theme: 'auto' | 'light' | 'dark') => void
+  getUserTheme: () => string
+  setUserHideSensitiveInfo: (userHideSensitiveInfo: boolean) => void
+  getUserHideSensitiveInfo: () => boolean
+  setNetwork: (network: 'mainnet' | 'testnet') => void
+  getNetwork: () => string
+  // setShowSidebar: (showSidebar: boolean) => void
+  // getShowSidebar: () => boolean
+  setShowProgress: (showProgress: boolean) => void
+  getShowProgress: () => boolean
+  setSidebarCollapsed: (sidebarCollapsed: boolean) => void
+  getSidebarCollapsed: () => boolean
+  setLang: (lang: string) => void
+  getLang: () => string
 
-  resetUser: () => void;
-};
+  resetUser: () => void
+}
 
 const initialUserState: UserPerisistState = {
   userId: 0,
@@ -47,11 +50,12 @@ const initialUserState: UserPerisistState = {
   isLogin: false,
   userTheme: 'auto',
   userHideSensitiveInfo: false,
-  showSidebar: true,
+  // showSidebar: true,
   showProgress: false,
+  sidebarCollapsed: false,
   network: 'mainnet',
   lang: '',
-};
+}
 
 export const useUserPresistStore = create(
   persist<UserPerisistState & UserPerisistAction>(
@@ -70,21 +74,23 @@ export const useUserPresistStore = create(
       getUserTheme: () => get().userTheme,
       setUserHideSensitiveInfo: (value) => set(() => ({ userHideSensitiveInfo: value })),
       getUserHideSensitiveInfo: () => get().userHideSensitiveInfo,
-      setShowSidebar: (value) => set(() => ({ showSidebar: value })),
-      getShowSidebar: () => get().showSidebar,
+      // setShowSidebar: (value) => set(() => ({ showSidebar: value })),
+      // getShowSidebar: () => get().showSidebar,
       setNetwork: (value) => set(() => ({ network: value })),
       getNetwork: () => get().network,
       setShowProgress: (value) => set(() => ({ showProgress: value })),
       getShowProgress: () => get().showProgress,
+      setSidebarCollapsed: (value) => set(() => ({ sidebarCollapsed: value })),
+      getSidebarCollapsed: () => get().sidebarCollapsed,
       setLang: (value) => set(() => ({ lang: value })),
       getLang: () => get().lang,
 
       resetUser: () => {
-        set(initialUserState);
+        set(initialUserState)
       },
     }),
     {
       name: 'cryptopayserver.store.user',
-    },
-  ),
-);
+    }
+  )
+)

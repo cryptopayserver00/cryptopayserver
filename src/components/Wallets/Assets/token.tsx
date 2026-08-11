@@ -10,19 +10,19 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
 import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
 import Image from 'next/image';
-import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINS, COINS } from 'packages/constants/blockchain';
-import { FindChainNamesByChains } from 'utils/web3';
-import { COINPAIR, COINTOPAIR } from 'packages/constants';
+import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINS, COINS } from '@/packages/constants/blockchain';
+import { FindChainNamesByChains } from '@/utils/web3';
+import { COINPAIR, COINTOPAIR } from '@/packages/constants';
 import { ArrowDownward, ArrowUpward, ContentCopy, LocalFlorist, OpenInNew, SwapHoriz } from '@mui/icons-material';
-import { FormatNumberToEnglish, OmitMiddleString } from 'utils/strings';
-import TradingViewWidget from 'components/Widget/TradingViewWidget';
+import { FormatNumberToEnglish, OmitMiddleString } from '@/utils/strings';
+import TradingViewWidget from '@/components/Widget/TradingViewWidget';
 import { useRouter } from 'next/router';
-import { GetImgSrcByChain } from 'utils/qrcode';
+import { GetImgSrcByChain } from '@/utils/qrcode';
 
 type CoinType = {
   coin: string;

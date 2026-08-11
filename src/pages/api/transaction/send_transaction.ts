@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { CHAINS, COINS, ETHEREUM_CATEGORY_CHAINS } from 'packages/constants/blockchain';
+import { CHAINS, COINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { WEB3 } from 'packages/web3';
-import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
-import { BTC } from 'packages/web3/chain/btc';
-import { GweiToWei } from 'utils/number';
+import { WEB3 } from '@/packages/web3';
+import { FindTokenByChainIdsAndSymbol } from '@/utils/web3';
+import { BTC } from '@/packages/web3/chain/btc';
+import { GweiToWei } from '@/utils/number';
 import { PrismaClient } from '@prisma/client';
-import { NOTIFICATION_TYPE } from 'packages/constants';
+import { NOTIFICATION_TYPE } from '@/packages/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

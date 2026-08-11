@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
-import { BLOCKCHAINNAMES, CHAINS } from 'packages/constants/blockchain';
-import { WEB3 } from 'packages/web3';
-import { BLOCKSCAN, BlockScanWalletType } from 'packages/web3/block_scan';
+import { BLOCKCHAINNAMES, CHAINS } from '@/packages/constants/blockchain';
+import { WEB3 } from '@/packages/web3';
+import { BLOCKSCAN, BlockScanWalletType } from '@/packages/web3/block_scan';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
 
 export class LNBITS {
   static lightningName = LIGHTNINGNAME.LNBITS;

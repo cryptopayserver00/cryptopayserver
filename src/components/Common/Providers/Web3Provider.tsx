@@ -1,12 +1,14 @@
-import { FC, ReactNode } from 'react';
-import WagmiContextProvider from './WagmiContextProvider';
+import { FC, ReactNode } from 'react'
+import dynamic from 'next/dynamic'
+
+const WagmiContextProvider = dynamic(() => import('./WagmiContextProvider'), { ssr: false })
 
 type Props = {
-  children: ReactNode;
-};
+  children: ReactNode
+}
 
 const Web3Provider = ({ children, cookies }: { children: ReactNode; cookies: string | null }) => {
-  return <WagmiContextProvider cookies={cookies}>{children}</WagmiContextProvider>;
-};
+  return <WagmiContextProvider cookies={cookies}>{children}</WagmiContextProvider>
+}
 
-export default Web3Provider;
+export default Web3Provider

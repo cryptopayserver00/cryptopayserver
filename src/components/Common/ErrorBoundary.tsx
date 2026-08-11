@@ -1,4 +1,4 @@
-import Custom500 from 'pages/500';
+import Custom500 from '@/pages/500';
 import type { ReactNode } from 'react';
 import React, { Component } from 'react';
 

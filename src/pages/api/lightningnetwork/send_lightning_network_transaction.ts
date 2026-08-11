@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
-import { LNDHUB } from 'packages/lightning/core/lndhub';
-import { LIGHTNING } from 'packages/lightning';
+import { LNDHUB } from '@/packages/lightning/core/lndhub';
+import { LIGHTNING } from '@/packages/lightning';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

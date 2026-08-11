@@ -1,4 +1,4 @@
-import { LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
 import { LNDHUB } from './core/lndhub';
 import lightningPayReq from 'bolt11';
 import { LND } from './core/lnd';

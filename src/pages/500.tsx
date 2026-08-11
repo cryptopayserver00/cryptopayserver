@@ -1,6 +1,6 @@
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
-import MetaTags from 'components/Common/MetaTags';
-import { CustomLogo } from 'components/Logo/CustomLogo';
+import MetaTags from '@/components/Common/MetaTags';
+import { CustomLogo } from '@/components/Logo/CustomLogo';
 
 const Custom500 = () => {
   const onClickButton = async () => {

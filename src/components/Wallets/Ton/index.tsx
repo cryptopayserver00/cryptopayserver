@@ -17,17 +17,17 @@ import {
   Switch,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import { CHAINS, COINS } from 'packages/constants/blockchain';
-import { EthereumTransactionDetail } from 'packages/web3/types';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
+import { CHAINS, COINS } from '@/packages/constants/blockchain';
+import { EthereumTransactionDetail } from '@/packages/web3/types';
 import { useEffect, useState } from 'react';
-import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from 'utils/chain/ton';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
-import TonSVG from 'assets/chain/ton.svg';
+import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from '@/utils/chain/ton';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
+import TonSVG from '@/assets/chain/ton.svg';
 import Image from 'next/image';
-import TransactionsTab from 'components/Tab/TransactionTab';
-import { GetImgSrcByCrypto } from 'utils/qrcode';
+import TransactionsTab from '@/components/Tab/TransactionTab';
+import { GetImgSrcByCrypto } from '@/utils/qrcode';
 
 type walletType = {
   id: number;

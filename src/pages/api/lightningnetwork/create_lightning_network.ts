@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
-import { LIGHTNING } from 'packages/lightning';
-import { LIGHTNINGNAME } from 'packages/constants/blockchain';
+import { LIGHTNING } from '@/packages/lightning';
+import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

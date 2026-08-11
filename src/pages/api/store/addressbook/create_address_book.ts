@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { WEB3 } from 'packages/web3';
-import { ResponseData, CorsMiddleware, CorsMethod } from 'pages/api';
+import { WEB3 } from '@/packages/web3';
+import { ResponseData, CorsMiddleware, CorsMethod } from '@/pages/api';
 import { PrismaClient } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {

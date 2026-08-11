@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { PrismaClient } from '@prisma/client';
-import { ORDER_STATUS, ORDER_TIME } from 'packages/constants';
-import { FindTokenByChainIdsAndSymbol } from 'utils/web3';
-import { WEB3 } from 'packages/web3';
-import { COINS } from 'packages/constants/blockchain';
+import { ORDER_STATUS, ORDER_TIME } from '@/packages/constants';
+import { FindTokenByChainIdsAndSymbol } from '@/utils/web3';
+import { WEB3 } from '@/packages/web3';
+import { COINS } from '@/packages/constants/blockchain';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

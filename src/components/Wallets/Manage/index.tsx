@@ -1,7 +1,7 @@
 import { Box, Button, Card, CardContent, Container, Icon, Stack, Typography } from '@mui/material';
-import { useSnackPresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import { useSnackPresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
 import { useEffect, useState } from 'react';
-import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINS } from 'packages/constants/blockchain';
+import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINS } from '@/packages/constants/blockchain';
 import {
   NavigateNext,
   Lock,

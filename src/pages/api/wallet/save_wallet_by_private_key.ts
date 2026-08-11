@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { WEB3 } from 'packages/web3';
+import { WEB3 } from '@/packages/web3';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {

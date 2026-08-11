@@ -24,17 +24,17 @@ import {
   Chip,
   Grid,
 } from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
-import { CHAINS, COINS } from 'packages/constants/blockchain';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
+import { CHAINS, COINS } from '@/packages/constants/blockchain';
 import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
-import { GetBlockchainAddressUrl } from 'utils/chain/ltc';
-import { TransactionDetail } from 'packages/web3/types';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
+import { GetBlockchainAddressUrl } from '@/utils/chain/ltc';
+import { TransactionDetail } from '@/packages/web3/types';
 import Link from 'next/link';
-import LitecoinSVG from 'assets/chain/litecoin.svg';
+import LitecoinSVG from '@/assets/chain/litecoin.svg';
 import Image from 'next/image';
-import { GetImgSrcByCrypto } from 'utils/qrcode';
+import { GetImgSrcByCrypto } from '@/utils/qrcode';
 
 type walletType = {
   id: number;

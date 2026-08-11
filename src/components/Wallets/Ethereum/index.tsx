@@ -17,18 +17,18 @@ import {
   Switch,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
 import Image from 'next/image';
-import { CHAINS, COINS } from 'packages/constants/blockchain';
-import { EthereumTransactionDetail } from 'packages/web3/types';
+import { CHAINS, COINS } from '@/packages/constants/blockchain';
+import { EthereumTransactionDetail } from '@/packages/web3/types';
 import { useEffect, useState } from 'react';
-import { GetBlockchainAddressUrl } from 'utils/chain/eth';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
-import { WeiToGwei } from 'utils/number';
-import EthereumSVG from 'assets/chain/ethereum.svg';
-import TransactionsTab from 'components/Tab/TransactionTab';
-import { GetImgSrcByCrypto } from 'utils/qrcode';
+import { GetBlockchainAddressUrl } from '@/utils/chain/eth';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
+import { WeiToGwei } from '@/utils/number';
+import EthereumSVG from '@/assets/chain/ethereum.svg';
+import TransactionsTab from '@/components/Tab/TransactionTab';
+import { GetImgSrcByCrypto } from '@/utils/qrcode';
 
 type walletType = {
   id: number;

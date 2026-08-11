@@ -7,15 +7,15 @@ import {
   PAYMENT_REQUEST_STATUS,
   PAYOUT_STATUS,
   PULL_PAYMENT_STATUS,
-} from 'packages/constants';
+} from '@/packages/constants';
 import { PrismaClient } from '@prisma/client';
-import { BLOCKSCAN } from 'packages/web3/block_scan';
-import { WEB3 } from 'packages/web3';
-import { WEBHOOK } from 'utils/webhook';
-import { EMAIL } from 'utils/email';
-import { CHAINS, LIGHTNINGNAME } from 'packages/constants/blockchain';
-import { LNDHUB } from 'packages/lightning/core/lndhub';
-import { LIGHTNING } from 'packages/lightning';
+import { BLOCKSCAN } from '@/packages/web3/block_scan';
+import { WEB3 } from '@/packages/web3';
+import { WEBHOOK } from '@/utils/webhook';
+import { EMAIL } from '@/utils/email';
+import { CHAINS, LIGHTNINGNAME } from '@/packages/constants/blockchain';
+import { LNDHUB } from '@/packages/lightning/core/lndhub';
+import { LIGHTNING } from '@/packages/lightning';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {

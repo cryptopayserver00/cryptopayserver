@@ -1,4 +1,4 @@
-import { IS_DEVELOPMENT } from 'packages/constants';
+import { IS_DEVELOPMENT } from '@/packages/constants';
 
 export class Http {
   static httpPath = IS_DEVELOPMENT ? 'http://127.0.0.1:8888/api' : 'https://cryptopayserver.online/api';

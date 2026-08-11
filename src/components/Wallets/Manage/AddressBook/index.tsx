@@ -17,14 +17,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from 'lib/store';
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import axios from 'utils/http/axios';
-import { Http } from 'utils/http/http';
-import { FindChainIdsByChainNames, FindChainNamesByChains, GetBlockchainAddressUrlByChainIds } from 'utils/web3';
-import { CHAINNAMES } from 'packages/constants/blockchain';
-import { GetImgSrcByChain } from 'utils/qrcode';
+import axios from '@/utils/http/axios';
+import { Http } from '@/utils/http/http';
+import { FindChainIdsByChainNames, FindChainNamesByChains, GetBlockchainAddressUrlByChainIds } from '@/utils/web3';
+import { CHAINNAMES } from '@/packages/constants/blockchain';
+import { GetImgSrcByChain } from '@/utils/qrcode';
 
 type RowType = {
   id: number;

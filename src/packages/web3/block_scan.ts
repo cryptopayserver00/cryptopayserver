@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IS_DEVELOPMENT } from 'packages/constants';
+import { IS_DEVELOPMENT } from '@/packages/constants';
 
 export type BlockScanWalletType = {
   address: string;

@@ -1,4 +1,4 @@
-import { BLOCKCHAINNAMES, CHAINIDS } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS } from '@/packages/constants/blockchain';
 import axios, { AxiosRequestConfig } from 'axios';
 
 export class RPC {

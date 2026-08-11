@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { LIGHTNINGNAME } from 'packages/constants/blockchain';
-import { BtcToMsatoshis, MsatoshisToBtc } from 'utils/number';
+import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
+import { BtcToMsatoshis, MsatoshisToBtc } from '@/utils/number';
 
 // lnd's REST API documentation:
 // https://api.lightning.community/#lnd-rest-api-reference

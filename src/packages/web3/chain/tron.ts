@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from 'packages/constants/blockchain';
+import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from '@/packages/constants/blockchain';
 import {
   AssetBalance,
   ChainAccountType,
@@ -13,12 +13,12 @@ import {
 import { HDKey } from 'ethereum-cryptography/hdkey';
 import { TronWeb } from 'tronweb';
 import { ethers } from 'ethers';
-import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from 'utils/web3';
+import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from '@/utils/web3';
 import { TRC20Abi } from '../abi/trc20';
-import { GetBlockchainTxUrl } from 'utils/chain/tron';
+import { GetBlockchainTxUrl } from '@/utils/chain/tron';
 import { BLOCKSCAN } from '../block_scan';
 import { SignedTransaction } from 'tronweb/lib/esm/types';
-import { BigAdd } from 'utils/number';
+import { BigAdd } from '@/utils/number';
 
 export class TRON {
   static chain = CHAINS.TRON;
