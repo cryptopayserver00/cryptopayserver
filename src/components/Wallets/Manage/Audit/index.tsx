@@ -1,89 +1,171 @@
-import { Box, Button, Card, CardContent, CardHeader, Container, Icon, Stack, Typography } from '@mui/material';
-import { VerifiedUser, AccountBalance, Code, GitHub } from '@mui/icons-material';
+// import { Box, Button, Card, CardContent, CardHeader, Container, Icon, Stack, Typography } from '@mui/material';
+// import { VerifiedUser, AccountBalance, Code, GitHub } from '@mui/icons-material';
+
+// const ManageAudit = () => {
+//   return (
+//     <Box>
+//       <Container>
+//         <Typography variant="h6">Security Audit</Typography>
+
+//         <Box mt={4} textAlign={'center'}>
+//           <Typography variant="h4">Trust comes from transparency</Typography>
+//           <Typography variant="h4" mt={1}>
+//             Web3 assets are in your control
+//           </Typography>
+//           <Typography mt={4}>
+//             Comprehensive third-party audit, extensive open source code, and jointly build web3 security
+//           </Typography>
+//         </Box>
+
+//         <Stack direction={'row'} alignItems={'center'} mt={10} gap={4}>
+//           <Card>
+//             <CardContent>
+//               <Stack direction={'row'} alignItems={'center'}>
+//                 <Icon component={VerifiedUser}></Icon>
+//                 <Typography variant="h5" ml={1}>
+//                   Multi-party audit
+//                 </Typography>
+//               </Stack>
+//               <Typography mt={2}>
+//                 Crypto Pay Server wallets are regularly reviewed by reputable security auditing companies to ensure
+//                 asset security
+//               </Typography>
+//             </CardContent>
+//           </Card>
+//           <Card>
+//             <CardContent>
+//               <Stack direction={'row'} alignItems={'center'}>
+//                 <Icon component={AccountBalance}></Icon>
+//                 <Typography variant="h5" ml={1}>
+//                   Self-management
+//                 </Typography>
+//               </Stack>
+
+//               <Typography mt={2}>
+//                 The wallet private keys and assets are completely under your control, and security and privacy are at
+//                 the heart of our
+//               </Typography>
+//             </CardContent>
+//           </Card>
+//           <Card>
+//             <CardContent>
+//               <Stack direction={'row'} alignItems={'center'}>
+//                 <Icon component={Code}></Icon>
+//                 <Typography variant="h5" ml={1}>
+//                   Open source code
+//                 </Typography>
+//               </Stack>
+
+//               <Typography mt={2}>
+//                 Multi-terminal code open source, technical details are freely viewed and audited, open and transparent
+//               </Typography>
+//             </CardContent>
+//           </Card>
+//         </Stack>
+
+//         <Box mt={4}>
+//           <Typography variant="h6">Open source code</Typography>
+//           <Typography mt={2}>
+//             The wallet has completed open source of core code, including core algorithms such as mnemonics, private
+//             keys, transaction routing, etc., which have been widely verified by the technical community.
+//           </Typography>
+//           <Box mt={4}>
+//             <Button
+//               variant={'contained'}
+//               startIcon={<GitHub />}
+//               onClick={() => {
+//                 window.location.href = 'https://github.com/cryptopayserver00/cryptopayserver';
+//               }}
+//             >
+//               Go to CryptoPayServer GitHub
+//             </Button>
+//           </Box>
+//         </Box>
+//       </Container>
+//     </Box>
+//   );
+// };
+
+// export default ManageAudit;
+
+import { Landmark, ShieldCheck, SquareCode } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+
+const FEATURES = [
+  {
+    icon: ShieldCheck,
+    title: 'Multi-party audit',
+    description:
+      'Crypto Pay Server wallets are regularly reviewed by reputable security auditing companies to ensure asset security',
+  },
+  {
+    icon: Landmark,
+    title: 'Self-management',
+    description:
+      'The wallet private keys and assets are completely under your control, and security and privacy are at the heart of our design',
+  },
+  {
+    icon: SquareCode,
+    title: 'Open source code',
+    description:
+      'Multi-terminal code open source, technical details are freely viewed and audited, open and transparent',
+  },
+]
 
 const ManageAudit = () => {
   return (
-    <Box>
-      <Container>
-        <Typography variant="h6">Security Audit</Typography>
+    <div className="mx-auto w-full max-w-5xl px-4 py-8">
+      <h1 className="text-lg font-semibold">Security Audit</h1>
 
-        <Box mt={4} textAlign={'center'}>
-          <Typography variant="h4">Trust comes from transparency</Typography>
-          <Typography variant="h4" mt={1}>
-            Web3 assets are in your control
-          </Typography>
-          <Typography mt={4}>
-            Comprehensive third-party audit, extensive open source code, and jointly build web3 security
-          </Typography>
-        </Box>
+      <div className="mt-6 rounded-2xl border bg-gradient-to-b from-muted/60 to-transparent px-6 py-16 text-center">
+        <p className="text-3xl font-bold tracking-tight sm:text-4xl">
+          Trust comes from transparency
+        </p>
+        <p className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
+          Web3 assets are in your control
+        </p>
+        <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+          Comprehensive third-party audit, extensive open source code, and jointly build web3
+          security
+        </p>
+      </div>
 
-        <Stack direction={'row'} alignItems={'center'} mt={10} gap={4}>
-          <Card>
-            <CardContent>
-              <Stack direction={'row'} alignItems={'center'}>
-                <Icon component={VerifiedUser}></Icon>
-                <Typography variant="h5" ml={1}>
-                  Multi-party audit
-                </Typography>
-              </Stack>
-              <Typography mt={2}>
-                Crypto Pay Server wallets are regularly reviewed by reputable security auditing companies to ensure
-                asset security
-              </Typography>
+      <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {FEATURES.map(({ icon: Icon, title, description }) => (
+          <Card key={title} className="transition-shadow hover:shadow-md">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-lg font-semibold">{title}</h3>
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">{description}</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent>
-              <Stack direction={'row'} alignItems={'center'}>
-                <Icon component={AccountBalance}></Icon>
-                <Typography variant="h5" ml={1}>
-                  Self-management
-                </Typography>
-              </Stack>
+        ))}
+      </div>
 
-              <Typography mt={2}>
-                The wallet private keys and assets are completely under your control, and security and privacy are at
-                the heart of our
-              </Typography>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent>
-              <Stack direction={'row'} alignItems={'center'}>
-                <Icon component={Code}></Icon>
-                <Typography variant="h5" ml={1}>
-                  Open source code
-                </Typography>
-              </Stack>
+      <div className="mt-10">
+        <h2 className="text-lg font-semibold">Open source code</h2>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          The wallet has completed open source of core code, including core algorithms such as
+          mnemonics, private keys, transaction routing, etc., which have been widely verified by the
+          technical community.
+        </p>
+        <Button className="mt-4" asChild>
+          <a
+            href="https://github.com/cryptopayserver00/cryptopayserver"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {/* <Github className="mr-2 h-4 w-4" /> Go to CryptoPayServer GitHub */}
+          </a>
+        </Button>
+      </div>
+    </div>
+  )
+}
 
-              <Typography mt={2}>
-                Multi-terminal code open source, technical details are freely viewed and audited, open and transparent
-              </Typography>
-            </CardContent>
-          </Card>
-        </Stack>
-
-        <Box mt={4}>
-          <Typography variant="h6">Open source code</Typography>
-          <Typography mt={2}>
-            The wallet has completed open source of core code, including core algorithms such as mnemonics, private
-            keys, transaction routing, etc., which have been widely verified by the technical community.
-          </Typography>
-          <Box mt={4}>
-            <Button
-              variant={'contained'}
-              startIcon={<GitHub />}
-              onClick={() => {
-                window.location.href = 'https://github.com/cryptopayserver00/cryptopayserver';
-              }}
-            >
-              Go to CryptoPayServer GitHub
-            </Button>
-          </Box>
-        </Box>
-      </Container>
-    </Box>
-  );
-};
-
-export default ManageAudit;
+export default ManageAudit
