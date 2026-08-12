@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         return res.status(200).json({
           message: '',
           result: true,
-          data: invoices.map((item) => ({
+          data: invoices.map((item: any) => ({
             ...item,
             crypto_amount: item.crypto_amount.toFixed(
               FindTokenByChainIdsAndSymbol(

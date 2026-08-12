@@ -56,8 +56,8 @@ const queryClient = new QueryClient()
 const metadata = {
   name: 'Cryptopayserver',
   description: 'Free services to help you buy and sell products and collect cryptocurrencies.',
-  url: 'https://cryptopayserver.online',
-  icons: ['https://cryptopayserver.online/favicon.ico'],
+  url: Http.httpClient,
+  icons: [`${Http.httpClient}/favicon.ico`],
 }
 
 export const projectId = WALLETCONNECT_PROJECT_ID

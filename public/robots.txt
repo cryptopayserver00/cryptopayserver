@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 
 Disallow: /login
+Disallow: /register
 
 Sitemap: https://cryptopayserver.online/sitemap.xml

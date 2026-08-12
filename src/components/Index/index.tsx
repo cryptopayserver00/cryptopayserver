@@ -30,61 +30,48 @@ const Index = () => {
     (state) => state
   )
 
-  // const { getIsLogin, getNetwork, setShowSidebar, getShowSidebar, getShowProgress } =
-  //   useUserPresistStore((state) => state)
   // const { getIsWallet } = useWalletPresistStore((state) => state)
   // const { getIsStore } = useStorePresistStore((state) => state)
-  // const { getLang, setLang } = useUserPresistStore((state) => state)
 
   // const [isLogin, setLogin] = useState<boolean>(false)
   // const [isStore, setStore] = useState<boolean>(false)
   // const [isWallet, setWallet] = useState<boolean>(false)
   // const [network, setNetwork] = useState<string>()
 
-  const { sidebarCollapsed, setSidebarCollapsed } = useUserPresistStore((state) => state)
+  const { getIsLogin, getNetwork, getLang, setLang, sidebarCollapsed, setSidebarCollapsed } =
+    useUserPresistStore((state) => state)
   const [currentRoute, setCurrentRoute] = useState<RouteType>()
 
-  // useEffect(() => {
-  //   if (!getLang() || getLang() === '') {
-  //     setLang('en')
-  //     i18n.changeLanguage('en')
-  //   }
+  useEffect(() => {
+    if (!getLang() || getLang() === '') {
+      setLang('en')
+      i18n.changeLanguage('en')
+    }
 
-  //   const route = routes.find((item) => item.path === router.pathname)
+    const route = routes.find((item) => item.path === router.pathname)
+    if (!route) return
 
-  //   if (!route) return
+    if (route?.needLogin && !getIsLogin()) {
+      window.location.href = '/login'
+    }
 
-  //   const loginStatus = getIsLogin()
-  //   const storeStatus = getIsStore()
-  //   const walletStatus = getIsWallet()
-  //   const network = getNetwork()
-
-  //   setLogin(loginStatus)
-  //   setStore(storeStatus)
-  //   setWallet(walletStatus)
-  //   setNetwork(network)
-
-  //   if (route?.needLogin && !loginStatus) {
-  //     window.location.href = '/login'
-  //   }
-
-  //   setCurrentRoute(route)
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [router.pathname, getIsLogin, getIsStore, getIsWallet, getLang])
+    setCurrentRoute(route)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.pathname])
 
   const handleSidebarCollapsedChange = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed)
   }
 
-  useEffect(() => {
-    const route = routes.find((item) => item.path === router.pathname)
-    if (!route) return
-    if (route?.needLogin) {
-      window.location.href = '/login'
-      return
-    }
-    setCurrentRoute(route)
-  }, [router.pathname])
+  // useEffect(() => {
+  //   const route = routes.find((item) => item.path === router.pathname)
+  //   if (!route) return
+  //   if (route?.needLogin) {
+  //     window.location.href = '/login'
+  //     return
+  //   }
+  //   setCurrentRoute(route)
+  // }, [router.pathname])
 
   useEffect(() => {
     setSnackOpen(false)

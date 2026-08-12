@@ -224,7 +224,6 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Bell, ChevronDown, Plus, Store } from 'lucide-react'
-import { CustomLogo } from '@/components/Logo/CustomLogo'
 import { useStorePresistStore } from '@/lib/store/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
@@ -238,6 +237,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
+import { SiteLogo } from '../Logo/SiteLogo'
 
 interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode
@@ -363,13 +363,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
   return (
     <div className={`px-4 w-full ${className}`} {...rest}>
       <div className="flex items-center justify-between">
-        <button
-          className="flex items-center gap-2 cursor-pointer focus:outline-none"
-          onClick={() => router.push('/dashboard')}
-        >
-          <CustomLogo>C</CustomLogo>
-          <span className="font-bold text-[#0098e5] text-lg">CryptoPay</span>
-        </button>
+        <SiteLogo href='/dashboard' />
 
         <button
           className="p-2 rounded-full hover:bg-gray-100 transition-colors relative flex items-center justify-center text-gray-600 focus:outline-none"

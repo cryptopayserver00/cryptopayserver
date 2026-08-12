@@ -511,3 +511,5 @@ export const Webhooks = () => {
     </div>
   )
 }
+
+export default Webhooks

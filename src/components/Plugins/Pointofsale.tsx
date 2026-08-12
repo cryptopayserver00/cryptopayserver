@@ -105,3 +105,5 @@ export const Pointofsale = () => {
     </div>
   )
 }
+
+export default Pointofsale

@@ -552,7 +552,7 @@ const NavItem: React.FC<NavItemProps> = ({ href, icon, label, active, collapsed 
 const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
   const router = useRouter()
 
-  const showSidebar = useUserPresistStore((state) => state.getShowSidebar())
+  const showSidebar = useUserPresistStore((state) => state.getSidebarCollapsed)
   const network = useUserPresistStore((state) => state.getNetwork())
   const isWallet = useWalletPresistStore((state) => state.getIsWallet())
   const isStore = useStorePresistStore((state) => state.getIsStore())

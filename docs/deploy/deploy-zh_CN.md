@@ -11,8 +11,9 @@
 
 ```
 # Main
-NODE_ENV="testnet"
+NEXT_PUBLIC_NODE_ENV="testnet"
 NEXT_PUBLIC_ENVIRONMENT="development"
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=""
 
 # DB
 DB_HOST="127.0.0.1"
@@ -30,5 +31,8 @@ TRON_API_KEY_NILE = ""
 
 # Ton
 TON_API_KEY = ""
+
+# DB
+DATABASE_URL=""
 
 ```

@@ -374,14 +374,10 @@ const ManagePassword = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel variant={''} size={''}>
-              Disagree
-            </AlertDialogCancel>
+            <AlertDialogCancel>Disagree</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={onClickDeletePassword}
-              variant={''}
-              size={''}
             >
               Agree
             </AlertDialogAction>

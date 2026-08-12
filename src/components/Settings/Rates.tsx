@@ -278,3 +278,5 @@ export const Rates = () => {
     </div>
   )
 }
+
+export default Rates

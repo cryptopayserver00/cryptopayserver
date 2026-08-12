@@ -14,7 +14,7 @@ const MyApp = ({ Component, pageProps, cookies }: AppProps & { cookies: string |
     try {
       const response: any = await axios.get(Http.test_db_conn)
       if (response.result) {
-        // console.log('Test DB connection successfully');
+        console.log('Test DB connection successfully');
       }
     } catch (e) {
       console.error(e)
@@ -22,7 +22,7 @@ const MyApp = ({ Component, pageProps, cookies }: AppProps & { cookies: string |
   }
 
   async function init() {
-    // await test_db_conn();
+    await test_db_conn();
   }
 
   useEffect(() => {

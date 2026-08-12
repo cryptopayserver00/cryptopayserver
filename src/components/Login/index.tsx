@@ -195,7 +195,6 @@
 import { useEffect, useState } from 'react'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
-import { CustomLogo } from '@/components/Logo/CustomLogo'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -209,6 +208,7 @@ import {
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail, isValidPassword } from '@/utils/verify'
+import { SiteLogo } from '../Logo/SiteLogo'
 
 const Login = () => {
   const [email, setEmail] = useState<string>('test@cryptopayserver.online')
@@ -308,7 +308,7 @@ const Login = () => {
     <div className="min-h-screen bg-muted/30">
       <div className="mx-auto max-w-screen-sm px-4">
         <div className="flex flex-col items-center pt-16 sm:pt-24">
-          <CustomLogo style={{ width: 50, height: 50 }}>C</CustomLogo>
+          <SiteLogo/>
 
           <h1 className="mt-8 text-center text-2xl font-bold tracking-tight">
             Welcome to your CryptoPay Server

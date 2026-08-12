@@ -184,12 +184,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-import { CustomLogo } from '@/components/Logo/CustomLogo'
 import { useSnackPresistStore } from '@/lib/store/snack'
 import { useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { isValidPassword, IsValidEmail } from '@/utils/verify'
+import { SiteLogo } from '../Logo/SiteLogo'
 
 const Register = () => {
   const router = useRouter()
@@ -289,7 +289,7 @@ const Register = () => {
       <div className="w-full max-w-md space-y-8 flex flex-col items-center">
         {/* Logo 与 欢迎语 */}
         <div className="flex flex-col items-center text-center space-y-3">
-          <CustomLogo style={{ width: 50, height: 50 }}>C</CustomLogo>
+          <SiteLogo />
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Welcome to your CryptoPay Server
           </h1>

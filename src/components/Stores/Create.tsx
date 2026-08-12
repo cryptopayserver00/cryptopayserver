@@ -179,7 +179,6 @@
 // export default CreateStore;
 
 import { useState } from 'react'
-import { CustomLogo } from '@/components/Logo/CustomLogo'
 import { useWalletPresistStore } from '@/lib/store'
 import { useSnackPresistStore } from '@/lib/store/snack'
 import { useStorePresistStore } from '@/lib/store/store'
@@ -187,6 +186,7 @@ import { useUserPresistStore } from '@/lib/store/user'
 import { CURRENCY, PRICE_RESOURCE } from '@/packages/constants'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { SiteLogo } from '../Logo/SiteLogo'
 
 const CreateStore = () => {
   const [name, setName] = useState<string>('')
@@ -258,7 +258,7 @@ const CreateStore = () => {
   return (
     <div className="min-h-screen py-16 px-4">
       <div className="max-w-lg mx-auto flex flex-col items-center">
-        <CustomLogo className="w-[50px] h-[50px]">C</CustomLogo>
+        <SiteLogo/>
 
         <h1 className="text-2xl font-bold text-gray-900 mt-4">Create a new store</h1>
         <p className="text-base text-gray-600 mt-2 text-center">

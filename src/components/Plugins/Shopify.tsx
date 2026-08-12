@@ -429,3 +429,5 @@ export const Shopify = () => {
     </div>
   )
 }
+
+export default Shopify
