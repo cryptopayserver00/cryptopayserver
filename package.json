@@ -12,6 +12,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@icons-pack/react-simple-icons": "^13.13.0",
     "@prisma/client": "^6.4.1",
     "@reown/appkit": "^1.8.21",
     "@reown/appkit-adapter-wagmi": "^1.8.21",

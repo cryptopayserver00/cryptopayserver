@@ -42,7 +42,6 @@ cron.schedule('*/60 * * * * *', async () => {
 const nextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
   serverExternalPackages: ['@walletconnect/logger'],
-  // serverExternalPackages: ['@walletconnect/logger', 'mainnet-js'],
   output: 'standalone',
 
   reactStrictMode: true,

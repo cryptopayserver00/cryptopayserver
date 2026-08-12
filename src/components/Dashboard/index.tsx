@@ -202,14 +202,14 @@ const Dashboard = () => {
   const [enablePasswordWarn, setEnablePasswordWarn] = useState(false)
   const [enableBackupWarn, setEnableBackupWarn] = useState(false)
 
-  const { getStoreName } = useStorePresistStore((state) => state)
-  const { getWalletId } = useWalletPresistStore((state) => state)
+  const currentStoreName = useStorePresistStore((state) => state.storeName)
+  const currentWalletId = useWalletPresistStore((state) => state.walletId)
 
-  const init = async () => {
+  const init = async (walletId: number) => {
     try {
       const response: any = await axios.get(Http.find_wallet_by_id, {
         params: {
-          id: getWalletId(),
+          id: walletId,
         },
       })
 
@@ -230,9 +230,9 @@ const Dashboard = () => {
   }
 
   useEffect(() => {
-    init()
+    init(currentWalletId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [currentWalletId])
 
   return (
     <div className="space-y-6">
@@ -276,7 +276,7 @@ const Dashboard = () => {
         {/* Store name */}
         <div>
           <Badge variant="outline" className="text-sm px-3 py-1">
-            {getStoreName()}
+            {currentStoreName}
           </Badge>
         </div>
 

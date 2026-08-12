@@ -252,7 +252,6 @@ interface StoreType {
 
 export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ...rest }) => {
   const router = useRouter()
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state)
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
   const { getStoreId, setStoreId, setStoreName, setStoreCurrency, setStorePriceSource } =
     useStorePresistStore((state) => state)
@@ -262,13 +261,16 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
   const [notificationCount, setNotificationCount] = useState<number>(0)
 
   const currentStore = stores.find((s) => s.id === getStoreId())
+  const currentUserId = useUserPresistStore((state) => state.userId)
+  const currentNetwork = useUserPresistStore((state) => state.network)
+  const currentStoreId = useStorePresistStore((state) => state.storeId)
 
-  const getStore = async () => {
+  const getStore = async (currentUserId: number) => {
     try {
-      if (getUserId() === 0) return
+      if (currentUserId === 0) return
 
       const response: any = await axios.get(Http.find_store, {
-        params: { user_id: getUserId() },
+        params: { user_id: currentUserId },
       })
 
       if (response?.result) {
@@ -293,12 +295,12 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
     }
   }
 
-  const getNotification = async () => {
+  const getNotification = async (currentStoreId: number, currentNetwork: string) => {
     try {
       const response: any = await axios.get(Http.find_notification, {
         params: {
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: currentStoreId,
+          network: currentNetwork === 'mainnet' ? 1 : 2,
           is_seen: 2,
         },
       })
@@ -356,14 +358,14 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
   }
 
   useEffect(() => {
-    getStore()
-    getNotification()
-  }, [])
+    getStore(currentUserId)
+    getNotification(currentStoreId, currentNetwork)
+  }, [currentUserId, currentStoreId, currentNetwork])
 
   return (
     <div className={`px-4 w-full ${className}`} {...rest}>
       <div className="flex items-center justify-between">
-        <SiteLogo href='/dashboard' />
+        <SiteLogo href="/dashboard" />
 
         <button
           className="p-2 rounded-full hover:bg-gray-100 transition-colors relative flex items-center justify-center text-gray-600 focus:outline-none"

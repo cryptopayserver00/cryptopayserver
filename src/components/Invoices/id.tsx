@@ -1101,7 +1101,7 @@ const InvoiceDetails = () => {
                   {OmitMiddleString(destinationAddress)}
                 </Button>
 
-                <div className="mt-2 flex items-center justify-between gap-2">
+                <div className="mt-2 grid grid-cols-2 gap-2">
                   <Button className="w-full" onClick={() => copyToClipboard(destinationAddress)}>
                     <Copy className="mr-2 h-4 w-4" />
                     Copy Address

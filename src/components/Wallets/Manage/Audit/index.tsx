@@ -91,6 +91,7 @@
 import { Landmark, ShieldCheck, SquareCode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { SiGithub } from '@icons-pack/react-simple-icons'
 
 const FEATURES = [
   {
@@ -160,7 +161,7 @@ const ManageAudit = () => {
             target="_blank"
             rel="noreferrer"
           >
-            {/* <Github className="mr-2 h-4 w-4" /> Go to CryptoPayServer GitHub */}
+            <SiGithub className="mr-2 h-4 w-4" /> Go to CryptoPayServer GitHub
           </a>
         </Button>
       </div>

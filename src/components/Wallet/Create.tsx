@@ -85,7 +85,8 @@ import { useStorePresistStore } from '@/lib/store'
 
 const CreateWallet = () => {
   const router = useRouter()
-  const { getIsStore } = useStorePresistStore((state) => state)
+
+  const currentIsStore = useStorePresistStore((state) => state.getIsStore)
 
   const onClickImport = () => {
     router.push('/wallet/import')
@@ -96,11 +97,11 @@ const CreateWallet = () => {
   }
 
   useEffect(() => {
-    if (!getIsStore()) {
+    if (!currentIsStore) {
       router.push('/stores/create')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [currentIsStore])
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">

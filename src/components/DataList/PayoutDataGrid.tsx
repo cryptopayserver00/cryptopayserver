@@ -424,9 +424,10 @@ type GridType = {
 const PAGE_SIZE = 10
 
 export default function PayoutDataGrid(props: GridType) {
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+
+  const currentNetwork = useUserPresistStore((state) => state.network)
+  const currentStoreId = useStorePresistStore((state) => state.storeId)
 
   const [rows, setRows] = useState<RowType[]>([])
   const [page, setPage] = useState(0)
@@ -447,7 +448,7 @@ export default function PayoutDataGrid(props: GridType) {
         setSnackSeverity('success')
         setSnackMessage(successMsg)
         setSnackOpen(true)
-        await init(props.status)
+        await init(currentNetwork, currentStoreId, props.status)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Update failed!')
@@ -509,12 +510,16 @@ export default function PayoutDataGrid(props: GridType) {
     }
   }
 
-  const init = async (status: (typeof PAYOUT_STATUS)[keyof typeof PAYOUT_STATUS]) => {
+  const init = async (
+    currentNetwork: string,
+    currentStoreId: number,
+    status: (typeof PAYOUT_STATUS)[keyof typeof PAYOUT_STATUS]
+  ) => {
     try {
       const response: any = await axios.get(Http.find_payout, {
         params: {
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: currentStoreId,
+          network: currentNetwork === 'mainnet' ? 1 : 2,
           payout_status: status,
         },
       })
@@ -554,11 +559,11 @@ export default function PayoutDataGrid(props: GridType) {
 
   useEffect(() => {
     if (props.status) {
-      init(props.status)
+      init(currentNetwork, currentStoreId, props.status)
       setPage(0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.status])
+  }, [currentNetwork, currentStoreId, props.status])
 
   const totalPages = Math.ceil(rows.length / PAGE_SIZE)
   const pagedRows = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)

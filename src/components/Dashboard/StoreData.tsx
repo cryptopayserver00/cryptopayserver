@@ -127,18 +127,24 @@ const StoreData = () => {
   const [timeAlignment, setTimeAlignment] = useState<string>(STORE_STAT_TIME_TYPE.WEEK)
   const [itemAlignment, setItemAlignment] = useState<string>(STORE_STAT_ITEM_TYPE.DEAL_AMOUNT)
 
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
 
-  const init = async (timeAlignment: string, itemAlignment: string) => {
+  const currentNetwork = useUserPresistStore((state) => state.network)
+  const currentStoreId = useStorePresistStore((state) => state.storeId)
+
+  const init = async (
+    currentNetwork: string,
+    currentStoreId: number,
+    timeAlignment: string,
+    itemAlignment: string
+  ) => {
     try {
       if (!crypto) return
 
       const response: any = await axios.get(Http.fint_store_stat, {
         params: {
-          id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          id: currentStoreId,
+          network: currentNetwork === 'mainnet' ? 1 : 2,
           time: timeAlignment,
           item: itemAlignment,
         },
@@ -188,9 +194,9 @@ const StoreData = () => {
   }
 
   useEffect(() => {
-    init(timeAlignment, itemAlignment)
+    init(currentNetwork, currentStoreId, timeAlignment, itemAlignment)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeAlignment, itemAlignment])
+  }, [currentNetwork, currentStoreId, timeAlignment, itemAlignment])
 
   return (
     <div className="space-y-6">

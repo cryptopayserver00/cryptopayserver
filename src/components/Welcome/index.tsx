@@ -15,7 +15,7 @@ import {
   Puzzle,
   Store,
 } from 'lucide-react'
-
+import { SiGithub } from '@icons-pack/react-simple-icons'
 import { Button } from '@/components/ui/button'
 
 const jetbrainsMono = JetBrains_Mono({
@@ -244,7 +244,7 @@ export default function Welcome() {
               className="border-white/15 bg-transparent text-white hover:bg-white/5"
             >
               <Link href="https://github.com/cryptopayserver00/cryptopayserver" target="_blank">
-                {/* <Github className="mr-1.5 h-4 w-4" /> View source */}
+                <SiGithub className="mr-1.5 h-4 w-4" /> View source
               </Link>
             </Button>
           </div>

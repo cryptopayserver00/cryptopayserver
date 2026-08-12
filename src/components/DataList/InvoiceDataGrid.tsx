@@ -210,16 +210,17 @@ export default function InvoiceDataGrid(props: GridType) {
   const [rows, setRows] = useState<RowType[]>([])
   const [page, setPage] = useState(0)
 
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
   const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
 
-  const init = async () => {
+  const currentNetwork = useUserPresistStore((state) => state.network)
+  const currentStoreId = useStorePresistStore((state) => state.storeId)
+
+  const init = async (currentNetwork: string, currentStoreId: number) => {
     try {
       const response: any = await axios.get(Http.find_invoice_by_store_id, {
         params: {
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: currentStoreId,
+          network: currentNetwork === 'mainnet' ? 1 : 2,
           order_status: props.orderStatus,
           order_id: props.orderId,
           time: props.time,
@@ -257,15 +258,10 @@ export default function InvoiceDataGrid(props: GridType) {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    init()
+    init(currentNetwork, currentStoreId)
     setPage(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.orderStatus, props.orderId, props.time])
+  }, [currentNetwork, currentStoreId, props.orderStatus, props.orderId, props.time])
 
   const displayRows = source === 'dashboard' ? rows.slice(0, PAGE_SIZE) : rows
 

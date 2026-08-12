@@ -89,18 +89,19 @@
 
 import Link from 'next/link'
 import { Send, Heart, FileText, HelpCircle } from 'lucide-react'
+import { SiGithub, SiX } from '@icons-pack/react-simple-icons'
 
 const footerLinks = [
-  // {
-  //   href: 'https://github.com/cryptopayserver00/cryptopayserver',
-  //   label: 'Github',
-  //   icon: Github,
-  // },
-  // {
-  //   href: 'https://github.com/viper-00',
-  //   label: 'X',
-  //   icon: Twitter,
-  // },
+  {
+    href: 'https://github.com/cryptopayserver00/cryptopayserver',
+    label: 'Github',
+    icon: SiGithub,
+  },
+  {
+    href: 'https://x.com/ZhongMingYang00',
+    label: 'X',
+    icon: SiX,
+  },
   {
     href: 'https://t.me/cryptopayserver',
     label: 'Telegram',
