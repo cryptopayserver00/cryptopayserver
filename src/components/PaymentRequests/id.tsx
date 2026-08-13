@@ -544,6 +544,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 type paymentRequestType = {
   userId: number
@@ -619,7 +620,13 @@ const PaymentRequestsDetails = () => {
   const [paymentRequestRows, setPaymentRequestRows] = useState<InvoiceType[]>([])
   const [paidAmount, setPaidAmount] = useState<number>(0)
 
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)

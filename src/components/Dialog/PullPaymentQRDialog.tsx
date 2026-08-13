@@ -70,6 +70,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useSnackPresistStore } from '@/lib/store'
 import { OmitMiddleString } from '@/utils/strings'
+import { useShallow } from 'zustand/react/shallow'
 
 type DialogType = {
   openDialog: boolean
@@ -79,7 +80,14 @@ type DialogType = {
 
 export default function PullPaymentQRDialog(props: DialogType) {
   const [copied, setCopied] = useState(false)
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const handleCopy = async () => {
     try {

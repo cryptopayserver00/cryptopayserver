@@ -435,6 +435,7 @@ import { ROLEPERMISSION, ROLEPERMISSIONS, USER_ROLE } from '@/packages/constants
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 export const Roles = () => {
   const [page, setPage] = useState<number>(1)
@@ -443,9 +444,25 @@ export const Roles = () => {
   const [role, setRole] = useState<string>('')
   const [permissions, setPermissions] = useState<ROLEPERMISSION[]>(ROLEPERMISSIONS)
 
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickSave = async () => {
     if (id && id > 0) {
@@ -514,8 +531,8 @@ export const Roles = () => {
         }
 
         const response: any = await axios.post(Http.create_role, {
-          user_id: getUserId(),
-          store_id: getStoreId(),
+          user_id: userId,
+          store_id: storeId,
           role: role,
           permissions: ids.join(','),
         })

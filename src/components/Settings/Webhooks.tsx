@@ -278,6 +278,7 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import WebhookDataGrid from '@/components/DataList/WebhookDataGrid'
+import { useShallow } from 'zustand/react/shallow'
 
 export const Webhooks = () => {
   const [IsWebhook, setIsWebhook] = useState<boolean>(false)
@@ -292,9 +293,25 @@ export const Webhooks = () => {
   const [showEnabled, setShowEnabled] = useState<boolean>(false)
   const [eventType, setEventType] = useState<number>(1)
 
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickButton = async () => {
     try {
@@ -321,8 +338,8 @@ export const Webhooks = () => {
         }
       } else {
         const response: any = await axios.post(Http.create_webhook_setting, {
-          store_id: getStoreId(),
-          user_id: getUserId(),
+          store_id: storeId,
+          user_id: userId,
           payload_url: payloadUrl ? payloadUrl : '',
           secret: secret ? secret : '',
           automatic_redelivery: showAutomaticRedelivery ? 1 : 2,

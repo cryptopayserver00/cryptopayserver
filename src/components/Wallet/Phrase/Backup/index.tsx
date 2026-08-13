@@ -124,14 +124,13 @@
 
 // export default PhraseBackup;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSnackPresistStore } from '@/lib/store/snack'
 import { useStorePresistStore, useWalletPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 const PhraseBackup = () => {
   const router = useRouter()
@@ -139,9 +138,26 @@ const PhraseBackup = () => {
   const [isView, setIsView] = useState<boolean>(false)
   const [phrase, setPhrase] = useState<string[]>([])
 
-  const { getIsStore } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
-  const { getIsWallet, getWalletId } = useWalletPresistStore((state) => state)
+  const { walletId, isWallet } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+      isWallet: state.isWallet,
+    }))
+  )
+
+  const { isStore } = useStorePresistStore(
+    useShallow((state) => ({
+      isStore: state.isStore,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickReConfirm = () => {
     router.push('/wallet/phrase/backup/confirm')
@@ -152,11 +168,11 @@ const PhraseBackup = () => {
     phrase.slice(index * groupSize, index * groupSize + groupSize)
   )
 
-  const init = async () => {
+  const init = async (isWallet: boolean, walletId: number) => {
     try {
-      if (getIsWallet()) {
+      if (isWallet) {
         const response: any = await axios.get(Http.find_wallet_by_id, {
-          params: { id: getWalletId() },
+          params: { id: walletId },
         })
 
         if (response.result) {
@@ -176,12 +192,12 @@ const PhraseBackup = () => {
   }
 
   useEffect(() => {
-    if (!getIsStore()) {
+    if (!isStore) {
       router.push('/stores/create')
+      return
     }
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(isWallet, walletId)
+  }, [isStore, isWallet, walletId])
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">

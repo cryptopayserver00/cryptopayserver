@@ -491,6 +491,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import PaymentRequestDataGrid from '@/components/DataList/PaymentRequestDataGrid'
 import { IsValidEmail } from '@/utils/verify'
+import { useShallow } from 'zustand/react/shallow'
 
 // 辅助函数：格式化时间为 datetime-local input 所需格式 "YYYY-MM-DDTHH:mm"
 const formatForDateTimeInput = (date?: Date | dayjs.Dayjs) => {
@@ -521,9 +522,26 @@ const Requests = () => {
   const [showAmountAlert, setShowAmountAlert] = useState<boolean>(false)
   const [showExpiredAlert, setShowExpiredAlert] = useState<boolean>(false)
 
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { userId, network } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+      network: state.network,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const clearData = () => {
     setTitle('')
@@ -606,9 +624,9 @@ const Requests = () => {
       }
 
       const response: any = await axios.post(Http.create_payment_request, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
-        network: getNetwork() === 'mainnet' ? 1 : 2,
+        user_id: userId,
+        store_id: storeId,
+        network: network === 'mainnet' ? 1 : 2,
         title: title,
         amount: amount,
         currency: currency,

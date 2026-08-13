@@ -66,16 +66,19 @@
 
 // export default PhraseIntro;
 
-'use client'
-
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSnackPresistStore } from '@/lib/store/snack'
 import { useStorePresistStore } from '@/lib/store'
+import { useShallow } from 'zustand/react/shallow'
 
 const PhraseIntro = () => {
   const router = useRouter()
-  const { getIsStore } = useStorePresistStore((state) => state)
+
+  const { isStore } = useStorePresistStore(
+    useShallow((state) => ({
+      isStore: state.isStore,
+    }))
+  )
 
   const onClickBackup = () => {
     router.push('/wallet/phrase/backup')
@@ -86,11 +89,10 @@ const PhraseIntro = () => {
   }
 
   useEffect(() => {
-    if (!getIsStore()) {
+    if (!isStore) {
       router.push('/stores/create')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isStore])
 
   const tips = [
     'The mnemonic phrase is the only way to recover wallet assets.',

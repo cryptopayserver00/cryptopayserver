@@ -200,6 +200,7 @@ import { BigDiv } from '@/utils/number'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import CreateInvoiceDialog from '@/components/Dialog/CreateInvoiceDialog'
+import { useShallow } from 'zustand/react/shallow'
 
 type SelectType = {
   storeId: number
@@ -216,7 +217,13 @@ export default function PaymentRequestSelectChainAndCryptoCard(props: SelectType
   const [rate, setRate] = useState(0)
   const [cryptoAmount, setCryptoAmount] = useState('')
 
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const getBlockchain = async (storeId: number, network: number) => {
     try {

@@ -224,6 +224,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 export const Shopify = () => {
   const [openExplain, setOpenExplain] = useState<boolean>(false)
@@ -232,16 +233,32 @@ export const Shopify = () => {
   const [apiKey, setApiKey] = useState<string>('')
   const [adminApiAccessToken, setAdminApiAccessToken] = useState<string>('')
 
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
 
-  const init = async () => {
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const init = async (userId: number, storeId: number) => {
     try {
       const response: any = await axios.get(Http.find_shopify_setting, {
         params: {
-          user_id: getUserId(),
-          store_id: getStoreId(),
+          user_id: userId,
+          store_id: storeId,
         },
       })
 
@@ -260,17 +277,16 @@ export const Shopify = () => {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(userId, storeId)
+  }, [userId, storeId])
 
   const onClickSave = async () => {
     try {
       if (id === 0) {
         // save
         const response: any = await axios.post(Http.create_shopify_setting, {
-          user_id: getUserId(),
-          store_id: getStoreId(),
+          user_id: storeId,
+          store_id: storeId,
           shop_name: shopName,
           api_key: apiKey,
           admin_api_access_token: adminApiAccessToken,

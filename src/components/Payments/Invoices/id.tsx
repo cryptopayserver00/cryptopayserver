@@ -639,6 +639,7 @@ import {
 import { CHAINS } from '@/packages/constants/blockchain'
 import { OmitMiddleString } from '@/utils/strings'
 import { GetImgSrcByChain } from '@/utils/qrcode'
+import { useShallow } from 'zustand/react/shallow'
 
 type OrderType = {
   orderId: number
@@ -674,8 +675,19 @@ const PaymentInvoiceDetails = () => {
   const router = useRouter()
   const { id } = router.query
 
-  const { getStoreName } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { storeName } = useStorePresistStore(
+    useShallow((state) => ({
+      storeName: state.storeName,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const [order, setOrder] = useState<OrderType>({
     orderId: 0,
@@ -758,7 +770,6 @@ const PaymentInvoiceDetails = () => {
 
   useEffect(() => {
     id && init(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   const onClickArchive = async () => {
@@ -828,7 +839,7 @@ const PaymentInvoiceDetails = () => {
             <span className="text-2xl font-semibold text-muted-foreground">#{order.orderId}</span>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Store: <span className="font-medium text-foreground">{getStoreName() || 'N/A'}</span>
+            Store: <span className="font-medium text-foreground">{storeName}</span>
           </p>
         </div>
 
@@ -865,7 +876,7 @@ const PaymentInvoiceDetails = () => {
               <CardTitle className="text-lg font-semibold">General Information</CardTitle>
             </CardHeader>
             <CardContent className="divide-y divide-border/60 text-sm">
-              <DetailRow label="Store" value={getStoreName()} />
+              <DetailRow label="Store" value={storeName} />
               <DetailRow
                 label="Order ID"
                 value={<span className="font-mono font-medium">{order.orderId}</span>}

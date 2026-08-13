@@ -482,8 +482,6 @@
 
 // export default Tron;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Copy, Settings } from 'lucide-react'
@@ -516,6 +514,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { useShallow } from 'zustand/react/shallow'
 
 type walletType = {
   id: number
@@ -531,11 +530,6 @@ type walletType = {
 }
 
 const Tron = () => {
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackMessage, setSnackSeverity, setSnackOpen } = useSnackPresistStore((state) => state)
-
   const [isSettings, setIsSettings] = useState<boolean>(false)
   const [wallet, setWallet] = useState<walletType[]>([])
 
@@ -545,6 +539,33 @@ const Tron = () => {
   const [showRecommendedFee, setShowRecommendedFee] = useState<boolean>(false)
   const [currentUsedAddressId, setCurrentUsedAddressId] = useState<number>(0)
 
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
     setSnackMessage(message)
@@ -552,17 +573,17 @@ const Tron = () => {
   }
 
   const onClickRescanAddress = async () => {
-    await getTronWalletAddress()
+    await getTronWalletAddress(walletId, network)
     showSnack('success', 'Successful rescan!')
   }
 
-  const getTronWalletAddress = async () => {
+  const getTronWalletAddress = async (walletId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_wallet_address_by_chain_and_network, {
         params: {
-          wallet_id: getWalletId(),
+          wallet_id: walletId,
           chain_id: CHAINS.TRON,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -596,14 +617,14 @@ const Tron = () => {
     }
   }
 
-  const getTronPaymentSetting = async () => {
+  const getTronPaymentSetting = async (userId: number, storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_payment_setting_by_chain_id, {
         params: {
-          user_id: getUserId(),
+          user_id: userId,
           chain_id: CHAINS.TRON,
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -635,7 +656,7 @@ const Tron = () => {
       })
       if (response.result) {
         showSnack('success', 'Successful update!')
-        await init()
+        await init(walletId, storeId, network)
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -643,15 +664,20 @@ const Tron = () => {
     }
   }
 
-  const init = async () => {
-    await getTronWalletAddress()
-    await getTronPaymentSetting()
+  const init = async (walletId: number, storeId: number, network: string) => {
+    await Promise.all([
+      await getTronWalletAddress(walletId, network),
+      await getTronPaymentSetting(userId, storeId, network),
+    ])
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    getTronWalletAddress(walletId, network)
+  }, [walletId, network])
+
+  useEffect(() => {
+    getTronPaymentSetting(userId, storeId, network)
+  }, [userId, storeId, network])
 
   return (
     <div>
@@ -674,7 +700,7 @@ const Tron = () => {
               onClick={() => {
                 window.location.href = `/wallets/receive?chainId=${
                   CHAINS.TRON
-                }&storeId=${getStoreId()}&network=${getNetwork()}`
+                }&storeId=${storeId}&network=${network}`
               }}
             >
               Receive
@@ -814,7 +840,7 @@ const Tron = () => {
                         </Button>
                         <Button variant="outline" asChild>
                           <a
-                            href={GetBlockchainAddressUrl(getNetwork() === 'mainnet', item.address)}
+                            href={GetBlockchainAddressUrl(network === 'mainnet', item.address)}
                             target="_blank"
                             rel="noreferrer"
                           >

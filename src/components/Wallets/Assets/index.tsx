@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import {
@@ -55,6 +53,7 @@ import { CURRENCY_SYMBOLS, WALLET_ITEM_TYPE } from '@/packages/constants'
 import { OmitMiddleString } from '@/utils/strings'
 import { GetImgSrcByChain } from '@/utils/qrcode'
 import BitcoinSVG from '@/assets/chain/bitcoin.svg'
+import { useShallow } from 'zustand/react/shallow'
 
 type CoinType = {
   coin: string
@@ -80,24 +79,50 @@ type WalletType = {
 
 export default function MyAssets() {
   const [assetWallet, setAssetWallet] = useState<WalletType>()
-  const [network, setNetwork] = useState<CHAINNAMES>(CHAINNAMES.BITCOIN)
+  const [chainName, setChainName] = useState<CHAINNAMES>(CHAINNAMES.BITCOIN)
   const [alignment, setAlignment] = useState<string>(WALLET_ITEM_TYPE.TOKENS)
   const [blockchain, setBlockchain] = useState<BLOCKCHAIN>()
   const [selectCoin, setSelectCoin] = useState<COINS>()
 
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
 
-  const getAssetWallet = async (net: CHAINNAMES) => {
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const getAssetWallet = async (
+    net: CHAINNAMES,
+    walletId: number,
+    storeId: number,
+    network: string
+  ) => {
     try {
       const response: any = await axios.get(Http.find_wallet_balance_by_network, {
         params: {
-          wallet_id: getWalletId(),
-          store_id: getStoreId(),
+          wallet_id: walletId,
+          store_id: storeId,
           chain_id: FindChainIdsByChainNames(net),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -112,17 +137,16 @@ export default function MyAssets() {
   }
 
   useEffect(() => {
-    getAssetWallet(network)
+    getAssetWallet(chainName, walletId, storeId, network)
 
     const targetBlockchain = BLOCKCHAINNAMES.find(
       (item: BLOCKCHAIN) =>
-        (getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet) && item.name === network
+        (network === 'mainnet' ? item.isMainnet : !item.isMainnet) && item.name === chainName
     )
 
     setBlockchain(targetBlockchain)
     setSelectCoin(targetBlockchain?.coins[0]?.name)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [network])
+  }, [chainName, walletId, storeId, network])
 
   const handleCopyAddress = async () => {
     if (!assetWallet?.address) return
@@ -159,7 +183,7 @@ export default function MyAssets() {
             <Copy className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
 
-          <Select value={network} onValueChange={(val) => setNetwork(val as CHAINNAMES)}>
+          <Select value={chainName} onValueChange={(val) => setChainName(val as CHAINNAMES)}>
             <SelectTrigger className="w-[160px] rounded-full border-border/60">
               <SelectValue placeholder="Select Network" />
             </SelectTrigger>

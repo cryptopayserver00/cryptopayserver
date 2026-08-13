@@ -243,10 +243,9 @@ import { useUserPresistStore } from '@/lib/store/user'
 import { FILE_TYPE } from '@/packages/constants'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 const MainAccount = () => {
-  const { getUserEmail } = useUserPresistStore((state) => state)
-
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [profileUrl, setProfileUrl] = useState('')
@@ -256,7 +255,19 @@ const MainAccount = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { userEmail } = useUserPresistStore(
+    useShallow((state) => ({
+      userEmail: state.userEmail,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickSave = async () => {
     try {
@@ -312,13 +323,13 @@ const MainAccount = () => {
     }
   }
 
-  const init = async () => {
+  const init = async (userEmail: string) => {
     try {
-      if (!getUserEmail()) return
+      if (!userEmail) return
 
       const response: any = await axios.get(Http.find_user_by_email, {
         params: {
-          email: getUserEmail(),
+          email: userEmail,
         },
       })
 
@@ -336,9 +347,9 @@ const MainAccount = () => {
   }
 
   useEffect(() => {
-    init()
+    init(userEmail)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [userEmail])
 
   const uploadFile = async (files: FileList | null) => {
     try {

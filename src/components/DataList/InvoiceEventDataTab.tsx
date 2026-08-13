@@ -106,6 +106,7 @@ import {
 import { useSnackPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   id: number
@@ -118,7 +119,13 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
 
   const [rows, setRows] = useState<RowType[]>([])
 
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const getEvent = async () => {
     if (orderId && orderId > 0) {
@@ -156,7 +163,6 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
 
   useEffect(() => {
     getEvent()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId])
 
   return (

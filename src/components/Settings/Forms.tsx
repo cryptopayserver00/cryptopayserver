@@ -32,10 +32,16 @@
 
 import { Button } from '@/components/ui/button'
 import { useSnackPresistStore } from '@/lib/store'
+import { useShallow } from 'zustand/react/shallow'
 
 const Forms = () => {
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
-
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

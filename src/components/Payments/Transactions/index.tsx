@@ -123,6 +123,7 @@ import TransactionDataGrid from '../../DataList/TransactionDataGrid'
 import { CHAINNAMES } from '@/packages/constants/blockchain'
 import { FindChainIdsByChainNames } from '@/utils/web3'
 import { useUserPresistStore } from '@/lib/store'
+import { useShallow } from 'zustand/react/shallow'
 
 const PaymentTransactions = () => {
   const ALL_CHAINS = 'All Chains' as const
@@ -131,7 +132,11 @@ const PaymentTransactions = () => {
   const [address, setAddress] = useState<string>('')
   const [txChain, setTxChain] = useState<CHAINNAMES | typeof ALL_CHAINS>(ALL_CHAINS)
 
-  const { getNetwork } = useUserPresistStore((state) => state)
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6 space-y-6">
@@ -203,7 +208,7 @@ const PaymentTransactions = () => {
         <TransactionDataGrid
           source="none"
           chain={txChain === ALL_CHAINS ? undefined : FindChainIdsByChainNames(txChain)}
-          network={getNetwork()}
+          network={network}
           address={address}
         />
       </div>

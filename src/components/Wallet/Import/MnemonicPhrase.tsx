@@ -189,16 +189,40 @@ import {
 import { useEffect, useState } from 'react'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 const ImportMnemonicPhrase = () => {
   const [bit, setBit] = useState<number>(12)
   const [numbers, setNumbers] = useState<number[]>([])
   const [phrase, setPhrase] = useState<string[]>([])
 
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
-  const { getStoreId, getIsStore } = useStorePresistStore((state) => state)
-  const { setWalletId, setIsWallet } = useWalletPresistStore((state) => state)
-  const { getUserId } = useUserPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
+
+  const { setWalletId, setIsWallet } = useWalletPresistStore(
+    useShallow((state) => ({
+      setWalletId: state.setWalletId,
+      setIsWallet: state.setIsWallet,
+    }))
+  )
+
+  const { storeId, isStore } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+      isStore: state.isStore,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const handleBitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setBit(Number(e.target.value))
@@ -224,7 +248,7 @@ const ImportMnemonicPhrase = () => {
     try {
       const response: any = await axios.get(Http.find_wallet, {
         params: {
-          store_id: getStoreId(),
+          store_id: storeId,
         },
       })
 
@@ -237,8 +261,8 @@ const ImportMnemonicPhrase = () => {
 
       const import_wallet_resp: any = await axios.post(Http.save_wallet, {
         import_wallet: phrase.join(' '),
-        store_id: getStoreId(),
-        user_id: getUserId(),
+        store_id: storeId,
+        user_id: userId,
       })
 
       if (import_wallet_resp.result) {
@@ -269,7 +293,7 @@ const ImportMnemonicPhrase = () => {
   const walletToBlockScan = async (walletId: string) => {
     try {
       const response: any = await axios.post(Http.create_wallet_to_block_scan, {
-        user_id: getUserId(),
+        user_id: userId,
         wallet_id: walletId,
       })
 
@@ -293,11 +317,10 @@ const ImportMnemonicPhrase = () => {
   }, [bit])
 
   useEffect(() => {
-    if (!getIsStore()) {
+    if (!isStore) {
       window.location.href = '/stores/create'
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isStore])
 
   return (
     <div className="p-4">

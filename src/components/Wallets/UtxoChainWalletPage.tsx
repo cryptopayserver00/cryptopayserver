@@ -25,6 +25,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import TransactionsTab from '@/components/Tab/TransactionTab'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
+import { useShallow } from 'zustand/react/shallow'
 
 type walletType = {
   id: number
@@ -70,19 +71,40 @@ const UtxoChainWalletPage = ({
   getBlockchainAddressUrl,
 }: Props) => {
   const [isSettings, setIsSettings] = useState<boolean>(false)
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
   const [wallet, setWallet] = useState<walletType[]>([])
   const [feeObj, setFeeObj] = useState<feeType>()
-
   const [settingId, setSettingId] = useState<number>(0)
   const [paymentExpire, setPaymentExpire] = useState<number>(0)
   const [confirmBlock, setConfirmBlock] = useState<number>(0)
   const [showRecommendedFee, setShowRecommendedFee] = useState<boolean>(false)
   const [currentUsedAddressId, setCurrentUsedAddressId] = useState<number>(0)
 
-  const { setSnackMessage, setSnackSeverity, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const updatePaymentSetting = async () => {
     try {
@@ -97,7 +119,7 @@ const UtxoChainWalletPage = ({
         setSnackSeverity('success')
         setSnackMessage('Successful update!')
         setSnackOpen(true)
-        await init()
+        await init(userId, storeId, walletId, network)
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -107,13 +129,13 @@ const UtxoChainWalletPage = ({
     }
   }
 
-  const getWalletAddress = async () => {
+  const getWalletAddress = async (walletId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_wallet_address_by_chain_and_network, {
         params: {
-          wallet_id: getWalletId(),
+          wallet_id: walletId,
           chain_id: chainId,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -147,14 +169,14 @@ const UtxoChainWalletPage = ({
     }
   }
 
-  const getPaymentSetting = async () => {
+  const getPaymentSetting = async (userId: number, storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_payment_setting_by_chain_id, {
         params: {
-          user_id: getUserId(),
+          user_id: userId,
           chain_id: chainId,
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -179,10 +201,10 @@ const UtxoChainWalletPage = ({
     }
   }
 
-  const getFeeRate = async () => {
+  const getFeeRate = async (network: string) => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
-        params: { chain_id: chainId, network: getNetwork() === 'mainnet' ? 1 : 2 },
+        params: { chain_id: chainId, network: network === 'mainnet' ? 1 : 2 },
       })
       if (response.result) {
         setFeeObj({
@@ -202,22 +224,31 @@ const UtxoChainWalletPage = ({
   }
 
   const onClickRescanAddress = async () => {
-    await getWalletAddress()
+    await getWalletAddress(walletId, network)
     setSnackSeverity('success')
     setSnackMessage('Successful rescan!')
     setSnackOpen(true)
   }
 
-  const init = async () => {
-    await getWalletAddress()
-    await getPaymentSetting()
-    await getFeeRate()
+  const init = async (userId: number, storeId: number, walletId: number, network: string) => {
+    await Promise.all([
+      getWalletAddress(walletId, network),
+      getPaymentSetting(userId, storeId, network),
+      getFeeRate(network),
+    ])
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    getWalletAddress(walletId, network)
+  }, [walletId, network])
+
+  useEffect(() => {
+    getPaymentSetting(userId, storeId, network)
+  }, [userId, storeId, network])
+
+  useEffect(() => {
+    getFeeRate(network)
+  }, [network])
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
@@ -230,7 +261,7 @@ const UtxoChainWalletPage = ({
           <Button onClick={() => (window.location.href = sendHref)}>Send</Button>
           <Button
             onClick={() =>
-              (window.location.href = `/wallets/receive?chainId=${chainId}&storeId=${getStoreId()}&network=${getNetwork()}`)
+              (window.location.href = `/wallets/receive?chainId=${chainId}&storeId=${storeId}&network=${network}`)
             }
           >
             Receive
@@ -374,7 +405,7 @@ const UtxoChainWalletPage = ({
                     </Button>
                     <Button variant="outline" asChild>
                       <a
-                        href={getBlockchainAddressUrl(getNetwork() === 'mainnet', item.address)}
+                        href={getBlockchainAddressUrl(network === 'mainnet', item.address)}
                         target="_blank"
                         rel="noreferrer"
                       >

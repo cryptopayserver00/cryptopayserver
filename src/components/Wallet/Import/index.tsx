@@ -112,10 +112,22 @@
 
 import { useEffect } from 'react'
 import { useSnackPresistStore, useStorePresistStore } from '@/lib/store'
+import { useShallow } from 'zustand/react/shallow'
 
 const WalletImport = () => {
-  const { getIsStore } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { isStore } = useStorePresistStore(
+    useShallow((state) => ({
+      isStore: state.isStore,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickHardwareWallet = () => {
     setSnackMessage('Not supported.')
@@ -134,11 +146,10 @@ const WalletImport = () => {
   }
 
   useEffect(() => {
-    if (!getIsStore()) {
+    if (!isStore) {
       window.location.href = '/stores/create'
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isStore])
 
   return (
     <div className="min-h-screen py-20 px-4">

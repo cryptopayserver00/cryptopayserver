@@ -187,17 +187,43 @@ import { CURRENCY, PRICE_RESOURCE } from '@/packages/constants'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { SiteLogo } from '../Logo/SiteLogo'
+import { useShallow } from 'zustand/react/shallow'
 
 const CreateStore = () => {
   const [name, setName] = useState<string>('')
   const [currency, setCurrency] = useState<string>(CURRENCY[0])
   const [priceSource, setPriceSource] = useState<string>(PRICE_RESOURCE[0])
 
-  const { getUserId } = useUserPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
+
+  const { resetWallet } = useWalletPresistStore(
+    useShallow((state) => ({
+      resetWallet: state.resetWallet,
+    }))
+  )
+
   const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource, setIsStore } =
-    useStorePresistStore((state) => state)
-  const { resetWallet } = useWalletPresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+    useStorePresistStore(
+      useShallow((state) => ({
+        setStoreId: state.setStoreId,
+        setStoreName: state.setStoreName,
+        setStoreCurrency: state.setStoreCurrency,
+        setStorePriceSource: state.setStorePriceSource,
+        setIsStore: state.setIsStore,
+      }))
+    )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onCreateStore = async () => {
     try {
@@ -223,7 +249,7 @@ const CreateStore = () => {
       }
 
       const response: any = await axios.post(Http.create_store, {
-        user_id: getUserId(),
+        user_id: userId,
         name: name,
         currency: currency,
         price_source: priceSource,
@@ -258,7 +284,7 @@ const CreateStore = () => {
   return (
     <div className="min-h-screen py-16 px-4">
       <div className="max-w-lg mx-auto flex flex-col items-center">
-        <SiteLogo/>
+        <SiteLogo />
 
         <h1 className="text-2xl font-bold text-gray-900 mt-4">Create a new store</h1>
         <p className="text-base text-gray-600 mt-2 text-center">

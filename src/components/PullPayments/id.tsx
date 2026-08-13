@@ -604,6 +604,7 @@ import PullPaymentSelectChainAndCryptoCard from '@/components/Card/PullPaymentSe
 import PullPaymentQRDialog from '@/components/Dialog/PullPaymentQRDialog'
 import HelpDrawer from '@/components/Drawer/HelpDrawer'
 import ReportPaymentDialog from '@/components/Dialog/ReportPaymentDialog'
+import { useShallow } from 'zustand/react/shallow'
 
 type pullPaymentType = {
   userId: number
@@ -650,7 +651,13 @@ const PullPaymentsDetails = () => {
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [openDialog, setOpenDialog] = useState<boolean>(false)
 
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const getClaimsHistory = async (storeId: number, network: number, pullPaymentId: number) => {
     try {
@@ -751,7 +758,6 @@ const PullPaymentsDetails = () => {
 
   useEffect(() => {
     id && init(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   const onClickShowQR = async () => {

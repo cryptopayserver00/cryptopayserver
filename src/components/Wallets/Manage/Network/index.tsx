@@ -169,8 +169,6 @@
 
 // export default ManageNetwork;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
@@ -189,24 +187,27 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useShallow } from 'zustand/react/shallow'
 
 const ManageNetwork = () => {
   const [blockchains, setBlockchains] = useState<BLOCKCHAIN[]>()
   const [currentItem, setCurrentItem] = useState<BLOCKCHAIN>()
   const [open, setOpen] = useState<boolean>(false)
 
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
 
   const onClickAddNetwork = async () => {}
 
   useEffect(() => {
     const value = BLOCKCHAINNAMES.filter((item: any) =>
-      getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet
+      network === 'mainnet' ? item.isMainnet : !item.isMainnet
     )
     setBlockchains(value)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [network])
 
   return (
     <div>

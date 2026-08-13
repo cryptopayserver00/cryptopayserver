@@ -295,12 +295,9 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import { LANGUAGES } from '@/packages/constants'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 export const Checkout = () => {
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
-
   const [id, setId] = useState<number>(0)
   const [customHtmlTitle, setCustomHtmlTitle] = useState<string>('')
   const [language, setLanguage] = useState<string>('')
@@ -316,12 +313,32 @@ export const Checkout = () => {
   const [supportUrl, setSupportUrl] = useState<string>('')
   const [showHeader, setShowHeader] = useState<boolean>(false)
 
-  const init = async () => {
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const init = async (storeId: number, userId: number) => {
     try {
       const response: any = await axios.get(Http.find_checkout_setting_by_id, {
         params: {
-          store_id: getStoreId(),
-          user_id: getUserId(),
+          store_id: storeId,
+          user_id: userId,
         },
       })
 
@@ -350,9 +367,8 @@ export const Checkout = () => {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(storeId, userId)
+  }, [storeId, userId])
 
   const onClickSave = async () => {
     try {
@@ -378,7 +394,7 @@ export const Checkout = () => {
         setSnackMessage('Save successful!')
         setSnackOpen(true)
 
-        await init()
+        await init(storeId, userId)
       } else {
         setSnackSeverity('error')
         setSnackMessage('The update failed, please try again later.')

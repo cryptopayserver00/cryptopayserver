@@ -172,6 +172,7 @@ import { PRICE_RESOURCE } from '@/packages/constants'
 import { useSnackPresistStore, useStorePresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 // ==========================================
 // 1. Rates Component
@@ -179,14 +180,25 @@ import { Http } from '@/utils/http/http'
 export const Rates = () => {
   const [priceSource, setPriceSource] = useState<string>(PRICE_RESOURCE[0])
 
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
 
-  const init = async () => {
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const init = async (storeId: number) => {
     try {
       const response: any = await axios.get(Http.find_store_by_id, {
         params: {
-          id: getStoreId(),
+          id: storeId,
         },
       })
 
@@ -202,9 +214,8 @@ export const Rates = () => {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(storeId)
+  }, [storeId])
 
   const onClickSave = async () => {
     try {
@@ -216,7 +227,7 @@ export const Rates = () => {
       }
 
       const response: any = await axios.put(Http.update_store_by_id, {
-        id: getStoreId(),
+        id: storeId,
         price_source: priceSource ? priceSource : '',
       })
 
@@ -225,7 +236,7 @@ export const Rates = () => {
         setSnackMessage('Save successful!')
         setSnackOpen(true)
 
-        await init()
+        await init(storeId)
       } else {
         setSnackSeverity('error')
         setSnackMessage('The update failed, please try again later.')

@@ -129,13 +129,25 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail } from '@/utils/verify'
 import { SiteLogo } from '../Logo/SiteLogo'
+import { useShallow } from 'zustand/react/shallow'
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
-  const { getIsLogin } = useUserPresistStore((state) => state)
+  const { isLogin } = useUserPresistStore(
+    useShallow((state) => ({
+      isLogin: state.isLogin,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
@@ -169,11 +181,10 @@ const ForgotPassword = () => {
   }
 
   useEffect(() => {
-    if (getIsLogin()) {
+    if (isLogin) {
       window.location.href = '/dashboard'
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isLogin])
 
   return (
     <div className="min-h-screen bg-muted/30">

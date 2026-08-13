@@ -420,6 +420,7 @@ import { GetBlockchainAddressUrl } from '@/utils/chain/bch'
 import BitcoinCashSVG from '@/assets/chain/bitcoincash.svg'
 import TransactionsTab from '@/components/Tab/TransactionTab'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
+import { useShallow } from 'zustand/react/shallow'
 
 type walletType = {
   id: number
@@ -431,34 +432,55 @@ type walletType = {
 }
 
 const BitcoinCash = () => {
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackMessage, setSnackSeverity, setSnackOpen } = useSnackPresistStore((state) => state)
-
   const [isSettings, setIsSettings] = useState<boolean>(false)
   const [wallet, setWallet] = useState<walletType[]>([])
-
   const [settingId, setSettingId] = useState<number>(0)
   const [paymentExpire, setPaymentExpire] = useState<number>(0)
   const [confirmBlock, setConfirmBlock] = useState<number>(0)
   const [showRecommendedFee, setShowRecommendedFee] = useState<boolean>(false)
   const [currentUsedAddressId, setCurrentUsedAddressId] = useState<number>(0)
 
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
   const onClickRescanAddress = async () => {
-    await getBchWalletAddress()
+    await getBchWalletAddress(walletId, network)
     setSnackSeverity('success')
     setSnackMessage('Successful rescan!')
     setSnackOpen(true)
   }
 
-  const getBchWalletAddress = async () => {
+  const getBchWalletAddress = async (walletId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_wallet_address_by_chain_and_network, {
         params: {
-          wallet_id: getWalletId(),
+          wallet_id: walletId,
           chain_id: CHAINS.BITCOINCASH,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -492,14 +514,14 @@ const BitcoinCash = () => {
     }
   }
 
-  const getBchPaymentSetting = async () => {
+  const getBchPaymentSetting = async (userId: number, storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_payment_setting_by_chain_id, {
         params: {
-          user_id: getUserId(),
+          user_id: userId,
           chain_id: CHAINS.BITCOINCASH,
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -537,7 +559,7 @@ const BitcoinCash = () => {
         setSnackSeverity('success')
         setSnackMessage('Successful update!')
         setSnackOpen(true)
-        await init()
+        await init(userId, storeId, walletId, network)
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -547,15 +569,20 @@ const BitcoinCash = () => {
     }
   }
 
-  const init = async () => {
-    await getBchWalletAddress()
-    await getBchPaymentSetting()
+  const init = async (userId: number, storeId: number, walletId: number, network: string) => {
+    await Promise.all([
+      getBchWalletAddress(walletId, network),
+      getBchPaymentSetting(userId, storeId, network),
+    ])
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    getBchWalletAddress(walletId, network)
+  }, [walletId, network])
+
+  useEffect(() => {
+    getBchPaymentSetting(userId, storeId, network)
+  }, [userId, storeId, network])
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
@@ -568,7 +595,7 @@ const BitcoinCash = () => {
           <Button onClick={() => (window.location.href = '/wallets/bitcoincash/send')}>Send</Button>
           <Button
             onClick={() =>
-              (window.location.href = `/wallets/receive?chainId=${CHAINS.BITCOINCASH}&storeId=${getStoreId()}&network=${getNetwork()}`)
+              (window.location.href = `/wallets/receive?chainId=${CHAINS.BITCOINCASH}&storeId=${storeId}&network=${network}`)
             }
           >
             Receive
@@ -696,7 +723,7 @@ const BitcoinCash = () => {
                     </Button>
                     <Button variant="outline" asChild>
                       <a
-                        href={GetBlockchainAddressUrl(getNetwork() === 'mainnet', item.address)}
+                        href={GetBlockchainAddressUrl(network === 'mainnet', item.address)}
                         target="_blank"
                         rel="noreferrer"
                       >

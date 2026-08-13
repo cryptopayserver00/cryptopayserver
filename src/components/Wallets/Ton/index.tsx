@@ -386,8 +386,6 @@
 
 // export default Ton;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Copy, Settings } from 'lucide-react'
@@ -419,6 +417,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { useShallow } from 'zustand/react/shallow'
 
 type walletType = {
   id: number
@@ -430,11 +429,6 @@ type walletType = {
 }
 
 const Ton = () => {
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackMessage, setSnackSeverity, setSnackOpen } = useSnackPresistStore((state) => state)
-
   const [isSettings, setIsSettings] = useState<boolean>(false)
   const [wallet, setWallet] = useState<walletType[]>([])
 
@@ -444,6 +438,33 @@ const Ton = () => {
   const [showRecommendedFee, setShowRecommendedFee] = useState<boolean>(false)
   const [currentUsedAddressId, setCurrentUsedAddressId] = useState<number>(0)
 
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
     setSnackMessage(message)
@@ -451,17 +472,17 @@ const Ton = () => {
   }
 
   const onClickRescanAddress = async () => {
-    await getTonWalletAddress()
+    await getTonWalletAddress(walletId, network)
     showSnack('success', 'Successful rescan!')
   }
 
-  const getTonWalletAddress = async () => {
+  const getTonWalletAddress = async (walletId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_wallet_address_by_chain_and_network, {
         params: {
-          wallet_id: getWalletId(),
+          wallet_id: walletId,
           chain_id: CHAINS.TON,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -491,14 +512,14 @@ const Ton = () => {
     }
   }
 
-  const getTonPaymentSetting = async () => {
+  const getTonPaymentSetting = async (userId: number, storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_payment_setting_by_chain_id, {
         params: {
-          user_id: getUserId(),
+          user_id: userId,
           chain_id: CHAINS.TON,
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -530,7 +551,7 @@ const Ton = () => {
       })
       if (response.result) {
         showSnack('success', 'Successful update!')
-        await init()
+        await init(walletId, storeId, network)
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -538,14 +559,20 @@ const Ton = () => {
     }
   }
 
-  const init = async () => {
-    await Promise.all([await getTonWalletAddress(), await getTonPaymentSetting()])
+  const init = async (walletId: number, storeId: number, network: string) => {
+    await Promise.all([
+      await getTonWalletAddress(walletId, network),
+      await getTonPaymentSetting(userId, storeId, network),
+    ])
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    getTonWalletAddress(walletId, network)
+  }, [walletId, network])
+
+  useEffect(() => {
+    getTonPaymentSetting(userId, storeId, network)
+  }, [userId, storeId, network])
 
   return (
     <div>
@@ -568,7 +595,7 @@ const Ton = () => {
               onClick={() => {
                 window.location.href = `/wallets/receive?chainId=${
                   CHAINS.TON
-                }&storeId=${getStoreId()}&network=${getNetwork()}`
+                }&storeId=${storeId}&network=${network}`
               }}
             >
               Receive
@@ -708,7 +735,7 @@ const Ton = () => {
                         </Button>
                         <Button variant="outline" asChild>
                           <a
-                            href={GetBlockchainAddressUrl(getNetwork() === 'mainnet', item.address)}
+                            href={GetBlockchainAddressUrl(network === 'mainnet', item.address)}
                             target="_blank"
                             rel="noreferrer"
                           >

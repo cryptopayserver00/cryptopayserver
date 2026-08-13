@@ -163,6 +163,7 @@ import { useSnackPresistStore } from '@/lib/store'
 import { IsHexAddress } from '@/utils/strings'
 import { ERC20Abi } from '@/packages/web3/abi/erc20'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 type WalletConnectType = {
   network: number
@@ -181,7 +182,13 @@ const WalletConnectButton = (props: WalletConnectType) => {
   const [connectNetwork, setConnectNetwork] = useState<AppKitNetwork>()
   const { chainId } = useAppKitNetwork()
 
-  const { setSnackOpen, setSnackSeverity, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const { open } = useAppKit()
   const { address, isConnected } = useAppKitAccount()

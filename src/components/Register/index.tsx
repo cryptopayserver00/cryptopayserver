@@ -190,6 +190,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { isValidPassword, IsValidEmail } from '@/utils/verify'
 import { SiteLogo } from '../Logo/SiteLogo'
+import { useShallow } from 'zustand/react/shallow'
 
 const Register = () => {
   const router = useRouter()
@@ -199,8 +200,19 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const { getIsLogin } = useUserPresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { isLogin } = useUserPresistStore(
+    useShallow((state) => ({
+      isLogin: state.isLogin,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onRegister = async () => {
     try {
@@ -268,15 +280,13 @@ const Register = () => {
     if (enterEmail) {
       setEmail(enterEmail as string)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query])
 
   useEffect(() => {
-    if (getIsLogin()) {
+    if (isLogin) {
       window.location.href = '/dashboard'
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isLogin])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {

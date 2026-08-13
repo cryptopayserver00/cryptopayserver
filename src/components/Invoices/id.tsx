@@ -597,6 +597,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 type OrderType = {
   orderId: number
@@ -653,8 +654,6 @@ const InvoiceDetails = () => {
   const router = useRouter()
   const { id } = router.query
 
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
-
   const [countdownVal, setCountdownVal] = useState<string>('0')
   const [openDrawer, setOpenDrawer] = useState(false)
   const [openDialog, setOpenDialog] = useState<boolean>(false)
@@ -663,6 +662,14 @@ const InvoiceDetails = () => {
   const [crypto, setCrypto] = useState<COINS>()
   const [qrCode, setQrCode] = useState<string>('')
   const [destinationAddress, setDestinationAddress] = useState<string>('')
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const init = async (id: any, order?: OrderType) => {
     try {
@@ -734,14 +741,12 @@ const InvoiceDetails = () => {
 
       return () => clearInterval(activeInit)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, order])
 
   useEffect(() => {
     if (id) {
       init(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   const countDownTime = () => {
@@ -769,7 +774,6 @@ const InvoiceDetails = () => {
     }, 1000)
 
     return () => clearInterval(activeCountDownTime)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order?.expirationDate])
 
   const onClickCrypto = () => {

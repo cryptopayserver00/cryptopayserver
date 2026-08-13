@@ -124,12 +124,19 @@ import { Http } from '@/utils/http/http'
 import { useSnackPresistStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import FreeCoinSelectChainAndCryptoCard from '@/components/Card/FreeCoinSelectChainAndCryptoCard'
+import { useShallow } from 'zustand/react/shallow'
 
 const FreeCoin = () => {
   const [page, setPage] = useState<number>(1)
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('')
 
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)

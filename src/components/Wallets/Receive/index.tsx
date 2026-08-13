@@ -124,8 +124,6 @@
 
 // export default WalletsReceive;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { QRCodeSVG } from 'qrcode.react'
@@ -142,15 +140,21 @@ import WalletConnectButton from '@/components/Button/WalletConnectButton'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { useShallow } from 'zustand/react/shallow'
 
 const WalletsReceive = () => {
   const router = useRouter()
   const { chainId, storeId, network } = router.query
-
-  const { setSnackOpen, setSnackSeverity, setSnackMessage } = useSnackPresistStore((state) => state)
-
   const [address, setAddress] = useState<string>('')
   const [mainCoin, setMainCoin] = useState<COIN>()
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const getWallet = async (chainId: number, storeId: number, network: string) => {
     try {
@@ -174,16 +178,11 @@ const WalletsReceive = () => {
     }
   }
 
-  const init = async (chainId: number, storeId: number, network: string) => {
-    await getWallet(chainId, storeId, network)
-  }
-
   useEffect(() => {
     if (!chainId || !storeId || !network) {
       return
     }
-    init(Number(chainId), Number(storeId), String(network))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    getWallet(Number(chainId), Number(storeId), String(network))
   }, [chainId, storeId, network])
 
   const copyAddress = async () => {

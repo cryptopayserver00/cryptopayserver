@@ -479,6 +479,7 @@ import {
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { CURRENCY, FILE_TYPE } from '@/packages/constants'
+import { useShallow } from 'zustand/react/shallow'
 
 const General = () => {
   const [storeName, setStoreName] = useState<string>('')
@@ -493,16 +494,38 @@ const General = () => {
     useState<number>(0)
   const [invoicePaidLessThanPrecent, setInvoicePaidLessThanPrecent] = useState<number>(0)
 
-  const { resetUser } = useUserPresistStore((state) => state)
-  const { resetWallet } = useWalletPresistStore((state) => state)
-  const { getStoreId, resetStore } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { resetUser } = useUserPresistStore(
+    useShallow((state) => ({
+      resetUser: state.resetUser,
+    }))
+  )
 
-  const init = async () => {
+  const { resetWallet } = useWalletPresistStore(
+    useShallow((state) => ({
+      resetWallet: state.resetWallet,
+    }))
+  )
+
+  const { storeId, resetStore } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+      resetStore: state.resetStore,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const init = async (storeId: number) => {
     try {
       const response: any = await axios.get(Http.find_store_by_id, {
         params: {
-          id: getStoreId(),
+          id: storeId,
         },
       })
 
@@ -527,9 +550,8 @@ const General = () => {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(storeId)
+  }, [storeId])
 
   const onClickSaveStore = async () => {
     try {
@@ -541,7 +563,7 @@ const General = () => {
       }
 
       const response: any = await axios.put(Http.update_store_by_id, {
-        id: getStoreId(),
+        id: storeId,
         brand_color: brandColor ? brandColor : '',
         logo_url: logoUrl ? logoUrl : '',
         custom_css_url: customCssUrl ? customCssUrl : '',
@@ -557,7 +579,7 @@ const General = () => {
         setSnackMessage('Save successful!')
         setSnackOpen(true)
 
-        await init()
+        await init(storeId)
       } else {
         setSnackSeverity('error')
         setSnackMessage('The update failed, please try again later.')
@@ -574,7 +596,7 @@ const General = () => {
   const onClickArchiveStore = async () => {
     try {
       const response: any = await axios.put(Http.archive_store_by_id, {
-        id: getStoreId(),
+        id: storeId,
       })
 
       if (response.result) {
@@ -597,7 +619,7 @@ const General = () => {
   const onClickDeleteStore = async () => {
     try {
       const response: any = await axios.put(Http.delete_store_by_id, {
-        id: getStoreId(),
+        id: storeId,
       })
 
       if (response.result) {
@@ -665,7 +687,7 @@ const General = () => {
 
         <div className="space-y-2">
           <Label htmlFor="store-id">Store ID</Label>
-          <Input id="store-id" value={getStoreId()} disabled />
+          <Input id="store-id" value={storeId} disabled />
         </div>
 
         <div className="space-y-2">

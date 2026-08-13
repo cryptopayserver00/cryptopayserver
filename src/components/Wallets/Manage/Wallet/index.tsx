@@ -391,8 +391,6 @@
 
 // export default ManageWallet;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { AlertCircle, ChevronDown, Info, Wallet } from 'lucide-react'
@@ -427,6 +425,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 type blockchainCoinType = {
   chainId: CHAINS
@@ -447,18 +446,38 @@ type blockchainType = {
 
 const ManageWallet = () => {
   const [openExplain, setOpenExplain] = useState<boolean>(false)
-
   const [walletName, setWalletName] = useState<string>('')
   const [newWalletName, setNewWalletName] = useState<string>('')
   const [isBackup, setIsBackup] = useState<boolean>(false)
   const [open, setOpen] = useState<boolean>(false)
-
   const [blockchains, setBlockchains] = useState<blockchainType[]>([])
 
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
@@ -471,11 +490,11 @@ const ManageWallet = () => {
     setOpen(false)
   }
 
-  const getWalletInfo = async () => {
+  const getWalletInfo = async (walletId: number) => {
     try {
       const response: any = await axios.get(Http.find_wallet_by_id, {
         params: {
-          id: getWalletId(),
+          id: walletId,
         },
       })
 
@@ -497,11 +516,11 @@ const ManageWallet = () => {
       }
 
       const response: any = await axios.put(Http.update_name_by_wallet_id, {
-        wallet_id: getWalletId(),
+        wallet_id: walletId,
         name: newWalletName,
       })
       if (response.result) {
-        await getWalletInfo()
+        await getWalletInfo(walletId)
         handleClose()
         showSnack('success', 'Successful update!')
       }
@@ -514,15 +533,15 @@ const ManageWallet = () => {
   const onChangeCoin = async (chainId: CHAINS, coinName: COINS) => {
     try {
       const response: any = await axios.put(Http.update_wallet_coin_enable_by_id, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
+        user_id: userId,
+        store_id: storeId,
         chain_id: chainId,
         name: coinName,
-        network: getNetwork() === 'mainnet' ? 1 : 2,
+        network: network === 'mainnet' ? 1 : 2,
       })
 
       if (response.result) {
-        await getWalletManage()
+        await getWalletManage(walletId, storeId, network)
         showSnack('success', 'Update successful!')
       } else {
         showSnack('error', 'Update failed!')
@@ -533,13 +552,13 @@ const ManageWallet = () => {
     }
   }
 
-  const getWalletManage = async () => {
+  const getWalletManage = async (walletId: number, storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_wallet_manage_by_network, {
         params: {
-          wallet_id: getWalletId(),
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          wallet_id: walletId,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -548,7 +567,7 @@ const ManageWallet = () => {
         const respScan = response.data.scan
 
         const blockchain = BLOCKCHAINNAMES.filter((item) =>
-          getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet
+          network === 'mainnet' ? item.isMainnet : !item.isMainnet
         )
 
         let blockchains: blockchainType[] = []
@@ -604,19 +623,21 @@ const ManageWallet = () => {
     }
   }
 
-  const init = async () => {
-    await getWalletInfo()
-    await getWalletManage()
+  const onClickRefresh = async () => {
+    await getWalletManage(walletId, storeId, network)
+  }
+
+  const init = async (storeId: number, walletId: number, network: string) => {
+    await Promise.all([getWalletInfo(walletId), getWalletManage(walletId, storeId, network)])
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    getWalletInfo(walletId)
+  }, [walletId])
 
-  const onClickRefresh = async () => {
-    await getWalletManage()
-  }
+  useEffect(() => {
+    getWalletManage(walletId, storeId, network)
+  }, [walletId, storeId, network])
 
   // 默认展开前两项,对应原来的 defaultExpanded
   const defaultExpandedValues = blockchains.slice(0, 2).map((_, index) => `item-${index}`)

@@ -181,6 +181,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   id: number
@@ -210,10 +211,25 @@ export default function InvoiceDataGrid(props: GridType) {
   const [rows, setRows] = useState<RowType[]>([])
   const [page, setPage] = useState(0)
 
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
 
-  const currentNetwork = useUserPresistStore((state) => state.network)
-  const currentStoreId = useStorePresistStore((state) => state.storeId)
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const init = async (currentNetwork: string, currentStoreId: number) => {
     try {
@@ -258,10 +274,9 @@ export default function InvoiceDataGrid(props: GridType) {
   }
 
   useEffect(() => {
-    init(currentNetwork, currentStoreId)
+    init(network, storeId)
     setPage(0)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentNetwork, currentStoreId, props.orderStatus, props.orderId, props.time])
+  }, [network, storeId, props.orderStatus, props.orderId, props.time])
 
   const displayRows = source === 'dashboard' ? rows.slice(0, PAGE_SIZE) : rows
 

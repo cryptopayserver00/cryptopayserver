@@ -164,6 +164,7 @@ import {
 import { useSnackPresistStore } from '@/lib/store'
 import { WALLET } from '@/packages/constants'
 import { CHAINNAMES } from '@/packages/constants/blockchain'
+import { useShallow } from 'zustand/react/shallow'
 
 type DialogType = {
   openDialog: boolean
@@ -176,7 +177,13 @@ export default function ReportPaymentDialog(props: DialogType) {
   const [issueMessage, setIssueMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const handleDialogClose = () => {
     setIssueWallet('')

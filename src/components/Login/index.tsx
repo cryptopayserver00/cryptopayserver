@@ -209,6 +209,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail, isValidPassword } from '@/utils/verify'
 import { SiteLogo } from '../Logo/SiteLogo'
+import { useShallow } from 'zustand/react/shallow'
 
 const Login = () => {
   const [email, setEmail] = useState<string>('test@cryptopayserver.online')
@@ -216,13 +217,41 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
-  const { getIsLogin, setUserId, setUserEmail, setUsername, setIsLogin } = useUserPresistStore(
-    (state) => state
+  const { isLogin, setUserId, setUserEmail, setUsername, setIsLogin } = useUserPresistStore(
+    useShallow((state) => ({
+      isLogin: state.isLogin,
+      setUserId: state.setUserId,
+      setUserEmail: state.setUserEmail,
+      setUsername: state.setUsername,
+      setIsLogin: state.setIsLogin,
+    }))
   )
+
   const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource, setIsStore } =
-    useStorePresistStore((state) => state)
-  const { setWalletId, setIsWallet } = useWalletPresistStore((state) => state)
+    useStorePresistStore(
+      useShallow((state) => ({
+        setStoreId: state.setStoreId,
+        setStoreName: state.setStoreName,
+        setStoreCurrency: state.setStoreCurrency,
+        setStorePriceSource: state.setStorePriceSource,
+        setIsStore: state.setIsStore,
+      }))
+    )
+
+  const { setWalletId, setIsWallet } = useWalletPresistStore(
+    useShallow((state) => ({
+      setWalletId: state.setWalletId,
+      setIsWallet: state.setIsWallet,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
@@ -298,17 +327,16 @@ const Login = () => {
   }
 
   useEffect(() => {
-    if (getIsLogin()) {
+    if (isLogin) {
       window.location.href = '/dashboard'
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isLogin])
 
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="mx-auto max-w-screen-sm px-4">
         <div className="flex flex-col items-center pt-16 sm:pt-24">
-          <SiteLogo/>
+          <SiteLogo />
 
           <h1 className="mt-8 text-center text-2xl font-bold tracking-tight">
             Welcome to your CryptoPay Server

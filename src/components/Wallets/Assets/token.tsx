@@ -283,6 +283,7 @@ import { FormatNumberToEnglish, OmitMiddleString } from '@/utils/strings'
 import TradingViewWidget from '@/components/Widget/TradingViewWidget'
 import { GetImgSrcByChain } from '@/utils/qrcode'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 type CoinType = {
   coin: string
@@ -318,12 +319,39 @@ const AssetsToken = () => {
     COINPAIR.BTCUSDT
   )
 
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
 
-  const getAssetWallet = async (chain: CHAINS, coin: COINS) => {
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const getAssetWallet = async (
+    walletId: number,
+    storeId: number,
+    network: string,
+    chain: CHAINS,
+    coin: COINS
+  ) => {
     try {
       setUseCoin(coin)
       setChainId(chain)
@@ -331,7 +359,7 @@ const AssetsToken = () => {
 
       const blockchain = BLOCKCHAINNAMES.find(
         (item: BLOCKCHAIN) =>
-          (getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet) &&
+          (network === 'mainnet' ? item.isMainnet : !item.isMainnet) &&
           item.name === FindChainNamesByChains(chain)
       )
 
@@ -339,10 +367,10 @@ const AssetsToken = () => {
 
       const response: any = await axios.get(Http.find_wallet_balance_by_network, {
         params: {
-          wallet_id: getWalletId(),
-          store_id: getStoreId(),
+          wallet_id: walletId,
+          store_id: storeId,
           chain_id: chain,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -357,15 +385,16 @@ const AssetsToken = () => {
   }
 
   useEffect(() => {
-    if (router.isReady) {
-      if (chain && coin) {
-        getAssetWallet(Number(chain), coin as COINS)
-      } else {
-        getAssetWallet(CHAINS.BITCOIN, COINS.BTC)
-      }
+    if (!router.isReady) {
+      return
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.isReady, chain, coin])
+
+    if (chain && coin) {
+      getAssetWallet(walletId, storeId, network, Number(chain), coin as COINS)
+    } else {
+      getAssetWallet(walletId, storeId, network, CHAINS.BITCOIN, COINS.BTC)
+    }
+  }, [router.isReady, walletId, storeId, network, chain, coin])
 
   const activeCoin = assetWallet?.coins.find((item) => item.coin === useCoin)
   const change = Number(activeCoin?.twentyFourHChange)

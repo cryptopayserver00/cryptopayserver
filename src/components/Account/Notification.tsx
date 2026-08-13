@@ -161,22 +161,39 @@ import { useUserPresistStore } from '@/lib/store/user'
 import { NOTIFICATION, NOTIFICATIONS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 const Notification = () => {
   const [id, setId] = useState<number>(0)
   const [notification, setNotification] = useState<NOTIFICATION[]>([])
   const [isUpdating, setIsUpdating] = useState(false)
 
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackMessage, setSnackSeverity, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
 
-  const getNotifications = async () => {
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const getNotifications = async (userId: number, storeId: number) => {
     try {
       const response: any = await axios.get(Http.find_notification_setting, {
         params: {
-          user_id: getUserId(),
-          store_id: getStoreId(),
+          user_id: userId,
+          store_id: storeId,
         },
       })
 
@@ -211,9 +228,8 @@ const Notification = () => {
   }
 
   useEffect(() => {
-    getNotifications()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    getNotifications(userId, storeId)
+  }, [userId, storeId])
 
   async function handleChangeNotification(itemId: number) {
     try {
@@ -244,7 +260,7 @@ const Notification = () => {
         setSnackSeverity('success')
         setSnackMessage('Successful update!')
         setSnackOpen(true)
-        await getNotifications()
+        await getNotifications(userId, storeId)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Something wrong, please try it again')

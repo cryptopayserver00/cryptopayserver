@@ -68,9 +68,14 @@ import Link from 'next/link'
 import { EthereumTransactionDetail } from '@/packages/web3/types'
 import { useUserPresistStore } from '@/lib/store'
 import { FindChainNamesByChains, GetBlockchainTxUrlByChainIds } from '@/utils/web3'
+import { useShallow } from 'zustand/react/shallow'
 
 export default function TransactionsTab({ rows }: { rows: EthereumTransactionDetail[] }) {
-  const { getNetwork } = useUserPresistStore((state) => state)
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
 
   return (
     <div className="w-full overflow-x-auto bg-white rounded-lg shadow border border-gray-200">
@@ -95,7 +100,7 @@ export default function TransactionsTab({ rows }: { rows: EthereumTransactionDet
                 <td className="px-6 py-4 font-mono text-xs max-w-[200px] truncate">
                   <Link
                     href={GetBlockchainTxUrlByChainIds(
-                      getNetwork() === 'mainnet',
+                      network === 'mainnet',
                       row.chainId,
                       row.hash
                     )}

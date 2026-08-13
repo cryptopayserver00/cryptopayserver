@@ -23,6 +23,7 @@ import { BigDiv, BigSub } from '@/utils/number'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 const fee_byte_length = 140
 
@@ -87,10 +88,32 @@ const UtxoSendPage = ({
   const [isDisableDestinationAddress, setIsDisableDestinationAddress] = useState<boolean>(false)
   const [isDisableAmount, setIsDisableAmount] = useState<boolean>(false)
 
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const handleChangeFees = (value: string) => {
     if (!value) return
@@ -114,13 +137,13 @@ const UtxoSendPage = ({
     setAlignment(value as typeof alignment)
   }
 
-  const getBalance = async () => {
+  const getBalance = async (storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           chain_id: chainId,
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -136,10 +159,10 @@ const UtxoSendPage = ({
     }
   }
 
-  const getFeeRate = async () => {
+  const getFeeRate = async (network: string) => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
-        params: { chain_id: chainId, network: getNetwork() === 'mainnet' ? 1 : 2 },
+        params: { chain_id: chainId, network: network === 'mainnet' ? 1 : 2 },
       })
       if (response.result) {
         setFeeObj({
@@ -159,10 +182,10 @@ const UtxoSendPage = ({
     }
   }
 
-  const getAddressBook = async () => {
+  const getAddressBook = async (network: string) => {
     try {
       const response: any = await axios.get(Http.find_address_book, {
-        params: { chain_id: chainId, network: getNetwork() === 'mainnet' ? 1 : 2 },
+        params: { chain_id: chainId, network: network === 'mainnet' ? 1 : 2 },
       })
       if (response.result && response.data.length > 0) {
         let rt: AddressBookRowType[] = []
@@ -220,7 +243,7 @@ const UtxoSendPage = ({
         params: {
           chain_id: chainId,
           address: destinationAddress,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       return response.result
@@ -292,9 +315,9 @@ const UtxoSendPage = ({
         chain_id: chainId,
         from_address: fromAddress,
         to_address: destinationAddress,
-        network: getNetwork() === 'mainnet' ? 1 : 2,
-        wallet_id: getWalletId(),
-        user_id: getUserId(),
+        network: network === 'mainnet' ? 1 : 2,
+        wallet_id: walletId,
+        user_id: userId,
         value: amount,
         coin,
         fee_rate: feeRate,
@@ -320,7 +343,7 @@ const UtxoSendPage = ({
         setSnackSeverity('success')
         setSnackMessage('Successful creation!')
         setSnackOpen(true)
-        setBlockExplorerLink(getBlockchainTxUrl(getNetwork() === 'mainnet', response.data.hash))
+        setBlockExplorerLink(getBlockchainTxUrl(network === 'mainnet', response.data.hash))
         setPage(3)
       }
     } catch (e) {
@@ -337,17 +360,22 @@ const UtxoSendPage = ({
     }
   }, [feeRate])
 
-  const init = async (id: number) => {
-    await getBalance()
-    await getFeeRate()
-    await getAddressBook()
-    if (id) await getPayoutInfo(id)
-  }
+  useEffect(() => {
+    if (!payoutId) return
+    getPayoutInfo(Number(payoutId))
+  }, [payoutId])
 
   useEffect(() => {
-    init(Number(payoutId))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payoutId])
+    getBalance(storeId, network)
+  }, [storeId, network])
+
+  useEffect(() => {
+    getFeeRate(network)
+  }, [network])
+
+  useEffect(() => {
+    getAddressBook(network)
+  }, [network])
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-16">
@@ -355,7 +383,7 @@ const UtxoSendPage = ({
         <Image src={chainSvg} alt="chain" width={44} height={44} />
         <h1 className="text-2xl font-semibold">
           Send coin on{' '}
-          {getNetwork() === 'mainnet'
+          {network === 'mainnet'
             ? FindChainNamesByChains(chainId) + ' mainnet'
             : FindChainNamesByChains(chainId) + ' testnet'}
         </h1>

@@ -654,6 +654,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import lightningPayReq from 'bolt11'
 import { BtcToSatoshis } from '@/utils/number'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   id: number
@@ -714,16 +715,33 @@ const Lightning = () => {
   const [text, setText] = useState<string>('')
   const [openDialog, setOpenDialog] = useState<boolean>(false)
 
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickTestConnection = async () => {
     try {
       if (!text) return
 
       const response: any = await axios.get(Http.test_connection, {
-        params: { network: getNetwork() === 'mainnet' ? 1 : 2, store_id: getStoreId(), text },
+        params: { network: network === 'mainnet' ? 1 : 2, store_id: storeId, text },
       })
 
       if (response.result) {
@@ -748,9 +766,9 @@ const Lightning = () => {
       if (!text) return
 
       const response: any = await axios.post(Http.create_lightning_network, {
-        user_id: getUserId(),
-        network: getNetwork() === 'mainnet' ? 1 : 2,
-        store_id: getStoreId(),
+        user_id: userId,
+        network: network === 'mainnet' ? 1 : 2,
+        store_id: storeId,
         text,
       })
 
@@ -758,7 +776,7 @@ const Lightning = () => {
         setSnackSeverity('success')
         setSnackMessage('Save successful!')
         setSnackOpen(true)
-        await init()
+        await init(userId, storeId, network)
         setText('')
         setPage(2)
       } else {
@@ -790,7 +808,7 @@ const Lightning = () => {
       })
 
       if (response.result) {
-        await init()
+        await init(userId, storeId, network)
         setPage(2)
         setSnackSeverity('success')
         setSnackMessage('Update successful!')
@@ -808,13 +826,13 @@ const Lightning = () => {
     }
   }
 
-  async function init() {
+  async function init(userId: number, storeId: number, network: string) {
     try {
       const response: any = await axios.get(Http.find_lightning_network, {
         params: {
-          user_id: getUserId(),
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          user_id: userId,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -855,9 +873,8 @@ const Lightning = () => {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(userId, storeId, network)
+  }, [userId, storeId, network])
 
   const onClickSendLightningAssets = async (invoice: string) => {
     try {

@@ -356,6 +356,7 @@ import { Http } from '@/utils/http/http'
 import { FindChainIdsByChainNames, FindChainNamesByChains } from '@/utils/web3'
 import { CHAINNAMES } from '@/packages/constants/blockchain'
 import { GetImgSrcByChain } from '@/utils/qrcode'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   id: number
@@ -372,11 +373,28 @@ const ManageAddressBook = () => {
   const [selectId, setSelectId] = useState<number>(0)
   const [name, setName] = useState<string>('')
   const [address, setAddress] = useState<string>('')
-  const [network, setNetwork] = useState<CHAINNAMES>()
+  const [chainName, setChainName] = useState<CHAINNAMES>()
 
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickDelete = async (id: number) => {
     if (!id) {
@@ -390,7 +408,7 @@ const ManageAddressBook = () => {
       const response: any = await axios.put(Http.delete_address_book_by_id, { id })
 
       if (response.result) {
-        await init()
+        await init(storeId, network)
         handleClose()
         setSnackSeverity('success')
         setSnackMessage('Successful delete')
@@ -417,9 +435,9 @@ const ManageAddressBook = () => {
       setSnackOpen(true)
       return
     }
-    if (!network) {
+    if (!chainName) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect network')
+      setSnackMessage('Incorrect chainName')
       setSnackOpen(true)
       return
     }
@@ -430,12 +448,12 @@ const ManageAddressBook = () => {
           id: selectId,
           name,
           address,
-          chain_id: FindChainIdsByChainNames(network),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          chain_id: FindChainIdsByChainNames(chainName),
+          network: network === 'mainnet' ? 1 : 2,
         })
 
         if (response.result) {
-          await init()
+          await init(storeId, network)
           handleClose()
           setSnackSeverity('success')
           setSnackMessage('Successful update')
@@ -447,16 +465,16 @@ const ManageAddressBook = () => {
         }
       } else {
         const response: any = await axios.post(Http.create_address_book, {
-          user_id: getUserId(),
-          store_id: getStoreId(),
-          chain_id: FindChainIdsByChainNames(network),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          user_id: userId,
+          store_id: storeId,
+          chain_id: FindChainIdsByChainNames(chainName),
+          network: network === 'mainnet' ? 1 : 2,
           name,
           address,
         })
 
         if (response.result && response.data.id) {
-          await init()
+          await init(storeId, network)
           handleClose()
           setSnackSeverity('success')
           setSnackMessage('Successful creation!')
@@ -480,15 +498,15 @@ const ManageAddressBook = () => {
   const handleClose = () => {
     setName('')
     setAddress('')
-    setNetwork(undefined)
+    setChainName(undefined)
     setSelectId(0)
     setOpen(false)
   }
 
-  const init = async () => {
+  const init = async (storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_address_book, {
-        params: { store_id: getStoreId(), network: getNetwork() === 'mainnet' ? 1 : 2 },
+        params: { store_id: storeId, network: network === 'mainnet' ? 1 : 2 },
       })
       if (response.result && response.data.length > 0) {
         let rt: RowType[] = []
@@ -512,9 +530,8 @@ const ManageAddressBook = () => {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(storeId, network)
+  }, [storeId, network])
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
@@ -533,7 +550,7 @@ const ManageAddressBook = () => {
                 setSelectId(item.id)
                 setName(item.name)
                 setAddress(item.address)
-                setNetwork(FindChainNamesByChains(item.chainId))
+                setChainName(FindChainNamesByChains(item.chainId))
                 handleOpen()
               }}
             >
@@ -576,7 +593,7 @@ const ManageAddressBook = () => {
             </div>
             <div className="space-y-2">
               <Label>Network</Label>
-              <Select value={network} onValueChange={(v) => setNetwork(v as CHAINNAMES)}>
+              <Select value={chainName} onValueChange={(v) => setChainName(v as CHAINNAMES)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select the network" />
                 </SelectTrigger>

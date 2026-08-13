@@ -1290,7 +1290,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://solana.com',
     isMainnet: true,
     coins: SOLANA_COINS,
-    rpc: ['https://solana-mainnet.g.alchemy.com/v2/7aSbxCv3DXvyH8Xno06Mer9tEX2LFSD0'],
+    rpc: ['https://solana-mainnet.g.alchemy.com/v2/riVZzgRKBdll863I_miqZ'],
     icon: require('@/assets/chain/solana.svg'),
   },
   {
@@ -1301,7 +1301,7 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://solana.com',
     isMainnet: false,
     coins: SOLANA_DEVNET_COINS,
-    rpc: ['https://solana-devnet.g.alchemy.com/v2/7aSbxCv3DXvyH8Xno06Mer9tEX2LFSD0'],
+    rpc: ['https://solana-devnet.g.alchemy.com/v2/riVZzgRKBdll863I_miqZ'],
     icon: require('@/assets/chain/solana.svg'),
   },
   {

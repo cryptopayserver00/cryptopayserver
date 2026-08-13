@@ -88,22 +88,25 @@
 // }
 
 import { useEffect, useState } from 'react'
-import { useSnackPresistStore, useStorePresistStore } from '@/lib/store'
+import { useStorePresistStore } from '@/lib/store'
 import ImportMnemonicPhrase from './MnemonicPhrase'
 import ImportPrivateKey from './PrivateKey'
+import { useShallow } from 'zustand/react/shallow'
 
 const ImportMnemonicPhraseOrPrivateKey = () => {
-  const { getIsStore } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
-
   const [activeTab, setActiveTab] = useState<number>(0)
 
+  const { isStore } = useStorePresistStore(
+    useShallow((state) => ({
+      isStore: state.isStore,
+    }))
+  )
+
   useEffect(() => {
-    if (!getIsStore()) {
+    if (!isStore) {
       window.location.href = '/stores/create'
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isStore])
 
   return (
     <div className="min-h-screen py-16 px-4">

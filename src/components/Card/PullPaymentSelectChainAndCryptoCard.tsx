@@ -155,6 +155,7 @@ import CreateFundsDialog from '@/components/Dialog/CreateFundsDialog'
 import { useSnackPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 type SelectType = {
   storeId: number
@@ -169,7 +170,13 @@ export default function PullPaymentSelectChainAndCryptoCard(props: SelectType) {
   const [selectCoinItem, setSelectCoinItem] = useState<COIN>()
   const [open, setOpen] = useState(false)
 
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const getBlockchain = async (storeId: number, network: number) => {
     try {

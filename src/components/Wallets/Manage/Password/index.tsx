@@ -220,8 +220,6 @@
 
 // export default ManagePassword;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import { Check, Eye, EyeOff, X } from 'lucide-react'
 
@@ -251,6 +249,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { useShallow } from 'zustand/react/shallow'
 
 const ManagePassword = () => {
   const [password, setPassword] = useState<string>('')
@@ -259,8 +258,19 @@ const ManagePassword = () => {
   const [openSetPassword, setOpenSetPassword] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
@@ -270,12 +280,12 @@ const ManagePassword = () => {
 
   const onClickDeletePassword = async () => {
     const response: any = await axios.put(Http.update_pwd_by_wallet_id, {
-      wallet_id: getWalletId(),
+      wallet_id: walletId,
       password: '',
     })
     if (response.result) {
       showSnack('success', 'Successful update!')
-      await init()
+      await init(walletId)
       setOpenDeletePassword(false)
     }
   }
@@ -288,12 +298,12 @@ const ManagePassword = () => {
       }
 
       const response: any = await axios.put(Http.update_pwd_by_wallet_id, {
-        wallet_id: getWalletId(),
+        wallet_id: walletId,
         password: password,
       })
       if (response.result) {
         showSnack('success', 'Successful update!')
-        await init()
+        await init(walletId)
         setOpenSetPassword(false)
       }
     } catch (e) {
@@ -302,13 +312,13 @@ const ManagePassword = () => {
     }
   }
 
-  const init = async () => {
+  const init = async (walletId: number) => {
     setPassword('')
 
     try {
       const response: any = await axios.get(Http.find_wallet_by_id, {
         params: {
-          id: getWalletId(),
+          id: walletId,
         },
       })
 
@@ -324,9 +334,8 @@ const ManagePassword = () => {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(walletId)
+  }, [walletId])
 
   return (
     <div>

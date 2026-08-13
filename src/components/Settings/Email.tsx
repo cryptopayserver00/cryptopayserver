@@ -797,6 +797,7 @@ import { EMAIL_RULE_TIGGER_DATA, EMAIL_RULE_TIGGER_DATAS } from '@/packages/cons
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail } from '@/utils/verify'
+import { useShallow } from 'zustand/react/shallow'
 
 const Emails = () => {
   const [page, setPage] = useState<number>(1)
@@ -815,12 +816,27 @@ const Emails = () => {
   const [subject, setSubject] = useState<string>('')
   const [body, setBody] = useState<string>('')
   const [showSendToBuyer, setShowSendToBuyer] = useState<boolean>(false)
-
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
-
   const [showPassword, setShowPassword] = useState<boolean>(false)
+
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const clearData = () => {
     setRuleId(0)
@@ -862,7 +878,7 @@ const Emails = () => {
           setSnackMessage('Update successful!')
           setSnackOpen(true)
 
-          await init()
+          await init(storeId, userId)
           setPage(2)
         } else {
           setSnackSeverity('error')
@@ -871,8 +887,8 @@ const Emails = () => {
         }
       } else {
         const response: any = await axios.post(Http.create_email_rule_setting, {
-          store_id: getStoreId(),
-          user_id: getUserId(),
+          store_id: storeId,
+          user_id: userId,
           trigger: trigger,
           recipients: recipients,
           show_send_to_buyer: showSendToBuyer ? 1 : 2,
@@ -885,7 +901,7 @@ const Emails = () => {
           setSnackMessage('Save successful!')
           setSnackOpen(true)
 
-          await init()
+          await init(storeId, userId)
           setPage(2)
         } else {
           setSnackSeverity('error')
@@ -916,8 +932,8 @@ const Emails = () => {
 
       const response: any = await axios.get(Http.test_email_setting, {
         params: {
-          store_id: getStoreId(),
-          user_id: getUserId(),
+          store_id: storeId,
+          user_id: userId,
           email: testEmail,
         },
       })
@@ -968,7 +984,7 @@ const Emails = () => {
           setSnackMessage('Update successful!')
           setSnackOpen(true)
 
-          await init()
+          await init(storeId, userId)
         } else {
           setSnackSeverity('error')
           setSnackMessage('Update failed!')
@@ -976,8 +992,8 @@ const Emails = () => {
         }
       } else {
         const response: any = await axios.post(Http.create_email_setting, {
-          store_id: getStoreId(),
-          user_id: getUserId(),
+          store_id: storeId,
+          user_id: userId,
           smtp_server: smtpServer,
           port: port,
           sender_email: senderEmailAddress,
@@ -991,7 +1007,7 @@ const Emails = () => {
           setSnackMessage('Save successful!')
           setSnackOpen(true)
 
-          await init()
+          await init(storeId, userId)
         } else {
           setSnackSeverity('error')
           setSnackMessage('Save failed!')
@@ -1006,12 +1022,12 @@ const Emails = () => {
     }
   }
 
-  const init = async () => {
+  const init = async (storeId: number, userId: number) => {
     try {
       const response: any = await axios.get(Http.find_email_setting, {
         params: {
-          store_id: getStoreId(),
-          user_id: getUserId(),
+          store_id: storeId,
+          user_id: userId,
         },
       })
 
@@ -1033,9 +1049,8 @@ const Emails = () => {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(storeId, userId)
+  }, [storeId, userId])
 
   return (
     <div className="space-y-8">

@@ -562,6 +562,7 @@ import { COINGECKO_IDS, PAYOUT_STATUS } from '@/packages/constants'
 import { GetImgSrcByChain, GetImgSrcByCrypto } from '@/utils/qrcode'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 type Coin = { [currency: string]: string }
 
@@ -594,18 +595,40 @@ const BitcoinCashSend = () => {
   const [isDisableDestinationAddress, setIsDisableDestinationAddress] = useState<boolean>(false)
   const [isDisableAmount, setIsDisableAmount] = useState<boolean>(false)
 
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
 
-  const getBalance = async () => {
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const getBalance = async (storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           chain_id: CHAINS.BITCOINCASH,
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -621,10 +644,10 @@ const BitcoinCashSend = () => {
     }
   }
 
-  const getAddressBook = async () => {
+  const getAddressBook = async (network: string) => {
     try {
       const response: any = await axios.get(Http.find_address_book, {
-        params: { chain_id: CHAINS.BITCOINCASH, network: getNetwork() === 'mainnet' ? 1 : 2 },
+        params: { chain_id: CHAINS.BITCOINCASH, network: network === 'mainnet' ? 1 : 2 },
       })
       if (response.result && response.data.length > 0) {
         let rt: AddressBookRowType[] = []
@@ -682,7 +705,7 @@ const BitcoinCashSend = () => {
         params: {
           chain_id: CHAINS.BITCOINCASH,
           address: destinationAddress,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       return response.result
@@ -747,9 +770,9 @@ const BitcoinCashSend = () => {
         chain_id: CHAINS.BITCOINCASH,
         from_address: fromAddress,
         to_address: destinationAddress,
-        network: getNetwork() === 'mainnet' ? 1 : 2,
-        wallet_id: getWalletId(),
-        user_id: getUserId(),
+        network: network === 'mainnet' ? 1 : 2,
+        wallet_id: walletId,
+        user_id: userId,
         value: amount,
         coin,
       })
@@ -774,7 +797,7 @@ const BitcoinCashSend = () => {
         setSnackSeverity('success')
         setSnackMessage('Successful creation!')
         setSnackOpen(true)
-        setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', response.data.hash))
+        setBlockExplorerLink(GetBlockchainTxUrl(network === 'mainnet', response.data.hash))
         setPage(3)
       }
     } catch (e) {
@@ -785,16 +808,19 @@ const BitcoinCashSend = () => {
     }
   }
 
-  const init = async (id: any) => {
-    await getBalance()
-    await getAddressBook()
-    if (id) await getPayoutInfo(id)
-  }
+  useEffect(() => {
+    if (payoutId) {
+      getPayoutInfo(payoutId)
+    }
+  }, [payoutId])
 
   useEffect(() => {
-    init(payoutId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payoutId])
+    getBalance(storeId, network)
+  }, [storeId, network])
+
+  useEffect(() => {
+    getAddressBook(network)
+  }, [network])
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-16">
@@ -802,7 +828,7 @@ const BitcoinCashSend = () => {
         <Image src={GetImgSrcByChain(CHAINS.BITCOINCASH)} alt="chain" width={44} height={44} />
         <h1 className="text-2xl font-semibold">
           Send coin on{' '}
-          {getNetwork() === 'mainnet'
+          {network === 'mainnet'
             ? FindChainNamesByChains(CHAINS.BITCOINCASH) + ' mainnet'
             : FindChainNamesByChains(CHAINS.BITCOINCASH) + ' testnet'}
         </h1>

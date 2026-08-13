@@ -520,6 +520,7 @@ import SolanaSVG from '@/assets/chain/solana.svg'
 import TonSVG from '@/assets/chain/ton.svg'
 import TronSVG from '@/assets/chain/tron.svg'
 import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store'
+import { useShallow } from 'zustand/react/shallow'
 
 type HomeSidebarProps = {
   collapsed: boolean
@@ -552,15 +553,27 @@ const NavItem: React.FC<NavItemProps> = ({ href, icon, label, active, collapsed 
 const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
   const router = useRouter()
 
-  const showSidebar = useUserPresistStore((state) => state.getSidebarCollapsed)
-  const network = useUserPresistStore((state) => state.getNetwork())
-  const isWallet = useWalletPresistStore((state) => state.getIsWallet())
-  const isStore = useStorePresistStore((state) => state.getIsStore())
-
   const [paymentsOpen, setPaymentsOpen] = useState(router.pathname.includes('/payments'))
   const [pluginsOpen, setPluginsOpen] = useState(router.pathname.includes('/plugins'))
 
-  if (!showSidebar) return null
+  const { sidebarCollapsed, network } = useUserPresistStore(
+    useShallow((state) => ({
+      sidebarCollapsed: state.sidebarCollapsed,
+      network: state.network,
+    }))
+  )
+
+  const { isWallet } = useWalletPresistStore(
+    useShallow((state) => ({
+      isWallet: state.isWallet,
+    }))
+  )
+
+  const { isStore } = useStorePresistStore(
+    useShallow((state) => ({
+      isStore: state.isStore,
+    }))
+  )
 
   return (
     <aside
@@ -643,7 +656,7 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
               />
               <NavItem
                 href="/wallets/xrp"
-                icon={<Image src={XrpSVG} alt="icon" width={18} height={18} />}
+                icon={<Image src={XrpSVG} alt="icon" width={18} height={18} className="w-4 h-4" />}
                 label="Xrp"
                 active={router.pathname === '/wallets/xrp'}
                 collapsed={collapsed}
@@ -657,7 +670,9 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
               />
               <NavItem
                 href="/wallets/ethereum"
-                icon={<Image src={EthereumSVG} alt="icon" width={18} height={18} />}
+                icon={
+                  <Image src={EthereumSVG} alt="icon" width={18} height={18} className="w-4 h-4" />
+                }
                 label="Ethereum"
                 active={router.pathname === '/wallets/ethereum'}
                 collapsed={collapsed}
@@ -671,7 +686,9 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
               />
               <NavItem
                 href="/wallets/solana"
-                icon={<Image src={SolanaSVG} alt="icon" width={18} height={18} />}
+                icon={
+                  <Image src={SolanaSVG} alt="icon" width={18} height={18} className="w-4 h-4" />
+                }
                 label="Solana"
                 active={router.pathname === '/wallets/solana'}
                 collapsed={collapsed}
@@ -708,7 +725,9 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
               />
               <NavItem
                 href="/wallets/polygon"
-                icon={<Image src={PolygonSVG} alt="icon" width={18} height={18} />}
+                icon={
+                  <Image src={PolygonSVG} alt="icon" width={18} height={18} className="w-4 h-4" />
+                }
                 label="Polygon"
                 active={router.pathname === '/wallets/polygon'}
                 collapsed={collapsed}

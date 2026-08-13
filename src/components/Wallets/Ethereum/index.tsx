@@ -470,7 +470,6 @@ const Ethereum = () => (
     chainSvg={EthereumSVG}
     sendHref={`/wallets/send?chainId=${CHAINS.ETHEREUM}`}
     getBlockchainAddressUrl={GetBlockchainAddressUrl}
-    // Ethereum's original page showed each wallet row's own `type`, not a fixed chain label
   />
 )
 

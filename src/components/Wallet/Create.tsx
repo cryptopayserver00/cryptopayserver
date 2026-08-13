@@ -77,16 +77,19 @@
 
 // export default CreateWallet;
 
-'use client'
-
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useStorePresistStore } from '@/lib/store'
+import { useShallow } from 'zustand/react/shallow'
 
 const CreateWallet = () => {
   const router = useRouter()
 
-  const currentIsStore = useStorePresistStore((state) => state.getIsStore)
+  const { isStore } = useStorePresistStore(
+    useShallow((state) => ({
+      isStore: state.isStore,
+    }))
+  )
 
   const onClickImport = () => {
     router.push('/wallet/import')
@@ -97,11 +100,10 @@ const CreateWallet = () => {
   }
 
   useEffect(() => {
-    if (!currentIsStore) {
+    if (!isStore) {
       router.push('/stores/create')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIsStore])
+  }, [isStore])
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">

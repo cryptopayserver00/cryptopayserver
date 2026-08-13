@@ -155,6 +155,7 @@ import { Separator } from '@/components/ui/separator'
 import { useSnackPresistStore } from '@/lib/store'
 import lightningPayReq, { PaymentRequestObject } from 'bolt11'
 import { SatoshisToBtc } from '@/utils/number'
+import { useShallow } from 'zustand/react/shallow'
 
 type DialogType = {
   openDialog: boolean
@@ -178,7 +179,13 @@ export default function SendLightningAssetsDialog(props: DialogType) {
   const [decodeInfo, setDecodeInfo] = useState<PaymentRequestObject>()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const handleDialogClose = () => {
     setInvoice('')

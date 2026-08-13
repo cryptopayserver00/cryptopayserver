@@ -632,8 +632,6 @@
 
 // export default XRP;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -669,6 +667,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { useShallow } from 'zustand/react/shallow'
 
 type walletType = {
   id: number
@@ -731,11 +730,6 @@ const TrustLineRow = ({
 )
 
 const XRP = () => {
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackMessage, setSnackSeverity, setSnackOpen } = useSnackPresistStore((state) => state)
-
   const [isSettings, setIsSettings] = useState<boolean>(false)
   const [wallet, setWallet] = useState<walletType[]>([])
   const [feeObj, setFeeObj] = useState<feeType>()
@@ -749,7 +743,34 @@ const XRP = () => {
   const [trustLineToken, setTrustLineToken] = useState<COINS>()
   const [trustLineLimit, setTrustLineLimit] = useState<number>(0)
 
-  const coinNames = FindCoinsByMainnetAndName(getNetwork() === 'mainnet', CHAINNAMES.XRP)
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const coinNames = FindCoinsByMainnetAndName(network === 'mainnet', CHAINNAMES.XRP)
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
@@ -758,17 +779,17 @@ const XRP = () => {
   }
 
   const onClickRescanAddress = async () => {
-    await getXrpWalletAddress()
+    await getXrpWalletAddress(walletId, network)
     showSnack('success', 'Successful rescan!')
   }
 
-  const getXrpWalletAddress = async () => {
+  const getXrpWalletAddress = async (walletId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_wallet_address_by_chain_and_network, {
         params: {
-          wallet_id: getWalletId(),
+          wallet_id: walletId,
           chain_id: CHAINS.XRP,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -818,14 +839,14 @@ const XRP = () => {
     }
   }
 
-  const getXrpPaymentSetting = async () => {
+  const getXrpPaymentSetting = async (userId: number, storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_payment_setting_by_chain_id, {
         params: {
-          user_id: getUserId(),
+          user_id: userId,
           chain_id: CHAINS.XRP,
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -846,12 +867,12 @@ const XRP = () => {
     }
   }
 
-  const getSolanaFeeRate = async () => {
+  const getXrpFeeRate = async (network: string) => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
         params: {
           chain_id: CHAINS.XRP,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -879,7 +900,7 @@ const XRP = () => {
       })
       if (response.result) {
         showSnack('success', 'Successful update!')
-        await init()
+        await init(walletId, storeId, userId, network)
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -890,10 +911,10 @@ const XRP = () => {
   const onClickAddTrustLine = async (address: string) => {
     try {
       const response: any = await axios.post(Http.create_token_trust_line, {
-        wallet_id: getWalletId(),
-        user_id: getUserId(),
+        wallet_id: walletId,
+        user_id: userId,
         chain_id: CHAINS.XRP,
-        network: getNetwork() === 'mainnet' ? 1 : 2,
+        network: network === 'mainnet' ? 1 : 2,
         address: address,
         coin: trustLineToken,
         limit: trustLineLimit,
@@ -901,7 +922,7 @@ const XRP = () => {
 
       if (response.result) {
         showSnack('success', 'Successful creation!')
-        await init()
+        await init(walletId, storeId, userId, network)
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -909,16 +930,25 @@ const XRP = () => {
     }
   }
 
-  const init = async () => {
-    await getXrpWalletAddress()
-    await getXrpPaymentSetting()
-    await getSolanaFeeRate()
+  const init = async (walletId: number, storeId: number, userId: number, network: string) => {
+    await Promise.all([
+      await getXrpWalletAddress(walletId, network),
+      await getXrpPaymentSetting(userId, storeId, network),
+      await getXrpFeeRate(network),
+    ])
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    getXrpWalletAddress(walletId, network)
+  }, [walletId, network])
+
+  useEffect(() => {
+    getXrpPaymentSetting(userId, storeId, network)
+  }, [userId, storeId, network])
+
+  useEffect(() => {
+    getXrpFeeRate(network)
+  }, [network])
 
   return (
     <div>
@@ -941,7 +971,7 @@ const XRP = () => {
               onClick={() => {
                 window.location.href = `/wallets/receive?chainId=${
                   CHAINS.XRP
-                }&storeId=${getStoreId()}&network=${getNetwork()}`
+                }&storeId=${storeId}&network=${network}`
               }}
             >
               Receive
@@ -1122,7 +1152,7 @@ const XRP = () => {
                         </Button>
                         <Button variant="outline" asChild>
                           <a
-                            href={GetBlockchainAddressUrl(getNetwork() === 'mainnet', item.address)}
+                            href={GetBlockchainAddressUrl(network === 'mainnet', item.address)}
                             target="_blank"
                             rel="noreferrer"
                           >
@@ -1177,7 +1207,7 @@ const XRP = () => {
                             <TrustLineRow
                               key={trustIndex}
                               trustItem={trustItem}
-                              isMainnet={getNetwork() === 'mainnet'}
+                              isMainnet={network === 'mainnet'}
                             />
                           ))}
                         </div>

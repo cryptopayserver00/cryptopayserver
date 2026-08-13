@@ -198,6 +198,7 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 const Notifications = () => {
   return (
@@ -239,18 +240,34 @@ type RowType = {
 }
 
 function NotificationsTab() {
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
-
   const [rows, setRows] = useState<RowType[]>([])
 
-  const init = async () => {
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const init = async (storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_notification, {
         params: {
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -285,9 +302,8 @@ function NotificationsTab() {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(storeId, network)
+  }, [storeId, network])
 
   const onClickSeen = async (id: number, isSeen: number) => {
     try {
@@ -301,7 +317,7 @@ function NotificationsTab() {
         setSnackMessage('update Successful!')
         setSnackOpen(true)
 
-        await init()
+        await init(storeId, network)
       }
     } catch (e) {
       setSnackSeverity('error')

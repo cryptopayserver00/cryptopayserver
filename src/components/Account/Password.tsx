@@ -146,6 +146,7 @@ import { useSnackPresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { isValidPassword } from '@/utils/verify'
+import { useShallow } from 'zustand/react/shallow'
 
 const Password = () => {
   const [oldPwd, setOldPwd] = useState('')
@@ -156,8 +157,19 @@ const Password = () => {
   const [showConfirm, setShowConfirm] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
 
-  const { getUserEmail } = useUserPresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { userEmail } = useUserPresistStore(
+    useShallow((state) => ({
+      userEmail: state.userEmail,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickUpdatePassword = async () => {
     try {
@@ -180,7 +192,7 @@ const Password = () => {
       setIsUpdating(true)
 
       const response: any = await axios.put(Http.update_user_password_by_email, {
-        email: getUserEmail(),
+        email: userEmail,
         old_password: oldPwd,
         new_password: newPwd,
       })

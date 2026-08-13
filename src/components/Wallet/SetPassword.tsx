@@ -152,8 +152,6 @@
 
 // export default SetPassword;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -162,18 +160,35 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { useStorePresistStore, useWalletPresistStore } from '@/lib/store'
 import { isValidPassword } from '@/utils/verify'
+import { useShallow } from 'zustand/react/shallow'
 
 const SetPassword = () => {
   const router = useRouter()
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getIsStore } = useStorePresistStore((state) => state)
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { isStore } = useStorePresistStore(
+    useShallow((state) => ({
+      isStore: state.isStore,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickConfirm = async () => {
     try {
@@ -191,7 +206,7 @@ const SetPassword = () => {
       }
 
       const response: any = await axios.put(Http.update_pwd_by_wallet_id, {
-        wallet_id: getWalletId(),
+        wallet_id: walletId,
         password: password,
       })
 
@@ -221,11 +236,10 @@ const SetPassword = () => {
   }
 
   useEffect(() => {
-    if (!getIsStore()) {
+    if (!isStore) {
       router.push('/stores/create')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isStore])
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">

@@ -232,8 +232,6 @@
 
 // export default ManagePrivateKey;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -255,6 +253,7 @@ import {
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   chainId: number
@@ -270,9 +269,25 @@ const ManagePrivateKey = () => {
   const [open, setOpen] = useState<boolean>(false)
   const [rows, setRows] = useState<RowType[]>([])
 
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
@@ -284,7 +299,7 @@ const ManagePrivateKey = () => {
     try {
       const response: any = await axios.get(Http.find_private_key_by_chain_and_network, {
         params: {
-          wallet_id: getWalletId(),
+          wallet_id: walletId,
           chain_id: FindChainIdsByChainNames(item.name),
           network: item.isMainnet ? 1 : 2,
         },
@@ -316,11 +331,11 @@ const ManagePrivateKey = () => {
 
   useEffect(() => {
     const value = BLOCKCHAINNAMES.filter((item: any) =>
-      getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet
+      network === 'mainnet' ? item.isMainnet : !item.isMainnet
     )
     setBlockchains(value)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [network])
 
   const toggleView = (index: number, value: boolean) => {
     const newRows = [...rows]

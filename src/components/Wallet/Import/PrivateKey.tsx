@@ -130,14 +130,33 @@ import { CHAINNAMES } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { FindChainIdsByChainNames } from '@/utils/web3'
+import { useShallow } from 'zustand/react/shallow'
 
 const ImportPrivateKey = () => {
-  const [network, setNetwork] = useState<CHAINNAMES>(CHAINNAMES.BITCOIN)
+  const [chainName, setChainName] = useState<CHAINNAMES>(CHAINNAMES.BITCOIN)
   const [privateKey, setPrivateKey] = useState<string>('')
 
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId, getIsStore } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { userId, network } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+      network: state.network,
+    }))
+  )
+
+  const { storeId, isStore } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+      isStore: state.isStore,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickBatchImport = () => {
     setSnackMessage('No support right now')
@@ -154,18 +173,18 @@ const ImportPrivateKey = () => {
         return
       }
 
-      if (!network || !Object.values(CHAINNAMES).includes(network)) {
+      if (!chainName || !Object.values(CHAINNAMES).includes(chainName)) {
         setSnackSeverity('error')
-        setSnackMessage('The network cannot be empty')
+        setSnackMessage('The chainName cannot be empty')
         setSnackOpen(true)
         return
       }
 
       const response: any = await axios.post(Http.save_wallet_by_private_key, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
-        chain_id: FindChainIdsByChainNames(network),
-        network: getNetwork() === 'mainnet' ? 1 : 2,
+        user_id: userId,
+        store_id: storeId,
+        chain_id: FindChainIdsByChainNames(chainName),
+        network: network === 'mainnet' ? 1 : 2,
         private_key: privateKey,
       })
 
@@ -183,11 +202,10 @@ const ImportPrivateKey = () => {
   }
 
   useEffect(() => {
-    if (!getIsStore()) {
+    if (!isStore) {
       window.location.href = '/stores/create'
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isStore])
 
   return (
     <div className="w-full max-w-[420px]">
@@ -196,8 +214,8 @@ const ImportPrivateKey = () => {
         <label className="sr-only">Select Network</label>
         <select
           aria-label="Without label"
-          value={network}
-          onChange={(e) => setNetwork(e.target.value as CHAINNAMES)}
+          value={chainName}
+          onChange={(e) => setChainName(e.target.value as CHAINNAMES)}
           className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
         >
           {CHAINNAMES &&

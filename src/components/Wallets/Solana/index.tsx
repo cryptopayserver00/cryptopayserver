@@ -445,8 +445,6 @@
 //   );
 // }
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -486,6 +484,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useShallow } from 'zustand/react/shallow'
 
 type walletType = {
   id: number
@@ -497,10 +496,6 @@ type walletType = {
 }
 
 const Solana = () => {
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-
   const [isSettings, setIsSettings] = useState<boolean>(false)
   const [wallet, setWallet] = useState<walletType[]>([])
   const [feeRate, setFeeRate] = useState<number>(0)
@@ -509,7 +504,32 @@ const Solana = () => {
   const [currentUsedAddressId, setCurrentUsedAddressId] = useState<number>(0)
   const [paymentExpire, setPaymentExpire] = useState<number>(0)
 
-  const { setSnackMessage, setSnackSeverity, setSnackOpen } = useSnackPresistStore((state) => state)
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
@@ -518,17 +538,17 @@ const Solana = () => {
   }
 
   const onClickRescanAddress = async () => {
-    await getSolanaWalletAddress()
+    await getSolanaWalletAddress(walletId, network)
     showSnack('success', 'Successful rescan!')
   }
 
-  const getSolanaWalletAddress = async () => {
+  const getSolanaWalletAddress = async (walletId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_wallet_address_by_chain_and_network, {
         params: {
-          wallet_id: getWalletId(),
+          wallet_id: walletId,
           chain_id: CHAINS.SOLANA,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -558,14 +578,14 @@ const Solana = () => {
     }
   }
 
-  const getSolanaPaymentSetting = async () => {
+  const getSolanaPaymentSetting = async (userId: number, storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_payment_setting_by_chain_id, {
         params: {
-          user_id: getUserId(),
+          user_id: userId,
           chain_id: CHAINS.SOLANA,
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
@@ -584,12 +604,12 @@ const Solana = () => {
     }
   }
 
-  const getSolanaFeeRate = async () => {
+  const getSolanaFeeRate = async (network: string) => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
         params: {
           chain_id: CHAINS.SOLANA,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -610,7 +630,7 @@ const Solana = () => {
       })
       if (response.result) {
         showSnack('success', 'Successful update!')
-        await init()
+        await init(userId, storeId, walletId, network)
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -618,16 +638,25 @@ const Solana = () => {
     }
   }
 
-  const init = async () => {
-    await getSolanaWalletAddress()
-    await getSolanaPaymentSetting()
-    await getSolanaFeeRate()
+  const init = async (userId: number, storeId: number, walletId: number, network: string) => {
+    await Promise.all([
+      getSolanaWalletAddress(walletId, network),
+      getSolanaPaymentSetting(userId, storeId, network),
+      getSolanaFeeRate(network),
+    ])
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    getSolanaWalletAddress(walletId, network)
+  }, [walletId, network])
+
+  useEffect(() => {
+    getSolanaPaymentSetting(userId, storeId, network)
+  }, [userId, storeId, network])
+
+  useEffect(() => {
+    getSolanaFeeRate(network)
+  }, [network])
 
   return (
     <div>
@@ -650,7 +679,7 @@ const Solana = () => {
               onClick={() => {
                 window.location.href = `/wallets/receive?chainId=${
                   CHAINS.SOLANA
-                }&storeId=${getStoreId()}&network=${getNetwork()}`
+                }&storeId=${storeId}&network=${network}`
               }}
             >
               Receive
@@ -774,7 +803,7 @@ const Solana = () => {
                         </Button>
                         <Button variant="outline" asChild>
                           <a
-                            href={GetBlockchainAddressUrl(getNetwork() === 'mainnet', item.address)}
+                            href={GetBlockchainAddressUrl(network === 'mainnet', item.address)}
                             target="_blank"
                             rel="noreferrer"
                           >

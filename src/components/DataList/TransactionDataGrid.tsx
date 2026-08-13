@@ -366,6 +366,7 @@ import {
   GetBlockchainAddressUrlByChainIds,
   GetBlockchainTxUrlByChainIds,
 } from '@/utils/web3'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   id: number
@@ -397,9 +398,25 @@ export default function TransactionDataGrid(props: GridType) {
   const [open, setOpen] = useState(false)
   const [selectedValue, setSelectedValue] = useState<RowType>()
 
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickRow = (row: RowType) => {
     setSelectedValue(row)
@@ -415,12 +432,16 @@ export default function TransactionDataGrid(props: GridType) {
     address?: string
   ) => {
     try {
+      if (!chain || !storeId || !network || !address) {
+        return
+      }
+
       const response: any = await axios.get(Http.find_transaction, {
         params: {
-          chain_id: chain ? chain : '',
-          store_id: storeId ? storeId : getStoreId(),
-          network: network ? (network === 'mainnet' ? 1 : 2) : getNetwork() === 'mainnet' ? 1 : 2,
-          address: address ? address : '',
+          chain_id: chain,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
+          address: address,
           page: pageNum,
           page_size: size,
         },

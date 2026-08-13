@@ -210,6 +210,7 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import { CURRENCY_SYMBOLS, PAYMENT_REQUEST_STATUS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   id: number
@@ -236,9 +237,25 @@ export default function PaymentRequestDataGrid(props: GridType) {
   const [page, setPage] = useState(0)
   const [archivingId, setArchivingId] = useState<number | null>(null)
 
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickView = (row: RowType) => {
     window.location.href = `/payment-requests/${row.paymentRequestId}`
@@ -256,7 +273,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
         setSnackSeverity('success')
         setSnackMessage('Update successful!')
         setSnackOpen(true)
-        await init()
+        await init(storeId, network, props.paymentRequestStatus, props.paymentRequestId)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Update failed!')
@@ -272,14 +289,19 @@ export default function PaymentRequestDataGrid(props: GridType) {
     }
   }
 
-  const init = async () => {
+  const init = async (
+    storeId: number,
+    network: string,
+    paymentRequestStatus?: string,
+    paymentRequestId?: string
+  ) => {
     try {
       const response: any = await axios.get(Http.find_payment_request, {
         params: {
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
-          payment_request_status: props.paymentRequestStatus,
-          payment_request_id: props.paymentRequestId,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
+          payment_request_status: paymentRequestStatus,
+          payment_request_id: paymentRequestId,
         },
       })
 
@@ -318,10 +340,9 @@ export default function PaymentRequestDataGrid(props: GridType) {
   }
 
   useEffect(() => {
-    init()
+    init(storeId, network, props.paymentRequestStatus, props.paymentRequestId)
     setPage(0)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.paymentRequestStatus, props.paymentRequestId])
+  }, [storeId, network, props.paymentRequestStatus, props.paymentRequestId])
 
   const displayRows = source === 'dashboard' ? rows.slice(0, PAGE_SIZE) : rows
 

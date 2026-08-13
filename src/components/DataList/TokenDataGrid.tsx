@@ -184,6 +184,7 @@ import { Http } from '@/utils/http/http'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
 import { FormatNumberToEnglish } from '@/utils/strings'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   id: number
@@ -208,7 +209,14 @@ export default function TokenDataGrid(props: GridType) {
   const { source } = props
   const [rows, setRows] = useState<RowType[]>([])
   const [page, setPage] = useState(0)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const init = async () => {
     try {
@@ -264,7 +272,6 @@ export default function TokenDataGrid(props: GridType) {
 
   useEffect(() => {
     init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const displayRows = source === 'dashboard' ? rows.slice(0, PAGE_SIZE) : rows

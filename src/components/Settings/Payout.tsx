@@ -353,6 +353,7 @@ import { CHAINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { FindChainNamesByChains } from '@/utils/web3'
+import { useShallow } from 'zustand/react/shallow'
 
 const Payout = () => {
   const [id, setId] = useState<number>(0)
@@ -363,8 +364,13 @@ const Payout = () => {
   const [feeBlockTarget, setFeeBlockTarget] = useState<number>(0)
   const [threshold, setThreshold] = useState<number>(0)
 
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
-
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
   const onClickSave = async () => {
     try {
       if (!id) {

@@ -228,6 +228,7 @@ import { Button } from '@/components/ui/button'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   id: number
@@ -259,9 +260,25 @@ export default function WebhookDataGrid(props: GridType) {
   const [testingId, setTestingId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickTest = async (row: RowType) => {
     try {
@@ -301,7 +318,7 @@ export default function WebhookDataGrid(props: GridType) {
         setSnackSeverity('success')
         setSnackMessage('Delete successful!')
         setSnackOpen(true)
-        await init()
+        await init(storeId, userId)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Delete failed!')
@@ -317,12 +334,12 @@ export default function WebhookDataGrid(props: GridType) {
     }
   }
 
-  const init = async () => {
+  const init = async (storeId: number, userId: number) => {
     try {
       const response: any = await axios.get(Http.find_webhook_setting, {
         params: {
-          store_id: getStoreId(),
-          user_id: getUserId(),
+          store_id: storeId,
+          user_id: userId,
         },
       })
 
@@ -356,9 +373,8 @@ export default function WebhookDataGrid(props: GridType) {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(storeId, userId)
+  }, [storeId, userId])
 
   const displayRows = props.source === 'dashboard' ? rows.slice(0, PAGE_SIZE) : rows
 

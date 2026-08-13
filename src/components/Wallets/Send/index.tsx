@@ -1002,8 +1002,6 @@
 
 // export default WalletsSend;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Image from 'next/image'
@@ -1035,6 +1033,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 type feeType = {
   high: number
@@ -1103,10 +1102,32 @@ const WalletsSend = () => {
   const [isDisableDestinationAddress, setIsDisableDestinationAddress] = useState<boolean>(false)
   const [isDisableAmount, setIsDisableAmount] = useState<boolean>(false)
 
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
@@ -1146,13 +1167,13 @@ const WalletsSend = () => {
     setMaxPriortyFeeAlignment(value as 'fast' | 'normal' | 'slow')
   }
 
-  const getBalance = async (chainId: number) => {
+  const getBalance = async (chainId: number, storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           chain_id: chainId,
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -1173,7 +1194,7 @@ const WalletsSend = () => {
       const response: any = await axios.get(Http.find_gas_limit, {
         params: {
           chain_id: chainId,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
           coin: coin,
           from: from,
           to: destinationAddress,
@@ -1192,12 +1213,12 @@ const WalletsSend = () => {
     }
   }
 
-  const getFeeRate = async (chainId: number) => {
+  const getFeeRate = async (chainId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
         params: {
           chain_id: chainId,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -1214,12 +1235,12 @@ const WalletsSend = () => {
     }
   }
 
-  const getMaxPriortyFee = async (chainId: number) => {
+  const getMaxPriortyFee = async (chainId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_max_priorty_fee, {
         params: {
           chain_id: chainId,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -1236,12 +1257,12 @@ const WalletsSend = () => {
     }
   }
 
-  const getAddressBook = async (chainId: number) => {
+  const getAddressBook = async (chainId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_address_book, {
         params: {
           chain_id: chainId,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result && response.data.length > 0) {
@@ -1269,7 +1290,7 @@ const WalletsSend = () => {
         const response: any = await axios.get(Http.find_nonce, {
           params: {
             chain_id: chainId,
-            network: getNetwork() === 'mainnet' ? 1 : 2,
+            network: network === 'mainnet' ? 1 : 2,
             address: address,
           },
         })
@@ -1333,7 +1354,7 @@ const WalletsSend = () => {
         params: {
           chain_id: chainId,
           address: destinationAddress,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       return response.result
@@ -1456,9 +1477,9 @@ const WalletsSend = () => {
         chain_id: chainId,
         from_address: fromAddress,
         to_address: destinationAddress,
-        network: getNetwork() === 'mainnet' ? 1 : 2,
-        wallet_id: getWalletId(),
-        user_id: getUserId(),
+        network: network === 'mainnet' ? 1 : 2,
+        wallet_id: walletId,
+        user_id: userId,
         value: amount,
         coin: coin,
         nonce: nonce,
@@ -1485,11 +1506,7 @@ const WalletsSend = () => {
         showSnack('success', 'Successful creation!')
 
         setBlockExplorerLink(
-          GetBlockchainTxUrlByChainIds(
-            getNetwork() === 'mainnet',
-            Number(chainId),
-            response.data.hash
-          )
+          GetBlockchainTxUrlByChainIds(network === 'mainnet', Number(chainId), response.data.hash)
         )
         setPage(3)
       }
@@ -1534,26 +1551,54 @@ const WalletsSend = () => {
     }
   }, [maxFee, gasLimit])
 
-  const init = async (chainId: number, payoutId: number) => {
-    await getBalance(chainId)
-    await getFeeRate(chainId)
-    if (chainId !== CHAINS.BSC) {
-      await getMaxPriortyFee(chainId)
-    }
-    await getAddressBook(chainId)
+  // const init = async (chainId: number, payoutId: number) => {
+  //   await Promise.all([getBalance(chainId), getFeeRate(chainId)])
 
+  //   if (chainId !== CHAINS.BSC) {
+  //     await getMaxPriortyFee(chainId)
+  //   }
+  //   await getAddressBook(chainId)
+
+  //   if (payoutId) {
+  //     await getPayoutInfo(payoutId)
+  //   }
+  // }
+
+  useEffect(() => {
     if (payoutId) {
-      await getPayoutInfo(payoutId)
+      getPayoutInfo(Number(payoutId))
     }
-  }
+  }, [payoutId])
 
   useEffect(() => {
     if (!chainId) {
       return
     }
-    init(Number(chainId), Number(payoutId))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId, payoutId])
+    getBalance(Number(chainId), storeId, network)
+  }, [chainId, storeId, network])
+
+  useEffect(() => {
+    if (!chainId) {
+      return
+    }
+    getFeeRate(Number(chainId), network)
+  }, [chainId, network])
+
+  useEffect(() => {
+    if (!chainId) {
+      return
+    }
+    if (Number(chainId) !== CHAINS.BSC) {
+      getMaxPriortyFee(Number(chainId), network)
+    }
+  }, [chainId, network])
+
+  useEffect(() => {
+    if (!chainId) {
+      return
+    }
+    getAddressBook(Number(chainId), network)
+  }, [chainId, network])
 
   return (
     <div className="mb-16 flex flex-col items-center">
@@ -1563,7 +1608,7 @@ const WalletsSend = () => {
         )}
         <h1 className="text-3xl font-bold tracking-tight">
           Send coin on{' '}
-          {getNetwork() === 'mainnet'
+          {network === 'mainnet'
             ? FindChainNamesByChains(Number(chainId)) + ' mainnet'
             : FindChainNamesByChains(Number(chainId)) + ' testnet'}
         </h1>

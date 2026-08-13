@@ -388,6 +388,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import PullPaymentDataGrid from '@/components/DataList/PullPaymentDataGrid'
+import { useShallow } from 'zustand/react/shallow'
 
 const Pullpayments = () => {
   const [openExplain, setOpenExplain] = useState<boolean>(false)
@@ -401,9 +402,26 @@ const Pullpayments = () => {
   const [showNameAlert, setShowNameAlert] = useState<boolean>(false)
   const [showAmountAlert, setShowAmountAlert] = useState<boolean>(false)
 
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { userId, network } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+      network: state.network,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   // Tab 选项卡数据源
   const tabList = [
@@ -460,9 +478,9 @@ const Pullpayments = () => {
       }
 
       const response: any = await axios.post(Http.create_pull_payment, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
-        network: getNetwork() === 'mainnet' ? 1 : 2,
+        user_id: userId,
+        store_id: storeId,
+        network: network === 'mainnet' ? 1 : 2,
         name: name,
         amount: amount,
         currency: currency,

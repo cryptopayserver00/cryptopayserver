@@ -552,8 +552,6 @@
 
 // export default SolanaSend;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Image from 'next/image'
@@ -581,6 +579,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 type Coin = {
   [currency: string]: string
@@ -624,10 +623,32 @@ const SolanaSend = () => {
   const [isDisableDestinationAddress, setIsDisableDestinationAddress] = useState<boolean>(false)
   const [isDisableAmount, setIsDisableAmount] = useState<boolean>(false)
 
-  const { getNetwork, getUserId } = useUserPresistStore((state) => state)
-  const { getWalletId } = useWalletPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      walletId: state.walletId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const showSnack = (severity: 'success' | 'error', message: string) => {
     setSnackSeverity(severity)
@@ -635,13 +656,13 @@ const SolanaSend = () => {
     setSnackOpen(true)
   }
 
-  const getBalance = async () => {
+  const getBalance = async (storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
           chain_id: CHAINS.SOLANA,
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -655,12 +676,12 @@ const SolanaSend = () => {
     }
   }
 
-  const getFeeRate = async () => {
+  const getFeeRate = async (network: string) => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
         params: {
           chain_id: CHAINS.SOLANA,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -672,12 +693,12 @@ const SolanaSend = () => {
     }
   }
 
-  const getAddressBook = async () => {
+  const getAddressBook = async (network: string) => {
     try {
       const response: any = await axios.get(Http.find_address_book, {
         params: {
           chain_id: CHAINS.SOLANA,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result && response.data.length > 0) {
@@ -749,7 +770,7 @@ const SolanaSend = () => {
         params: {
           chain_id: CHAINS.SOLANA,
           address: destinationAddress,
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
       return response.result
@@ -810,9 +831,9 @@ const SolanaSend = () => {
         chain_id: CHAINS.SOLANA,
         from_address: fromAddress,
         to_address: destinationAddress,
-        network: getNetwork() === 'mainnet' ? 1 : 2,
-        wallet_id: getWalletId(),
-        user_id: getUserId(),
+        network: network === 'mainnet' ? 1 : 2,
+        wallet_id: walletId,
+        user_id: userId,
         value: amount,
         coin: coin,
       })
@@ -834,7 +855,7 @@ const SolanaSend = () => {
 
         showSnack('success', 'Successful creation!')
 
-        setBlockExplorerLink(GetBlockchainTxUrl(getNetwork() === 'mainnet', response.data.hash))
+        setBlockExplorerLink(GetBlockchainTxUrl(network === 'mainnet', response.data.hash))
 
         setPage(3)
       }
@@ -844,20 +865,23 @@ const SolanaSend = () => {
     }
   }
 
-  const init = async (payoutId: any) => {
-    await getBalance()
-    await getFeeRate()
-    await getAddressBook()
-
+  useEffect(() => {
     if (payoutId) {
-      await getPayoutInfo(payoutId)
+      getPayoutInfo(Number(payoutId))
     }
-  }
+  }, [payoutId])
 
   useEffect(() => {
-    init(payoutId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payoutId])
+    getBalance(storeId, network)
+  }, [storeId, network])
+
+  useEffect(() => {
+    getFeeRate(network)
+  }, [network])
+
+  useEffect(() => {
+    getAddressBook(network)
+  }, [network])
 
   return (
     <div className="mb-16 flex flex-col items-center">
@@ -865,7 +889,7 @@ const SolanaSend = () => {
         <Image src={GetImgSrcByChain(CHAINS.SOLANA)} alt="chain" width={50} height={50} />
         <h1 className="text-3xl font-bold tracking-tight">
           Send coin on{' '}
-          {getNetwork() === 'mainnet'
+          {network === 'mainnet'
             ? FindChainNamesByChains(CHAINS.SOLANA) + ' mainnet'
             : FindChainNamesByChains(CHAINS.SOLANA) + ' testnet'}
         </h1>

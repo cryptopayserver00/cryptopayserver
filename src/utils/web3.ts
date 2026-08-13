@@ -6,67 +6,67 @@ import {
   CHAINS,
   COIN,
   COINS,
-} from '@/packages/constants/blockchain';
+} from '@/packages/constants/blockchain'
 import {
   GetBlockchainAddressUrl as GetBTCBlockchainAddressUrl,
   GetBlockchainTxUrl as GetBTCBlockchainTxUrl,
-} from './chain/btc';
+} from './chain/btc'
 import {
   GetBlockchainAddressUrl as GetLtcBlockchainAddressUrl,
   GetBlockchainTxUrl as GetLtcBlockchainTxUrl,
-} from './chain/ltc';
+} from './chain/ltc'
 import {
   GetBlockchainAddressUrl as GetXrpBlockchainAddressUrl,
   GetBlockchainTxUrl as GetXrpBlockchainTxUrl,
-} from './chain/xrp';
+} from './chain/xrp'
 import {
   GetBlockchainAddressUrl as GetBchBlockchainAddressUrl,
   GetBlockchainTxUrl as GetBchBlockchainTxUrl,
-} from './chain/bch';
+} from './chain/bch'
 import {
   GetBlockchainAddressUrl as GetETHBlockchainAddressUrl,
   GetBlockchainTxUrl as GetETHBlockchainTxUrl,
-} from './chain/eth';
+} from './chain/eth'
 import {
   GetBlockchainAddressUrl as GetTronBlockchainAddressUrl,
   GetBlockchainTxUrl as GetTronBlockchainTxUrl,
-} from './chain/tron';
+} from './chain/tron'
 import {
   GetBlockchainAddressUrl as GetSolanaBlockchainAddressUrl,
   GetBlockchainTxUrl as GetSolanaBlockchainTxUrl,
-} from './chain/solana';
+} from './chain/solana'
 import {
   GetBlockchainAddressUrl as GetBscBlockchainAddressUrl,
   GetBlockchainTxUrl as GetBscBlockchainTxUrl,
-} from './chain/bsc';
+} from './chain/bsc'
 import {
   GetBlockchainAddressUrl as GetArbNovaBlockchainAddressUrl,
   GetBlockchainTxUrl as GetArbNovaBlockchainTxUrl,
-} from './chain/arbnova';
+} from './chain/arbnova'
 import {
   GetBlockchainAddressUrl as GetArbBlockchainAddressUrl,
   GetBlockchainTxUrl as GetArbBlockchainTxUrl,
-} from './chain/arb';
+} from './chain/arb'
 import {
   GetBlockchainAddressUrl as GetAvaxBlockchainAddressUrl,
   GetBlockchainTxUrl as GetAvaxBlockchainTxUrl,
-} from './chain/avax';
+} from './chain/avax'
 import {
   GetBlockchainAddressUrl as GetPolBlockchainAddressUrl,
   GetBlockchainTxUrl as GetPolBlockchainTxUrl,
-} from './chain/pol';
+} from './chain/pol'
 import {
   GetBlockchainAddressUrl as GetBaseBlockchainAddressUrl,
   GetBlockchainTxUrl as GetBaseBlockchainTxUrl,
-} from './chain/base';
+} from './chain/base'
 import {
   GetBlockchainAddressUrl as GetOpBlockchainAddressUrl,
   GetBlockchainTxUrl as GetOpBlockchainTxUrl,
-} from './chain/op';
+} from './chain/op'
 import {
   GetBlockchainAddressUrl as GetTonBlockchainAddressUrl,
   GetBlockchainTxUrl as GetTonBlockchainTxUrl,
-} from './chain/ton';
+} from './chain/ton'
 import {
   bitcoin,
   bitcoinTestnet,
@@ -90,217 +90,237 @@ import {
   optimism,
   optimismSepolia,
   AppKitNetwork,
-} from '@reown/appkit/networks';
+} from '@reown/appkit/networks'
 
-export function FindTokenByChainIdsAndContractAddress(chainIds: CHAINIDS, contractAddress: string): COIN {
-  const coins = BLOCKCHAINNAMES.find((item) => item.chainId === chainIds)?.coins;
-  const token = coins?.find((item) => item.contractAddress?.toLowerCase() === contractAddress.toLowerCase());
-  return token as COIN;
+export function FindTokenByChainIdsAndContractAddress(
+  chainIds: CHAINIDS,
+  contractAddress: string
+): COIN {
+  const coins = BLOCKCHAINNAMES.find((item) => item.chainId === chainIds)?.coins
+  const token = coins?.find(
+    (item) => item.contractAddress?.toLowerCase() === contractAddress.toLowerCase()
+  )
+  return token as COIN
 }
 
 export function FindTokenByChainIdsAndSymbol(chainIds: CHAINIDS, symbol: COINS): COIN {
-  const coins = BLOCKCHAINNAMES.find((item) => item.chainId === chainIds)?.coins;
-  const token = coins?.find((item) => item.symbol?.toLowerCase() === symbol.toLowerCase());
-  return token as COIN;
+  const coins = BLOCKCHAINNAMES.find((item) => item.chainId === chainIds)?.coins
+  const token = coins?.find((item) => item.symbol?.toLowerCase() === symbol.toLowerCase())
+  return token as COIN
 }
 
 export function FindTokensByMainnetAndName(isMainnet: boolean, name: CHAINNAMES): COIN[] {
-  return BLOCKCHAINNAMES.find((item) => item.name === name && item.isMainnet == isMainnet)?.coins as COIN[];
+  return BLOCKCHAINNAMES.find((item) => item.name === name && item.isMainnet == isMainnet)
+    ?.coins as COIN[]
 }
 
 export function FindCoinsByMainnetAndName(isMainnet: boolean, name: CHAINNAMES): COINS[] {
-  let coins = BLOCKCHAINNAMES.find((item) => item.name === name && item.isMainnet == isMainnet)?.coins as COIN[];
-  coins = coins.filter((item) => !item.isMainCoin);
-  let coinName: COINS[] = [];
+  let coins = BLOCKCHAINNAMES.find((item) => item.name === name && item.isMainnet == isMainnet)
+    ?.coins as COIN[]
+  coins = coins.filter((item) => !item.isMainCoin)
+  let coinName: COINS[] = []
   coins.map((item) => {
-    coinName.push(item.name);
-  });
+    coinName.push(item.name)
+  })
 
-  return coinName;
+  return coinName
 }
 
-export function FindDecimalsByChainIdsAndContractAddress(chainIds: CHAINIDS, contractAddress: string): number {
-  const coins = BLOCKCHAINNAMES.find((item) => item.chainId === chainIds)?.coins;
-  const token = coins?.find((item) => item.contractAddress?.toLowerCase() === contractAddress.toLowerCase());
-  return token?.decimals || 0;
+export function FindDecimalsByChainIdsAndContractAddress(
+  chainIds: CHAINIDS,
+  contractAddress: string
+): number {
+  const coins = BLOCKCHAINNAMES.find((item) => item.chainId === chainIds)?.coins
+  const token = coins?.find(
+    (item) => item.contractAddress?.toLowerCase() === contractAddress.toLowerCase()
+  )
+  return token?.decimals || 0
 }
 
 export function FindChainIdsByChainNames(chainName: CHAINNAMES): CHAINS {
   switch (chainName) {
     case CHAINNAMES.BITCOIN:
-      return CHAINS.BITCOIN;
+      return CHAINS.BITCOIN
     case CHAINNAMES.LITECOIN:
-      return CHAINS.LITECOIN;
+      return CHAINS.LITECOIN
     case CHAINNAMES.XRP:
-      return CHAINS.XRP;
+      return CHAINS.XRP
     case CHAINNAMES.BITCOINCASH:
-      return CHAINS.BITCOINCASH;
+      return CHAINS.BITCOINCASH
     case CHAINNAMES.ETHEREUM:
-      return CHAINS.ETHEREUM;
+      return CHAINS.ETHEREUM
     case CHAINNAMES.TRON:
-      return CHAINS.TRON;
+      return CHAINS.TRON
     case CHAINNAMES.SOLANA:
-      return CHAINS.SOLANA;
+      return CHAINS.SOLANA
     case CHAINNAMES.BSC:
-      return CHAINS.BSC;
+      return CHAINS.BSC
     case CHAINNAMES.ARBITRUM:
-      return CHAINS.ARBITRUM;
+      return CHAINS.ARBITRUM
     case CHAINNAMES.ARBITRUMNOVA:
-      return CHAINS.ARBITRUMNOVA;
+      return CHAINS.ARBITRUMNOVA
     case CHAINNAMES.AVALANCHE:
-      return CHAINS.AVALANCHE;
+      return CHAINS.AVALANCHE
     case CHAINNAMES.POLYGON:
-      return CHAINS.POLYGON;
+      return CHAINS.POLYGON
     case CHAINNAMES.BASE:
-      return CHAINS.BASE;
+      return CHAINS.BASE
     case CHAINNAMES.OPTIMISM:
-      return CHAINS.OPTIMISM;
+      return CHAINS.OPTIMISM
     case CHAINNAMES.TON:
-      return CHAINS.TON;
+      return CHAINS.TON
   }
 }
 
 export function FindChainNamesByChains(chains: CHAINS): CHAINNAMES {
   switch (chains) {
     case CHAINS.BITCOIN:
-      return CHAINNAMES.BITCOIN;
+      return CHAINNAMES.BITCOIN
     case CHAINS.LITECOIN:
-      return CHAINNAMES.LITECOIN;
+      return CHAINNAMES.LITECOIN
     case CHAINS.XRP:
-      return CHAINNAMES.XRP;
+      return CHAINNAMES.XRP
     case CHAINS.BITCOINCASH:
-      return CHAINNAMES.BITCOINCASH;
+      return CHAINNAMES.BITCOINCASH
     case CHAINS.ETHEREUM:
-      return CHAINNAMES.ETHEREUM;
+      return CHAINNAMES.ETHEREUM
     case CHAINS.TRON:
-      return CHAINNAMES.TRON;
+      return CHAINNAMES.TRON
     case CHAINS.SOLANA:
-      return CHAINNAMES.SOLANA;
+      return CHAINNAMES.SOLANA
     case CHAINS.BSC:
-      return CHAINNAMES.BSC;
+      return CHAINNAMES.BSC
     case CHAINS.ARBITRUM:
-      return CHAINNAMES.ARBITRUM;
+      return CHAINNAMES.ARBITRUM
     case CHAINS.ARBITRUMNOVA:
-      return CHAINNAMES.ARBITRUMNOVA;
+      return CHAINNAMES.ARBITRUMNOVA
     case CHAINS.AVALANCHE:
-      return CHAINNAMES.AVALANCHE;
+      return CHAINNAMES.AVALANCHE
     case CHAINS.POLYGON:
-      return CHAINNAMES.POLYGON;
+      return CHAINNAMES.POLYGON
     case CHAINS.BASE:
-      return CHAINNAMES.BASE;
+      return CHAINNAMES.BASE
     case CHAINS.OPTIMISM:
-      return CHAINNAMES.OPTIMISM;
+      return CHAINNAMES.OPTIMISM
     case CHAINS.TON:
-      return CHAINNAMES.TON;
+      return CHAINNAMES.TON
   }
 }
 
 export function FindChainPathNamesByChains(chains: CHAINS): CHAINPATHNAMES {
   switch (chains) {
     case CHAINS.BITCOIN:
-      return CHAINPATHNAMES.BITCOIN;
+      return CHAINPATHNAMES.BITCOIN
     case CHAINS.LITECOIN:
-      return CHAINPATHNAMES.LITECOIN;
+      return CHAINPATHNAMES.LITECOIN
     case CHAINS.XRP:
-      return CHAINPATHNAMES.XRP;
+      return CHAINPATHNAMES.XRP
     case CHAINS.BITCOINCASH:
-      return CHAINPATHNAMES.BITCOINCASH;
+      return CHAINPATHNAMES.BITCOINCASH
     case CHAINS.ETHEREUM:
-      return CHAINPATHNAMES.ETHEREUM;
+      return CHAINPATHNAMES.ETHEREUM
     case CHAINS.TRON:
-      return CHAINPATHNAMES.TRON;
+      return CHAINPATHNAMES.TRON
     case CHAINS.SOLANA:
-      return CHAINPATHNAMES.SOLANA;
+      return CHAINPATHNAMES.SOLANA
     case CHAINS.BSC:
-      return CHAINPATHNAMES.BSC;
+      return CHAINPATHNAMES.BSC
     case CHAINS.ARBITRUM:
-      return CHAINPATHNAMES.ARBITRUM;
+      return CHAINPATHNAMES.ARBITRUM
     case CHAINS.ARBITRUMNOVA:
-      return CHAINPATHNAMES.ARBITRUMNOVA;
+      return CHAINPATHNAMES.ARBITRUMNOVA
     case CHAINS.AVALANCHE:
-      return CHAINPATHNAMES.AVALANCHE;
+      return CHAINPATHNAMES.AVALANCHE
     case CHAINS.POLYGON:
-      return CHAINPATHNAMES.POLYGON;
+      return CHAINPATHNAMES.POLYGON
     case CHAINS.BASE:
-      return CHAINPATHNAMES.BASE;
+      return CHAINPATHNAMES.BASE
     case CHAINS.OPTIMISM:
-      return CHAINPATHNAMES.OPTIMISM;
+      return CHAINPATHNAMES.OPTIMISM
     case CHAINS.TON:
-      return CHAINPATHNAMES.TON;
+      return CHAINPATHNAMES.TON
   }
 }
 
-export function GetBlockchainTxUrlByChainIds(isMainnet: boolean, chain: CHAINS, hash: string): string {
+export function GetBlockchainTxUrlByChainIds(
+  isMainnet: boolean,
+  chain: CHAINS,
+  hash: string
+): string {
   switch (chain) {
     case CHAINS.BITCOIN:
-      return GetBTCBlockchainTxUrl(isMainnet, hash);
+      return GetBTCBlockchainTxUrl(isMainnet, hash)
     case CHAINS.LITECOIN:
-      return GetLtcBlockchainTxUrl(isMainnet, hash);
+      return GetLtcBlockchainTxUrl(isMainnet, hash)
     case CHAINS.XRP:
-      return GetXrpBlockchainTxUrl(isMainnet, hash);
+      return GetXrpBlockchainTxUrl(isMainnet, hash)
     case CHAINS.BITCOINCASH:
-      return GetBchBlockchainTxUrl(isMainnet, hash);
+      return GetBchBlockchainTxUrl(isMainnet, hash)
     case CHAINS.ETHEREUM:
-      return GetETHBlockchainTxUrl(isMainnet, hash);
+      return GetETHBlockchainTxUrl(isMainnet, hash)
     case CHAINS.TRON:
-      return GetTronBlockchainTxUrl(isMainnet, hash);
+      return GetTronBlockchainTxUrl(isMainnet, hash)
     case CHAINS.SOLANA:
-      return GetSolanaBlockchainTxUrl(isMainnet, hash);
+      return GetSolanaBlockchainTxUrl(isMainnet, hash)
     case CHAINS.BSC:
-      return GetBscBlockchainTxUrl(isMainnet, hash);
+      return GetBscBlockchainTxUrl(isMainnet, hash)
     case CHAINS.ARBITRUM:
-      return GetArbBlockchainTxUrl(isMainnet, hash);
+      return GetArbBlockchainTxUrl(isMainnet, hash)
     case CHAINS.ARBITRUMNOVA:
-      return GetArbNovaBlockchainTxUrl(hash);
+      return GetArbNovaBlockchainTxUrl(hash)
     case CHAINS.AVALANCHE:
-      return GetAvaxBlockchainTxUrl(isMainnet, hash);
+      return GetAvaxBlockchainTxUrl(isMainnet, hash)
     case CHAINS.POLYGON:
-      return GetPolBlockchainTxUrl(isMainnet, hash);
+      return GetPolBlockchainTxUrl(isMainnet, hash)
     case CHAINS.BASE:
-      return GetBaseBlockchainTxUrl(isMainnet, hash);
+      return GetBaseBlockchainTxUrl(isMainnet, hash)
     case CHAINS.OPTIMISM:
-      return GetOpBlockchainTxUrl(isMainnet, hash);
+      return GetOpBlockchainTxUrl(isMainnet, hash)
     case CHAINS.TON:
-      return GetTonBlockchainTxUrl(isMainnet, hash);
+      return GetTonBlockchainTxUrl(isMainnet, hash)
     default:
-      return '';
+      return ''
   }
 }
 
-export function GetBlockchainAddressUrlByChainIds(isMainnet: boolean, chain: CHAINS, address: string): string {
+export function GetBlockchainAddressUrlByChainIds(
+  isMainnet: boolean,
+  chain: CHAINS,
+  address: string
+): string {
   switch (chain) {
     case CHAINS.BITCOIN:
-      return GetBTCBlockchainAddressUrl(isMainnet, address);
+      return GetBTCBlockchainAddressUrl(isMainnet, address)
     case CHAINS.LITECOIN:
-      return GetLtcBlockchainAddressUrl(isMainnet, address);
+      return GetLtcBlockchainAddressUrl(isMainnet, address)
     case CHAINS.XRP:
-      return GetXrpBlockchainAddressUrl(isMainnet, address);
+      return GetXrpBlockchainAddressUrl(isMainnet, address)
     case CHAINS.BITCOINCASH:
-      return GetBchBlockchainAddressUrl(isMainnet, address);
+      return GetBchBlockchainAddressUrl(isMainnet, address)
     case CHAINS.ETHEREUM:
-      return GetETHBlockchainAddressUrl(isMainnet, address);
+      return GetETHBlockchainAddressUrl(isMainnet, address)
     case CHAINS.TRON:
-      return GetTronBlockchainAddressUrl(isMainnet, address);
+      return GetTronBlockchainAddressUrl(isMainnet, address)
     case CHAINS.SOLANA:
-      return GetSolanaBlockchainAddressUrl(isMainnet, address);
+      return GetSolanaBlockchainAddressUrl(isMainnet, address)
     case CHAINS.BSC:
-      return GetBscBlockchainAddressUrl(isMainnet, address);
+      return GetBscBlockchainAddressUrl(isMainnet, address)
     case CHAINS.ARBITRUM:
-      return GetArbBlockchainAddressUrl(isMainnet, address);
+      return GetArbBlockchainAddressUrl(isMainnet, address)
     case CHAINS.ARBITRUMNOVA:
-      return GetArbNovaBlockchainAddressUrl(address);
+      return GetArbNovaBlockchainAddressUrl(isMainnet, address)
     case CHAINS.AVALANCHE:
-      return GetAvaxBlockchainAddressUrl(isMainnet, address);
+      return GetAvaxBlockchainAddressUrl(isMainnet, address)
     case CHAINS.POLYGON:
-      return GetPolBlockchainAddressUrl(isMainnet, address);
+      return GetPolBlockchainAddressUrl(isMainnet, address)
     case CHAINS.BASE:
-      return GetBaseBlockchainAddressUrl(isMainnet, address);
+      return GetBaseBlockchainAddressUrl(isMainnet, address)
     case CHAINS.OPTIMISM:
-      return GetOpBlockchainAddressUrl(isMainnet, address);
+      return GetOpBlockchainAddressUrl(isMainnet, address)
     case CHAINS.TON:
-      return GetTonBlockchainAddressUrl(isMainnet, address);
+      return GetTonBlockchainAddressUrl(isMainnet, address)
     default:
-      return '';
+      return ''
   }
 }
 
@@ -321,7 +341,7 @@ export function GetAllMainnetChainIds(): CHAINIDS[] {
     CHAINIDS.BASE,
     CHAINIDS.OPTIMISM,
     CHAINIDS.TON,
-  ];
+  ]
 }
 
 export function GetAllTestnetChainIds(): CHAINIDS[] {
@@ -340,43 +360,43 @@ export function GetAllTestnetChainIds(): CHAINIDS[] {
     CHAINIDS.BASE_SEPOLIA,
     CHAINIDS.OPTIMISM_SEPOLIA,
     CHAINIDS.TON_TESTNET,
-  ];
+  ]
 }
 
 export function GetChainIds(isMainnet: boolean, chain: CHAINS): CHAINIDS {
   switch (chain) {
     case CHAINS.BITCOIN:
-      return isMainnet ? CHAINIDS.BITCOIN : CHAINIDS.BITCOIN_TESTNET;
+      return isMainnet ? CHAINIDS.BITCOIN : CHAINIDS.BITCOIN_TESTNET
     case CHAINS.LITECOIN:
-      return isMainnet ? CHAINIDS.LITECOIN : CHAINIDS.LITECOIN_TESTNET;
+      return isMainnet ? CHAINIDS.LITECOIN : CHAINIDS.LITECOIN_TESTNET
     case CHAINS.XRP:
-      return isMainnet ? CHAINIDS.XRP : CHAINIDS.XRP_TESTNET;
+      return isMainnet ? CHAINIDS.XRP : CHAINIDS.XRP_TESTNET
     case CHAINS.BITCOINCASH:
-      return isMainnet ? CHAINIDS.BITCOINCASH : CHAINIDS.BITCOINCASH_TESTNET;
+      return isMainnet ? CHAINIDS.BITCOINCASH : CHAINIDS.BITCOINCASH_TESTNET
     case CHAINS.ETHEREUM:
-      return isMainnet ? CHAINIDS.ETHEREUM : CHAINIDS.ETHEREUM_SEPOLIA;
+      return isMainnet ? CHAINIDS.ETHEREUM : CHAINIDS.ETHEREUM_SEPOLIA
     case CHAINS.TRON:
-      return isMainnet ? CHAINIDS.TRON : CHAINIDS.TRON_NILE;
+      return isMainnet ? CHAINIDS.TRON : CHAINIDS.TRON_NILE
     case CHAINS.SOLANA:
-      return isMainnet ? CHAINIDS.SOLANA : CHAINIDS.SOLANA_DEVNET;
+      return isMainnet ? CHAINIDS.SOLANA : CHAINIDS.SOLANA_DEVNET
     case CHAINS.BSC:
-      return isMainnet ? CHAINIDS.BSC : CHAINIDS.BSC_TESTNET;
+      return isMainnet ? CHAINIDS.BSC : CHAINIDS.BSC_TESTNET
     case CHAINS.ARBITRUM:
-      return isMainnet ? CHAINIDS.ARBITRUM_ONE : CHAINIDS.ARBITRUM_SEPOLIA;
+      return isMainnet ? CHAINIDS.ARBITRUM_ONE : CHAINIDS.ARBITRUM_SEPOLIA
     case CHAINS.ARBITRUMNOVA:
-      return CHAINIDS.ARBITRUM_NOVA;
+      return CHAINIDS.ARBITRUM_NOVA
     case CHAINS.AVALANCHE:
-      return isMainnet ? CHAINIDS.AVALANCHE : CHAINIDS.AVALANCHE_TESTNET;
+      return isMainnet ? CHAINIDS.AVALANCHE : CHAINIDS.AVALANCHE_TESTNET
     case CHAINS.POLYGON:
-      return isMainnet ? CHAINIDS.POLYGON : CHAINIDS.POLYGON_TESTNET;
+      return isMainnet ? CHAINIDS.POLYGON : CHAINIDS.POLYGON_TESTNET
     case CHAINS.BASE:
-      return isMainnet ? CHAINIDS.BASE : CHAINIDS.BASE_SEPOLIA;
+      return isMainnet ? CHAINIDS.BASE : CHAINIDS.BASE_SEPOLIA
     case CHAINS.OPTIMISM:
-      return isMainnet ? CHAINIDS.OPTIMISM : CHAINIDS.OPTIMISM_SEPOLIA;
+      return isMainnet ? CHAINIDS.OPTIMISM : CHAINIDS.OPTIMISM_SEPOLIA
     case CHAINS.TON:
-      return isMainnet ? CHAINIDS.TON : CHAINIDS.TON_TESTNET;
+      return isMainnet ? CHAINIDS.TON : CHAINIDS.TON_TESTNET
     default:
-      return CHAINIDS.NONE;
+      return CHAINIDS.NONE
   }
 }
 
@@ -403,64 +423,64 @@ export function GetAllSupportAppKitNetwork(): [AppKitNetwork, ...AppKitNetwork[]
     baseSepolia,
     optimism,
     optimismSepolia,
-  ];
+  ]
 }
 
 export function GetWalletConnectNetwork(chainIds: CHAINIDS): AppKitNetwork | undefined {
   switch (chainIds) {
     case CHAINIDS.BITCOIN:
-      return bitcoin;
+      return bitcoin
     case CHAINIDS.BITCOIN_TESTNET:
-      return bitcoinTestnet;
+      return bitcoinTestnet
     case (CHAINIDS.LITECOIN, CHAINIDS.LITECOIN_TESTNET):
-      break;
+      break
     case CHAINIDS.XRP:
-      break;
+      break
     case CHAINIDS.XRP_TESTNET:
-      return xrplevmTestnet;
+      return xrplevmTestnet
     case (CHAINIDS.BITCOINCASH, CHAINIDS.BITCOINCASH_TESTNET):
-      break;
+      break
     case CHAINIDS.ETHEREUM:
-      return mainnet;
+      return mainnet
     case CHAINIDS.ETHEREUM_SEPOLIA:
-      return sepolia;
+      return sepolia
     case CHAINIDS.TRON:
-      return tron;
+      return tron
     case CHAINIDS.TRON_NILE:
-      break;
+      break
     case CHAINIDS.SOLANA:
-      return solana;
+      return solana
     case CHAINIDS.SOLANA_DEVNET:
-      return solanaDevnet;
+      return solanaDevnet
     case CHAINIDS.BSC:
-      return bsc;
+      return bsc
     case CHAINIDS.BSC_TESTNET:
-      return bscTestnet;
+      return bscTestnet
     case CHAINIDS.ARBITRUM_ONE:
-      return arbitrum;
+      return arbitrum
     case CHAINIDS.ARBITRUM_NOVA:
-      return arbitrumNova;
+      return arbitrumNova
     case CHAINIDS.ARBITRUM_SEPOLIA:
-      return arbitrumSepolia;
+      return arbitrumSepolia
     case CHAINIDS.AVALANCHE:
-      return avalanche;
+      return avalanche
     case CHAINIDS.AVALANCHE_TESTNET:
-      return avalancheFuji;
+      return avalancheFuji
     case CHAINIDS.POLYGON:
-      return polygon;
+      return polygon
     case CHAINIDS.POLYGON_TESTNET:
-      return polygonAmoy;
+      return polygonAmoy
     case CHAINIDS.BASE:
-      return base;
+      return base
     case CHAINIDS.BASE_SEPOLIA:
-      return baseSepolia;
+      return baseSepolia
     case CHAINIDS.OPTIMISM:
-      return optimism;
+      return optimism
     case CHAINIDS.OPTIMISM_SEPOLIA:
-      return optimismSepolia;
+      return optimismSepolia
     case (CHAINIDS.TON, CHAINIDS.TON_TESTNET):
-      break;
+      break
   }
 
-  return undefined;
+  return undefined
 }

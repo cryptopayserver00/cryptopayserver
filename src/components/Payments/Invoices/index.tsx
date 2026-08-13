@@ -609,192 +609,208 @@
 
 // export default PaymentInvoices;
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { Info, ArrowLeft, Plus, Search } from 'lucide-react';
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
+import { Info, ArrowLeft, Plus, Search } from 'lucide-react'
 
 // Shadcn UI 组件
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+} from '@/components/ui/accordion'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
-import InvoiceDataGrid from '../../DataList/InvoiceDataGrid';
-import { COINGECKO_IDS, CURRENCY, ORDER_TIME, ORDER_STATUS } from '@/packages/constants';
-import { IsValidEmail, IsValidHTTPUrl, IsValidJSON } from '@/utils/verify';
-import axios from '@/utils/http/axios';
-import { Http } from '@/utils/http/http';
-import { CHAINNAMES, COIN, COINS } from '@/packages/constants/blockchain';
-import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store';
-import { BigDiv } from '@/utils/number';
-import { FindChainIdsByChainNames, FindTokensByMainnetAndName } from '@/utils/web3';
-import { GetImgSrcByChain, GetImgSrcByCrypto } from '@/utils/qrcode';
+import InvoiceDataGrid from '../../DataList/InvoiceDataGrid'
+import { COINGECKO_IDS, CURRENCY, ORDER_TIME, ORDER_STATUS } from '@/packages/constants'
+import { IsValidEmail, IsValidHTTPUrl, IsValidJSON } from '@/utils/verify'
+import axios from '@/utils/http/axios'
+import { Http } from '@/utils/http/http'
+import { CHAINNAMES, COIN, COINS } from '@/packages/constants/blockchain'
+import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
+import { BigDiv } from '@/utils/number'
+import { FindChainIdsByChainNames, FindTokensByMainnetAndName } from '@/utils/web3'
+import { GetImgSrcByChain, GetImgSrcByCrypto } from '@/utils/qrcode'
+import { useShallow } from 'zustand/react/shallow'
 
 const PaymentInvoices = () => {
-  const [openExplain, setOpenExplain] = useState<boolean>(false);
-  const [openCreateInvoice, setOpenCreateInvoice] = useState<boolean>(false);
+  const [openExplain, setOpenExplain] = useState<boolean>(false)
+  const [openCreateInvoice, setOpenCreateInvoice] = useState<boolean>(false)
 
-  const [amount, setAmount] = useState<number>(0);
-  const [currency, setCurrency] = useState<string>(CURRENCY[0]);
-  const [network, setNetwork] = useState<CHAINNAMES>(CHAINNAMES.BITCOIN);
-  const [cryptoList, setCryptoList] = useState<COIN[]>([]);
-  const [crypto, setCrypto] = useState<COINS>(COINS.BTC);
-  const [cryptoAmount, setCryptoAmount] = useState<string>('');
-  const [rate, setRate] = useState<number>(0);
-  const [description, setDescription] = useState<string>('');
-  const [buyerEmail, setBuyerEmail] = useState<string>('');
-  const [metadata, setMetadata] = useState<string>('');
-  const [notificationUrl, setNotificationUrl] = useState<string>('');
-  const [notificationEmail, setNotificationEmail] = useState<string>('');
-  const [showBtcLn, setShowBtcLn] = useState<boolean>(false);
-  const [showBtcLnUrl, setShowBtcLnUrl] = useState<boolean>(false);
+  const [amount, setAmount] = useState<number>(0)
+  const [currency, setCurrency] = useState<string>(CURRENCY[0])
+  const [chainName, setChainName] = useState<CHAINNAMES>(CHAINNAMES.BITCOIN)
+  const [cryptoList, setCryptoList] = useState<COIN[]>([])
+  const [crypto, setCrypto] = useState<COINS>(COINS.BTC)
+  const [cryptoAmount, setCryptoAmount] = useState<string>('')
+  const [rate, setRate] = useState<number>(0)
+  const [description, setDescription] = useState<string>('')
+  const [buyerEmail, setBuyerEmail] = useState<string>('')
+  const [metadata, setMetadata] = useState<string>('')
+  const [notificationUrl, setNotificationUrl] = useState<string>('')
+  const [notificationEmail, setNotificationEmail] = useState<string>('')
+  const [showBtcLn, setShowBtcLn] = useState<boolean>(false)
+  const [showBtcLnUrl, setShowBtcLnUrl] = useState<boolean>(false)
 
-  const [search, setSearch] = useState<string>('');
-  const [orderStatus, setOrderStatus] = useState<string>(ORDER_STATUS.AllStatus);
-  const [orderTime, setOrderTime] = useState<string>(ORDER_TIME.AllTime);
+  const [search, setSearch] = useState<string>('')
+  const [orderStatus, setOrderStatus] = useState<string>(ORDER_STATUS.AllStatus)
+  const [orderTime, setOrderTime] = useState<string>(ORDER_TIME.AllTime)
 
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state);
-  const { getStoreId } = useStorePresistStore((state) => state);
-  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore((state) => state);
+  const { network, userId } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+      userId: state.userId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const updateRate = async () => {
     try {
       if (!crypto) {
-        return;
+        return
       }
 
-      const ids = COINGECKO_IDS[crypto];
+      const ids = COINGECKO_IDS[crypto]
       const response: any = await axios.get(Http.find_crypto_price, {
         params: {
           ids: ids,
           currency: currency,
         },
-      });
+      })
       if (response.result) {
-        const rate = response.data[ids][currency.toLowerCase()];
-        setRate(rate);
-        const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(8);
-        setCryptoAmount(totalPrice);
+        const rate = response.data[ids][currency.toLowerCase()]
+        setRate(rate)
+        const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(8)
+        setCryptoAmount(totalPrice)
       }
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+      setSnackSeverity('error')
+      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackOpen(true)
+      console.error(e)
     }
-  };
+  }
 
   useEffect(() => {
-    if (!network) return;
+    if (!chainName) return
 
-    const coins = FindTokensByMainnetAndName(getNetwork() === 'mainnet', network as CHAINNAMES);
-    setCryptoList(coins);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [network]);
+    const coins = FindTokensByMainnetAndName(network === 'mainnet', chainName as CHAINNAMES)
+    setCryptoList(coins)
+  }, [chainName])
 
   useEffect(() => {
     if (crypto && amount && currency && amount > 0) {
-      updateRate();
+      updateRate()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [crypto, amount, currency]);
+  }, [crypto, amount, currency])
 
   const checkAmount = (amount: number): boolean => {
-    return amount > 0;
-  };
+    return amount > 0
+  }
 
   const onClickCreateInvoice = async () => {
     if (!checkAmount(amount as number)) {
-      setSnackSeverity('error');
-      setSnackMessage('Incorrect amount');
-      setSnackOpen(true);
-      return;
+      setSnackSeverity('error')
+      setSnackMessage('Incorrect amount')
+      setSnackOpen(true)
+      return
     }
 
     if (!CURRENCY.includes(currency)) {
-      setSnackSeverity('error');
-      setSnackMessage('Incorrect currency');
-      setSnackOpen(true);
-      return;
+      setSnackSeverity('error')
+      setSnackMessage('Incorrect currency')
+      setSnackOpen(true)
+      return
     }
 
-    if (!network) {
-      setSnackSeverity('error');
-      setSnackMessage('Incorrect network');
-      setSnackOpen(true);
-      return;
+    if (!chainName) {
+      setSnackSeverity('error')
+      setSnackMessage('Incorrect chainName')
+      setSnackOpen(true)
+      return
     }
 
     if (!crypto) {
-      setSnackSeverity('error');
-      setSnackMessage('Incorrect crypto');
-      setSnackOpen(true);
-      return;
+      setSnackSeverity('error')
+      setSnackMessage('Incorrect crypto')
+      setSnackOpen(true)
+      return
     }
 
     if (!IsValidEmail(buyerEmail)) {
-      setSnackSeverity('error');
-      setSnackMessage('Incorrect email');
-      setSnackOpen(true);
-      return;
+      setSnackSeverity('error')
+      setSnackMessage('Incorrect email')
+      setSnackOpen(true)
+      return
     }
 
     if (metadata !== '' && !IsValidJSON(metadata)) {
-      setSnackSeverity('error');
-      setSnackMessage('Incorrect metadata');
-      setSnackOpen(true);
-      return;
+      setSnackSeverity('error')
+      setSnackMessage('Incorrect metadata')
+      setSnackOpen(true)
+      return
     }
 
     if (notificationEmail !== '' && !IsValidEmail(notificationEmail)) {
-      setSnackSeverity('error');
-      setSnackMessage('Incorrect email');
-      setSnackOpen(true);
-      return;
+      setSnackSeverity('error')
+      setSnackMessage('Incorrect email')
+      setSnackOpen(true)
+      return
     }
 
     if (notificationUrl !== '' && !IsValidHTTPUrl(notificationUrl)) {
-      setSnackSeverity('error');
-      setSnackMessage('Incorrect notificationUrl');
-      setSnackOpen(true);
-      return;
+      setSnackSeverity('error')
+      setSnackMessage('Incorrect notificationUrl')
+      setSnackOpen(true)
+      return
     }
 
-    const ln_amount = amount;
-    const ln_currency = currency;
-    const ln_crypto = crypto;
-    const ln_crypto_amount = cryptoAmount;
-    const ln_rate = rate;
-    const ln_desc = description;
-    const ln_buyer_email = buyerEmail;
-    const ln_metadata = metadata;
-    const ln_notification_url = notificationUrl;
-    const ln_notification_email = notificationEmail;
-    const ln_show_btc_ln = showBtcLn;
-    const ln_show_btc_url = showBtcLnUrl;
+    const ln_amount = amount
+    const ln_currency = currency
+    const ln_crypto = crypto
+    const ln_crypto_amount = cryptoAmount
+    const ln_rate = rate
+    const ln_desc = description
+    const ln_buyer_email = buyerEmail
+    const ln_metadata = metadata
+    const ln_notification_url = notificationUrl
+    const ln_notification_email = notificationEmail
+    const ln_show_btc_ln = showBtcLn
+    const ln_show_btc_url = showBtcLnUrl
 
     try {
       const response: any = await axios.post(Http.create_invoice, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
-        chain_id: FindChainIdsByChainNames(network),
-        network: getNetwork() === 'mainnet' ? 1 : 2,
+        user_id: userId,
+        store_id: storeId,
+        chain_id: FindChainIdsByChainNames(chainName),
+        network: network === 'mainnet' ? 1 : 2,
         amount: ln_amount,
         currency: ln_currency,
         crypto: ln_crypto,
@@ -807,23 +823,23 @@ const PaymentInvoices = () => {
         notification_email: ln_notification_email,
         show_btc_ln: ln_show_btc_ln ? 1 : 2,
         show_btc_url: ln_show_btc_url ? 1 : 2,
-      });
+      })
 
       if (response.result && response.data.order_id) {
-        setSnackSeverity('success');
-        setSnackMessage('Successful creation!');
-        setSnackOpen(true);
+        setSnackSeverity('success')
+        setSnackMessage('Successful creation!')
+        setSnackOpen(true)
         setTimeout(() => {
-          window.location.href = '/payments/invoices/' + response.data.order_id;
-        }, 2000);
+          window.location.href = '/payments/invoices/' + response.data.order_id
+        }, 2000)
       }
     } catch (e) {
-      setSnackSeverity('error');
-      setSnackMessage('The network error occurred. Please try again later.');
-      setSnackOpen(true);
-      console.error(e);
+      setSnackSeverity('error')
+      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackOpen(true)
+      console.error(e)
     }
-  };
+  }
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
@@ -837,7 +853,10 @@ const PaymentInvoices = () => {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              <Button onClick={onClickCreateInvoice} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Button
+                onClick={onClickCreateInvoice}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
                 Create
               </Button>
             </div>
@@ -888,13 +907,13 @@ const PaymentInvoices = () => {
                     Network <span className="text-destructive">*</span>
                   </Label>
                   <Select
-                    value={network}
+                    value={chainName}
                     onValueChange={(val) => {
-                      const net = val as CHAINNAMES;
-                      setNetwork(net);
-                      const coins = FindTokensByMainnetAndName(getNetwork() === 'mainnet', net);
+                      const net = val as CHAINNAMES
+                      setChainName(net)
+                      const coins = FindTokensByMainnetAndName(network === 'mainnet', net)
                       if (coins && coins.length > 0) {
-                        setCrypto(coins[0].name as COINS);
+                        setCrypto(coins[0].name as COINS)
                       }
                     }}
                   >
@@ -978,7 +997,7 @@ const PaymentInvoices = () => {
               </div>
 
               {/* Bitcoin Specific Currencies */}
-              {network === CHAINNAMES.BITCOIN && (
+              {chainName === CHAINNAMES.BITCOIN && (
                 <div className="space-y-3 pt-2">
                   <Label className="flex items-center gap-0.5">
                     Supported Transaction Currencies <span className="text-destructive">*</span>
@@ -986,7 +1005,9 @@ const PaymentInvoices = () => {
                   <div className="flex flex-wrap gap-6 pt-1">
                     <div className="flex items-center space-x-2">
                       <Checkbox id="btc-chain" checked disabled />
-                      <Label htmlFor="btc-chain" className="cursor-pointer">BTC-CHAIN</Label>
+                      <Label htmlFor="btc-chain" className="cursor-pointer">
+                        BTC-CHAIN
+                      </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -994,7 +1015,9 @@ const PaymentInvoices = () => {
                         checked={showBtcLn}
                         onCheckedChange={(checked) => setShowBtcLn(!!checked)}
                       />
-                      <Label htmlFor="btc-ln" className="cursor-pointer">BTC-LN</Label>
+                      <Label htmlFor="btc-ln" className="cursor-pointer">
+                        BTC-LN
+                      </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -1002,7 +1025,9 @@ const PaymentInvoices = () => {
                         checked={showBtcLnUrl}
                         onCheckedChange={(checked) => setShowBtcLnUrl(!!checked)}
                       />
-                      <Label htmlFor="btc-lnurl" className="cursor-pointer">BTC-LNURL</Label>
+                      <Label htmlFor="btc-lnurl" className="cursor-pointer">
+                        BTC-LNURL
+                      </Label>
                     </div>
                   </div>
                 </div>
@@ -1040,7 +1065,9 @@ const PaymentInvoices = () => {
                 <AccordionItem value="metadata">
                   <AccordionTrigger className="text-sm font-medium">Metadata</AccordionTrigger>
                   <AccordionContent className="space-y-3 pt-2">
-                    <CardDescription>Custom data to expand the invoice. This data is a JSON object.</CardDescription>
+                    <CardDescription>
+                      Custom data to expand the invoice. This data is a JSON object.
+                    </CardDescription>
                     <div className="space-y-1.5 max-w-2xl">
                       <Label className="text-xs">Metadata (JSON)</Label>
                       <Textarea
@@ -1055,7 +1082,9 @@ const PaymentInvoices = () => {
                 </AccordionItem>
 
                 <AccordionItem value="notifications">
-                  <AccordionTrigger className="text-sm font-medium">Invoice Notifications</AccordionTrigger>
+                  <AccordionTrigger className="text-sm font-medium">
+                    Invoice Notifications
+                  </AccordionTrigger>
                   <AccordionContent className="space-y-4 pt-2 max-w-2xl">
                     <div className="space-y-2">
                       <Label>Notification URL</Label>
@@ -1073,7 +1102,9 @@ const PaymentInvoices = () => {
                         onChange={(e) => setNotificationEmail(e.target.value)}
                         placeholder="notifications@example.com"
                       />
-                      <p className="text-xs text-muted-foreground">Receive updates for this invoice.</p>
+                      <p className="text-xs text-muted-foreground">
+                        Receive updates for this invoice.
+                      </p>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -1110,8 +1141,8 @@ const PaymentInvoices = () => {
               <AlertDescription className="text-blue-700 dark:text-blue-400 text-sm mt-1 leading-relaxed">
                 Invoices are documents issued by the seller to a buyer to collect payment.
                 <br />
-                An invoice must be paid within a defined time interval at a fixed exchange rate to protect the issuer
-                from price fluctuations.
+                An invoice must be paid within a defined time interval at a fixed exchange rate to
+                protect the issuer from price fluctuations.
               </AlertDescription>
             </Alert>
           )}
@@ -1159,12 +1190,17 @@ const PaymentInvoices = () => {
 
           {/* 数据表格区域 */}
           <div className="pt-2">
-            <InvoiceDataGrid source="none" orderStatus={orderStatus} orderId={search} time={orderTime} />
+            <InvoiceDataGrid
+              source="none"
+              orderStatus={orderStatus}
+              orderId={search}
+              time={orderTime}
+            />
           </div>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default PaymentInvoices;
+export default PaymentInvoices

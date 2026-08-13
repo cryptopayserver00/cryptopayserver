@@ -167,8 +167,6 @@
 
 // export default PhraseBackupConfirm;
 
-'use client'
-
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSnackPresistStore } from '@/lib/store/snack'
@@ -176,6 +174,7 @@ import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { RandomWords, AddAndShuffleArray, GetUniqueRandomIndices } from '@/utils/strings'
+import { useShallow } from 'zustand/react/shallow'
 
 type SelectMems = {
   index: number
@@ -185,19 +184,41 @@ type SelectMems = {
 
 const PhraseBackupConfirm = () => {
   const router = useRouter()
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
-  const { getIsWallet, getWalletId } = useWalletPresistStore((state) => state)
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { getIsStore } = useStorePresistStore((state) => state)
-
   const [selectMems, setSelectMems] = useState<SelectMems[]>([])
   const [phrase, setPhrase] = useState<string[]>([])
   const [selectWord, setSelectWord] = useState<Record<number, string>>({})
 
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
+
+  const { isWallet, walletId } = useWalletPresistStore(
+    useShallow((state) => ({
+      isWallet: state.isWallet,
+      walletId: state.walletId,
+    }))
+  )
+
+  const { isStore } = useStorePresistStore(
+    useShallow((state) => ({
+      isStore: state.isStore,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
   const updateWalletBackup = async () => {
     try {
       const response: any = await axios.put(Http.update_backup_by_wallet_id, {
-        wallet_id: getWalletId(),
+        wallet_id: walletId,
       })
       if (response.result) {
         setSnackSeverity('success')
@@ -218,9 +239,9 @@ const PhraseBackupConfirm = () => {
 
   const fetchWalletData = async () => {
     try {
-      if (getIsWallet()) {
+      if (isWallet) {
         const response: any = await axios.get(Http.find_wallet_by_id, {
-          params: { id: getWalletId() },
+          params: { id: walletId },
         })
 
         if (response.result) {
@@ -253,12 +274,12 @@ const PhraseBackupConfirm = () => {
   }
 
   useEffect(() => {
-    if (!getIsStore()) {
+    if (!isStore) {
       router.push('/stores/create')
+      return
     }
     fetchWalletData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [isStore])
 
   const handleButtonClick = (index: number, selectItem: string) => {
     setSelectWord((prevSelectWord) => ({
@@ -289,7 +310,6 @@ const PhraseBackupConfirm = () => {
 
   useEffect(() => {
     onClickSelectWord(selectWord)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectWord])
 
   return (

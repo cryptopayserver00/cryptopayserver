@@ -278,6 +278,7 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import { PULL_PAYMENT_STATUS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   id: number
@@ -296,13 +297,29 @@ type GridType = {
 const PAGE_SIZE = 10
 
 export default function PullPaymentDataGrid(props: GridType) {
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
-
   const [rows, setRows] = useState<RowType[]>([])
   const [page, setPage] = useState(0)
   const [archivingId, setArchivingId] = useState<number | null>(null)
+
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickArchive = async (id: number) => {
     try {
@@ -316,7 +333,7 @@ export default function PullPaymentDataGrid(props: GridType) {
         setSnackSeverity('success')
         setSnackMessage('Update successful!')
         setSnackOpen(true)
-        await init(props.status)
+        await init(network, storeId, props.status)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Update failed!')
@@ -332,12 +349,16 @@ export default function PullPaymentDataGrid(props: GridType) {
     }
   }
 
-  const init = async (status: (typeof PULL_PAYMENT_STATUS)[keyof typeof PULL_PAYMENT_STATUS]) => {
+  const init = async (
+    network: string,
+    storeId: number,
+    status: (typeof PULL_PAYMENT_STATUS)[keyof typeof PULL_PAYMENT_STATUS]
+  ) => {
     try {
       const response: any = await axios.get(Http.find_pull_payment, {
         params: {
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
           pull_payment_status: status,
         },
       })
@@ -372,11 +393,10 @@ export default function PullPaymentDataGrid(props: GridType) {
 
   useEffect(() => {
     if (props.status) {
-      init(props.status)
+      init(network, storeId, props.status)
       setPage(0)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.status])
+  }, [network, storeId, props.status])
 
   const totalPages = Math.ceil(rows.length / PAGE_SIZE)
   const pagedRows = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)

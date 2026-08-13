@@ -2,12 +2,7 @@ import MetaTags from '@/components/Common/MetaTags'
 import HomeSidebar from '@/components/Sidebar'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import {
-  useWalletPresistStore,
-  useSnackPresistStore,
-  useUserPresistStore,
-  useStorePresistStore,
-} from '@/lib/store'
+import { useSnackPresistStore, useUserPresistStore } from '@/lib/store'
 import { routes } from './Routes'
 import { useTranslation } from 'react-i18next'
 import { CheckCircle2, XCircle, AlertCircle, Info, X } from 'lucide-react'
@@ -15,6 +10,7 @@ import HomeHeader from '../Home/HomeHeader'
 import HomeFooter from '../Home/HomeFooter'
 import { RouteType } from '@/utils/types'
 import { cn } from '@/lib/utils'
+import { useShallow } from 'zustand/react/shallow'
 
 const snackIcons = {
   success: { icon: CheckCircle2, className: 'text-green-500' },
@@ -26,24 +22,30 @@ const snackIcons = {
 const Index = () => {
   const router = useRouter()
   const { t, i18n } = useTranslation('')
-  const { snackOpen, snackMessage, snackSeverity, setSnackOpen } = useSnackPresistStore(
-    (state) => state
+
+  const { isLogin, lang, setLang, sidebarCollapsed, setSidebarCollapsed } = useUserPresistStore(
+    useShallow((state) => ({
+      isLogin: state.isLogin,
+      lang: state.lang,
+      setLang: state.setLang,
+      sidebarCollapsed: state.sidebarCollapsed,
+      setSidebarCollapsed: state.setSidebarCollapsed,
+    }))
   )
 
-  // const { getIsWallet } = useWalletPresistStore((state) => state)
-  // const { getIsStore } = useStorePresistStore((state) => state)
+  const { snackOpen, snackMessage, snackSeverity, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      snackOpen: state.snackOpen,
+      snackMessage: state.snackMessage,
+      snackSeverity: state.snackSeverity,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
-  // const [isLogin, setLogin] = useState<boolean>(false)
-  // const [isStore, setStore] = useState<boolean>(false)
-  // const [isWallet, setWallet] = useState<boolean>(false)
-  // const [network, setNetwork] = useState<string>()
-
-  const { getIsLogin, getNetwork, getLang, setLang, sidebarCollapsed, setSidebarCollapsed } =
-    useUserPresistStore((state) => state)
   const [currentRoute, setCurrentRoute] = useState<RouteType>()
 
   useEffect(() => {
-    if (!getLang() || getLang() === '') {
+    if (lang === '') {
       setLang('en')
       i18n.changeLanguage('en')
     }
@@ -51,27 +53,16 @@ const Index = () => {
     const route = routes.find((item) => item.path === router.pathname)
     if (!route) return
 
-    if (route?.needLogin && !getIsLogin()) {
+    if (route?.needLogin && !isLogin) {
       window.location.href = '/login'
     }
 
     setCurrentRoute(route)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.pathname])
+  }, [router.pathname, lang, isLogin])
 
   const handleSidebarCollapsedChange = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed)
   }
-
-  // useEffect(() => {
-  //   const route = routes.find((item) => item.path === router.pathname)
-  //   if (!route) return
-  //   if (route?.needLogin) {
-  //     window.location.href = '/login'
-  //     return
-  //   }
-  //   setCurrentRoute(route)
-  // }, [router.pathname])
 
   useEffect(() => {
     setSnackOpen(false)
@@ -132,106 +123,6 @@ const Index = () => {
       </div>
     </div>
   )
-
-  // return (
-  //   <Box height={'100%'}>
-  //     <MetaTags title={currentRoute?.title} />
-
-  //     {currentRoute?.enableSidebar ? (
-  //       <Stack direction={'row'} height={'100%'}>
-  //         {getShowSidebar() ? <HomeSidebar /> : null}
-
-  //         <Box width={'100%'}>
-  //           {getShowProgress() ? <LinearProgress /> : null}
-
-  //           <Box m={2}>
-  //             <IconButton
-  //               onClick={() => {
-  //                 setShowSidebar(!getShowSidebar())
-  //               }}
-  //             >
-  //               <ControlCameraIcon />
-  //             </IconButton>
-  //           </Box>
-
-  //           <Box>
-  //             {!isStore && (
-  //               <Box mb={1}>
-  //                 <Alert severity="warning">
-  //                   <AlertTitle>Warning</AlertTitle>
-  //                   <Typography>
-  //                     You don&apos;t have a store yet. Please click&nbsp;
-  //                     <Link href={'/stores/create'}>here</Link>
-  //                     &nbsp;to create a new one.
-  //                   </Typography>
-  //                 </Alert>
-  //               </Box>
-  //             )}
-
-  //             {!isWallet && (
-  //               <Box mb={1}>
-  //                 <Alert severity="warning">
-  //                   <AlertTitle>Warning</AlertTitle>
-  //                   <Typography>
-  //                     You don&apos;t have a wallet yet. Please click&nbsp;
-  //                     <Link href={'/wallet/create'}>here</Link>
-  //                     &nbsp;to create a new one.
-  //                   </Typography>
-  //                 </Alert>
-  //               </Box>
-  //             )}
-
-  //             {isWallet && network === 'testnet' && (
-  //               <Box mb={1}>
-  //                 <Alert severity="warning">
-  //                   <AlertTitle>Warning</AlertTitle>
-  //                   <Typography>
-  //                     This is a test network, and the currency has no real value. If you need free
-  //                     coins, you can get them&nbsp;
-  //                     <Link href={'/freecoin'} target="_blank">
-  //                       here.
-  //                     </Link>
-  //                   </Typography>
-  //                 </Alert>
-  //               </Box>
-  //             )}
-
-  //             {isWallet && isStore && (currentRoute.component || null)}
-
-  //             {isWallet && isStore && currentRoute?.enableInnerFooter && (
-  //               <Box>
-  //                 <Footer />
-  //               </Box>
-  //             )}
-  //           </Box>
-  //         </Box>
-  //       </Stack>
-  //     ) : (
-  //       <Box>
-  //         {currentRoute?.component || null}
-
-  //         {currentRoute?.enableInnerFooter && (
-  //           <Box>
-  //             <Footer />
-  //           </Box>
-  //         )}
-  //       </Box>
-  //     )}
-
-  //     <Snackbar anchorOrigin={{ vertical: 'top', horizontal: 'right' }} open={snackOpen}>
-  //       <Alert
-  //         onClose={() => {
-  //           setSnackOpen(false)
-  //         }}
-  //         severity={snackSeverity}
-  //         variant="filled"
-  //         sx={{ width: '100%' }}
-  //       >
-  //         {snackMessage}
-  //       </Alert>
-  //     </Snackbar>
-  //   </Box>
-  // )
 }
 
 export default Index

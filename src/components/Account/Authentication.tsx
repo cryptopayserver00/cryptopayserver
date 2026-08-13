@@ -404,6 +404,7 @@ import { useSnackPresistStore, useUserPresistStore } from '@/lib/store'
 import { GenerateAuthenticatorSecret, VerifyAuthenticator } from '@/utils/totp'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 const Authentication = () => {
   const [page, setPage] = useState<number>(1)
@@ -415,23 +416,34 @@ const Authentication = () => {
   const [isVerifying, setIsVerifying] = useState(false)
   const [isResetting, setIsResetting] = useState(false)
 
-  const { setSnackMessage, setSnackOpen, setSnackSeverity } = useSnackPresistStore((state) => state)
-  const { getUserEmail } = useUserPresistStore((state) => state)
+  const { userEmail } = useUserPresistStore(
+    useShallow((state) => ({
+      userEmail: state.userEmail,
+    }))
+  )
 
-  const init = async () => {
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const init = async (userEmail: string) => {
     try {
-      if (!getUserEmail()) return
+      if (!userEmail) return
 
       const response: any = await axios.get(Http.find_user_by_email, {
         params: {
-          email: getUserEmail(),
+          email: userEmail,
         },
       })
 
       if (response.result && response.data.authenticator && response.data.authenticator !== '') {
         setIsSetup(true)
         setText(response.data.authenticator)
-        const link = `otpauth://totp/CryptoPayServer:${getUserEmail()}?secret=${
+        const link = `otpauth://totp/CryptoPayServer:${userEmail}?secret=${
           response.data.authenticator
         }&issuer=CryptoPayServer&digits=6`
         setQrCode(link)
@@ -440,7 +452,7 @@ const Authentication = () => {
         setIsSetup(false)
         const token = GenerateAuthenticatorSecret()
         setText(token)
-        const link = `otpauth://totp/CryptoPayServer:${getUserEmail()}?secret=${token}&issuer=CryptoPayServer&digits=6`
+        const link = `otpauth://totp/CryptoPayServer:${userEmail}?secret=${token}&issuer=CryptoPayServer&digits=6`
         setQrCode(link)
       }
     } catch (e) {
@@ -452,15 +464,14 @@ const Authentication = () => {
   }
 
   useEffect(() => {
-    init()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    init(userEmail)
+  }, [userEmail])
 
   const onClickResetApp = async () => {
     try {
       setIsResetting(true)
       const response: any = await axios.put(Http.update_user_by_email, {
-        email: getUserEmail(),
+        email: userEmail,
         authenticator: '',
       })
 
@@ -468,7 +479,7 @@ const Authentication = () => {
         setSnackSeverity('success')
         setSnackMessage('Reset successful!')
         setSnackOpen(true)
-        await init()
+        await init(userEmail)
         setPage(2)
       } else {
         setSnackSeverity('error')
@@ -492,7 +503,7 @@ const Authentication = () => {
       try {
         setIsVerifying(true)
         const response: any = await axios.put(Http.update_user_by_email, {
-          email: getUserEmail(),
+          email: userEmail,
           authenticator: text,
         })
 
@@ -500,7 +511,7 @@ const Authentication = () => {
           setSnackSeverity('success')
           setSnackMessage('Save successful!')
           setSnackOpen(true)
-          await init()
+          await init(userEmail)
         } else {
           setSnackSeverity('error')
           setSnackMessage('Authentication failed!')

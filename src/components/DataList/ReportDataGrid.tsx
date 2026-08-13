@@ -288,6 +288,7 @@ import { FindChainNamesByChains } from '@/utils/web3'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { RowType } from '@/components/Payments/Reporting'
+import { useShallow } from 'zustand/react/shallow'
 
 type GridType = {
   startDate: number
@@ -301,26 +302,47 @@ const PAGE_SIZE = 10
 
 export default function ReportDataGrid(props: GridType) {
   const { startDate, endDate, status, rows, setRows } = props
-
-  const { getNetwork } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
-
   const [open, setOpen] = useState(false)
   const [selectedValue, setSelectedValue] = useState<RowType>()
   const [page, setPage] = useState(0)
+
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickRow = (row: RowType) => {
     setSelectedValue(row)
     setOpen(true)
   }
 
-  const init = async () => {
+  const init = async (
+    storeId: number,
+    network: string,
+    startDate: number,
+    endDate: number,
+    status: string
+  ) => {
     try {
       const response: any = await axios.get(Http.find_report, {
         params: {
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
           start_date: startDate,
           end_date: endDate,
           status: status,
@@ -365,10 +387,9 @@ export default function ReportDataGrid(props: GridType) {
   }
 
   useEffect(() => {
-    init()
+    init(storeId, network, startDate, endDate, status)
     setPage(0)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, status])
+  }, [storeId, network, startDate, endDate, status])
 
   const totalPages = Math.ceil(rows.length / PAGE_SIZE)
   const pagedRows = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)

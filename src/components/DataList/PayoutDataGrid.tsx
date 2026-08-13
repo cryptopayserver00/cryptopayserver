@@ -401,6 +401,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { OmitMiddleString } from '@/utils/strings'
 import { FindChainNamesByChains } from '@/utils/web3'
+import { useShallow } from 'zustand/react/shallow'
 
 type RowType = {
   id: number
@@ -424,10 +425,25 @@ type GridType = {
 const PAGE_SIZE = 10
 
 export default function PayoutDataGrid(props: GridType) {
-  const { setSnackOpen, setSnackMessage, setSnackSeverity } = useSnackPresistStore((state) => state)
+  const { network } = useUserPresistStore(
+    useShallow((state) => ({
+      network: state.network,
+    }))
+  )
 
-  const currentNetwork = useUserPresistStore((state) => state.network)
-  const currentStoreId = useStorePresistStore((state) => state.storeId)
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const [rows, setRows] = useState<RowType[]>([])
   const [page, setPage] = useState(0)
@@ -448,7 +464,7 @@ export default function PayoutDataGrid(props: GridType) {
         setSnackSeverity('success')
         setSnackMessage(successMsg)
         setSnackOpen(true)
-        await init(currentNetwork, currentStoreId, props.status)
+        await init(network, storeId, props.status)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Update failed!')
@@ -559,11 +575,10 @@ export default function PayoutDataGrid(props: GridType) {
 
   useEffect(() => {
     if (props.status) {
-      init(currentNetwork, currentStoreId, props.status)
+      init(network, storeId, props.status)
       setPage(0)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentNetwork, currentStoreId, props.status])
+  }, [network, storeId, props.status])
 
   const totalPages = Math.ceil(rows.length / PAGE_SIZE)
   const pagedRows = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)

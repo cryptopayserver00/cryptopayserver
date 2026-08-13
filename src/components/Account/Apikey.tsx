@@ -374,6 +374,7 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import { APIKEYPERMISSIONS, APIKEYPERMISSION } from '@/packages/constants'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { useShallow } from 'zustand/react/shallow'
 
 const ApiKey = () => {
   const [page, setPage] = useState<number>(1)
@@ -381,9 +382,25 @@ const ApiKey = () => {
   const [isGenerating, setIsGenerating] = useState(false)
   const [permissions, setPermissions] = useState<APIKEYPERMISSION[]>(APIKEYPERMISSIONS)
 
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
+
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickGenerateAPIKEY = async () => {
     try {
@@ -408,8 +425,8 @@ const ApiKey = () => {
       setIsGenerating(true)
 
       const response: any = await axios.post(Http.create_apikey_setting, {
-        user_id: getUserId(),
-        store_id: getStoreId(),
+        user_id: userId,
+        store_id: storeId,
         label: label,
         permissions: ids.join(','),
       })
