@@ -28,21 +28,7 @@ import TransactionsTab from '@/components/Tab/TransactionTab'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
 import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
-
-type walletType = {
-  id: number
-  address: string
-  type: string
-  balance: any
-  txUrl: string
-  transactions: any[]
-}
-
-type feeType = {
-  high: number
-  average: number
-  low: number
-}
+import { EvmChainFeeType, ChainWalletType } from '@/utils/types'
 
 type Props = {
   chainId: CHAINS
@@ -65,8 +51,8 @@ const EvmChainWalletPage = ({
   holdingsTitle,
 }: Props) => {
   const [isSettings, setIsSettings] = useState<boolean>(false)
-  const [wallet, setWallet] = useState<walletType[]>([])
-  const [feeObj, setFeeObj] = useState<feeType>()
+  const [wallet, setWallet] = useState<ChainWalletType[]>([])
+  const [feeObj, setFeeObj] = useState<EvmChainFeeType>()
   const [settingId, setSettingId] = useState<number>(0)
   const [paymentExpire, setPaymentExpire] = useState<number>(0)
   const [confirmBlock, setConfirmBlock] = useState<number>(0)
@@ -119,7 +105,7 @@ const EvmChainWalletPage = ({
 
       if (response.result) {
         if (response.data.length > 0) {
-          let ws: walletType[] = []
+          let ws: ChainWalletType[] = []
           response.data.forEach((item: any) => {
             ws.push({
               id: item.id,
@@ -246,7 +232,7 @@ const EvmChainWalletPage = ({
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center">
-          <Image src={chainSvg} alt="" width={44} height={44} />
+          <Image src={chainSvg} alt="chain" width={44} height={44} className="h-11 w-11" />
           <h1 className="pl-2 text-xl font-semibold">{displayName}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -383,6 +369,7 @@ const EvmChainWalletPage = ({
                               alt="logo"
                               width={16}
                               height={16}
+                              className="h-4 w-4"
                             />
                             {String(amount)} {coin}
                           </Badge>

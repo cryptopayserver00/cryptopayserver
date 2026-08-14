@@ -47,16 +47,6 @@ export class BSC {
     return isMainnet ? INNERCHAINNAMES.BSC : INNERCHAINNAMES.BSC_TESTNET
   }
 
-  // static async getProvider(isMainnet: boolean) {
-  //   return new ethers.JsonRpcProvider(
-  //     RPC.getRpcByChainIds(this.getChainIds(isMainnet)),
-  //     this.getChainIds(isMainnet),
-  //     {
-  //       staticNetwork: true,
-  //     }
-  //   )
-  // }
-
   static async getProvider(isMainnet: boolean): Promise<ethers.JsonRpcProvider> {
     const cached = this.providerCache.get(isMainnet)
     if (cached) {
@@ -70,6 +60,13 @@ export class BSC {
         staticNetwork: true,
       }
     )
+
+    try {
+      await provider._detectNetwork()
+    } catch (err) {
+      console.log(err)
+      return Promise.reject()
+    }
 
     this.providerCache.set(isMainnet, provider)
     return provider

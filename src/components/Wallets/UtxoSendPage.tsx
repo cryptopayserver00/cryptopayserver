@@ -24,26 +24,9 @@ import { GetImgSrcByCrypto } from '@/utils/qrcode'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
+import { AddressBookRowType, CoinBalanceType, UtxoFeeType } from '@/utils/types'
 
 const fee_byte_length = 140
-
-type feeType = {
-  fastest: number
-  halfHour: number
-  hour: number
-  economy: number
-  minimum: number
-}
-
-type Coin = { [currency: string]: string }
-
-type AddressBookRowType = {
-  id: number
-  chainId: number
-  isMainnet: boolean
-  name: string
-  address: string
-}
 
 type Props = {
   chainId: CHAINS
@@ -69,12 +52,12 @@ const UtxoSendPage = ({
   const [alignment, setAlignment] = useState<
     'fastest' | 'halfHour' | 'hour' | 'economy' | 'minimum'
   >('fastest')
-  const [feeObj, setFeeObj] = useState<feeType>()
+  const [feeObj, setFeeObj] = useState<UtxoFeeType>()
   const [addressBookrows, setAddressBookrows] = useState<AddressBookRowType[]>([])
 
   const [page, setPage] = useState<number>(1)
   const [fromAddress, setFromAddress] = useState<string>('')
-  const [balance, setBalance] = useState<Coin>({})
+  const [balance, setBalance] = useState<CoinBalanceType>({})
   const [destinationAddress, setDestinationAddress] = useState<string>('')
   const [amount, setAmount] = useState<string>('')
   const [feeRate, setFeeRate] = useState<number>(0)
@@ -380,7 +363,7 @@ const UtxoSendPage = ({
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 pb-16">
       <div className="flex items-center justify-center gap-2 py-8">
-        <Image src={chainSvg} alt="chain" width={44} height={44} />
+        <Image src={chainSvg} alt="chain" width={44} height={44} className="h-11 w-11" />
         <h1 className="text-2xl font-semibold">
           Send coin on{' '}
           {network === 'mainnet'
@@ -440,6 +423,7 @@ const UtxoSendPage = ({
                       alt="logo"
                       width={16}
                       height={16}
+                      className="h-4 w-4"
                     />
                     {String(amt)} {token}
                   </Badge>

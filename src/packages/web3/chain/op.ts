@@ -48,16 +48,6 @@ export class OP {
     return isMainnet ? INNERCHAINNAMES.OPTIMISM : INNERCHAINNAMES.OPTIMISM_SEPOLIA
   }
 
-  // static async getProvider(isMainnet: boolean) {
-  //   return new ethers.JsonRpcProvider(
-  //     RPC.getRpcByChainIds(this.getChainIds(isMainnet)),
-  //     undefined,
-  //     {
-  //       staticNetwork: true,
-  //     }
-  //   )
-  // }
-
   static async getProvider(isMainnet: boolean): Promise<ethers.JsonRpcProvider> {
     const cached = this.providerCache.get(isMainnet)
     if (cached) {
@@ -71,6 +61,13 @@ export class OP {
         staticNetwork: true,
       }
     )
+
+    try {
+      await provider._detectNetwork()
+    } catch (err) {
+      console.log(err)
+      return Promise.reject()
+    }
 
     this.providerCache.set(isMainnet, provider)
     return provider

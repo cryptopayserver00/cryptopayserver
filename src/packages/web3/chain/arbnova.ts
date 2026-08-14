@@ -61,15 +61,16 @@ export class ARBNOVA {
       }
     )
 
+    try {
+      await provider._detectNetwork()
+    } catch (err) {
+      console.log(err)
+      return Promise.reject()
+    }
+
     this.providerCache.set(true, provider)
     return provider
   }
-
-  // static async getProvider() {
-  //   return new ethers.JsonRpcProvider(RPC.getRpcByChainIds(this.getChainIds()), undefined, {
-  //     staticNetwork: true,
-  //   })
-  // }
 
   static checkQRCodeText(text: string): boolean {
     const regex = `^(${this.getChainName()}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`

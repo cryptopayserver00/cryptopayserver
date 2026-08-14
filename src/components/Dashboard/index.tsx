@@ -65,7 +65,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     init(walletId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletId])
 
   return (
@@ -155,9 +154,7 @@ const Dashboard = () => {
         </Alert>
       )}
 
-      {/* Content */}
       <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6">
-        {/* Store name */}
         {storeName && (
           <div>
             <Badge variant="outline" className="text-sm px-3 py-1">

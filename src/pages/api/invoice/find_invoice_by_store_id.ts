@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { PrismaClient } from '@prisma/client';
 import { ORDER_STATUS, ORDER_TIME } from '@/packages/constants';
 import { FindTokenByChainIdsAndSymbol } from '@/utils/web3';
 import { WEB3 } from '@/packages/web3';
 import { COINS } from '@/packages/constants/blockchain';
+import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -12,7 +12,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'GET':
-        const prisma = new PrismaClient();
         const storeId = req.query.store_id;
         const network = req.query.network;
         const orderId = req.query.order_id;

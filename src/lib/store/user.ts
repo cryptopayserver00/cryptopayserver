@@ -1,4 +1,3 @@
-import { LANGUAGES } from '@/packages/constants'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -9,7 +8,6 @@ type UserPerisistState = {
   isLogin: boolean
   userTheme: 'auto' | 'light' | 'dark'
   userHideSensitiveInfo: boolean
-  // showSidebar: boolean;
   showProgress: boolean
   sidebarCollapsed: boolean
   network: 'mainnet' | 'testnet'
@@ -31,8 +29,6 @@ type UserPerisistAction = {
   getUserHideSensitiveInfo: () => boolean
   setNetwork: (network: 'mainnet' | 'testnet') => void
   getNetwork: () => string
-  // setShowSidebar: (showSidebar: boolean) => void
-  // getShowSidebar: () => boolean
   setShowProgress: (showProgress: boolean) => void
   getShowProgress: () => boolean
   setSidebarCollapsed: (sidebarCollapsed: boolean) => void
@@ -50,7 +46,6 @@ const initialUserState: UserPerisistState = {
   isLogin: false,
   userTheme: 'auto',
   userHideSensitiveInfo: false,
-  // showSidebar: true,
   showProgress: false,
   sidebarCollapsed: false,
   network: 'mainnet',
@@ -74,8 +69,6 @@ export const useUserPresistStore = create(
       getUserTheme: () => get().userTheme,
       setUserHideSensitiveInfo: (value) => set(() => ({ userHideSensitiveInfo: value })),
       getUserHideSensitiveInfo: () => get().userHideSensitiveInfo,
-      // setShowSidebar: (value) => set(() => ({ showSidebar: value })),
-      // getShowSidebar: () => get().showSidebar,
       setNetwork: (value) => set(() => ({ network: value })),
       getNetwork: () => get().network,
       setShowProgress: (value) => set(() => ({ showProgress: value })),

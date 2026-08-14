@@ -105,9 +105,7 @@ const PaymentAnalyticsChart = () => {
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* Time */}
         <RadioGroup
           value={timeAlignment}
           onValueChange={setTimeAlignment}
@@ -123,7 +121,6 @@ const PaymentAnalyticsChart = () => {
           ))}
         </RadioGroup>
 
-        {/* Item */}
         <RadioGroup
           value={itemAlignment}
           onValueChange={setItemAlignment}
@@ -140,7 +137,6 @@ const PaymentAnalyticsChart = () => {
         </RadioGroup>
       </div>
 
-      {/* Chart */}
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>

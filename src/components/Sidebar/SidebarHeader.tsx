@@ -16,16 +16,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { SiteLogo } from '../Logo/SiteLogo'
 import { useShallow } from 'zustand/react/shallow'
+import { StoreType } from '@/utils/types'
 
 interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode
-}
-
-interface StoreType {
-  id: number
-  name: string
-  currency: string
-  price_source: string
 }
 
 export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ...rest }) => {
@@ -84,7 +78,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
             id: item.id,
             name: item.name,
             currency: item.currency,
-            price_source: item.price_source,
+            priceSource: item.price_source,
           }))
         )
       } else {

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { ORDER_STATUS } from '@/packages/constants';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma'
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -9,7 +9,6 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
 
     switch (req.method) {
       case 'PUT':
-        const prisma = new PrismaClient();
         const orderId = req.body.order_id;
         const orderStatus = req.body.order_status;
 

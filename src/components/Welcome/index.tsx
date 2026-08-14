@@ -113,7 +113,6 @@ function TerminalCard() {
       }
     }, 28)
     return () => clearInterval(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -166,7 +165,6 @@ export default function Welcome() {
     <div
       className={`${jetbrainsMono.variable} ${inter.variable} min-h-screen bg-[#0A0F1A] font-[family-name:var(--font-sans)] text-[#E7E5DC] antialiased`}
     >
-      {/* Nav */}
       <header className="border-b border-white/[0.06]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <div className="flex items-center gap-2 font-[family-name:var(--font-mono)] font-bold">
@@ -207,7 +205,6 @@ export default function Welcome() {
         </div>
       </header>
 
-      {/* Hero */}
       <section className="mx-auto grid max-w-6xl gap-12 px-6 pb-20 pt-16 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:pb-28 lg:pt-24">
         <div>
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-xs text-white/50">
@@ -253,7 +250,6 @@ export default function Welcome() {
         <TerminalCard />
       </section>
 
-      {/* Chains ticker */}
       <section id="chains" className="border-y border-white/[0.06] bg-white/[0.02] py-5">
         <div className="overflow-hidden">
           <div className="flex w-max animate-[marquee_28s_linear_infinite] gap-10 font-[family-name:var(--font-mono)] text-sm text-white/40">
@@ -267,7 +263,6 @@ export default function Welcome() {
         </div>
       </section>
 
-      {/* Why */}
       <section className="mx-auto max-w-6xl px-6 py-20">
         <p className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-widest text-white/40">
           This is for you if
@@ -282,7 +277,6 @@ export default function Welcome() {
         </div>
       </section>
 
-      {/* Features — ledger entries */}
       <section id="features" className="mx-auto max-w-6xl px-6 py-20">
         <div className="mb-10 flex items-end justify-between">
           <div>
@@ -314,7 +308,6 @@ export default function Welcome() {
         </div>
       </section>
 
-      {/* Tech stack */}
       <section className="border-y border-white/[0.06] py-10">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-6">
           <p className="text-xs uppercase tracking-widest text-white/30">Built on</p>
@@ -329,7 +322,6 @@ export default function Welcome() {
         </div>
       </section>
 
-      {/* Final CTA */}
       <section className="mx-auto max-w-6xl px-6 py-24 text-center">
         <Ghost className="mx-auto h-8 w-8 text-white/20" />
         <h2 className="mx-auto mt-6 max-w-xl text-2xl font-semibold sm:text-3xl">
@@ -365,7 +357,6 @@ export default function Welcome() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-white/[0.06] py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 text-xs text-white/35 sm:flex-row">
           <span>© {new Date().getFullYear()} CryptoPayServer — MIT licensed, self-hosted.</span>
@@ -375,7 +366,7 @@ export default function Welcome() {
               target="_blank"
               className="flex items-center gap-1.5 transition-colors hover:text-white"
             >
-              {/* <Github className="h-3.5 w-3.5" /> GitHub */}
+              <SiGithub className="h-3.5 w-3.5" /> GitHub
             </Link>
             <Link
               href="https://t.me/cryptopayserver"

@@ -1,248 +1,12 @@
-// import { NavigateNext } from '@mui/icons-material';
-// import {
-//   Box,
-//   Button,
-//   Card,
-//   CardContent,
-//   Container,
-//   Dialog,
-//   DialogActions,
-//   DialogContent,
-//   DialogContentText,
-//   DialogTitle,
-//   Icon,
-//   List,
-//   ListItem,
-//   ListItemButton,
-//   ListItemIcon,
-//   ListItemText,
-//   Stack,
-//   TextField,
-//   Typography,
-// } from '@mui/material';
-// import { useSnackPresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store';
-// import Image from 'next/image';
-// import { BLOCKCHAIN, BLOCKCHAINNAMES } from '@/packages/constants/blockchain';
-// import { useEffect, useState } from 'react';
-// import { VisibilityOff } from '@mui/icons-material';
-// import axios from '@/utils/http/axios';
-// import { Http } from '@/utils/http/http';
-// import { FindChainIdsByChainNames, GetBlockchainAddressUrlByChainIds } from '@/utils/web3';
-// import Link from 'next/link';
-
-// type RowType = {
-//   chainId: number;
-//   isMainnet: boolean;
-//   address: string;
-//   privateKey: string;
-//   view: boolean;
-// };
-
-// const ManagePrivateKey = () => {
-//   const [blockchains, setBlockchains] = useState<BLOCKCHAIN[]>();
-//   const [currentItem, setCurrentItem] = useState<BLOCKCHAIN>();
-//   const [open, setOpen] = useState<boolean>(false);
-//   const [rows, setRows] = useState<RowType[]>([]);
-
-//   const { getWalletId } = useWalletPresistStore((state) => state);
-//   const { getNetwork } = useUserPresistStore((state) => state);
-//   const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state);
-
-//   const handleOpen = () => {
-//     setOpen(true);
-//   };
-
-//   const handleClose = () => {
-//     setOpen(false);
-//   };
-
-//   const onClickPrivateKeyItem = async (item: BLOCKCHAIN) => {
-//     try {
-//       const response: any = await axios.get(Http.find_private_key_by_chain_and_network, {
-//         params: {
-//           wallet_id: getWalletId(),
-//           chain_id: FindChainIdsByChainNames(item.name),
-//           network: item.isMainnet ? 1 : 2,
-//         },
-//       });
-
-//       if (response.result && response.data.length > 0) {
-//         let rt: RowType[] = [];
-//         response.data.forEach((element: any) => {
-//           rt.push({
-//             chainId: FindChainIdsByChainNames(item.name),
-//             isMainnet: item.isMainnet,
-//             address: element.address,
-//             privateKey: element.private_key,
-//             view: false,
-//           });
-//         });
-
-//         setRows(rt);
-//       } else {
-//         setSnackSeverity('error');
-//         setSnackMessage('Can not find the data on site!');
-//         setSnackOpen(true);
-//       }
-
-//       setCurrentItem(item);
-//       handleOpen();
-//     } catch (e) {
-//       console.error(e);
-//     }
-//   };
-
-//   useEffect(() => {
-//     const value = BLOCKCHAINNAMES.filter((item: any) =>
-//       getNetwork() === 'mainnet' ? item.isMainnet : !item.isMainnet,
-//     );
-//     setBlockchains(value);
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, []);
-
-//   return (
-//     <Box>
-//       <Container>
-//         <Typography variant="h6">Private Key</Typography>
-
-//         <Box sx={{ bgcolor: 'background.paper' }} mt={4}>
-//           <nav>
-//             <List>
-//               {blockchains &&
-//                 blockchains.length > 0 &&
-//                 blockchains.map((item, index) => (
-//                   <ListItem key={index}>
-//                     <ListItemButton
-//                       onClick={() => {
-//                         onClickPrivateKeyItem(item);
-//                       }}
-//                     >
-//                       <ListItemIcon>
-//                         <Image src={item.icon} alt="image" width={40} height={40} />
-//                       </ListItemIcon>
-//                       <ListItemText primary={item.name} />
-//                       <Icon component={NavigateNext} />
-//                     </ListItemButton>
-//                   </ListItem>
-//                 ))}
-//             </List>
-//           </nav>
-//         </Box>
-
-//         <Dialog
-//           open={open}
-//           onClose={handleClose}
-//           aria-labelledby="alert-dialog-title"
-//           aria-describedby="alert-dialog-description"
-//           fullWidth
-//         >
-//           <DialogTitle id="alert-dialog-title">{currentItem?.name}</DialogTitle>
-//           <DialogContent>
-//             <Box>
-//               {rows &&
-//                 rows.map((item, index) => (
-//                   <Box key={index} mb={4}>
-//                     <Link
-//                       href={GetBlockchainAddressUrlByChainIds(item.isMainnet, item.chainId, item.address)}
-//                       target="_blank"
-//                     >
-//                       {item.address}
-//                     </Link>
-//                     <Box mt={1}>
-//                       {item.view ? (
-//                         <Box mt={2}>
-//                           <TextField multiline fullWidth value={item.privateKey} disabled rows={5} />
-//                         </Box>
-//                       ) : (
-//                         <Box
-//                           style={{
-//                             position: 'relative',
-//                             backgroundColor: 'rgba(0, 0, 0, 0.9)',
-//                             boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
-//                             textAlign: 'center',
-//                             color: '#fff',
-//                           }}
-//                           onClick={() => {
-//                             const newRows = [...rows];
-//                             newRows[index].view = true;
-//                             setRows(newRows);
-//                           }}
-//                         >
-//                           <Box mt={2} p={2}>
-//                             <Icon component={VisibilityOff} fontSize={'large'} />
-//                             <Typography mt={1}>Click to view private key</Typography>
-//                             <Typography mt={2}>Please make sure no one can view your screen</Typography>
-//                           </Box>
-//                         </Box>
-//                       )}
-//                     </Box>
-//                     <Stack direction={'row'} alignItems={'center'} justifyContent={'right'} mt={1}>
-//                       <Box mr={1}>
-//                         {item.view ? (
-//                           <Button
-//                             variant={'contained'}
-//                             onClick={() => {
-//                               const newRows = [...rows];
-//                               newRows[index].view = false;
-//                               setRows(newRows);
-//                             }}
-//                           >
-//                             Hide
-//                           </Button>
-//                         ) : (
-//                           <Button
-//                             color="warning"
-//                             variant={'contained'}
-//                             onClick={() => {
-//                               const newRows = [...rows];
-//                               newRows[index].view = true;
-//                               setRows(newRows);
-//                             }}
-//                           >
-//                             View
-//                           </Button>
-//                         )}
-//                       </Box>
-//                       <Button
-//                         color={'success'}
-//                         variant={'contained'}
-//                         onClick={async () => {
-//                           await navigator.clipboard.writeText(item.privateKey);
-
-//                           setSnackMessage('Successfully copy');
-//                           setSnackSeverity('success');
-//                           setSnackOpen(true);
-//                         }}
-//                       >
-//                         Copy
-//                       </Button>
-//                     </Stack>
-//                   </Box>
-//                 ))}
-//             </Box>
-//           </DialogContent>
-//           <DialogActions>
-//             <Button onClick={handleClose}>Close</Button>
-//           </DialogActions>
-//         </Dialog>
-//       </Container>
-//     </Box>
-//   );
-// };
-
-// export default ManagePrivateKey;
-
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronRight, Copy, EyeOff } from 'lucide-react'
-
 import { useSnackPresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store'
 import { BLOCKCHAIN, BLOCKCHAINNAMES } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { FindChainIdsByChainNames, GetBlockchainAddressUrlByChainIds } from '@/utils/web3'
-
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -254,20 +18,13 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { useShallow } from 'zustand/react/shallow'
-
-type RowType = {
-  chainId: number
-  isMainnet: boolean
-  address: string
-  privateKey: string
-  view: boolean
-}
+import { PrivateKeyRowType } from '@/utils/types'
 
 const ManagePrivateKey = () => {
   const [blockchains, setBlockchains] = useState<BLOCKCHAIN[]>()
   const [currentItem, setCurrentItem] = useState<BLOCKCHAIN>()
   const [open, setOpen] = useState<boolean>(false)
-  const [rows, setRows] = useState<RowType[]>([])
+  const [rows, setRows] = useState<PrivateKeyRowType[]>([])
 
   const { network } = useUserPresistStore(
     useShallow((state) => ({
@@ -306,18 +63,15 @@ const ManagePrivateKey = () => {
       })
 
       if (response.result && response.data.length > 0) {
-        let rt: RowType[] = []
-        response.data.forEach((element: any) => {
-          rt.push({
-            chainId: FindChainIdsByChainNames(item.name),
-            isMainnet: item.isMainnet,
-            address: element.address,
-            privateKey: element.private_key,
-            view: false,
-          })
-        })
+        const rows: PrivateKeyRowType[] = response.data.map((element: any) => ({
+          chainId: FindChainIdsByChainNames(item.name),
+          isMainnet: item.isMainnet,
+          address: element.address,
+          privateKey: element.private_key,
+          view: false,
+        }))
 
-        setRows(rt)
+        setRows(rows)
       } else {
         showSnack('error', 'Can not find the data on site!')
       }
@@ -334,7 +88,6 @@ const ManagePrivateKey = () => {
       network === 'mainnet' ? item.isMainnet : !item.isMainnet
     )
     setBlockchains(value)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [network])
 
   const toggleView = (index: number, value: boolean) => {
@@ -357,7 +110,7 @@ const ManagePrivateKey = () => {
                 onClick={() => onClickPrivateKeyItem(item)}
                 className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
               >
-                <Image src={item.icon} alt="image" width={40} height={40} />
+                <Image src={item.icon} alt="image" width={40} height={40} className="h-10 w-10" />
                 <span className="flex-1 font-medium">{item.name}</span>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </button>
@@ -365,14 +118,14 @@ const ManagePrivateKey = () => {
         </nav>
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
+          <DialogContent className="max-w-lg max-h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
+            <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
               <DialogTitle>{currentItem?.name}</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-6">
-              {rows &&
-                rows.map((item, index) => (
+            <div className="overflow-y-auto px-6">
+              <div className="space-y-6 py-2">
+                {rows?.map((item, index) => (
                   <div key={index}>
                     {index > 0 && <Separator className="mb-6" />}
 
@@ -394,7 +147,7 @@ const ManagePrivateKey = () => {
                           value={item.privateKey}
                           disabled
                           rows={5}
-                          className="resize-none font-mono text-xs"
+                          className="resize-none font-mono text-xs whitespace-pre-wrap break-all"
                         />
                       ) : (
                         <button
@@ -446,9 +199,10 @@ const ManagePrivateKey = () => {
                     </div>
                   </div>
                 ))}
+              </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="pr-10 pb-8 shrink-0 border-t">
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Close
               </Button>

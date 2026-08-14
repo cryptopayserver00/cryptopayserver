@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import {
   Copy,
@@ -18,7 +18,6 @@ import {
   Check,
 } from 'lucide-react'
 
-// shadcn/ui 组件导入
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -32,7 +31,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-// 外部状态与工具函数
 import {
   useSnackPresistStore,
   useStorePresistStore,
@@ -54,31 +52,10 @@ import { OmitMiddleString } from '@/utils/strings'
 import { GetImgSrcByChain } from '@/utils/qrcode'
 import BitcoinSVG from '@/assets/chain/bitcoin.svg'
 import { useShallow } from 'zustand/react/shallow'
-
-type CoinType = {
-  coin: string
-  price: string
-  number: number
-  unit: string
-  balance: string
-  marketCap: string
-  twentyFourHVol: string
-  twentyFourHChange: string
-}
-
-type WalletType = {
-  walletId: number
-  walletName: string
-  address: string
-  chainId: CHAINS
-  coins: CoinType[]
-  totalBalance: number
-  currency: string
-  currencySymbol: string
-}
+import { AssetWalletType } from '@/utils/types'
 
 export default function MyAssets() {
-  const [assetWallet, setAssetWallet] = useState<WalletType>()
+  const [assetWallet, setAssetWallet] = useState<AssetWalletType>()
   const [chainName, setChainName] = useState<CHAINNAMES>(CHAINNAMES.BITCOIN)
   const [alignment, setAlignment] = useState<string>(WALLET_ITEM_TYPE.TOKENS)
   const [blockchain, setBlockchain] = useState<BLOCKCHAIN>()
@@ -161,7 +138,6 @@ export default function MyAssets() {
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-6">
-      {/* 头部标题与资产概览 */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-sm font-medium text-muted-foreground">My Assets</h2>
@@ -171,7 +147,6 @@ export default function MyAssets() {
           </h1>
         </div>
 
-        {/* 顶部操作区：复制地址、网络选择、钱包名称 */}
         <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="outline"
@@ -197,7 +172,7 @@ export default function MyAssets() {
                         alt={val}
                         width={20}
                         height={20}
-                        className="rounded-full"
+                        className="rounded-full className='h-5 w-5'"
                       />
                       <span className="font-medium">{val}</span>
                     </div>
@@ -215,9 +190,7 @@ export default function MyAssets() {
 
       <Separator className="my-6" />
 
-      {/* 主体二栏布局 */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        {/* 左侧：Tab 导航与各类列表 (占 5 列) */}
         <div className="space-y-4 lg:col-span-5">
           <Tabs value={alignment} onValueChange={setAlignment} className="w-full">
             <TabsList className="grid w-full grid-cols-5 rounded-xl bg-muted p-1">
@@ -229,7 +202,6 @@ export default function MyAssets() {
             </TabsList>
           </Tabs>
 
-          {/* 1. TOKENS 列表 */}
           {alignment === WALLET_ITEM_TYPE.TOKENS && (
             <div className="space-y-2">
               {blockchain?.coins.map((coin, idx) => {
@@ -254,7 +226,7 @@ export default function MyAssets() {
                           width={36}
                           height={36}
                           alt={coin.name}
-                          className="rounded-full"
+                          className="rounded-full className='h-9 w-9'"
                         />
                       )}
                       <div>
@@ -290,7 +262,6 @@ export default function MyAssets() {
             </div>
           )}
 
-          {/* 2. NFTS 列表 */}
           {alignment === WALLET_ITEM_TYPE.NFTS && (
             <div className="grid grid-cols-2 gap-3">
               {[1, 2, 3, 4].map((item) => (
@@ -307,7 +278,6 @@ export default function MyAssets() {
             </div>
           )}
 
-          {/* 3. DEFI 列表 */}
           {alignment === WALLET_ITEM_TYPE.DEFI && (
             <div className="space-y-2">
               <div className="flex items-center justify-between rounded-xl border p-4 bg-card">
@@ -323,7 +293,6 @@ export default function MyAssets() {
             </div>
           )}
 
-          {/* 4. TRANSACTIONS 交易历史 */}
           {alignment === WALLET_ITEM_TYPE.TRANSACTIONS && (
             <div className="space-y-4">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -333,7 +302,13 @@ export default function MyAssets() {
                 <Card key={tx} className="p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Image src={BitcoinSVG} alt="icon" width={32} height={32} />
+                      <Image
+                        src={BitcoinSVG}
+                        alt="icon"
+                        width={32}
+                        height={32}
+                        className="h-8 w-8"
+                      />
                       <div>
                         <p className="text-sm font-medium">Native Transfer</p>
                         <p className="text-xs text-muted-foreground">
@@ -354,7 +329,13 @@ export default function MyAssets() {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Image src={BitcoinSVG} alt="icon" width={32} height={32} />
+                      <Image
+                        src={BitcoinSVG}
+                        alt="icon"
+                        width={32}
+                        height={32}
+                        className="h-8 w-8"
+                      />
                       <div>
                         <p className="text-sm font-medium">To Address</p>
                         <p className="text-xs text-muted-foreground">
@@ -369,7 +350,6 @@ export default function MyAssets() {
             </div>
           )}
 
-          {/* 5. SPENDING CAPS 授权管理 */}
           {alignment === WALLET_ITEM_TYPE.SPENDINGCAPS && (
             <Card className="p-5">
               <h3 className="font-semibold text-base mb-2">Spending Caps</h3>
@@ -382,11 +362,9 @@ export default function MyAssets() {
           )}
         </div>
 
-        {/* 右侧：详细视图展示 (占 7 列) */}
         <div className="lg:col-span-7 lg:border-l lg:pl-8">
           {alignment === WALLET_ITEM_TYPE.TOKENS && (
             <div className="space-y-6">
-              {/* 代币头部简报 */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-center gap-4">
                   {selectedCoinMeta?.icon && (
@@ -395,7 +373,7 @@ export default function MyAssets() {
                       alt="Coin Icon"
                       width={64}
                       height={64}
-                      className="rounded-full shadow-sm"
+                      className="rounded-full shadow-sm h-16 w-16"
                     />
                   )}
                   <div>
@@ -428,7 +406,6 @@ export default function MyAssets() {
                   </div>
                 </div>
 
-                {/* 快捷跳转链接 */}
                 <div className="flex items-center gap-1">
                   {blockchain?.websiteUrl && (
                     <Button variant="ghost" size="icon" asChild>
@@ -469,7 +446,6 @@ export default function MyAssets() {
                 </div>
               </div>
 
-              {/* 持仓余额 Card */}
               <Card className="p-5 bg-gradient-to-br from-card to-accent/20">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Your Balance
@@ -484,7 +460,6 @@ export default function MyAssets() {
                 </p>
               </Card>
 
-              {/* 核心功能按钮组 */}
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
                 <Button
                   className="flex flex-col items-center justify-center h-20 gap-1 rounded-xl"
@@ -602,7 +577,7 @@ export default function MyAssets() {
                 <div>
                   <p className="text-xs text-muted-foreground">From (You)</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Image src={BitcoinSVG} alt="btc" width={20} height={20} />
+                    <Image src={BitcoinSVG} alt="btc" width={20} height={20} className="h-5 w-5" />
                     <span className="text-sm font-medium">
                       {OmitMiddleString(String(assetWallet?.address || ''))}
                     </span>
@@ -620,7 +595,7 @@ export default function MyAssets() {
                 <div>
                   <p className="text-xs text-muted-foreground">To</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Image src={BitcoinSVG} alt="btc" width={20} height={20} />
+                    <Image src={BitcoinSVG} alt="btc" width={20} height={20} className="h-5 w-5" />
                     <span className="text-sm font-medium">
                       {OmitMiddleString(String(assetWallet?.address || ''))}
                     </span>

@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { PrismaClient } from '@prisma/client';
 import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
 import { LNDHUB } from '@/packages/lightning/core/lndhub';
 import { LIGHTNING } from '@/packages/lightning';
+import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -11,7 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'GET':
-        const prisma = new PrismaClient();
         const userId = req.query.user_id;
         const storeId = req.query.store_id;
         const network = req.query.network;

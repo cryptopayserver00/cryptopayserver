@@ -2,10 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
 import { BtcToMsatoshis, BtcToSatoshis, GenerateOrderIDByTime } from '@/utils/number';
 import { INVOICE_SOURCE_TYPE, NOTIFICATION_TYPE, ORDER_STATUS } from '@/packages/constants';
-import { PrismaClient } from '@prisma/client';
 import { CHAINS, LIGHTNINGNAME } from '@/packages/constants/blockchain';
 import { LIGHTNING } from '@/packages/lightning';
 import { LNDHUB } from '@/packages/lightning/core/lndhub';
+import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -13,7 +13,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'POST':
-        const prisma = new PrismaClient();
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
         const chainId = req.body.chain_id;

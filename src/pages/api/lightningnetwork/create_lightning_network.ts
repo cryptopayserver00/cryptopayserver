@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { PrismaClient } from '@prisma/client';
 import { LIGHTNING } from '@/packages/lightning';
 import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
+import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,7 +10,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     switch (req.method) {
       case 'POST':
-        const prisma = new PrismaClient();
         const userId = req.body.user_id;
         const storeId = req.body.store_id;
         const network = req.body.network;

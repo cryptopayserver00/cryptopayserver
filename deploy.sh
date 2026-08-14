@@ -13,8 +13,14 @@ git pull
 echo "==> yarn install"
 yarn
 
+echo "==> prisma generate"
+yarn prisma generate
+
 echo "==> yarn build"
 yarn build
+
+echo "==> prisma migrate deploy"
+yarn prisma migrate deploy
 
 echo "==> restart service: $SERVICE_NAME"
 sudo systemctl restart "$SERVICE_NAME"

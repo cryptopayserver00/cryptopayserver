@@ -1,17 +1,16 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { PrismaClient } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { ResponseData, CorsMiddleware, CorsMethod } from '..'
+import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    await CorsMiddleware(req, res, CorsMethod);
+    await CorsMiddleware(req, res, CorsMethod)
 
     switch (req.method) {
       case 'POST':
-        const prisma = new PrismaClient();
-        const invoiceId = req.body.invoice_id;
-        const orderId = req.body.order_id;
-        const message = req.body.message;
+        const invoiceId = req.body.invoice_id
+        const orderId = req.body.order_id
+        const message = req.body.message
 
         const invoice_event = await prisma.invoice_events.create({
           data: {
@@ -20,10 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             message: message,
             status: 1,
           },
-        });
+        })
 
         if (!invoice_event) {
-          return res.status(200).json({ message: '', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null })
         }
 
         return res.status(200).json({
@@ -32,13 +31,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           data: {
             id: invoice_event.id,
           },
-        });
+        })
 
       default:
-        throw 'no support the method of api';
+        throw 'no support the method of api'
     }
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: '', result: false, data: e });
+    console.error(e)
+    return res.status(500).json({ message: '', result: false, data: e })
   }
 }

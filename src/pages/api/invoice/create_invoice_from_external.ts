@@ -1,30 +1,29 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { GenerateOrderIDByTime } from '@/utils/number';
-import { INVOICE_SOURCE_TYPE, ORDER_STATUS } from '@/packages/constants';
-import { PrismaClient } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { ResponseData, CorsMiddleware, CorsMethod } from '..'
+import { GenerateOrderIDByTime } from '@/utils/number'
+import { INVOICE_SOURCE_TYPE, ORDER_STATUS } from '@/packages/constants'
+import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    await CorsMiddleware(req, res, CorsMethod);
+    await CorsMiddleware(req, res, CorsMethod)
 
     switch (req.method) {
       case 'POST':
-        const prisma = new PrismaClient();
-        const userId = req.body.user_id;
-        const storeId = req.body.store_id;
-        const externalPaymentId = req.body.payment_request_id;
-        const chainId = req.body.chain_id;
-        const network = req.body.network;
-        const amount = req.body.amount;
-        const currency = req.body.currency;
-        const crypto = req.body.crypto;
-        const crypto_amount = req.body.crypto_amount;
-        const rate = req.body.rate;
+        const userId = req.body.user_id
+        const storeId = req.body.store_id
+        const externalPaymentId = req.body.payment_request_id
+        const chainId = req.body.chain_id
+        const network = req.body.network
+        const amount = req.body.amount
+        const currency = req.body.currency
+        const crypto = req.body.crypto
+        const crypto_amount = req.body.crypto_amount
+        const rate = req.body.rate
 
-        const notificationEmail = req.body.email;
+        const notificationEmail = req.body.email
 
-        const orderId = GenerateOrderIDByTime();
+        const orderId = GenerateOrderIDByTime()
 
         const payment_setting = await prisma.payment_settings.findFirst({
           where: {
@@ -37,14 +36,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             current_used_address_id: true,
             payment_expire: true,
           },
-        });
+        })
 
         if (!payment_setting) {
           return res.status(200).json({
             message: '',
             result: false,
             data: null,
-          });
+          })
         }
 
         const address = await prisma.addresses.findFirst({
@@ -54,25 +53,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           select: {
             address: true,
           },
-        });
+        })
 
         if (!address) {
           return res.status(200).json({
             message: '',
             result: false,
             data: null,
-          });
+          })
         }
 
-        const paid = 2; // unpaid
-        const orderStatus = ORDER_STATUS.Processing; // settled, invalid, expired, processing
+        const paid = 2 // unpaid
+        const orderStatus = ORDER_STATUS.Processing // settled, invalid, expired, processing
 
-        const now = new Date();
+        const now = new Date()
         // const createDate = now.getTime();
-        const expirationDate = new Date(now.setMinutes(now.getMinutes() + payment_setting.payment_expire));
+        const expirationDate = new Date(
+          now.setMinutes(now.getMinutes() + payment_setting.payment_expire)
+        )
         // const expirationDate = now.getTime() + payment_setting.payment_expire * 60 * 1000;
 
-        const sourceType = INVOICE_SOURCE_TYPE.PaymentRequest;
+        const sourceType = INVOICE_SOURCE_TYPE.PaymentRequest
 
         const invoice = await prisma.invoices.create({
           data: {
@@ -99,14 +100,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             expiration_at: expirationDate,
             status: 1,
           },
-        });
+        })
 
         if (!invoice) {
           return res.status(200).json({
             message: '',
             result: false,
             data: null,
-          });
+          })
         }
 
         // create event of invoice
@@ -137,14 +138,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               status: 1,
             },
           ],
-        });
+        })
 
         if (!invoice_events) {
           return res.status(200).json({
             message: '',
             result: false,
             data: null,
-          });
+          })
         }
 
         return res.status(200).json({
@@ -153,13 +154,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           data: {
             order_id: orderId,
           },
-        });
+        })
 
       default:
-        throw 'no support the method of api';
+        throw 'no support the method of api'
     }
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: '', result: false, data: e });
+    console.error(e)
+    return res.status(500).json({ message: '', result: false, data: e })
   }
 }

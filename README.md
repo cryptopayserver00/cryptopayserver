@@ -6,135 +6,107 @@
 
 **Open Source Crypto Payment Server**
 
-[**Cryptopayserver.online**](https://cryptopayserver.online) | [**Live Demo**](https://cryptopayserver.online/login) | [**Cryptopayserver Sub**](https://cryptopayserver.online/#pricing) | [**FAQ**](https://cryptopayserver.online/#faq) |
-[**Docs**](https://cryptopayserver.gitbook.io/cryptopayserver) | [**Telegram**](https://t.me/cryptopayserver)
+[Website](https://cryptopayserver.online) · [Live Demo](https://cryptopayserver.online/login) · [FAQ](https://cryptopayserver.online/#faq) · [Docs](https://cryptopayserver.gitbook.io/cryptopayserver) · [Telegram](https://t.me/cryptopayserver)
 
-[![Shield: Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Support-yellow?logo=buymeacoffee)](#)
-[![Shield: Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-limegreen.svg)](#contributing)
-[![Shield: License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](#contributing)
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Support-yellow?logo=buymeacoffee)](#)
 
 </div>
 
-**Cryptopayserver** is an open source crypto payment server software built with web technology. The application enables users to receive cryptocurrency payments across multiple blockchains and assets. The software is designed for personal use in continuous operation.
+**Cryptopayserver** is a free, open-source, self-hosted cryptocurrency payment server.  
+Accept payments across multiple blockchains and assets — your keys, your data, your control. No tracking, no ads, no middleman fees.
 
 <div align="center">
-
-<img src="./docs/images/dashboard.png" width="600" alt="Preview image of the Cryptopayserver home page">
-
+  <img src="./docs/images/default.jpg" width="600" alt="Cryptopayserver dashboard preview">
 </div>
 
 ## Why Cryptopayserver?
 
-Cryptopayserver is for you if you are...
+Cryptopayserver is built for people who value sovereignty and simplicity:
 
-- 💼 trading and receive cryptocurrencies on multiple blockchains
-- 🏦 pursuing a buy & hold strategy
-- 🎯 interested in getting insights of your portfolio composition
-- 👻 valuing privacy and data ownership
-- 🧘 into minimalism
-- 😎 self-hosted, zero telemetry
-- 👌 open source, forkable
+- 💼 Accept crypto payments across multiple blockchains
+- 🏦 Perfect for buy-and-hold strategies
+- 🎯 Clear portfolio insights and transaction overview
+- 👻 Privacy-first — your data never leaves your server
+- 🧘 Minimalist design, focused on what matters
+- 😎 Fully self-hosted with **zero telemetry**
+- 👌 Open source and easily forkable
 
 ## Features
 
-- **Supported Chains**
+### Supported Chains
 
-    - Bitcoin(Bitcoin Lightning Network)
-    - Ethereum
-    - Solana
-    - Binance Smart Chain
-    - Litecoin
-    - XRP
-    - Ton
-    - Tron
-    - etc...
+- Bitcoin (including Lightning Network)
+- Ethereum
+- Solana
+- Binance Smart Chain
+- Litecoin
+- XRP
+- TON
+- Tron
+- And more (customizable)
 
-- **Dashboard**
+### Core Capabilities
 
-    - Track daily order counts, transaction volumes, sales figures, etc.
-    - View the current status of the store intuitively.
+**Dashboard**  
+Track daily orders, transaction volumes, sales, and store status at a glance.
 
-- **Create Wallet**
+**Wallet Management**
 
-    - Create addresses for different chains using a mnemonic phrase, with support for import and export.
-    - Default support for major chains and popular cryptocurrencies.
-    - Customizable support for additional chains and cryptos.
+- Create wallets from mnemonic phrases (import/export supported)
+- Multi-chain address generation
+- Balance overview, gas fee estimation, and asset transfers
+- View private keys and sensitive data securely
 
-- **Create Store**
+**Store Management**  
+Create stores linked to wallets and start accepting payments immediately.
 
-    - Each store has at least one wallet and one mnemonic phrase.
-    - Enter basic store information, create a store, and start receiving payments from users.
+**System Notifications**  
+In-app alerts for version updates, transactions, order completions, and more.
 
-- **System Notifications**
+**Plugins & Integrations**
 
-    - Provides and enables default notification types.
-    - Receive in-app system notifications, including version updates, transactions, order completions, etc.
+- Shopify
+- Point of Sale
+- Pay Button
+- Crowdfunding
+- Support for external e-commerce platforms and small apps
 
-- **Wallet Management**
+**Additional Services**
 
-    - View current wallet balance and manage asset transfers.
-    - View balance information for addresses on different chains.
-    - View gas fees for sending transactions.
-    - View private keys and other sensitive information.
-
-- **Plugin Settings**
-
-    - Support for external e-commerce platform plugin settings.
-    - Connect to external service providers.
-    - Support for small apps.
-    - Plugin services supported: Shopify, Point of Sale, Pay Button, and Crowdfund.
-
-- **Additional Features**
-
-    - Testnet and mainnet switching.
-    - Exchange rate services.
-    - Currency pair services.
-    - Email services.
-    - Automation services.
-    - Scanner block services.
+- Testnet / Mainnet switching
+- Exchange rate & currency pair services
+- Email notifications
+- Automation tools
+- Blockchain scanner services
 
 ## Technology Stack
 
-Cryptopayserver is a modern web application written in [TypeScript](https://www.typescriptlang.org).
+Built with modern web technologies in **TypeScript**.
 
-### Backend
-
-The backend is based on [NextJS](https://nextjs.org) using [MySQL](https://www.mysql.com) as a database together with [Prisma](https://www.prisma.io) and [Redis](https://redis.io) for caching.
-
-### Frontend
-
-The frontend is built with [React](https://react.dev) and uses [MUI](https://mui.com) with utility classes from [Material UI](hhttps://mui.com/material-ui).
-
-<!-- ## Self-hosting
-
-We provide official container images hosted on [Docker Hub](https://hub.docker.com/r/cryptopayserver/cryptopayserver) for `linux/amd64`, `linux/arm/v7` and `linux/arm64`. -->
+| Layer    | Technologies                  |
+| -------- | ----------------------------- |
+| Backend  | Next.js, MySQL, Prisma, Redis |
+| Frontend | React, Tailwindcss, Radix-ui  |
 
 ## Quick Start
 
-### Docker (Recommended)
-
-<!-- ```bash
-docker run -d \
-  --name cryptopayserver \
-  -p 5230:5230 \
-  -v ~/.cryptopayserver:/var/opt/cryptopayserver \
-  xxxxx/cryptopayserver:stable
-``` -->
-
-Open `http://localhost:5230` and start payment!
-
 ### Try the Live Demo
 
-Don't want to install yet? Try our [live demo](https://cryptopayserver.online/login) first!
+No installation needed — try it first:  
+**[Live Demo](https://cryptopayserver.online/login)**
 
-### Other Installation Methods
+### Docker (Recommended)
 
-- **Docker Compose** - Recommended for production deployments
-- **Pre-built Binaries** - Available for Linux, macOS, and Windows
-- **Build from Source** - For development and customization
-<!-- - **Kubernetes** - Helm charts and manifests available -->
-
-See our [installation guide](#) for detailed instructions.
+```bash
+# Coming soon — official images will be published on Docker Hub
+# docker run -d \
+#   --name cryptopayserver \
+#   -p 5230:5230 \
+#   -v ~/.cryptopayserver:/var/opt/cryptopayserver \
+#   cryptopayserver/cryptopayserver:stable
+```
 
 ## Contributing
 
@@ -152,17 +124,16 @@ We welcome contributions of all kinds! Whether you're fixing bugs, adding featur
 
 Love Cryptopayserver? [Sponsor us on GitHub](https://github.com/sponsors/cryptopayserver00) to help keep the project growing!
 
-## Star History
+<!-- ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=cryptopayserver00/cryptopayserver&type=Date)](https://star-history.com/#cryptopayserver00/cryptopayserver&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=cryptopayserver00/cryptopayserver&type=Date)](https://star-history.com/#cryptopayserver00/cryptopayserver&Date) -->
 
 ## Privacy Policy
 
 Cryptopayserver is built with privacy as a core principle. As a self-hosted application, all your data stays on your infrastructure. There is no telemetry, no tracking, and no data collection. See our [Privacy Policy](https://cryptopayserver.online/privacy) for details.
 
-
 ## License
 
-© 2025 - 2026 [Cryptopayserver](http://cryptopayserver.online)
+© 2025 - 2026 [Cryptopayserver](https://cryptopayserver.online)
 
 Cryptopayserver is open-source software licensed under the [MIT License](LICENSE).

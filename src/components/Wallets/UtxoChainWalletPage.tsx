@@ -26,25 +26,9 @@ import { Http } from '@/utils/http/http'
 import TransactionsTab from '@/components/Tab/TransactionTab'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
 import { useShallow } from 'zustand/react/shallow'
+import { ChainWalletType, UtxoFeeType } from '@/utils/types'
 
-type walletType = {
-  id: number
-  address: string
-  type: string
-  balance: any
-  txUrl: string
-  transactions: any[]
-}
-
-type feeType = {
-  fastest: number
-  halfHour: number
-  hour: number
-  economy: number
-  minimum: number
-}
-
-const FEE_TIERS: { key: keyof feeType; label: string }[] = [
+const FEE_TIERS: { key: keyof UtxoFeeType; label: string }[] = [
   { key: 'minimum', label: 'Minimum' },
   { key: 'economy', label: 'Economy' },
   { key: 'hour', label: 'Hour' },
@@ -71,8 +55,8 @@ const UtxoChainWalletPage = ({
   getBlockchainAddressUrl,
 }: Props) => {
   const [isSettings, setIsSettings] = useState<boolean>(false)
-  const [wallet, setWallet] = useState<walletType[]>([])
-  const [feeObj, setFeeObj] = useState<feeType>()
+  const [wallet, setWallet] = useState<ChainWalletType[]>([])
+  const [feeObj, setFeeObj] = useState<UtxoFeeType>()
   const [settingId, setSettingId] = useState<number>(0)
   const [paymentExpire, setPaymentExpire] = useState<number>(0)
   const [confirmBlock, setConfirmBlock] = useState<number>(0)
@@ -141,7 +125,7 @@ const UtxoChainWalletPage = ({
 
       if (response.result) {
         if (response.data.length > 0) {
-          let ws: walletType[] = []
+          let ws: ChainWalletType[] = []
           response.data.forEach((item: any) => {
             ws.push({
               id: item.id,
@@ -254,7 +238,7 @@ const UtxoChainWalletPage = ({
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center">
-          <Image src={chainSvg} alt="" width={44} height={44} />
+          <Image src={chainSvg} alt="chain" width={44} height={44} className="h-11 w-11" />
           <h1 className="pl-2 text-xl font-semibold">{displayName}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -391,6 +375,7 @@ const UtxoChainWalletPage = ({
                               alt="logo"
                               width={16}
                               height={16}
+                              className="h-4 w-4"
                             />
                             {String(amount)} {coin}
                           </Badge>

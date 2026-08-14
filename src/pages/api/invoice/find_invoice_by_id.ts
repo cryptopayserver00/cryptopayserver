@@ -1,44 +1,44 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { PrismaClient } from '@prisma/client';
-import { WEB3 } from '@/packages/web3';
-import { FindTokenByChainIdsAndSymbol } from '@/utils/web3';
-import { COINS } from '@/packages/constants/blockchain';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { ResponseData, CorsMiddleware, CorsMethod } from '..'
+import { PrismaClient } from '@prisma/client'
+import { WEB3 } from '@/packages/web3'
+import { FindTokenByChainIdsAndSymbol } from '@/utils/web3'
+import { COINS } from '@/packages/constants/blockchain'
+import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    await CorsMiddleware(req, res, CorsMethod);
+    await CorsMiddleware(req, res, CorsMethod)
 
     switch (req.method) {
       case 'GET':
-        const prisma = new PrismaClient();
-        const id = req.query.id;
+        const id = req.query.id
 
         let invoice = await prisma.invoices.findFirst({
           where: {
             order_id: Number(id),
             status: 1,
           },
-        });
+        })
 
         if (!invoice) {
-          return res.status(200).json({ message: '', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null })
         }
 
         const token = FindTokenByChainIdsAndSymbol(
           WEB3.getChainIds(invoice.network === 1 ? true : false, invoice.chain_id),
-          invoice.crypto as COINS,
-        );
+          invoice.crypto as COINS
+        )
 
         const store = await prisma.stores.findFirst({
           where: {
             id: invoice.store_id,
             status: 1,
           },
-        });
+        })
 
         if (!store) {
-          return res.status(200).json({ message: '', result: false, data: null });
+          return res.status(200).json({ message: '', result: false, data: null })
         }
 
         const qrCodeText = WEB3.generateQRCodeText(
@@ -46,14 +46,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           invoice.chain_id,
           invoice.destination_address,
           token.contractAddress,
-          invoice.crypto_amount.toFixed(token.decimals),
-        );
+          invoice.crypto_amount.toFixed(token.decimals)
+        )
 
         return res.status(200).json({
           message: '',
           result: true,
           data: {
             ...invoice,
+            orderId: invoice.order_id,
             crypto_amount: invoice.crypto_amount.toFixed(token.decimals),
             qr_lightning_code_text: invoice.lightning_invoice
               ? `lightning:${invoice.lightning_invoice?.toUpperCase()}`
@@ -64,13 +65,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             store_logo_url: store.logo_url,
             store_website: store.website,
           },
-        });
+        })
 
       default:
-        throw 'no support the method of api';
+        throw 'no support the method of api'
     }
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: '', result: false, data: e });
+    console.error(e)
+    return res.status(500).json({ message: '', result: false, data: e })
   }
 }
