@@ -53,12 +53,7 @@ export const Roles = () => {
           return
         }
 
-        let ids: number[] = []
-        permissions.forEach((item) => {
-          if (item.status) {
-            ids.push(item.id)
-          }
-        })
+        const ids = permissions.filter((item) => item.status).map((item) => item.id)
 
         if (ids.length === 0) {
           setSnackSeverity('error')
@@ -98,12 +93,7 @@ export const Roles = () => {
           return
         }
 
-        let ids: number[] = []
-        permissions.forEach((item) => {
-          if (item.status) {
-            ids.push(item.id)
-          }
-        })
+        const ids = permissions.filter((item) => item.status).map((item) => item.id)
 
         if (ids.length === 0) {
           setSnackSeverity('error')
@@ -289,47 +279,52 @@ type TableType = {
 function StoreRoles(props: TableType) {
   const [rows, setRows] = useState<RowType[]>([])
 
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
 
-  const init = async () => {
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const init = async (userId: number, storeId: number) => {
     try {
       const response: any = await axios.get(Http.find_role, {
         params: {
-          user_id: getUserId(),
-          store_id: getStoreId(),
+          user_id: userId,
+          store_id: storeId,
         },
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let rt: RowType[] = []
-          response.data.forEach((item: any, index: number) => {
-            var permissions: string[] = []
-            var permissionids: number[] = []
-            if (item.permissions) {
-              const roleids = item.permissions.split(',')
-              if (roleids.length > 0) {
-                roleids.map((roleItem: number) => {
-                  permissionids.push(Number(roleItem))
-                  permissions.push(ROLEPERMISSIONS[roleItem - 1].title)
-                })
-              }
-            }
-            rt.push({
-              id: index + 1,
-              rid: item.id,
-              role: item.role,
-              permissions: permissions,
-              permissionids: permissionids,
-              inUse: true,
-            })
-          })
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+        const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => {
+          const roleIds = item.permissions
+            ? item.permissions.split(',').filter(Boolean).map(Number)
+            : []
+
+          return {
+            id: index + 1,
+            rid: item.id,
+            role: item.role,
+            permissionids: roleIds,
+            permissions: roleIds.map((id: number) => ROLEPERMISSIONS[id - 1]?.title ?? ''),
+            inUse: true,
+          }
+        })
+
+        setRows(rows)
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -346,7 +341,7 @@ function StoreRoles(props: TableType) {
       })
 
       if (response.result) {
-        await init()
+        await init(userId, storeId)
 
         setSnackSeverity('success')
         setSnackMessage('remvoe Success.')
@@ -361,8 +356,8 @@ function StoreRoles(props: TableType) {
   }
 
   useEffect(() => {
-    init()
-  }, [])
+    init(userId, storeId)
+  }, [userId, storeId])
 
   return (
     <div className="rounded-md border">

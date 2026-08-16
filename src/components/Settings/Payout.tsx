@@ -232,10 +232,26 @@ type RowType = {
 function StorePayoutTable(props: TableType) {
   const [rows, setRows] = useState<RowType[]>([])
 
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { getUserId, getNetwork } = useUserPresistStore((state) => state)
+  const { userId, network } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+      network: state.network,
+    }))
+  )
 
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
 
   const onClickConfigure = (row: RowType) => {
     props.setId(row.pid)
@@ -248,34 +264,28 @@ function StorePayoutTable(props: TableType) {
     props.setIsConfigure(true)
   }
 
-  const findPayout = async () => {
+  const init = async (userId: number, storeId: number, network: string) => {
     try {
       const response: any = await axios.get(Http.find_payout_setting, {
         params: {
-          user_id: getUserId(),
-          store_id: getStoreId(),
-          network: getNetwork() === 'mainnet' ? 1 : 2,
+          user_id: userId,
+          store_id: storeId,
+          network: network === 'mainnet' ? 1 : 2,
         },
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let rt: RowType[] = []
-          response.data.forEach((item: any, index: number) => {
-            rt.push({
-              id: index + 1,
-              pid: item.id,
-              chainId: item.chainId,
-              showApprovePayoutProcess: item.showApprovePayoutProcess === 1,
-              interval: item.interval,
-              feeBlockTarget: item.feeBlockTarget,
-              threshold: item.threshold,
-            })
-          })
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+        const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => ({
+          id: index + 1,
+          pid: item.id,
+          chainId: item.chainId,
+          showApprovePayoutProcess: item.showApprovePayoutProcess === 1,
+          interval: item.interval,
+          feeBlockTarget: item.feeBlockTarget,
+          threshold: item.threshold,
+        }))
+
+        setRows(rows)
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -285,13 +295,9 @@ function StorePayoutTable(props: TableType) {
     }
   }
 
-  const init = async () => {
-    await findPayout()
-  }
-
   useEffect(() => {
-    init()
-  }, [])
+    init(userId, storeId, network)
+  }, [userId, storeId, network])
 
   return (
     <div className="rounded-md border">

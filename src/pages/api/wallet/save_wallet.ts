@@ -43,22 +43,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    walletAccount.account &&
-      walletAccount.account.length > 0 &&
-      walletAccount.account.forEach(async (item) => {
-        await prisma.addresses.create({
-          data: {
-            user_id: userId,
-            wallet_id: wallet.id,
-            address: item.address,
-            chain_id: item.chain,
-            private_key: item.privateKey ? item.privateKey : '',
-            note: item.note ? item.note : '',
-            network: item.isMainnet ? 1 : 2,
-            status: 1,
-          },
-        })
+    if (!walletAccount.account?.length) {
+      return res.status(200).json({ message: 'Cannot generate wallet', result: false, data: null })
+    }
+
+    for (const account of walletAccount.account) {
+      await prisma.addresses.create({
+        data: {
+          user_id: userId,
+          wallet_id: wallet.id,
+          address: account.address,
+          chain_id: account.chain,
+          private_key: account.privateKey ? account.privateKey : '',
+          note: account.note ? account.note : '',
+          network: account.isMainnet ? 1 : 2,
+          status: 1,
+        },
       })
+    }
 
     return res.status(200).json({
       message: '',

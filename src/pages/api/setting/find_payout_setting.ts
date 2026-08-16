@@ -38,21 +38,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       // create default role
       const chainValues = Object.values(CHAINS)
       const filteredChainValues = chainValues.filter((value) => typeof value === 'number')
-      const data: any[] = []
-
-      filteredChainValues.forEach(async (item) => {
-        data.push({
-          user_id: userId,
-          store_id: storeId,
-          chain_id: Number(item),
-          network: network,
-          show_approve_payout_process: 2,
-          interval: 60,
-          fee_block_target: 1,
-          threshold: 0,
-          status: 1,
-        })
-      })
+      const data = filteredChainValues.map((item) => ({
+        user_id: userId,
+        store_id: storeId,
+        chain_id: Number(item),
+        network: network,
+        show_approve_payout_process: 2,
+        interval: 60,
+        fee_block_target: 1,
+        threshold: 0,
+        status: 1,
+      }))
 
       const result = await prisma.payout_settings.createMany({
         data: data,

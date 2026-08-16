@@ -60,10 +60,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         })
 
-        if (!payouts) {
-          return res.status(200).json({ message: 'Cannot find', result: false, data: null })
-        }
-
         const settledAmount = payouts.reduce((sum, payout) => sum + payout.amount, 0)
 
         if (settledAmount >= pull_payment.amount) {

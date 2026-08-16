@@ -266,16 +266,32 @@ function AccountApiKeyTable() {
   const [copiedId, setCopiedId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
 
-  const init = async () => {
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const init = async (userId: number, storeId: number) => {
     try {
       const response: any = await axios.get(Http.find_apikey_setting, {
         params: {
-          user_id: getUserId(),
-          store_id: getStoreId(),
+          user_id: userId,
+          store_id: storeId,
         },
       })
 
@@ -311,8 +327,8 @@ function AccountApiKeyTable() {
   }
 
   useEffect(() => {
-    init()
-  }, [])
+    init(userId, storeId)
+  }, [userId, storeId])
 
   const onClickDelete = async (id: number) => {
     try {
@@ -325,7 +341,7 @@ function AccountApiKeyTable() {
         setSnackSeverity('success')
         setSnackMessage('Delete successful!')
         setSnackOpen(true)
-        await init()
+        await init(userId, storeId)
       }
     } catch (e) {
       setSnackSeverity('error')

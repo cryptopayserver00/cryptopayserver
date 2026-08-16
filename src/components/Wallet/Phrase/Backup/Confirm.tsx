@@ -122,11 +122,12 @@ const PhraseBackupConfirm = () => {
   const onClickSelectWord = async (currentSelectWord: Record<number, string>) => {
     if (Object.keys(currentSelectWord).length === 3) {
       let matchTime = 0
-      Object.keys(currentSelectWord).forEach((key) => {
-        if (phrase[parseInt(key, 10) - 1] === currentSelectWord[parseInt(key, 10)]) {
+
+      for (const word of Object.keys(currentSelectWord)) {
+        if (phrase[parseInt(word, 10) - 1] === currentSelectWord[parseInt(word, 10)]) {
           matchTime += 1
         }
-      })
+      }
 
       if (matchTime === 3) {
         await updateWalletBackup()

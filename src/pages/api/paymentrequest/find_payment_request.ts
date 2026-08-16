@@ -49,10 +49,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    if (!payment_requests) {
-      return res.status(200).json({ message: 'Invalid find many', result: false, data: null })
-    }
-    return res.status(200).json({ message: '', result: true, data: payment_requests })
+    return res.status(200).json({
+      message: '',
+      result: true,
+      data: payment_requests.map((item) => ({
+        id: item.id,
+        storeId: item.store_id,
+        network: item.network,
+        paymentRequestId: item.payment_request_id,
+        paymentRequestStatus: item.payment_request_status,
+        userId: item.user_id,
+        status: item.status,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+        title: item.title,
+        amount: item.amount,
+        currency: item.currency,
+        showAllowCustomAmount: item.show_allow_custom_amount,
+        email: item.email,
+        requestCustomerData: item.request_customer_data,
+        memo: item.memo,
+        expirationAt: item.expiration_at,
+      })),
+    })
   } catch (e) {
     console.error(e)
     return res.status(500).json({

@@ -83,22 +83,16 @@ const BitcoinCash = () => {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let ws: ChainWalletType[] = []
-          response.data.forEach((item: any) => {
-            ws.push({
-              id: item.id,
-              address: item.address,
-              type: item.note,
-              balance: item.balance,
-              txUrl: item.txUrl,
-              transactions: item.transactions,
-            })
-          })
-          setWallet(ws)
-        } else {
-          setWallet([])
-        }
+        const ws: ChainWalletType[] = (response.data ?? []).map((item: any) => ({
+          id: item.id,
+          address: item.address,
+          type: item.note,
+          balance: item.balance,
+          txUrl: item.txUrl,
+          transactions: item.transactions,
+        }))
+
+        setWallet(ws)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Can not find the data on site!')

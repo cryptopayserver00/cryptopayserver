@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const urls: string[] = []
 
-    files.file?.forEach((item) => {
+    for (const item of files.file || []) {
       if (!item) {
         return res.status(200).json({ message: 'Cannot find item', result: false, data: null })
       }
@@ -75,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       const fileName = item.newFilename
       const fileUrl = `/uploads/${filePath}/${fileName}`
       urls.push(fileUrl)
-    })
+    }
 
     return res.status(200).json({
       message: '',

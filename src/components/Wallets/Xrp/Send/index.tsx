@@ -125,23 +125,19 @@ const XrpSend = () => {
         },
       })
       if (response.result) {
-        if (response.data && response.data.length > 0) {
-          let tl: XrpTrustLineType[] = []
-          response.data.forEach((item: any) => {
-            tl.push({
-              account: item.account,
-              balance: item.balance,
-              currency: DecodeNonstandardCurrencyCode(item.currency),
-              limit: item.limit,
-              limitPeer: item.limitPeer,
-              noRipple: item.noRipple,
-              noRipplePeer: item.noRipplePeer,
-              qualityIn: item.qualityIn,
-              qualityOut: item.qualityOut,
-            })
-          })
-          setTrustLines(tl)
-        }
+        const rows: XrpTrustLineType[] = (response.data ?? []).map((item: any) => ({
+          account: item.account,
+          balance: item.balance,
+          currency: DecodeNonstandardCurrencyCode(item.currency),
+          limit: item.limit,
+          limitPeer: item.limitPeer,
+          noRipple: item.noRipple,
+          noRipplePeer: item.noRipplePeer,
+          qualityIn: item.qualityIn,
+          qualityOut: item.qualityOut,
+        }))
+
+        setTrustLines(rows)
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -175,19 +171,16 @@ const XrpSend = () => {
           network: network === 'mainnet' ? 1 : 2,
         },
       })
-      if (response.result && response.data.length > 0) {
-        let rt: AddressBookRowType[] = []
-        response.data.forEach((item: any) => {
-          rt.push({
-            id: item.id,
-            chainId: item.chainId,
-            isMainnet: item.network === 1 ? true : false,
-            name: item.name,
-            address: item.address,
-          })
-        })
+      if (response.result) {
+        const rows: AddressBookRowType[] = (response.data ?? []).map((item: any) => ({
+          id: item.id,
+          chainId: item.chainId,
+          isMainnet: item.network === 1,
+          name: item.name,
+          address: item.address,
+        }))
 
-        setAddressBookrows(rt)
+        setAddressBookrows(rows)
       }
     } catch (e) {
       console.error(e)

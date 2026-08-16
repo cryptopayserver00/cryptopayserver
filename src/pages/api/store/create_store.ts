@@ -59,10 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
 
     // create notification setting
-    let ids: number[] = []
-    NOTIFICATIONS.forEach(async (item: NOTIFICATION) => {
-      ids.push(item.id)
-    })
+    const ids: number[] = NOTIFICATIONS.map((item: NOTIFICATION) => item.id)
 
     await prisma.notification_settings.create({
       data: {
@@ -76,14 +73,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     // create payment setting for blockchain
     const chainValues = Object.values(CHAINS)
     const filteredChainValues = chainValues.filter((value) => typeof value === 'number')
-    filteredChainValues.forEach(async (item) => {
+    for (const chain of filteredChainValues) {
       const result = await prisma.payment_settings.createMany({
         data:
-          item === CHAINS.ARBITRUMNOVA
+          chain === CHAINS.ARBITRUMNOVA
             ? [
                 {
                   user_id: userId,
-                  chain_id: item,
+                  chain_id: chain,
                   network: 1,
                   store_id: store.id,
                   payment_expire: 30,
@@ -96,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             : [
                 {
                   user_id: userId,
-                  chain_id: item,
+                  chain_id: chain,
                   network: 1,
                   store_id: store.id,
                   payment_expire: 30,
@@ -107,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 },
                 {
                   user_id: userId,
-                  chain_id: item,
+                  chain_id: chain,
                   network: 2,
                   store_id: store.id,
                   payment_expire: 30,
@@ -122,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       if (result.count === 0) {
         return res.status(200).json({ message: 'Cannot updatemany', result: false, data: null })
       }
-    })
+    }
 
     return res.status(200).json({
       message: '',

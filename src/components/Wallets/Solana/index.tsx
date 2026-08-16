@@ -98,22 +98,16 @@ const Solana = () => {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let ws: SolanaWalletType[] = []
-          response.data.forEach(async (item: any) => {
-            ws.push({
-              id: item.id,
-              address: item.address,
-              type: item.note,
-              balance: item.balance,
-              txUrl: item.txUrl,
-              transactions: item.transactions,
-            })
-          })
-          setWallet(ws)
-        } else {
-          setWallet([])
-        }
+        const rows: SolanaWalletType[] = (response.data ?? []).map((item: any) => ({
+          id: item.id,
+          address: item.address,
+          type: item.note,
+          balance: item.balance,
+          txUrl: item.txUrl,
+          transactions: item.transactions,
+        }))
+
+        setWallet(rows)
       } else {
         showSnack('error', 'Can not find the data on site!')
       }

@@ -18,6 +18,17 @@ type CoinType = {
   twentyFourHChange: string
 }
 
+type CoinMapItem = {
+  unit: string
+  number: number
+  price: number
+  balance: number
+  marketCap: number
+  twentyFourHVol: number
+  twentyFourHChange: number
+  lastUpdatedAt: number
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
     await CorsMiddleware(req, res, CorsMethod)
@@ -97,39 +108,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const currency = CURRENCY['0']
     const currencySymbol = CURRENCY_SYMBOLS[currency]
 
-    let coinMaps: {
-      [key in string]: {
-        unit: string
-        number: number
-        price: number
-        balance: number
-        marketCap: number
-        twentyFourHVol: number
-        twentyFourHChange: number
-        lastUpdatedAt: number
-      }
-    } = {}
-    let ids: string[] = []
-    Object.entries(balance).forEach(([coin, amount]) => {
+    const coinMaps: Record<string, CoinMapItem> = {}
+    const ids: string[] = []
+
+    for (const [coin, amount] of Object.entries(balance)) {
       const value = parseFloat(amount as string)
 
       if (coinMaps[coin]) {
         coinMaps[coin].number += value
-      } else {
-        coinMaps[coin] = {
-          unit: currency,
-          number: value,
-          price: 0,
-          balance: 0,
-          marketCap: 0,
-          twentyFourHVol: 0,
-          twentyFourHChange: 0,
-          lastUpdatedAt: 0,
-        }
-
-        ids.push(COINGECKO_IDS[coin as COINS])
+        continue
       }
-    })
+
+      coinMaps[coin] = {
+        unit: currency,
+        number: value,
+        price: 0,
+        balance: 0,
+        marketCap: 0,
+        twentyFourHVol: 0,
+        twentyFourHChange: 0,
+        lastUpdatedAt: 0,
+      }
+
+      const geckoId = COINGECKO_IDS[coin as COINS]
+      if (geckoId) {
+        ids.push(geckoId)
+      }
+    }
 
     const cryptoPrice = await CRYPTOPRICE.getCryptoPriceByCoinGecko(
       String(ids.length > 1 ? ids.join(',') : ids[0]),
@@ -138,36 +143,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let totalBalance = 0
 
-    let coins: CoinType[] = []
+    const coins: CoinType[] = Object.entries(coinMaps).map(([coin, info]) => {
+      const priceData = cryptoPrice[COINGECKO_IDS[coin as COINS]]
+      const price = priceData.usd
+      const balance = parseFloat(BigMul(info.number.toString(), price))
 
-    Object.entries(coinMaps).forEach((item, index: number) => {
-      const price = cryptoPrice[COINGECKO_IDS[item[0] as COINS]]['usd']
-      const balance = parseFloat(BigMul(item[1].number.toString(), price))
-      const marketCap = cryptoPrice[COINGECKO_IDS[item[0] as COINS]]['usd_market_cap']
-      const twentyFourHVol = cryptoPrice[COINGECKO_IDS[item[0] as COINS]]['usd_24h_vol']
-      const twentyFourHChange = cryptoPrice[COINGECKO_IDS[item[0] as COINS]]['usd_24h_change']
-      const lastUpdatedAt = cryptoPrice[COINGECKO_IDS[item[0] as COINS]]['last_updated_at']
+      info.unit = currency
+      info.price = price
+      info.balance = balance
+      info.marketCap = priceData.usd_market_cap
+      info.twentyFourHVol = priceData.usd_24h_vol
+      info.twentyFourHChange = priceData.usd_24h_change
+      info.lastUpdatedAt = priceData.last_updated_at
 
-      item[1].unit = currency
-      item[1].price = price
-      item[1].balance = balance
-      item[1].marketCap = marketCap
-      item[1].twentyFourHVol = twentyFourHVol
-      item[1].twentyFourHChange = twentyFourHChange
-      item[1].lastUpdatedAt = lastUpdatedAt
+      totalBalance += balance
 
-      coins.push({
-        coin: item[0],
-        price: price,
+      return {
+        coin,
+        price,
         unit: currency,
-        number: item[1].number,
+        number: info.number,
         balance: String(balance),
-        marketCap: marketCap,
-        twentyFourHVol: twentyFourHVol,
-        twentyFourHChange: twentyFourHChange,
-      })
-
-      totalBalance += parseFloat(BigMul(item[1].number.toString(), price))
+        marketCap: priceData.usd_market_cap,
+        twentyFourHVol: priceData.usd_24h_vol,
+        twentyFourHChange: priceData.usd_24h_change,
+      }
     })
 
     return res.status(200).json({

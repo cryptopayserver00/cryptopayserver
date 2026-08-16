@@ -129,42 +129,28 @@ const XRP = () => {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let ws: XrpWalletType[] = []
-          response.data.forEach(async (item: any) => {
-            let tl: XrpTrustLineType[] = []
+        const rows: XrpWalletType[] = (response.data ?? []).map((item: any) => ({
+          id: item.id,
+          address: item.address,
+          type: item.note,
+          balance: item.balance,
+          status: item.status,
+          txUrl: item.txUrl,
+          transactions: item.transactions,
+          trustLine: (item.trustLine ?? []).map((trustItem: any) => ({
+            account: trustItem.account,
+            balance: trustItem.balance,
+            currency: DecodeNonstandardCurrencyCode(trustItem.currency),
+            limit: trustItem.limit,
+            limitPeer: trustItem.limitPeer,
+            noRipple: trustItem.noRipple,
+            noRipplePeer: trustItem.noRipplePeer,
+            qualityIn: trustItem.qualityIn,
+            qualityOut: trustItem.qualityOut,
+          })),
+        }))
 
-            item.trustLine &&
-              item.trustLine.length > 0 &&
-              item.trustLine.map((trustItem: any) => {
-                tl.push({
-                  account: trustItem.account,
-                  balance: trustItem.balance,
-                  currency: DecodeNonstandardCurrencyCode(trustItem.currency),
-                  limit: trustItem.limit,
-                  limitPeer: trustItem.limitPeer,
-                  noRipple: trustItem.noRipple,
-                  noRipplePeer: trustItem.noRipplePeer,
-                  qualityIn: trustItem.qualityIn,
-                  qualityOut: trustItem.qualityOut,
-                })
-              })
-
-            ws.push({
-              id: item.id,
-              address: item.address,
-              type: item.note,
-              balance: item.balance,
-              status: item.status,
-              txUrl: item.txUrl,
-              transactions: item.transactions,
-              trustLine: tl,
-            })
-          })
-          setWallet(ws)
-        } else {
-          setWallet([])
-        }
+        setWallet(rows)
       } else {
         showSnack('error', 'Can not find the data on site!')
       }
@@ -189,7 +175,7 @@ const XRP = () => {
         setSettingId(response.data.id)
         setPaymentExpire(response.data.paymentExpire)
         setConfirmBlock(response.data.confirmBlock)
-        setShowRecommendedFee(response.data.showRecommendedFee === 1 ? true : false)
+        setShowRecommendedFee(response.data.showRecommendedFee === 1)
         setCurrentUsedAddressId(
           response.data.currentUsedAddressId ? response.data.currentUsedAddressId : 0
         )

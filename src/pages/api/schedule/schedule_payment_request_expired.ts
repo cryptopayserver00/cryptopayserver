@@ -20,27 +20,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    if (!payment_requests) {
-      return res
-        .status(200)
-        .json({ message: 'Cannot find many payment requests', result: false, data: null })
-    }
-
     const now = new Date()
-    payment_requests.forEach(async (item) => {
-      const remainingTime = item.expiration_at.getTime() - now.getTime()
+    for (const request of payment_requests) {
+      const remainingTime = request.expiration_at.getTime() - now.getTime()
       if (remainingTime <= 0) {
         await prisma.payment_requests.update({
           data: {
             payment_request_status: PAYMENT_REQUEST_STATUS.Expired,
           },
           where: {
-            id: item.id,
+            id: request.id,
             status: 1,
           },
         })
       }
-    })
+    }
 
     return res.status(200).json({ message: '', result: true, data: null })
   } catch (e) {

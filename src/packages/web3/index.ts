@@ -29,7 +29,7 @@ import { ARBNOVA } from './chain/arbnova'
 export class WEB3 {
   // support: Import and generate wallet
   static async generateWallet(mnemonic: string = ''): Promise<WalletAccountType> {
-    const isGenerate = mnemonic === '' ? true : false
+    const isGenerate = mnemonic === ''
 
     if (mnemonic !== '' && !Bip39.validateMnemonic(mnemonic)) throw new Error('Invalid mnemonic')
     mnemonic = mnemonic === '' ? Bip39.generateMnemonic() : mnemonic

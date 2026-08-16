@@ -157,7 +157,7 @@ const PaymentRequestsDetails = () => {
           expirationDate: new Date(response.data.expirationAt).getTime(),
           paymentRequestStatus: response.data.paymentRequestStatus,
           requesCustomerData: response.data.requesCustomerData,
-          showAllowCustomAmount: response.data.showAllowCustomAmount === 1 ? true : false,
+          showAllowCustomAmount: response.data.showAllowCustomAmount === 1,
           email: response.data.email,
         })
 

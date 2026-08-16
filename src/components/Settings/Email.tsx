@@ -567,38 +567,48 @@ type TableType = {
 function EmailRuleTable(props: TableType) {
   const [rows, setRows] = useState<RowType[]>([])
 
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { userId } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  )
 
-  const init = async () => {
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const init = async (userId: number, storeId: number) => {
     try {
       const response: any = await axios.get(Http.find_email_rule_setting, {
         params: {
-          user_id: getUserId(),
-          store_id: getStoreId(),
+          user_id: userId,
+          store_id: storeId,
         },
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let rt: RowType[] = []
-          response.data.forEach((item: any, index: number) => {
-            rt.push({
-              id: index + 1,
-              rid: item.id,
-              trigger: item.trigger,
-              triggerid: item.trigger,
-              to: item.recipients,
-              subject: item.subject,
-              body: item.body,
-              showSendToBuyer: item.showSendToBuyer === 1,
-            })
-          })
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+        const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => ({
+          id: index + 1,
+          rid: item.id,
+          trigger: item.trigger,
+          triggerid: item.trigger,
+          to: item.recipients,
+          subject: item.subject,
+          body: item.body,
+          showSendToBuyer: item.showSendToBuyer === 1,
+        }))
+
+        setRows(rows)
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -609,8 +619,8 @@ function EmailRuleTable(props: TableType) {
   }
 
   useEffect(() => {
-    init()
-  }, [])
+    init(userId, storeId)
+  }, [userId, storeId])
 
   const onClickDelete = async (id: number) => {
     try {
@@ -619,7 +629,7 @@ function EmailRuleTable(props: TableType) {
       })
 
       if (response.result) {
-        await init()
+        await init(userId, storeId)
 
         setSnackSeverity('success')
         setSnackMessage('delete Success.')

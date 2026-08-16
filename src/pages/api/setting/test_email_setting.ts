@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const result = await EMAIL.sendEmailCore(
       email_setting.smtp_server,
       email_setting.port,
-      email_setting.show_tls === 1 ? true : false,
+      email_setting.show_tls === 1,
       email_setting.login,
       email_setting.password,
       email_setting.sender_email,

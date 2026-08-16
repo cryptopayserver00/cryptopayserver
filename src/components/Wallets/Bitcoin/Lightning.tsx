@@ -171,32 +171,26 @@ const Lightning = () => {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let rt: LightningRowType[] = []
-          response.data.forEach((item: any) => {
-            rt.push({
-              id: item.id,
-              balance: item.balance,
-              text: item.text,
-              kind: item.kind,
-              server: item.server,
-              accessToken: item.accessToken,
-              refreshToken: item.refreshToken,
-              enabled: item.enabled === 1,
-              showAmountSatoshis: item.showAmountSatoshis === 1,
-              showHopHint: item.showHopHint === 1,
-              showUnifyUrlAndQrcode: item.showUnifyUrlAndQrcode === 1,
-              showLnurl: item.showLnurl === 1,
-              showLnurlClassicMode: item.showLnurlClassicMode === 1,
-              showAllowPayeePassComment: item.showAllowPayeePassComment === 1,
-            })
-          })
-          setRows(rt)
-          setCurrentRow(rt[0])
-          setPage(2)
-        } else {
-          setRows([])
-        }
+        const rows: LightningRowType[] = (response.data ?? []).map((item: any) => ({
+          id: item.id,
+          balance: item.balance,
+          text: item.text,
+          kind: item.kind,
+          server: item.server,
+          accessToken: item.accessToken,
+          refreshToken: item.refreshToken,
+          enabled: item.enabled === 1,
+          showAmountSatoshis: item.showAmountSatoshis === 1,
+          showHopHint: item.showHopHint === 1,
+          showUnifyUrlAndQrcode: item.showUnifyUrlAndQrcode === 1,
+          showLnurl: item.showLnurl === 1,
+          showLnurlClassicMode: item.showLnurlClassicMode === 1,
+          showAllowPayeePassComment: item.showAllowPayeePassComment === 1,
+        }))
+
+        setRows(rows)
+        setCurrentRow(rows[0])
+        setPage(2)
       }
     } catch (e) {
       setSnackSeverity('error')

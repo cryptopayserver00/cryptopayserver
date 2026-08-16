@@ -91,22 +91,16 @@ const Ton = () => {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let ws: EvmWalletType[] = []
-          response.data.forEach(async (item: any) => {
-            ws.push({
-              id: item.id,
-              address: item.address,
-              type: item.note,
-              balance: item.balance,
-              txUrl: item.txUrl,
-              transactions: item.transactions,
-            })
-          })
-          setWallet(ws)
-        } else {
-          setWallet([])
-        }
+        const rows: EvmWalletType[] = (response.data ?? []).map((item: any) => ({
+          id: item.id,
+          address: item.address,
+          type: item.note,
+          balance: item.balance,
+          txUrl: item.txUrl,
+          transactions: item.transactions,
+        }))
+
+        setWallet(rows)
       } else {
         showSnack('error', 'Can not find the data on site!')
       }
@@ -131,7 +125,7 @@ const Ton = () => {
         setSettingId(response.data.id)
         setPaymentExpire(response.data.paymentExpire)
         setConfirmBlock(response.data.confirmBlock)
-        setShowRecommendedFee(response.data.showRecommendedFee === 1 ? true : false)
+        setShowRecommendedFee(response.data.showRecommendedFee === 1)
         setCurrentUsedAddressId(
           response.data.currentUsedAddressId ? response.data.currentUsedAddressId : 0
         )

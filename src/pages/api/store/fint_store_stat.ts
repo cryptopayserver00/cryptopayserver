@@ -81,13 +81,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       case STORE_STAT_TIME_TYPE.WEEK:
         countArray = Array(7).fill(0)
         amountArray = Array(7).fill(0)
-        invoices.forEach((invoice) => {
+        for (const invoice of invoices) {
           const date = new Date(invoice.created_at)
           const dayOfWeek = date.getDay() || 7
           const index = dayOfWeek - 1
           countArray[index] += 1
           amountArray[index] += invoice.amount
-        })
+        }
 
         result = { count: countArray, amount: amountArray }
         break
@@ -98,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         countArray = Array(30).fill(0)
         amountArray = Array(30).fill(0)
-        invoices.forEach((invoice) => {
+        for (const invoice of invoices) {
           const date = new Date(invoice.created_at)
           const orderDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
           const daysFromStart = getDaysBetween(startDate, orderDate)
@@ -107,18 +107,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             countArray[slotIndex] += 1
             amountArray[slotIndex] += invoice.amount
           }
-        })
+        }
 
         result = { count: countArray, amount: amountArray }
         break
       case STORE_STAT_TIME_TYPE.YEAR:
         countArray = Array(12).fill(0)
         amountArray = Array(12).fill(0)
-        invoices.forEach((invoice) => {
+        for (const invoice of invoices) {
           const month = new Date(invoice.created_at).getMonth()
           countArray[month] += 1
           amountArray[month] += invoice.amount
-        })
+        }
 
         result = { count: countArray, amount: amountArray }
         break

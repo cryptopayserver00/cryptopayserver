@@ -36,12 +36,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    if (!find_lightning_network) {
-      return res
-        .status(200)
-        .json({ message: 'Invalid find lightning network', result: false, data: null })
-    }
-
     let datas: any[] = []
 
     if (find_lightning_network.length > 0) {

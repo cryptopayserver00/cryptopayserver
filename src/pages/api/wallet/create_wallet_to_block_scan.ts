@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { WEB3 } from '@/packages/web3'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { BLOCKSCAN, BlockScanWalletType } from '@/packages/web3/block_scan'
-import { CHAINS } from '@/packages/constants/blockchain'
+import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -42,49 +42,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const blockscanWalletTypes: BlockScanWalletType[] = []
 
-    addresses.forEach(async (item) => {
-      if (item.chain_id === CHAINS.ETHEREUM) {
-        blockscanWalletTypes.push({
-          address: item.address,
-          chain_id: WEB3.getChainIds(item.network === 1, CHAINS.ETHEREUM),
-        })
-        blockscanWalletTypes.push({
-          address: item.address,
-          chain_id: WEB3.getChainIds(item.network === 1, CHAINS.BSC),
-        })
-        blockscanWalletTypes.push({
-          address: item.address,
-          chain_id: WEB3.getChainIds(item.network === 1, CHAINS.ARBITRUM),
-        })
-        if (item.network === 1) {
+    for (const address of addresses) {
+      if (address.chain_id === CHAINS.ETHEREUM) {
+        for (const chain of ETHEREUM_CATEGORY_CHAINS) {
           blockscanWalletTypes.push({
-            address: item.address,
-            chain_id: WEB3.getChainIds(item.network === 1, CHAINS.ARBITRUMNOVA),
+            address: address.address,
+            chain_id: WEB3.getChainIds(address.network === 1, chain),
           })
         }
-        blockscanWalletTypes.push({
-          address: item.address,
-          chain_id: WEB3.getChainIds(item.network === 1, CHAINS.AVALANCHE),
-        })
-        blockscanWalletTypes.push({
-          address: item.address,
-          chain_id: WEB3.getChainIds(item.network === 1, CHAINS.POLYGON),
-        })
-        blockscanWalletTypes.push({
-          address: item.address,
-          chain_id: WEB3.getChainIds(item.network === 1, CHAINS.BASE),
-        })
-        blockscanWalletTypes.push({
-          address: item.address,
-          chain_id: WEB3.getChainIds(item.network === 1, CHAINS.OPTIMISM),
-        })
       } else {
         blockscanWalletTypes.push({
-          address: item.address,
-          chain_id: WEB3.getChainIds(item.network === 1, item.chain_id),
+          address: address.address,
+          chain_id: WEB3.getChainIds(address.network === 1, address.chain_id),
         })
       }
-    })
+    }
 
     const [result, data] = await BLOCKSCAN.bulkStoreUserWallet(blockscanWalletTypes)
 

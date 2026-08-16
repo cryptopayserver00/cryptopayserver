@@ -89,7 +89,7 @@ const ManageWallet = () => {
 
       if (response.result && response.data) {
         setWalletName(response.data.name)
-        setIsBackup(response.data.isBackup === 1 ? true : false)
+        setIsBackup(response.data.isBackup === 1)
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')

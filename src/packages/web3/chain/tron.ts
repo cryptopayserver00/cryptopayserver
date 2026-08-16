@@ -151,7 +151,7 @@ export class TRON {
           amount = matchText[6]
 
           const coin = FindTokenByChainIdsAndContractAddress(
-            this.getChainIds(network === 1 ? true : false),
+            this.getChainIds(network === 1),
             tokenAddress
           )
           token = coin.name

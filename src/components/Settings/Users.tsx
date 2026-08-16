@@ -113,16 +113,9 @@ export const Users = () => {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let roleList: string[] = []
-          response.data.forEach((item: any) => {
-            roleList.push(item.role)
-          })
-          setRole(roleList)
-          setUserRole(roleList[2] || roleList[0] || '')
-        } else {
-          setRole([])
-        }
+        const roles = (response.data ?? []).map((item: any) => item.role)
+        setRole(roles)
+        setUserRole(roles[2] || roles[0] || '')
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -212,34 +205,44 @@ function StoreUserTable(props: TableType) {
   const [email, setEmail] = useState<string>('')
   const [userRole, setUserRole] = useState<string>('')
 
-  const { getUserId } = useUserPresistStore((state) => state)
-  const { getStoreId } = useStorePresistStore((state) => state)
-  const { setSnackSeverity, setSnackOpen, setSnackMessage } = useSnackPresistStore((state) => state)
+  const { userId, network } = useUserPresistStore(
+    useShallow((state) => ({
+      userId: state.userId,
+      network: state.network,
+    }))
+  )
 
-  const findUserRole = async () => {
+  const { storeId } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+    }))
+  )
+
+  const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
+    useShallow((state) => ({
+      setSnackSeverity: state.setSnackSeverity,
+      setSnackMessage: state.setSnackMessage,
+      setSnackOpen: state.setSnackOpen,
+    }))
+  )
+
+  const init = async (userId: number, storeId: number) => {
     try {
       const response: any = await axios.get(Http.find_user_roles, {
         params: {
-          user_id: getUserId(),
-          store_id: getStoreId(),
+          user_id: userId,
+          store_id: storeId,
         },
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let rt: RowType[] = []
-          response.data.forEach((item: any, index: number) => {
-            rt.push({
-              id: index + 1,
-              rid: item.id,
-              email: item.email,
-              role: item.role,
-            })
-          })
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+        const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => ({
+          id: index + 1,
+          rid: item.id,
+          email: item.email,
+          role: item.role,
+        }))
+        setRows(rows)
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -249,13 +252,9 @@ function StoreUserTable(props: TableType) {
     }
   }
 
-  const init = async () => {
-    await findUserRole()
-  }
-
   useEffect(() => {
-    init()
-  }, [])
+    init(userId, storeId)
+  }, [userId, storeId])
 
   const onClickChangeRole = async () => {
     if (!id || !email || !userRole) {
@@ -270,7 +269,7 @@ function StoreUserTable(props: TableType) {
       })
 
       if (response.result) {
-        await init()
+        await init(userId, storeId)
 
         setSnackSeverity('success')
         setSnackMessage('Change successful!')
@@ -297,7 +296,7 @@ function StoreUserTable(props: TableType) {
       })
 
       if (response.result) {
-        await init()
+        await init(userId, storeId)
 
         setSnackSeverity('success')
         setSnackMessage('remvoe Success.')

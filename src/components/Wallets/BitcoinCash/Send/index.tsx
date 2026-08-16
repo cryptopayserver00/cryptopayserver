@@ -101,18 +101,16 @@ const BitcoinCashSend = () => {
       const response: any = await axios.get(Http.find_address_book, {
         params: { chain_id: CHAINS.BITCOINCASH, network: network === 'mainnet' ? 1 : 2 },
       })
-      if (response.result && response.data.length > 0) {
-        let rt: AddressBookRowType[] = []
-        response.data.forEach((item: any) => {
-          rt.push({
-            id: item.id,
-            chainId: item.chainId,
-            isMainnet: item.network === 1,
-            name: item.name,
-            address: item.address,
-          })
-        })
-        setAddressBookrows(rt)
+      if (response.result) {
+        const rows: AddressBookRowType[] = (response.data ?? []).map((item: any) => ({
+          id: item.id,
+          chainId: item.chainId,
+          isMainnet: item.network === 1,
+          name: item.name,
+          address: item.address,
+        }))
+
+        setAddressBookrows(rows)
       }
     } catch (e) {
       console.error(e)

@@ -72,10 +72,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    if (!invoices) {
-      return res.status(200).json({ message: 'Invalid invoices', result: false, data: null })
-    }
-
     return res.status(200).json({
       message: '',
       result: true,

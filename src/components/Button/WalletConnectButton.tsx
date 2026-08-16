@@ -109,7 +109,7 @@ const WalletConnectButton = (props: WalletConnectType) => {
       return
     }
 
-    const chainids = GetChainIds(props.network === 1 ? true : false, props.chainId)
+    const chainids = GetChainIds(props.network === 1, props.chainId)
 
     if (!chainids) return
 

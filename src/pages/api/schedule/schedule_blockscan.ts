@@ -35,10 +35,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    if (!invoices) {
-      return res.status(200).json({ message: 'Cannot find invoices', result: false, data: null })
-    }
-
     for (const item of invoices) {
       let lightningInvoiceStatus = false
 
@@ -50,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         const find_lightning_networks = await prisma.wallet_lightning_networks.findMany({
           where: {
             user_id: Number(item.user_id),
-            store_id: Number(item.store_id),
+            store_id: item.store_id,
             status: 1,
           },
         })
@@ -141,10 +137,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       }
 
       const txs = await BLOCKSCAN.getTransactionsByChainAndAddress(
-        WEB3.getChainIds(
-          Number(item.network) === 1 ? true : false,
-          Number(item.chain_id)
-        ).toString(),
+        WEB3.getChainIds(item.network === 1, item.chain_id).toString(),
         item.destination_address
       )
 
@@ -165,7 +158,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               String(item.destination_address).toLowerCase() &&
             String(txItem.transact_type) === 'receive' &&
             String(txItem.token) === String(item.crypto) &&
-            Number(txItem.amount) === Number(item.crypto_amount) &&
+            Number(txItem.amount) === item.crypto_amount &&
             new Date(txItem.block_timestamp).getTime() > item.created_at.getTime()
           ) {
             // Does db have this hash of invoice

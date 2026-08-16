@@ -39,73 +39,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    walletAccount.account &&
-      walletAccount.account.length > 0 &&
-      walletAccount.account.forEach(async (item) => {
-        const address = await prisma.addresses.create({
-          data: {
-            user_id: userId,
-            wallet_id: wallet.id,
-            address: item.address,
-            chain_id: item.chain,
-            private_key: item.privateKey ? item.privateKey : '',
-            note: item.note ? item.note : '',
-            network: item.isMainnet ? 1 : 2,
+    if (!walletAccount.account?.length) {
+      return res.status(200).json({ message: 'Cannot generate wallet', result: false, data: null })
+    }
+
+    for (const account of walletAccount.account) {
+      const address = await prisma.addresses.create({
+        data: {
+          user_id: userId,
+          wallet_id: wallet.id,
+          address: account.address,
+          chain_id: account.chain,
+          private_key: account.privateKey ? account.privateKey : '',
+          note: account.note ? account.note : '',
+          network: account.isMainnet ? 1 : 2,
+          status: 1,
+        },
+      })
+
+      const chainIds = ETHEREUM_CATEGORY_CHAINS.includes(address.chain_id)
+        ? ETHEREUM_CATEGORY_CHAINS
+        : [address.chain_id]
+
+      for (const chainId of chainIds) {
+        const paymentSetting = await prisma.payment_settings.findFirst({
+          where: {
+            chain_id: Number(chainId),
+            network: address.network,
+            store_id: storeId,
             status: 1,
           },
         })
 
-        if (ETHEREUM_CATEGORY_CHAINS.includes(address.chain_id)) {
-          ETHEREUM_CATEGORY_CHAINS.map(async (item) => {
-            const payment_setting = await prisma.payment_settings.findFirst({
-              where: {
-                chain_id: Number(item),
-                network: address.network,
-                store_id: storeId,
-                status: 1,
-              },
-            })
-
-            if (!payment_setting) {
-              return res.status(200).json({ message: 'Cannot find', result: false, data: null })
-            }
-
-            await prisma.payment_settings.update({
-              data: {
-                current_used_address_id: address.id,
-              },
-              where: {
-                id: payment_setting.id,
-                status: 1,
-              },
-            })
-          })
-        } else {
-          const payment_setting = await prisma.payment_settings.findFirst({
-            where: {
-              chain_id: address.chain_id,
-              network: address.network,
-              store_id: storeId,
-              status: 1,
-            },
-          })
-
-          if (!payment_setting) {
-            return res.status(200).json({ message: 'Cannot find', result: false, data: null })
-          }
-
-          await prisma.payment_settings.update({
-            data: {
-              current_used_address_id: address.id,
-            },
-            where: {
-              id: payment_setting.id,
-              status: 1,
-            },
+        if (!paymentSetting) {
+          return res.status(200).json({
+            message: 'Cannot find',
+            result: false,
+            data: null,
           })
         }
-      })
 
+        await prisma.payment_settings.update({
+          where: { id: paymentSetting.id, status: 1 },
+          data: {
+            current_used_address_id: address.id,
+          },
+        })
+      }
+    }
     return res.status(200).json({ message: '', result: true, data: { walletId: wallet.id } })
   } catch (e) {
     console.error(e)

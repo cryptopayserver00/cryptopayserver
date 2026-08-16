@@ -1,5 +1,11 @@
-import axios from 'axios';
-import { BLOCKCHAINNAMES, CHAINIDS, CHAINS, COINS, INNERCHAINNAMES } from '@/packages/constants/blockchain';
+import axios from 'axios'
+import {
+  BLOCKCHAINNAMES,
+  CHAINIDS,
+  CHAINS,
+  COINS,
+  INNERCHAINNAMES,
+} from '@/packages/constants/blockchain'
 import {
   AssetBalance,
   ChainAccountType,
@@ -9,12 +15,20 @@ import {
   SendTransaction,
   TransactionDetail,
   TRANSACTIONSTATUS,
-} from '../types';
-import { ethers } from 'ethers';
-import { FindDecimalsByChainIdsAndContractAddress, FindTokenByChainIdsAndContractAddress } from '@/utils/web3';
-import { GetBlockchainTxUrl } from '@/utils/chain/ton';
-import { BLOCKSCAN } from '../block_scan';
-import { keyPairFromSecretKey, keyPairFromSeed, mnemonicToPrivateKey, mnemonicToWalletKey } from '@ton/crypto';
+} from '../types'
+import { ethers } from 'ethers'
+import {
+  FindDecimalsByChainIdsAndContractAddress,
+  FindTokenByChainIdsAndContractAddress,
+} from '@/utils/web3'
+import { GetBlockchainTxUrl } from '@/utils/chain/ton'
+import { BLOCKSCAN } from '../block_scan'
+import {
+  keyPairFromSecretKey,
+  keyPairFromSeed,
+  mnemonicToPrivateKey,
+  mnemonicToWalletKey,
+} from '@ton/crypto'
 import {
   Address,
   beginCell,
@@ -27,60 +41,68 @@ import {
   TonClient,
   WalletContractV4,
   WalletContractV5R1,
-} from '@ton/ton';
-import TonWeb from 'tonweb';
+} from '@ton/ton'
+import TonWeb from 'tonweb'
 
 export class TON {
-  static chain = CHAINS.TON;
+  static chain = CHAINS.TON
 
   static axiosInstance = axios.create({
     timeout: 50000,
-  });
+  })
 
   static getChainIds(isMainnet: boolean): CHAINIDS {
-    return isMainnet ? CHAINIDS.TON : CHAINIDS.TON_TESTNET;
+    return isMainnet ? CHAINIDS.TON : CHAINIDS.TON_TESTNET
   }
 
   static getChainName(isMainnet: boolean): INNERCHAINNAMES {
-    return isMainnet ? INNERCHAINNAMES.TON : INNERCHAINNAMES.TON_TESTNET;
+    return isMainnet ? INNERCHAINNAMES.TON : INNERCHAINNAMES.TON_TESTNET
   }
 
   static getTonClient(isMainnet: boolean): TonClient {
-    const url = isMainnet ? 'https://toncenter.com/api/v2/jsonRPC' : 'https://testnet.toncenter.com/api/v2/jsonRPC';
+    const url = isMainnet
+      ? 'https://toncenter.com/api/v2/jsonRPC'
+      : 'https://testnet.toncenter.com/api/v2/jsonRPC'
     return new TonClient({
       endpoint: url,
       apiKey: process.env.TON_API_KEY,
-    });
+    })
   }
 
   static getTonWebClient(isMainnet: boolean): TonWeb {
-    const url = isMainnet ? 'https://toncenter.com/api/v2/jsonRPC' : 'https://testnet.toncenter.com/api/v2/jsonRPC';
+    const url = isMainnet
+      ? 'https://toncenter.com/api/v2/jsonRPC'
+      : 'https://testnet.toncenter.com/api/v2/jsonRPC'
     return new TonWeb(
       new TonWeb.HttpProvider(url, {
         apiKey: process.env.TON_API_KEY,
-      }),
-    );
+      })
+    )
   }
 
-  static async createAccountBySeed(isMainnet: boolean, seed: Buffer, mnemonic: string): Promise<ChainAccountType> {
-    const path = `m/44'/607'/0'/0/0`;
+  static async createAccountBySeed(
+    isMainnet: boolean,
+    seed: Buffer,
+    mnemonic: string
+  ): Promise<ChainAccountType> {
+    const path = `m/44'/607'/0'/0/0`
 
     try {
-      const keyPair = await mnemonicToPrivateKey(mnemonic.split(' '));
-      const publicKey = keyPair.publicKey;
+      const keyPair = await mnemonicToPrivateKey(mnemonic.split(' '))
+      const publicKey = keyPair.publicKey
 
       const wallet = WalletContractV4.create({
         publicKey: publicKey,
         workchain: 0,
-      });
+      })
 
       const addressOptions = {
         urlSafe: true,
         bounceable: false,
         testOnly: !isMainnet,
-      };
+      }
 
-      const address = wallet.address.toString(addressOptions);
+      const address = wallet.address.toString(addressOptions)
 
       return {
         chain: this.chain,
@@ -88,29 +110,32 @@ export class TON {
         privateKey: keyPair.secretKey.toString('hex'),
         note: 'TON',
         isMainnet: isMainnet,
-      };
+      }
     } catch (e) {
-      console.error(e);
-      throw new Error('can not create a wallet of ton');
+      console.error(e)
+      throw new Error('can not create a wallet of ton')
     }
   }
 
-  static async createAccountByPrivateKey(isMainnet: boolean, privateKey: string): Promise<ChainAccountType> {
+  static async createAccountByPrivateKey(
+    isMainnet: boolean,
+    privateKey: string
+  ): Promise<ChainAccountType> {
     try {
-      const keypair = keyPairFromSecretKey(Buffer.from(privateKey));
+      const keypair = keyPairFromSecretKey(Buffer.from(privateKey))
 
       const wallet = WalletContractV4.create({
         publicKey: keypair.publicKey,
         workchain: 0,
-      });
+      })
 
       const addressOptions = {
         urlSafe: true,
         bounceable: false,
         testOnly: !isMainnet,
-      };
+      }
 
-      const address = wallet.address.toString(addressOptions);
+      const address = wallet.address.toString(addressOptions)
 
       return {
         chain: this.chain,
@@ -118,81 +143,81 @@ export class TON {
         privateKey: privateKey,
         note: 'TON',
         isMainnet: isMainnet,
-      };
+      }
     } catch (e) {
-      console.error(e);
-      throw new Error('can not create a wallet of ton');
+      console.error(e)
+      throw new Error('can not create a wallet of ton')
     }
   }
 
   static checkAddress(isMainnet: boolean, address: string): boolean {
     try {
-      Address.parse(address);
-      return true;
+      Address.parse(address)
+      return true
     } catch (e) {
-      return false;
+      return false
     }
   }
 
   static checkQRCodeText(text: string): boolean {
     const regex = `^(${this.getChainName(true)}|${this.getChainName(
-      false,
-    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`;
+      false
+    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`
 
     try {
-      const matchText = text.match(regex);
+      const matchText = text.match(regex)
       if (matchText) {
-        return true;
+        return true
       }
-      return false;
+      return false
     } catch (e) {
-      console.error(e);
-      return false;
+      console.error(e)
+      return false
     }
   }
 
   static parseQRCodeText(text: string): QRCodeText {
     const regex = `^(${this.getChainName(true)}|${this.getChainName(
-      false,
-    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`;
+      false
+    )}):([^?]+)(\\?token=([^&]+)&amount=((\\d*\\.?\\d+))|\\?amount=((\\d*\\.?\\d+)))$`
 
     try {
-      const matchText = text.match(regex);
+      const matchText = text.match(regex)
 
-      let network = 0;
-      let networkString = '';
-      let address = '';
-      let token = '';
-      let tokenAddress = '';
-      let amount = '';
+      let network = 0
+      let networkString = ''
+      let address = ''
+      let token = ''
+      let tokenAddress = ''
+      let amount = ''
 
       if (matchText) {
-        networkString = matchText[1];
-        address = matchText[2];
+        networkString = matchText[1]
+        address = matchText[2]
 
         switch (networkString) {
           case INNERCHAINNAMES.TON:
-            network = 1;
-            break;
+            network = 1
+            break
           case INNERCHAINNAMES.TON_TESTNET:
-            network = 2;
-            break;
+            network = 2
+            break
           default:
-            throw new Error('Invalid QR code text format');
+            throw new Error('Invalid QR code text format')
         }
 
         if (matchText[4] !== undefined) {
-          tokenAddress = matchText[4];
-          amount = matchText[6];
+          tokenAddress = matchText[4]
+          amount = matchText[6]
 
           const coin = FindTokenByChainIdsAndContractAddress(
-            this.getChainIds(network === 1 ? true : false),
-            tokenAddress,
-          );
-          token = coin.name;
+            this.getChainIds(network === 1),
+            tokenAddress
+          )
+          token = coin.name
         } else {
-          amount = matchText[7];
-          token = COINS.TON;
+          amount = matchText[7]
+          token = COINS.TON
         }
       }
 
@@ -203,68 +228,79 @@ export class TON {
         token,
         tokenAddress,
         amount,
-      };
+      }
     } catch (e) {
-      console.error(e);
-      return {} as QRCodeText;
+      console.error(e)
+      return {} as QRCodeText
     }
   }
 
-  static generateQRCodeText(isMainnet: boolean, address: string, contractAddress?: string, amount?: string): string {
-    let qrcodeText = `${this.getChainName(isMainnet)}:${address}?`;
+  static generateQRCodeText(
+    isMainnet: boolean,
+    address: string,
+    contractAddress?: string,
+    amount?: string
+  ): string {
+    let qrcodeText = `${this.getChainName(isMainnet)}:${address}?`
 
-    amount = amount || '0';
+    amount = amount || '0'
 
     if (contractAddress) {
-      qrcodeText += `token=${contractAddress}&amount=${amount}`;
+      qrcodeText += `token=${contractAddress}&amount=${amount}`
     } else {
-      qrcodeText += `amount=${amount}`;
+      qrcodeText += `amount=${amount}`
     }
 
-    return qrcodeText;
+    return qrcodeText
   }
 
   static async getAssetBalance(isMainnet: boolean, address: string): Promise<AssetBalance> {
     try {
-      let items = {} as AssetBalance;
-      items.TON = await this.getTONBalance(isMainnet, address);
+      let items = {} as AssetBalance
+      items.TON = await this.getTONBalance(isMainnet, address)
 
-      const coins = BLOCKCHAINNAMES.find((item) => item.chainId === this.getChainIds(isMainnet))?.coins;
+      const coins = BLOCKCHAINNAMES.find(
+        (item) => item.chainId === this.getChainIds(isMainnet)
+      )?.coins
       if (coins && coins.length > 0) {
-        const tokens = coins.filter((item) => !item.isMainCoin);
+        const tokens = coins.filter((item) => !item.isMainCoin)
 
         const promises = tokens.map(async (token) => {
           if (token.contractAddress && token.contractAddress !== '') {
-            const balance = await this.getTokenBalance(isMainnet, address, token.contractAddress);
-            items[token.symbol] = balance;
+            const balance = await this.getTokenBalance(isMainnet, address, token.contractAddress)
+            items[token.symbol] = balance
           }
-        });
+        })
 
-        await Promise.all(promises);
+        await Promise.all(promises)
       }
-      return items;
+      return items
     } catch (e) {
-      console.error(e);
-      throw new Error('can not get the asset balance of ton');
+      console.error(e)
+      throw new Error('can not get the asset balance of ton')
     }
   }
 
   static async getTONBalance(isMainnet: boolean, address: string): Promise<string> {
     try {
-      const client = this.getTonClient(isMainnet);
+      const client = this.getTonClient(isMainnet)
 
-      const balance = await client.getBalance(Address.parse(address));
+      const balance = await client.getBalance(Address.parse(address))
 
-      return fromNano(balance);
+      return fromNano(balance)
     } catch (e) {
-      console.error(e);
-      throw new Error('can not get the ton balance of ton');
+      console.error(e)
+      throw new Error('can not get the ton balance of ton')
     }
   }
 
-  static async getTokenBalance(isMainnet: boolean, address: string, contractAddress: string): Promise<string> {
+  static async getTokenBalance(
+    isMainnet: boolean,
+    address: string,
+    contractAddress: string
+  ): Promise<string> {
     try {
-      const tonweb = this.getTonWebClient(isMainnet);
+      const tonweb = this.getTonWebClient(isMainnet)
 
       // const jettonMinter = new TonWeb.token.jetton.JettonMinter(tonweb.provider, {
       //   adminAddress: new TonWeb.utils.Address(contractAddress),
@@ -278,36 +314,39 @@ export class TON {
 
       const jettonWallet = new TonWeb.token.jetton.JettonWallet(tonweb.provider, {
         address: address,
-      });
-      const result = await jettonWallet.provider.getBalance(contractAddress);
-      const tokenDecimals = await this.getTokenDecimals(isMainnet, contractAddress);
-      return ethers.formatUnits(result, tokenDecimals);
+      })
+      const result = await jettonWallet.provider.getBalance(contractAddress)
+      const tokenDecimals = await this.getTokenDecimals(isMainnet, contractAddress)
+      return ethers.formatUnits(result, tokenDecimals)
     } catch (e) {
-      console.error(e);
-      throw new Error('can not get the token balance of ton');
+      console.error(e)
+      throw new Error('can not get the token balance of ton')
     }
   }
 
   static async getTokenDecimals(isMainnet: boolean, contractAddress: string): Promise<number> {
-    const decimals = FindDecimalsByChainIdsAndContractAddress(this.getChainIds(isMainnet), contractAddress);
+    const decimals = FindDecimalsByChainIdsAndContractAddress(
+      this.getChainIds(isMainnet),
+      contractAddress
+    )
     if (decimals && decimals > 0) {
-      return decimals;
+      return decimals
     }
 
     try {
       // const tonweb = this.getTonClient(isMainnet);
 
-      return 0;
+      return 0
     } catch (e) {
-      console.error(e);
-      throw new Error('can not get the decimals of ton');
+      console.error(e)
+      throw new Error('can not get the decimals of ton')
     }
   }
 
   static async getTransactionDetail(isMainnet: boolean, hash: string): Promise<TransactionDetail> {
     try {
-      const tonweb = this.getTonClient(isMainnet);
-      const explorerUrl = GetBlockchainTxUrl(isMainnet, hash);
+      const tonweb = this.getTonClient(isMainnet)
+      const explorerUrl = GetBlockchainTxUrl(isMainnet, hash)
 
       return {
         blockNumber: 0,
@@ -320,102 +359,111 @@ export class TON {
         fee: '',
         url: explorerUrl,
         asset: '',
-      };
+      }
     } catch (e) {
-      console.error(e);
-      throw new Error('can not get the transaction of ton');
+      console.error(e)
+      throw new Error('can not get the transaction of ton')
     }
   }
 
   static async getTransactions(
     isMainnet: boolean,
     address: string,
-    symbol?: string,
+    symbol?: string
   ): Promise<EthereumTransactionDetail[]> {
     try {
-      symbol = symbol ? symbol : '';
+      symbol = symbol ? symbol : ''
 
       const url = `${BLOCKSCAN.baseUrl}/node/ton/getTransactions?chain_id=${this.getChainIds(
-        isMainnet,
-      )}&address=${address}&asset=${symbol}`;
-      const response = await this.axiosInstance.get(url);
+        isMainnet
+      )}&address=${address}&asset=${symbol}`
+      const response = await this.axiosInstance.get(url)
       if (response.data.code === 10200 && response.data.data) {
-        const txs = response.data.data;
+        const txs = response.data.data
 
-        return txs;
+        return txs
       } else {
-        return [];
+        return []
       }
     } catch (e) {
-      console.error(e);
-      return [];
+      console.error(e)
+      return []
       // throw new Error('can not get the transactions of ton');
     }
   }
 
   static async createTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<any> {
     if (request.contractAddress) {
-      return await this.createTokenTransaction(isMainnet, request);
+      return await this.createTokenTransaction(isMainnet, request)
     } else {
-      return await this.createTONTransaction(isMainnet, request);
+      return await this.createTONTransaction(isMainnet, request)
     }
   }
 
-  static async createTokenTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<string> {
+  static async createTokenTransaction(
+    isMainnet: boolean,
+    request: CreateTonTransaction
+  ): Promise<string> {
     if (!request.mnemonic || request.mnemonic === '') {
-      throw new Error('can not get the mnemonic of ton');
+      throw new Error('can not get the mnemonic of ton')
     }
 
     if (!request.contractAddress || request.contractAddress === '') {
-      throw new Error('can not get the contract address of ton');
+      throw new Error('can not get the contract address of ton')
     }
 
-    const token = FindTokenByChainIdsAndContractAddress(this.getChainIds(isMainnet), request.contractAddress);
+    const token = FindTokenByChainIdsAndContractAddress(
+      this.getChainIds(isMainnet),
+      request.contractAddress
+    )
 
     try {
-      const client = this.getTonClient(isMainnet);
+      const client = this.getTonClient(isMainnet)
 
-      const keyPair = await mnemonicToPrivateKey(request.mnemonic.split(' '));
+      const keyPair = await mnemonicToPrivateKey(request.mnemonic.split(' '))
 
       const wallet = WalletContractV4.create({
         workchain: 0,
         publicKey: keyPair.publicKey,
-      });
+      })
 
-      const walletContract = client.open(wallet);
+      const walletContract = client.open(wallet)
 
-      const jettonWallet = JettonWallet.create(wallet.address);
+      const jettonWallet = JettonWallet.create(wallet.address)
 
-      throw new Error('can not send the transaction of ton');
+      throw new Error('can not send the transaction of ton')
     } catch (e) {
-      console.error(e);
-      throw new Error('can not send the transaction of ton');
+      console.error(e)
+      throw new Error('can not send the transaction of ton')
     }
   }
 
-  static async createTONTransaction(isMainnet: boolean, request: CreateTonTransaction): Promise<string> {
+  static async createTONTransaction(
+    isMainnet: boolean,
+    request: CreateTonTransaction
+  ): Promise<string> {
     if (!request.mnemonic || request.mnemonic === '') {
-      throw new Error('can not get the mnemonic of ton');
+      throw new Error('can not get the mnemonic of ton')
     }
 
     try {
-      const client = this.getTonClient(isMainnet);
+      const client = this.getTonClient(isMainnet)
 
-      const keyPair = await mnemonicToPrivateKey(request.mnemonic.split(' '));
+      const keyPair = await mnemonicToPrivateKey(request.mnemonic.split(' '))
 
       const wallet = WalletContractV4.create({
         workchain: 0,
         publicKey: keyPair.publicKey,
-      });
+      })
 
-      const walletContract = client.open(wallet);
+      const walletContract = client.open(wallet)
 
-      const balance = await walletContract.getBalance();
+      const balance = await walletContract.getBalance()
       if (balance < toNano(request.value) + toNano('0.05')) {
-        throw new Error('Insufficient balance for transfer and gas');
+        throw new Error('Insufficient balance for transfer and gas')
       }
 
-      const seqno = await walletContract.getSeqno();
+      const seqno = await walletContract.getSeqno()
 
       const transfer = walletContract.createTransfer({
         seqno: seqno,
@@ -428,33 +476,33 @@ export class TON {
           }),
         ],
         sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
-      });
+      })
 
-      await walletContract.send(transfer);
+      await walletContract.send(transfer)
 
-      const maxAttempts = 30;
-      const delayMs = 1000;
+      const maxAttempts = 30
+      const delayMs = 1000
 
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        setTimeout(() => {}, delayMs);
+        setTimeout(() => {}, delayMs)
 
-        const newSeqno = await walletContract.getSeqno();
+        const newSeqno = await walletContract.getSeqno()
         if (newSeqno > seqno) {
           const transactions = await client.getTransactions(wallet.address, {
             limit: 1,
-          });
+          })
 
           if (transactions.length > 0) {
-            const tx = transactions[0];
-            return tx.hash().toString('hex');
+            const tx = transactions[0]
+            return tx.hash().toString('hex')
           }
         }
       }
 
-      throw new Error('can not send the transaction of ton');
+      throw new Error('can not send the transaction of ton')
     } catch (e) {
-      console.error(e);
-      throw new Error('can not send the transaction of ton');
+      console.error(e)
+      throw new Error('can not send the transaction of ton')
     }
   }
 
@@ -467,18 +515,18 @@ export class TON {
       value: request.value,
       contractAddress: request.coin.contractAddress,
       memo: String(request.memo),
-    };
-
-    const tx = await this.createTransaction(isMainnet, cRequest);
-    if (tx) {
-      return tx;
     }
-    throw new Error('can not send the transaction of ton');
+
+    const tx = await this.createTransaction(isMainnet, cRequest)
+    if (tx) {
+      return tx
+    }
+    throw new Error('can not send the transaction of ton')
   }
 
   static async estimateGasFee(isMainnet: boolean, request: SendTransaction): Promise<any> {
     if (!request.privateKey || request.privateKey === '') {
-      throw new Error('can not get the private key of ton');
+      throw new Error('can not get the private key of ton')
     }
 
     try {
@@ -504,10 +552,10 @@ export class TON {
 
       // return TonWeb.utils.fromNano(fee.source_fees.gas_fee.toString());
 
-      return '';
+      return ''
     } catch (e) {
-      console.error(e);
-      throw new Error('can not estimate gas fee of ton');
+      console.error(e)
+      throw new Error('can not estimate gas fee of ton')
     }
   }
 }

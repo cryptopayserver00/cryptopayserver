@@ -27,10 +27,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    if (!invoice_events) {
-      return res.status(200).json({ message: 'Invalid invoice events', result: false, data: null })
-    }
-
     return res.status(200).json({
       message: '',
       result: true,

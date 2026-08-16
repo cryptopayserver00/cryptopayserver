@@ -1,49 +1,49 @@
-import * as net from 'net';
-import axios from 'axios';
-import { LIGHTNINGNAME } from '@/packages/constants/blockchain';
-import { randomBytes } from 'crypto';
-import { MsatoshisToBtc } from '@/utils/number';
+import * as net from 'net'
+import axios from 'axios'
+import { LIGHTNINGNAME } from '@/packages/constants/blockchain'
+import { randomBytes } from 'crypto'
+import { MsatoshisToBtc } from '@/utils/number'
 
 // https://docs.corelightning.org/reference
 export class CLIGHTNING {
-  static lightningName = LIGHTNINGNAME.CLIGHTNING;
+  static lightningName = LIGHTNINGNAME.CLIGHTNING
 
   static axiosInstance = axios.create({
     timeout: 50000,
-  });
+  })
 
   static parseServer(server: string): string {
     if (!server) {
-      return '';
+      return ''
     }
     if (server.slice(-1) === '/') {
-      server = server.slice(0, -1);
+      server = server.slice(0, -1)
     }
 
-    return server;
+    return server
   }
 
   static async testConnection(server: string, rune?: string): Promise<[boolean, any?]> {
     try {
       if (!rune) {
-        return [false];
+        return [false]
       }
       if (await this.getNodeInfo(server, rune)) {
-        return [true];
+        return [true]
       }
-      return [false];
+      return [false]
     } catch (e) {
-      console.error(e);
-      return [false];
+      console.error(e)
+      return [false]
     }
   }
 
   static async payInvoice(server: string, invoice: string, rune?: string): Promise<boolean> {
     try {
       if (!rune) {
-        return false;
+        return false
       }
-      const baseUrl = this.parseServer(server);
+      const baseUrl = this.parseServer(server)
       const response: any = await this.axiosInstance.post(
         `${baseUrl}/v1/pay`,
         {
@@ -53,15 +53,15 @@ export class CLIGHTNING {
           headers: {
             Rune: rune,
           },
-        },
-      );
+        }
+      )
       if (response.status === 201 && response.data) {
-        return response.data.status === 'complete' ? true : false;
+        return response.data.status === 'complete'
       }
-      return false;
+      return false
     } catch (e) {
-      console.error(e);
-      return false;
+      console.error(e)
+      return false
     }
   }
 
@@ -70,13 +70,13 @@ export class CLIGHTNING {
     amount: number,
     description?: string,
     descriptionHash?: string,
-    rune?: string,
+    rune?: string
   ): Promise<string> {
     try {
       if (!rune) {
-        return '';
+        return ''
       }
-      const baseUrl = this.parseServer(server);
+      const baseUrl = this.parseServer(server)
       const response: any = await this.axiosInstance.post(
         `${baseUrl}/v1/invoice`,
         {
@@ -88,24 +88,28 @@ export class CLIGHTNING {
           headers: {
             Rune: rune,
           },
-        },
-      );
+        }
+      )
       if (response.status === 201 && response.data) {
-        return response.data.bolt11;
+        return response.data.bolt11
       }
-      return '';
+      return ''
     } catch (e) {
-      console.error(e);
-      return '';
+      console.error(e)
+      return ''
     }
   }
 
-  static async getInvoiceStatus(server: string, paymentHash: string, rune?: string): Promise<boolean> {
+  static async getInvoiceStatus(
+    server: string,
+    paymentHash: string,
+    rune?: string
+  ): Promise<boolean> {
     try {
       if (!rune) {
-        return false;
+        return false
       }
-      const baseUrl = this.parseServer(server);
+      const baseUrl = this.parseServer(server)
       const response: any = await this.axiosInstance.post(
         `${baseUrl}/v1/listinvoices`,
         {
@@ -115,26 +119,27 @@ export class CLIGHTNING {
           headers: {
             Rune: rune,
           },
-        },
-      );
+        }
+      )
       if (response.status === 201 && response.data && response.data.invoices.length > 0) {
-        return response.data.invoices.find((item: any) => item.payment_hash === paymentHash).status === 'paid'
+        return response.data.invoices.find((item: any) => item.payment_hash === paymentHash)
+          .status === 'paid'
           ? true
-          : false;
+          : false
       }
-      return false;
+      return false
     } catch (e) {
-      console.error(e);
-      return false;
+      console.error(e)
+      return false
     }
   }
 
   static async getBalance(server: string, rune?: string): Promise<number> {
     try {
       if (!rune) {
-        return 0;
+        return 0
       }
-      const baseUrl = this.parseServer(server);
+      const baseUrl = this.parseServer(server)
       const response: any = await this.axiosInstance.post(
         `${baseUrl}/v1/listchannels`,
         {},
@@ -142,25 +147,28 @@ export class CLIGHTNING {
           headers: {
             Rune: rune,
           },
-        },
-      );
+        }
+      )
       if (response.status === 201 && response.data && response.data.channels.length > 0) {
-        const totalAmount = response.data.channels.reduce((sum: number, channel: any) => sum + channel.amount_msat, 0);
-        return MsatoshisToBtc(totalAmount);
+        const totalAmount = response.data.channels.reduce(
+          (sum: number, channel: any) => sum + channel.amount_msat,
+          0
+        )
+        return MsatoshisToBtc(totalAmount)
       }
-      return 0;
+      return 0
     } catch (e) {
-      console.error(e);
-      return 0;
+      console.error(e)
+      return 0
     }
   }
 
   static async getNodeInfo(server: string, rune?: string): Promise<any> {
     try {
       if (!rune) {
-        return null;
+        return null
       }
-      const baseUrl = this.parseServer(server);
+      const baseUrl = this.parseServer(server)
       const response: any = await this.axiosInstance.post(
         `${baseUrl}/v1/getinfo`,
         {},
@@ -168,15 +176,15 @@ export class CLIGHTNING {
           headers: {
             Rune: rune,
           },
-        },
-      );
+        }
+      )
       if (response.status === 201 && response.data) {
-        return response.data;
+        return response.data
       }
-      return null;
+      return null
     } catch (e) {
-      console.error(e);
-      return null;
+      console.error(e)
+      return null
     }
   }
 
@@ -186,13 +194,13 @@ export class CLIGHTNING {
     localAmt: number,
     pushAmt: number,
     makePrivate: boolean,
-    rune?: string,
+    rune?: string
   ): Promise<boolean> {
     try {
       if (!rune) {
-        return false;
+        return false
       }
-      const baseUrl = this.parseServer(server);
+      const baseUrl = this.parseServer(server)
       const response: any = this.axiosInstance.post(
         `${baseUrl}/v1/fundchannel`,
         {
@@ -204,15 +212,15 @@ export class CLIGHTNING {
           headers: {
             Rune: rune,
           },
-        },
-      );
+        }
+      )
       if (response.status === 201 && response.data) {
-        return true;
+        return true
       }
-      return false;
+      return false
     } catch (e) {
-      console.error(e);
-      return false;
+      console.error(e)
+      return false
     }
   }
 }

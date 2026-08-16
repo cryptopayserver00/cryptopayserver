@@ -19,27 +19,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    if (!pull_payments) {
-      return res
-        .status(200)
-        .json({ message: 'Cannot find pull payments', result: false, data: null })
-    }
-
     const now = new Date()
-    pull_payments.forEach(async (item) => {
-      const remainingTime = item.expiration_at.getTime() - now.getTime()
+    for (const payment of pull_payments) {
+      const remainingTime = payment.expiration_at.getTime() - now.getTime()
       if (remainingTime <= 0) {
         await prisma.pull_payments.update({
           data: {
             pull_payment_status: PULL_PAYMENT_STATUS.Expired,
           },
           where: {
-            id: item.id,
+            id: payment.id,
             status: 1,
           },
         })
       }
-    })
+    }
 
     return res.status(200).json({ message: '', result: true, data: null })
   } catch (e) {
