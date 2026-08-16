@@ -107,16 +107,16 @@ export default function TransactionDataGrid(props: GridType) {
         if (response.data.transactions.length > 0) {
           const rt: RowType[] = response.data.transactions.map((item: any, index: number) => ({
             id: index + 1,
-            chainId: item.chain_id,
-            chainName: FindChainNamesByChains(item.chain_id),
+            chainId: item.chainId,
+            chainName: FindChainNamesByChains(item.chainId),
             hash: item.hash,
             address: item.address,
-            fromAddress: item.from_address,
-            toAddress: item.to_address,
+            fromAddress: item.fromAddress,
+            toAddress: item.toAddress,
             token: item.token,
-            transactionType: item.transact_type,
+            transactionType: item.transactType,
             amount: item.amount,
-            blockTimestamp: new Date(item.block_timestamp).toLocaleString(),
+            blockTimestamp: new Date(item.blockTimestamp).toLocaleString(),
           }))
           setRows(rt)
           setPage(Number(response.data.page))

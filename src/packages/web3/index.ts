@@ -6,53 +6,53 @@ import {
   SendTransaction,
   CreateXrpTrustLineTransaction,
   QRCodeText,
-} from './types';
-import { Bip39 } from './bip39';
-import { BTC } from './chain/btc';
-import { ETH } from './chain/eth';
-import { CHAINIDS, CHAINS, COIN } from '@/packages/constants/blockchain';
-import { SOLANA } from './chain/solana';
-import { BSC } from './chain/bsc';
-import { LTC } from './chain/ltc';
-import { TRON } from './chain/tron';
-import { TON } from './chain/ton';
-import { XRP } from './chain/xrp';
-import { BITCOINCASH } from './chain/bitcoincash';
-import { ARB } from './chain/arb';
-import { AVAX } from './chain/avalanche';
-import { POL } from './chain/pol';
-import { BASE } from './chain/base';
-import { OP } from './chain/op';
-import { BLOCKSCAN } from './block_scan';
-import { ARBNOVA } from './chain/arbnova';
+} from './types'
+import { Bip39 } from './bip39'
+import { BTC } from './chain/btc'
+import { ETH } from './chain/eth'
+import { CHAINIDS, CHAINS, COIN } from '@/packages/constants/blockchain'
+import { SOLANA } from './chain/solana'
+import { BSC } from './chain/bsc'
+import { LTC } from './chain/ltc'
+import { TRON } from './chain/tron'
+import { TON } from './chain/ton'
+import { XRP } from './chain/xrp'
+import { BITCOINCASH } from './chain/bitcoincash'
+import { ARB } from './chain/arb'
+import { AVAX } from './chain/avalanche'
+import { POL } from './chain/pol'
+import { BASE } from './chain/base'
+import { OP } from './chain/op'
+import { BLOCKSCAN } from './block_scan'
+import { ARBNOVA } from './chain/arbnova'
 
 export class WEB3 {
   // support: Import and generate wallet
   static async generateWallet(mnemonic: string = ''): Promise<WalletAccountType> {
-    const isGenerate = mnemonic === '' ? true : false;
+    const isGenerate = mnemonic === '' ? true : false
 
-    if (mnemonic !== '' && !Bip39.validateMnemonic(mnemonic)) throw new Error('Invalid mnemonic');
-    mnemonic = mnemonic === '' ? Bip39.generateMnemonic() : mnemonic;
+    if (mnemonic !== '' && !Bip39.validateMnemonic(mnemonic)) throw new Error('Invalid mnemonic')
+    mnemonic = mnemonic === '' ? Bip39.generateMnemonic() : mnemonic
 
-    const seed = await Bip39.generateSeed(mnemonic);
+    const seed = await Bip39.generateSeed(mnemonic)
 
     // mainnet
-    const mainnetAccount = await this.createAccountBySeed(true, seed, mnemonic);
+    const mainnetAccount = await this.createAccountBySeed(true, seed, mnemonic)
 
     //testnet
-    const testnetAccount = await this.createAccountBySeed(false, seed, mnemonic);
+    const testnetAccount = await this.createAccountBySeed(false, seed, mnemonic)
 
     return {
       isGenerate: isGenerate,
       mnemonic: mnemonic,
       account: [...mainnetAccount, ...testnetAccount],
-    };
+    }
   }
 
   static async createAccountBySeed(
     isMainnet: boolean,
     seed: Buffer,
-    mnemonic: string,
+    mnemonic: string
   ): Promise<Array<ChainAccountType>> {
     return await Promise.all([
       ...BTC.createAccountBySeed(isMainnet, seed),
@@ -63,24 +63,26 @@ export class WEB3 {
       await TON.createAccountBySeed(isMainnet, seed, mnemonic),
       await BITCOINCASH.createAccountBySeed(isMainnet, seed, mnemonic),
       XRP.createAccountBySeed(isMainnet, seed, mnemonic),
-    ]);
+    ])
   }
 
   static async createAccountByPrivateKey(
     isMainnet: boolean,
     chain: CHAINS,
-    privateKey: string,
+    privateKey: string
   ): Promise<Array<ChainAccountType>> {
     switch (chain) {
       case CHAINS.BITCOIN:
-        return BTC.createAccountByPrivateKey(isMainnet, privateKey);
+        return BTC.createAccountByPrivateKey(isMainnet, privateKey)
       case CHAINS.LITECOIN:
-        return Array<ChainAccountType>(LTC.createAccountByPrivateKey(isMainnet, privateKey));
+        return Array<ChainAccountType>(LTC.createAccountByPrivateKey(isMainnet, privateKey))
       case CHAINS.XRP:
         // return Array<ChainAccountType>(XRP.createAccountByPrivateKey(isMainnet, privateKey));
-        return [];
+        return []
       case CHAINS.BITCOINCASH:
-        return Array<ChainAccountType>(await BITCOINCASH.createAccountByPrivateKey(isMainnet, privateKey));
+        return Array<ChainAccountType>(
+          await BITCOINCASH.createAccountByPrivateKey(isMainnet, privateKey)
+        )
       case CHAINS.ETHEREUM:
       case CHAINS.BSC:
       case CHAINS.ARBITRUM:
@@ -89,37 +91,41 @@ export class WEB3 {
       case CHAINS.POLYGON:
       case CHAINS.BASE:
       case CHAINS.OPTIMISM:
-        return Array<ChainAccountType>(ETH.createAccountByPrivateKey(isMainnet, privateKey));
+        return Array<ChainAccountType>(ETH.createAccountByPrivateKey(isMainnet, privateKey))
       case CHAINS.TRON:
-        return Array<ChainAccountType>(TRON.createAccountByPrivateKey(isMainnet, privateKey));
+        return Array<ChainAccountType>(TRON.createAccountByPrivateKey(isMainnet, privateKey))
       case CHAINS.SOLANA:
-        return Array<ChainAccountType>(SOLANA.createAccountByPrivateKey(isMainnet, privateKey));
+        return Array<ChainAccountType>(SOLANA.createAccountByPrivateKey(isMainnet, privateKey))
       case CHAINS.TON:
-        return Array<ChainAccountType>(await TON.createAccountByPrivateKey(isMainnet, privateKey));
+        return Array<ChainAccountType>(await TON.createAccountByPrivateKey(isMainnet, privateKey))
       default:
-        return [];
+        return []
     }
   }
 
-  static async checkAccountStatus(isMainnet: boolean, chain: CHAINS, address: string): Promise<number> {
+  static async checkAccountStatus(
+    isMainnet: boolean,
+    chain: CHAINS,
+    address: string
+  ): Promise<boolean> {
     switch (chain) {
       case CHAINS.XRP:
-        return (await XRP.checkAccountStatus(isMainnet, address)) ? 1 : 2;
+        return await XRP.checkAccountStatus(isMainnet, address)
       default:
-        return 0;
+        return false
     }
   }
 
   static async checkAddress(isMainnet: boolean, chain: CHAINS, address: string): Promise<boolean> {
     switch (chain) {
       case CHAINS.BITCOIN:
-        return BTC.checkAddress(isMainnet, address);
+        return BTC.checkAddress(isMainnet, address)
       case CHAINS.LITECOIN:
-        return LTC.checkAddress(isMainnet, address);
+        return LTC.checkAddress(isMainnet, address)
       case CHAINS.XRP:
-        return XRP.checkAddress(isMainnet, address);
+        return XRP.checkAddress(isMainnet, address)
       case CHAINS.BITCOINCASH:
-        return await BITCOINCASH.checkAddress(isMainnet, address);
+        return await BITCOINCASH.checkAddress(isMainnet, address)
       case CHAINS.ETHEREUM:
       case CHAINS.BSC:
       case CHAINS.ARBITRUM:
@@ -128,89 +134,89 @@ export class WEB3 {
       case CHAINS.POLYGON:
       case CHAINS.BASE:
       case CHAINS.OPTIMISM:
-        return ETH.checkAddress(address);
+        return ETH.checkAddress(address)
       case CHAINS.TRON:
-        return TRON.checkAddress(address);
+        return TRON.checkAddress(address)
       case CHAINS.SOLANA:
-        return SOLANA.checkAddress(address);
+        return SOLANA.checkAddress(address)
       case CHAINS.TON:
-        return TON.checkAddress(isMainnet, address);
+        return TON.checkAddress(isMainnet, address)
       default:
-        return false;
+        return false
     }
   }
 
   static checkQRCodeText(chain: CHAINS, text: string): boolean {
     switch (chain) {
       case CHAINS.BITCOIN:
-        return BTC.checkQRCodeText(text);
+        return BTC.checkQRCodeText(text)
       case CHAINS.LITECOIN:
-        return LTC.checkQRCodeText(text);
+        return LTC.checkQRCodeText(text)
       case CHAINS.XRP:
-        return XRP.checkQRCodeText(text);
+        return XRP.checkQRCodeText(text)
       case CHAINS.BITCOINCASH:
-        return BITCOINCASH.checkQRCodeText(text);
+        return BITCOINCASH.checkQRCodeText(text)
       case CHAINS.ETHEREUM:
-        return ETH.checkQRCodeText(text);
+        return ETH.checkQRCodeText(text)
       case CHAINS.TRON:
-        return TRON.checkQRCodeText(text);
+        return TRON.checkQRCodeText(text)
       case CHAINS.SOLANA:
-        return SOLANA.checkQRCodeText(text);
+        return SOLANA.checkQRCodeText(text)
       case CHAINS.BSC:
-        return BSC.checkQRCodeText(text);
+        return BSC.checkQRCodeText(text)
       case CHAINS.ARBITRUM:
-        return ARB.checkQRCodeText(text);
+        return ARB.checkQRCodeText(text)
       case CHAINS.AVALANCHE:
-        return AVAX.checkQRCodeText(text);
+        return AVAX.checkQRCodeText(text)
       case CHAINS.POLYGON:
-        return POL.checkQRCodeText(text);
+        return POL.checkQRCodeText(text)
       case CHAINS.BASE:
-        return BASE.checkQRCodeText(text);
+        return BASE.checkQRCodeText(text)
       case CHAINS.OPTIMISM:
-        return OP.checkQRCodeText(text);
+        return OP.checkQRCodeText(text)
       case CHAINS.TON:
-        return TON.checkQRCodeText(text);
+        return TON.checkQRCodeText(text)
       case CHAINS.ARBITRUMNOVA:
-        return ARBNOVA.checkQRCodeText(text);
+        return ARBNOVA.checkQRCodeText(text)
       default:
-        return false;
+        return false
     }
   }
 
   static parseQRCodeText(chain: CHAINS, text: string): QRCodeText {
     switch (chain) {
       case CHAINS.BITCOIN:
-        return BTC.parseQRCodeText(text);
+        return BTC.parseQRCodeText(text)
       case CHAINS.LITECOIN:
-        return LTC.parseQRCodeText(text);
+        return LTC.parseQRCodeText(text)
       case CHAINS.XRP:
-        return XRP.parseQRCodeText(text);
+        return XRP.parseQRCodeText(text)
       case CHAINS.BITCOINCASH:
-        return BITCOINCASH.parseQRCodeText(text);
+        return BITCOINCASH.parseQRCodeText(text)
       case CHAINS.ETHEREUM:
-        return ETH.parseQRCodeText(text);
+        return ETH.parseQRCodeText(text)
       case CHAINS.TRON:
-        return TRON.parseQRCodeText(text);
+        return TRON.parseQRCodeText(text)
       case CHAINS.SOLANA:
-        return SOLANA.parseQRCodeText(text);
+        return SOLANA.parseQRCodeText(text)
       case CHAINS.BSC:
-        return BSC.parseQRCodeText(text);
+        return BSC.parseQRCodeText(text)
       case CHAINS.ARBITRUM:
-        return ARB.parseQRCodeText(text);
+        return ARB.parseQRCodeText(text)
       case CHAINS.AVALANCHE:
-        return AVAX.parseQRCodeText(text);
+        return AVAX.parseQRCodeText(text)
       case CHAINS.POLYGON:
-        return POL.parseQRCodeText(text);
+        return POL.parseQRCodeText(text)
       case CHAINS.BASE:
-        return BASE.parseQRCodeText(text);
+        return BASE.parseQRCodeText(text)
       case CHAINS.OPTIMISM:
-        return OP.parseQRCodeText(text);
+        return OP.parseQRCodeText(text)
       case CHAINS.TON:
-        return TON.parseQRCodeText(text);
+        return TON.parseQRCodeText(text)
       case CHAINS.ARBITRUMNOVA:
-        return ARBNOVA.parseQRCodeText(text);
+        return ARBNOVA.parseQRCodeText(text)
       default:
-        return {} as QRCodeText;
+        return {} as QRCodeText
     }
   }
 
@@ -219,223 +225,231 @@ export class WEB3 {
     chain: CHAINS,
     address: string,
     contractAddress?: string,
-    amount?: string,
+    amount?: string
   ): string {
     switch (chain) {
       case CHAINS.BITCOIN:
-        return BTC.generateQRCodeText(isMainnet, address, amount);
+        return BTC.generateQRCodeText(isMainnet, address, amount)
       case CHAINS.LITECOIN:
-        return LTC.generateQRCodeText(isMainnet, address, amount);
+        return LTC.generateQRCodeText(isMainnet, address, amount)
       case CHAINS.XRP:
-        return XRP.generateQRCodeText(isMainnet, address, amount);
+        return XRP.generateQRCodeText(isMainnet, address, amount)
       case CHAINS.BITCOINCASH:
-        return BITCOINCASH.generateQRCodeText(isMainnet, address, amount);
+        return BITCOINCASH.generateQRCodeText(isMainnet, address, amount)
       case CHAINS.ETHEREUM:
-        return ETH.generateQRCodeText(isMainnet, address, contractAddress, amount);
+        return ETH.generateQRCodeText(isMainnet, address, contractAddress, amount)
       case CHAINS.TRON:
-        return TRON.generateQRCodeText(isMainnet, address, contractAddress, amount);
+        return TRON.generateQRCodeText(isMainnet, address, contractAddress, amount)
       case CHAINS.SOLANA:
-        return SOLANA.generateQRCodeText(isMainnet, address, contractAddress, amount);
+        return SOLANA.generateQRCodeText(isMainnet, address, contractAddress, amount)
       case CHAINS.BSC:
-        return BSC.generateQRCodeText(isMainnet, address, contractAddress, amount);
+        return BSC.generateQRCodeText(isMainnet, address, contractAddress, amount)
       case CHAINS.ARBITRUM:
-        return ARB.generateQRCodeText(isMainnet, address, contractAddress, amount);
+        return ARB.generateQRCodeText(isMainnet, address, contractAddress, amount)
       case CHAINS.AVALANCHE:
-        return AVAX.generateQRCodeText(isMainnet, address, contractAddress, amount);
+        return AVAX.generateQRCodeText(isMainnet, address, contractAddress, amount)
       case CHAINS.POLYGON:
-        return POL.generateQRCodeText(isMainnet, address, contractAddress, amount);
+        return POL.generateQRCodeText(isMainnet, address, contractAddress, amount)
       case CHAINS.BASE:
-        return BASE.generateQRCodeText(isMainnet, address, contractAddress, amount);
+        return BASE.generateQRCodeText(isMainnet, address, contractAddress, amount)
       case CHAINS.OPTIMISM:
-        return OP.generateQRCodeText(isMainnet, address, contractAddress, amount);
+        return OP.generateQRCodeText(isMainnet, address, contractAddress, amount)
       case CHAINS.TON:
-        return TON.generateQRCodeText(isMainnet, address, contractAddress, amount);
+        return TON.generateQRCodeText(isMainnet, address, contractAddress, amount)
       case CHAINS.ARBITRUMNOVA:
-        return ARBNOVA.generateQRCodeText(address, contractAddress, amount);
+        return ARBNOVA.generateQRCodeText(address, contractAddress, amount)
       default:
-        return '';
+        return ''
     }
   }
 
   static async getFeeRate(isMainnet: boolean, chain: CHAINS): Promise<any> {
     switch (chain) {
       case CHAINS.BITCOIN:
-        return await BTC.getCurrentFeeRate(isMainnet);
+        return await BTC.getCurrentFeeRate(isMainnet)
       case CHAINS.LITECOIN:
-        return await LTC.getCurrentFeeRate(isMainnet);
+        return await LTC.getCurrentFeeRate(isMainnet)
       case CHAINS.ETHEREUM:
-        return await ETH.getGasPrice(isMainnet);
+        return await ETH.getGasPrice(isMainnet)
       case CHAINS.BSC:
-        return await BSC.getGasPrice(isMainnet);
+        return await BSC.getGasPrice(isMainnet)
       case CHAINS.ARBITRUM:
-        return await ARB.getGasPrice(isMainnet);
+        return await ARB.getGasPrice(isMainnet)
       case CHAINS.ARBITRUMNOVA:
-        return await ARBNOVA.getGasPrice();
+        return await ARBNOVA.getGasPrice()
       case CHAINS.BASE:
-        return await BASE.getGasPrice(isMainnet);
+        return await BASE.getGasPrice(isMainnet)
       case CHAINS.OPTIMISM:
-        return await OP.getGasPrice(isMainnet);
+        return await OP.getGasPrice(isMainnet)
       case CHAINS.POLYGON:
-        return await POL.getGasPrice(isMainnet);
+        return await POL.getGasPrice(isMainnet)
       case CHAINS.AVALANCHE:
-        return await AVAX.getGasPrice(isMainnet);
+        return await AVAX.getGasPrice(isMainnet)
       case CHAINS.SOLANA:
-        return await SOLANA.getFeePerSignature(isMainnet);
+        return await SOLANA.getFeePerSignature(isMainnet)
       case CHAINS.TON:
-        return null;
+        return null
       case CHAINS.XRP:
-        return await XRP.getFee(isMainnet);
+        return await XRP.getFee(isMainnet)
       default:
-        return null;
+        return null
     }
   }
 
   static async estimateGasFee(isMainnet: boolean, req: SendTransaction): Promise<any> {
     switch (req.coin.chainId) {
       case CHAINS.TON:
-        return await TON.estimateGasFee(isMainnet, req);
+        return await TON.estimateGasFee(isMainnet, req)
       default:
-        return null;
+        return null
     }
   }
 
   static getChainIds(isMainnet: boolean, chain: CHAINS): CHAINIDS {
     switch (chain) {
       case CHAINS.BITCOIN:
-        return BTC.getChainIds(isMainnet);
+        return BTC.getChainIds(isMainnet)
       case CHAINS.LITECOIN:
-        return LTC.getChainIds(isMainnet);
+        return LTC.getChainIds(isMainnet)
       case CHAINS.XRP:
-        return XRP.getChainIds(isMainnet);
+        return XRP.getChainIds(isMainnet)
       case CHAINS.BITCOINCASH:
-        return BITCOINCASH.getChainIds(isMainnet);
+        return BITCOINCASH.getChainIds(isMainnet)
       case CHAINS.ETHEREUM:
-        return ETH.getChainIds(isMainnet);
+        return ETH.getChainIds(isMainnet)
       case CHAINS.TRON:
-        return TRON.getChainIds(isMainnet);
+        return TRON.getChainIds(isMainnet)
       case CHAINS.SOLANA:
-        return SOLANA.getChainIds(isMainnet);
+        return SOLANA.getChainIds(isMainnet)
       case CHAINS.BSC:
-        return BSC.getChainIds(isMainnet);
+        return BSC.getChainIds(isMainnet)
       case CHAINS.ARBITRUM:
-        return ARB.getChainIds(isMainnet);
+        return ARB.getChainIds(isMainnet)
       case CHAINS.ARBITRUMNOVA:
-        return ARBNOVA.getChainIds();
+        return ARBNOVA.getChainIds()
       case CHAINS.AVALANCHE:
-        return AVAX.getChainIds(isMainnet);
+        return AVAX.getChainIds(isMainnet)
       case CHAINS.POLYGON:
-        return POL.getChainIds(isMainnet);
+        return POL.getChainIds(isMainnet)
       case CHAINS.BASE:
-        return BASE.getChainIds(isMainnet);
+        return BASE.getChainIds(isMainnet)
       case CHAINS.OPTIMISM:
-        return OP.getChainIds(isMainnet);
+        return OP.getChainIds(isMainnet)
       case CHAINS.TON:
-        return TON.getChainIds(isMainnet);
+        return TON.getChainIds(isMainnet)
       default:
-        return CHAINIDS.NONE;
+        return CHAINIDS.NONE
     }
   }
 
   static getChains(nodeChain: CHAINIDS): CHAINS {
     switch (nodeChain) {
       case (CHAINIDS.BITCOIN, CHAINIDS.BITCOIN_TESTNET):
-        return CHAINS.BITCOIN;
+        return CHAINS.BITCOIN
       case (CHAINIDS.LITECOIN, CHAINIDS.LITECOIN_TESTNET):
-        return CHAINS.LITECOIN;
+        return CHAINS.LITECOIN
       case (CHAINIDS.XRP, CHAINIDS.XRP_TESTNET):
-        return CHAINS.XRP;
+        return CHAINS.XRP
       case (CHAINIDS.BITCOINCASH, CHAINIDS.BITCOINCASH_TESTNET):
-        return CHAINS.BITCOINCASH;
+        return CHAINS.BITCOINCASH
       case (CHAINIDS.ETHEREUM, CHAINIDS.ETHEREUM_SEPOLIA):
-        return CHAINS.ETHEREUM;
+        return CHAINS.ETHEREUM
       case (CHAINIDS.TRON, CHAINIDS.TRON_NILE):
-        return CHAINS.TRON;
+        return CHAINS.TRON
       case (CHAINIDS.SOLANA, CHAINIDS.SOLANA_DEVNET):
-        return CHAINS.SOLANA;
+        return CHAINS.SOLANA
       case (CHAINIDS.BSC, CHAINIDS.BSC_TESTNET):
-        return CHAINS.BSC;
+        return CHAINS.BSC
       case (CHAINIDS.ARBITRUM_ONE, CHAINIDS.ARBITRUM_SEPOLIA):
-        return CHAINS.ARBITRUM;
+        return CHAINS.ARBITRUM
       case CHAINIDS.ARBITRUM_NOVA:
-        return CHAINS.ARBITRUMNOVA;
+        return CHAINS.ARBITRUMNOVA
       case (CHAINIDS.AVALANCHE, CHAINIDS.AVALANCHE_TESTNET):
-        return CHAINS.AVALANCHE;
+        return CHAINS.AVALANCHE
       case (CHAINIDS.POLYGON, CHAINIDS.POLYGON_TESTNET):
-        return CHAINS.POLYGON;
+        return CHAINS.POLYGON
       case (CHAINIDS.BASE, CHAINIDS.BASE_SEPOLIA):
-        return CHAINS.BASE;
+        return CHAINS.BASE
       case (CHAINIDS.OPTIMISM, CHAINIDS.OPTIMISM_SEPOLIA):
-        return CHAINS.OPTIMISM;
+        return CHAINS.OPTIMISM
       case (CHAINIDS.TON, CHAINIDS.TON_TESTNET):
-        return CHAINS.TON;
+        return CHAINS.TON
       default:
-        return CHAINS.BITCOIN;
+        return CHAINS.BITCOIN
     }
   }
 
-  static getBlockchainAddressTransactionUrl(isMainnet: boolean, chain: CHAINS, address: string): string {
-    const realChainId = this.getChainIds(isMainnet, chain);
+  static getBlockchainAddressTransactionUrl(
+    isMainnet: boolean,
+    chain: CHAINS,
+    address: string
+  ): string {
+    const realChainId = this.getChainIds(isMainnet, chain)
 
-    return BLOCKSCAN.getBlockchainAddressTransactionUrl(realChainId.toString(), address);
+    return BLOCKSCAN.getBlockchainAddressTransactionUrl(realChainId.toString(), address)
   }
 
-  static async getAssetBalance(isMainnet: boolean, chain: CHAINS, address: string): Promise<AssetBalance> {
+  static async getAssetBalance(
+    isMainnet: boolean,
+    chain: CHAINS,
+    address: string
+  ): Promise<AssetBalance> {
     switch (chain) {
       case CHAINS.BITCOIN:
-        return await BTC.getAssetBalance(isMainnet, address);
+        return await BTC.getAssetBalance(isMainnet, address)
       case CHAINS.LITECOIN:
-        return await LTC.getAssetBalance(isMainnet, address);
+        return await LTC.getAssetBalance(isMainnet, address)
       case CHAINS.XRP:
-        return await XRP.getAssetBalance(isMainnet, address);
+        return await XRP.getAssetBalance(isMainnet, address)
       case CHAINS.BITCOINCASH:
-        return await BITCOINCASH.getAssetBalance(isMainnet, address);
+        return await BITCOINCASH.getAssetBalance(isMainnet, address)
       case CHAINS.ETHEREUM:
-        return await ETH.getAssetBalance(isMainnet, address);
+        return await ETH.getAssetBalance(isMainnet, address)
       case CHAINS.TRON:
-        return await TRON.getAssetBalance(isMainnet, address);
+        return await TRON.getAssetBalance(isMainnet, address)
       case CHAINS.SOLANA:
-        return await SOLANA.getAssetBalance(isMainnet, address);
+        return await SOLANA.getAssetBalance(isMainnet, address)
       case CHAINS.BSC:
-        return await BSC.getAssetBalance(isMainnet, address);
+        return await BSC.getAssetBalance(isMainnet, address)
       case CHAINS.ARBITRUM:
-        return await ARB.getAssetBalance(isMainnet, address);
+        return await ARB.getAssetBalance(isMainnet, address)
       case CHAINS.ARBITRUMNOVA:
-        return await ARBNOVA.getAssetBalance(address);
+        return await ARBNOVA.getAssetBalance(address)
       case CHAINS.AVALANCHE:
-        return await AVAX.getAssetBalance(isMainnet, address);
+        return await AVAX.getAssetBalance(isMainnet, address)
       case CHAINS.POLYGON:
-        return await POL.getAssetBalance(isMainnet, address);
+        return await POL.getAssetBalance(isMainnet, address)
       case CHAINS.BASE:
-        return await BASE.getAssetBalance(isMainnet, address);
+        return await BASE.getAssetBalance(isMainnet, address)
       case CHAINS.OPTIMISM:
-        return await OP.getAssetBalance(isMainnet, address);
+        return await OP.getAssetBalance(isMainnet, address)
       case CHAINS.TON:
-        return await TON.getAssetBalance(isMainnet, address);
+        return await TON.getAssetBalance(isMainnet, address)
       default:
-        return {} as AssetBalance;
+        return {} as AssetBalance
     }
   }
 
   static async getNonce(isMainnet: boolean, chain: CHAINS, address: string): Promise<number> {
     switch (chain) {
       case CHAINS.ETHEREUM:
-        return await ETH.getNonce(isMainnet, address);
+        return await ETH.getNonce(isMainnet, address)
       case CHAINS.BSC:
-        return await BSC.getNonce(isMainnet, address);
+        return await BSC.getNonce(isMainnet, address)
       case CHAINS.ARBITRUM:
-        return await ARB.getNonce(isMainnet, address);
+        return await ARB.getNonce(isMainnet, address)
       case CHAINS.ARBITRUMNOVA:
-        return await ARBNOVA.getNonce(address);
+        return await ARBNOVA.getNonce(address)
       case CHAINS.OPTIMISM:
-        return await OP.getNonce(isMainnet, address);
+        return await OP.getNonce(isMainnet, address)
       case CHAINS.BASE:
-        return await BASE.getNonce(isMainnet, address);
+        return await BASE.getNonce(isMainnet, address)
       case CHAINS.POLYGON:
-        return await POL.getNonce(isMainnet, address);
+        return await POL.getNonce(isMainnet, address)
       case CHAINS.AVALANCHE:
-        return await AVAX.getNonce(isMainnet, address);
+        return await AVAX.getNonce(isMainnet, address)
       default:
-        return 0;
+        return 0
     }
   }
 
@@ -445,216 +459,229 @@ export class WEB3 {
     contractAddress: string,
     from: string,
     to: string,
-    value: string,
+    value: string
   ): Promise<number> {
     switch (chain) {
       case CHAINS.ETHEREUM:
-        return await ETH.getGasLimit(isMainnet, contractAddress, from, to, value);
+        return await ETH.getGasLimit(isMainnet, contractAddress, from, to, value)
       case CHAINS.BSC:
-        return await BSC.getGasLimit(isMainnet, contractAddress, from, to, value);
+        return await BSC.getGasLimit(isMainnet, contractAddress, from, to, value)
       case CHAINS.ARBITRUM:
-        return await ARB.getGasLimit(isMainnet, contractAddress, from, to, value);
+        return await ARB.getGasLimit(isMainnet, contractAddress, from, to, value)
       case CHAINS.ARBITRUMNOVA:
-        return await ARBNOVA.getGasLimit(contractAddress, from, to, value);
+        return await ARBNOVA.getGasLimit(contractAddress, from, to, value)
       case CHAINS.OPTIMISM:
-        return await OP.getGasLimit(isMainnet, contractAddress, from, to, value);
+        return await OP.getGasLimit(isMainnet, contractAddress, from, to, value)
       case CHAINS.BASE:
-        return await BASE.getGasLimit(isMainnet, contractAddress, from, to, value);
+        return await BASE.getGasLimit(isMainnet, contractAddress, from, to, value)
       case CHAINS.POLYGON:
-        return await POL.getGasLimit(isMainnet, contractAddress, from, to, value);
+        return await POL.getGasLimit(isMainnet, contractAddress, from, to, value)
       case CHAINS.AVALANCHE:
-        return await AVAX.getGasLimit(isMainnet, contractAddress, from, to, value);
+        return await AVAX.getGasLimit(isMainnet, contractAddress, from, to, value)
       default:
-        return 0;
+        return 0
     }
   }
 
   static async getMaxPriortyFee(isMainnet: boolean, chain: CHAINS): Promise<any> {
     switch (chain) {
       case CHAINS.ETHEREUM:
-        return await ETH.getMaxPriorityFeePerGas(isMainnet);
+        return await ETH.getMaxPriorityFeePerGas(isMainnet)
       case CHAINS.ARBITRUM:
-        return await ARB.getMaxPriorityFeePerGas(isMainnet);
+        return await ARB.getMaxPriorityFeePerGas(isMainnet)
       case CHAINS.ARBITRUMNOVA:
-        return await ARBNOVA.getMaxPriorityFeePerGas();
+        return await ARBNOVA.getMaxPriorityFeePerGas()
       case CHAINS.OPTIMISM:
-        return await OP.getMaxPriorityFeePerGas(isMainnet);
+        return await OP.getMaxPriorityFeePerGas(isMainnet)
       case CHAINS.BASE:
-        return await BASE.getMaxPriorityFeePerGas(isMainnet);
+        return await BASE.getMaxPriorityFeePerGas(isMainnet)
       case CHAINS.POLYGON:
-        return await POL.getMaxPriorityFeePerGas(isMainnet);
+        return await POL.getMaxPriorityFeePerGas(isMainnet)
       case CHAINS.AVALANCHE:
-        return await AVAX.getMaxPriorityFeePerGas(isMainnet);
+        return await AVAX.getMaxPriorityFeePerGas(isMainnet)
       default:
-        return 0;
+        return 0
     }
   }
 
-  static async getTransactionDetail(isMainnet: boolean, chain: CHAINS, hash: string): Promise<TransactionDetail> {
+  static async getTransactionDetail(
+    isMainnet: boolean,
+    chain: CHAINS,
+    hash: string
+  ): Promise<TransactionDetail> {
     switch (chain) {
       case CHAINS.BITCOIN:
-        return await BTC.getTransactionDetail(isMainnet, hash);
+        return await BTC.getTransactionDetail(isMainnet, hash)
       case CHAINS.LITECOIN:
-        return await LTC.getTransactionDetail(isMainnet, hash);
+        return await LTC.getTransactionDetail(isMainnet, hash)
       case CHAINS.XRP:
-        return await XRP.getTransactionDetail(isMainnet, hash);
+        return await XRP.getTransactionDetail(isMainnet, hash)
       case CHAINS.BITCOINCASH:
-        return await BITCOINCASH.getTransactionDetail(isMainnet, hash);
+        return await BITCOINCASH.getTransactionDetail(isMainnet, hash)
       case CHAINS.ETHEREUM:
-        return await ETH.getTransactionDetail(isMainnet, hash);
+        return await ETH.getTransactionDetail(isMainnet, hash)
       case CHAINS.TRON:
-        return await TRON.getTransactionDetail(isMainnet, hash);
+        return await TRON.getTransactionDetail(isMainnet, hash)
       case CHAINS.SOLANA:
-        return await SOLANA.getTransactionDetail(isMainnet, hash);
+        return await SOLANA.getTransactionDetail(isMainnet, hash)
       case CHAINS.BSC:
-        return await BSC.getTransactionDetail(isMainnet, hash);
+        return await BSC.getTransactionDetail(isMainnet, hash)
       case CHAINS.ARBITRUM:
-        return await ARB.getTransactionDetail(isMainnet, hash);
+        return await ARB.getTransactionDetail(isMainnet, hash)
       case CHAINS.ARBITRUMNOVA:
-        return await ARBNOVA.getTransactionDetail(hash);
+        return await ARBNOVA.getTransactionDetail(hash)
       case CHAINS.AVALANCHE:
-        return await AVAX.getTransactionDetail(isMainnet, hash);
+        return await AVAX.getTransactionDetail(isMainnet, hash)
       case CHAINS.POLYGON:
-        return await POL.getTransactionDetail(isMainnet, hash);
+        return await POL.getTransactionDetail(isMainnet, hash)
       case CHAINS.BASE:
-        return await BASE.getTransactionDetail(isMainnet, hash);
+        return await BASE.getTransactionDetail(isMainnet, hash)
       case CHAINS.OPTIMISM:
-        return await OP.getTransactionDetail(isMainnet, hash);
+        return await OP.getTransactionDetail(isMainnet, hash)
       case CHAINS.TON:
-        return await TON.getTransactionDetail(isMainnet, hash);
+        return await TON.getTransactionDetail(isMainnet, hash)
       default:
-        return {} as TransactionDetail;
+        return {} as TransactionDetail
     }
   }
 
-  static async getTransactions(isMainnet: boolean, chain: CHAINS, address: string, token?: COIN): Promise<any[]> {
-    let txs;
+  static async getTransactions(
+    isMainnet: boolean,
+    chain: CHAINS,
+    address: string,
+    token?: COIN
+  ): Promise<any[]> {
+    let txs
 
     switch (chain) {
       case CHAINS.BITCOIN:
-        txs = await BTC.getTransactions(isMainnet, address);
-        break;
+        txs = await BTC.getTransactions(isMainnet, address)
+        break
       case CHAINS.LITECOIN:
-        txs = await LTC.getTransactions(isMainnet, address);
-        break;
+        txs = await LTC.getTransactions(isMainnet, address)
+        break
       case CHAINS.XRP:
-        txs = await XRP.getTransactions(isMainnet, address);
-        break;
+        txs = await XRP.getTransactions(isMainnet, address)
+        break
       case CHAINS.BITCOINCASH:
-        txs = await BITCOINCASH.getTransactions(isMainnet, address);
-        break;
+        txs = await BITCOINCASH.getTransactions(isMainnet, address)
+        break
       case CHAINS.ETHEREUM:
-        txs = await ETH.getTransactions(isMainnet, address, token?.symbol);
-        break;
+        txs = await ETH.getTransactions(isMainnet, address, token?.symbol)
+        break
       case CHAINS.TRON:
-        txs = await TRON.getTransactions(isMainnet, address, token?.symbol);
-        break;
+        txs = await TRON.getTransactions(isMainnet, address, token?.symbol)
+        break
       case CHAINS.SOLANA:
-        txs = await SOLANA.getTransactions(isMainnet, address);
-        break;
+        txs = await SOLANA.getTransactions(isMainnet, address)
+        break
       case CHAINS.BSC:
-        txs = await BSC.getTransactions(isMainnet, address, token?.symbol);
-        break;
+        txs = await BSC.getTransactions(isMainnet, address, token?.symbol)
+        break
       case CHAINS.ARBITRUM:
-        txs = await ARB.getTransactions(isMainnet, address, token?.symbol);
-        break;
+        txs = await ARB.getTransactions(isMainnet, address, token?.symbol)
+        break
       case CHAINS.ARBITRUMNOVA:
-        txs = await ARBNOVA.getTransactions(address, token?.symbol);
-        break;
+        txs = await ARBNOVA.getTransactions(address, token?.symbol)
+        break
       case CHAINS.AVALANCHE:
-        txs = await AVAX.getTransactions(isMainnet, address, token?.symbol);
-        break;
+        txs = await AVAX.getTransactions(isMainnet, address, token?.symbol)
+        break
       case CHAINS.POLYGON:
-        txs = await POL.getTransactions(isMainnet, address, token?.symbol);
-        break;
+        txs = await POL.getTransactions(isMainnet, address, token?.symbol)
+        break
       case CHAINS.BASE:
-        txs = await BASE.getTransactions(isMainnet, address, token?.symbol);
-        break;
+        txs = await BASE.getTransactions(isMainnet, address, token?.symbol)
+        break
       case CHAINS.OPTIMISM:
-        txs = await OP.getTransactions(isMainnet, address, token?.symbol);
-        break;
+        txs = await OP.getTransactions(isMainnet, address, token?.symbol)
+        break
       case CHAINS.TON:
-        txs = await TON.getTransactions(isMainnet, address, token?.symbol);
-        break;
+        txs = await TON.getTransactions(isMainnet, address, token?.symbol)
+        break
       default:
-        return [];
+        return []
     }
 
     txs = txs.map((item: any) => {
       return {
         ...item,
         chainId: WEB3.getChains(item.chainId),
-      };
-    });
+      }
+    })
 
-    return txs;
+    return txs
   }
 
   static async sendTransaction(isMainnet: boolean, req: SendTransaction): Promise<string> {
     switch (req.coin.chainId) {
       case CHAINS.BITCOIN:
-        return await BTC.sendTransaction(isMainnet, req);
+        return await BTC.sendTransaction(isMainnet, req)
       case CHAINS.LITECOIN:
-        return await LTC.sendTransaction(isMainnet, req);
+        return await LTC.sendTransaction(isMainnet, req)
       case CHAINS.XRP:
-        return await XRP.sendTransaction(isMainnet, req);
+        return await XRP.sendTransaction(isMainnet, req)
       case CHAINS.BITCOINCASH:
-        return await BITCOINCASH.sendTransaction(isMainnet, req);
+        return await BITCOINCASH.sendTransaction(isMainnet, req)
       case CHAINS.ETHEREUM:
-        return await ETH.sendTransaction(isMainnet, req);
+        return await ETH.sendTransaction(isMainnet, req)
       case CHAINS.TRON:
-        return await TRON.sendTransaction(isMainnet, req);
+        return await TRON.sendTransaction(isMainnet, req)
       case CHAINS.SOLANA:
-        return await SOLANA.sendTransaction(isMainnet, req);
+        return await SOLANA.sendTransaction(isMainnet, req)
       case CHAINS.BSC:
-        return await BSC.sendTransaction(isMainnet, req);
+        return await BSC.sendTransaction(isMainnet, req)
       case CHAINS.ARBITRUM:
-        return await ARB.sendTransaction(isMainnet, req);
+        return await ARB.sendTransaction(isMainnet, req)
       case CHAINS.ARBITRUMNOVA:
-        return await ARBNOVA.sendTransaction(req);
+        return await ARBNOVA.sendTransaction(req)
       case CHAINS.AVALANCHE:
-        return await AVAX.sendTransaction(isMainnet, req);
+        return await AVAX.sendTransaction(isMainnet, req)
       case CHAINS.POLYGON:
-        return await POL.sendTransaction(isMainnet, req);
+        return await POL.sendTransaction(isMainnet, req)
       case CHAINS.BASE:
-        return await BASE.sendTransaction(isMainnet, req);
+        return await BASE.sendTransaction(isMainnet, req)
       case CHAINS.OPTIMISM:
-        return await OP.sendTransaction(isMainnet, req);
+        return await OP.sendTransaction(isMainnet, req)
       case CHAINS.TON:
-        return await TON.sendTransaction(isMainnet, req);
+        return await TON.sendTransaction(isMainnet, req)
       default:
-        return '';
+        return ''
     }
   }
 
-  static async getAccountResource(isMainnet: boolean, chain: CHAINS, address: string): Promise<any> {
+  static async getAccountResource(
+    isMainnet: boolean,
+    chain: CHAINS,
+    address: string
+  ): Promise<any> {
     switch (chain) {
       case CHAINS.TRON:
-        return await TRON.getAccountResource(isMainnet, address);
+        return await TRON.getAccountResource(isMainnet, address)
       default:
-        return null;
+        return null
     }
   }
 
   static async getTokenTrustLine(isMainnet: boolean, chain: CHAINS, address: string): Promise<any> {
     switch (chain) {
       case CHAINS.XRP:
-        return await XRP.getTokenTrustline(isMainnet, address);
+        return await XRP.getTokenTrustline(isMainnet, address)
       default:
-        return null;
+        return null
     }
   }
 
   static async createTokenTrustLine(
     isMainnet: boolean,
     chain: CHAINS,
-    req: CreateXrpTrustLineTransaction,
+    req: CreateXrpTrustLineTransaction
   ): Promise<any> {
     switch (chain) {
       case CHAINS.XRP:
-        return await XRP.createTokenTrustline(isMainnet, req);
+        return await XRP.createTokenTrustline(isMainnet, req)
       default:
-        return null;
+        return null
     }
   }
 }

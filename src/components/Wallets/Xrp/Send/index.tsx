@@ -105,7 +105,7 @@ const XrpSend = () => {
       if (response.result) {
         setFromAddress(response.data.address)
         setBalance(response.data.balance)
-        setMainCoin(response.data.main_coin.name)
+        setMainCoin(response.data.mainCoin.name)
 
         await getTokenTrustLine(response.data.address)
       }
@@ -133,11 +133,11 @@ const XrpSend = () => {
               balance: item.balance,
               currency: DecodeNonstandardCurrencyCode(item.currency),
               limit: item.limit,
-              limitPeer: item.limit_peer,
-              noRipple: item.no_ripple,
-              noRipplePeer: item.no_ripple_peer,
-              qualityIn: item.quality_in,
-              qualityOut: item.quality_out,
+              limitPeer: item.limitPeer,
+              noRipple: item.noRipple,
+              noRipplePeer: item.noRipplePeer,
+              qualityIn: item.qualityIn,
+              qualityOut: item.qualityOut,
             })
           })
           setTrustLines(tl)
@@ -159,7 +159,7 @@ const XrpSend = () => {
         },
       })
       if (response.result) {
-        setNetworkFee(response.data.base_fee)
+        setNetworkFee(response.data.baseFee)
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -180,7 +180,7 @@ const XrpSend = () => {
         response.data.forEach((item: any) => {
           rt.push({
             id: item.id,
-            chainId: item.chain_id,
+            chainId: item.chainId,
             isMainnet: item.network === 1 ? true : false,
             name: item.name,
             address: item.address,

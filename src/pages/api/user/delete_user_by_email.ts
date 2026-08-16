@@ -1,39 +1,39 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { PrismaClient } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
+import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    await CorsMiddleware(req, res, CorsMethod);
+    await CorsMiddleware(req, res, CorsMethod)
 
-    switch (req.method) {
-      case 'PUT':
-        const prisma = new PrismaClient();
-        const email = req.body.email;
-
-        const status = 2; // delete
-
-        const update_user = await prisma.users.update({
-          where: {
-            email: email,
-            status: 1,
-          },
-          data: {
-            status: status,
-          },
-        });
-
-        if (!update_user) {
-          return res.status(200).json({ message: '', result: false, data: null });
-        }
-
-        return res.status(200).json({ message: '', result: true, data: null });
-
-      default:
-        throw 'no support the method of api';
+    if (req.method !== HttpMethod.PUT) {
+      return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
+
+    const email = req.body.email
+    if (!email) {
+      return res.status(200).json({ message: 'Invalid email', result: false, data: null })
+    }
+
+    const status = 2 // delete
+
+    await prisma.users.update({
+      where: {
+        email: email,
+        status: 1,
+      },
+      data: {
+        status: status,
+      },
+    })
+
+    return res.status(200).json({ message: '', result: true, data: null })
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: 'no support the api', result: false, data: e });
+    console.error(e)
+    return res.status(500).json({
+      message: 'Internal server error',
+      result: false,
+      data: null,
+    })
   }
 }

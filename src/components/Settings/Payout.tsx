@@ -265,10 +265,10 @@ function StorePayoutTable(props: TableType) {
             rt.push({
               id: index + 1,
               pid: item.id,
-              chainId: item.chain_id,
-              showApprovePayoutProcess: item.show_approve_payout_process === 1,
+              chainId: item.chainId,
+              showApprovePayoutProcess: item.showApprovePayoutProcess === 1,
               interval: item.interval,
-              feeBlockTarget: item.fee_block_target,
+              feeBlockTarget: item.feeBlockTarget,
               threshold: item.threshold,
             })
           })

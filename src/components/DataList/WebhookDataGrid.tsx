@@ -132,10 +132,10 @@ export default function WebhookDataGrid(props: GridType) {
           const rt: RowType[] = response.data.map((item: any, index: number) => ({
             id: index + 1,
             webhookId: item.id,
-            automaticRedelivery: item.automatic_redelivery,
+            automaticRedelivery: item.automaticRedelivery,
             enabled: item.enabled,
-            eventType: item.event_type,
-            payloadUrl: item.payload_url,
+            eventType: item.eventType,
+            payloadUrl: item.payloadUrl,
             secret: item.secret,
             status: item.status,
           }))

@@ -40,7 +40,7 @@ const WalletsReceive = () => {
 
       if (response.result) {
         setAddress(response.data.address)
-        setMainCoin(response.data.main_coin)
+        setMainCoin(response.data.mainCoin)
       }
     } catch (e) {
       setSnackSeverity('error')

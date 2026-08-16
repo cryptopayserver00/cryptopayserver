@@ -41,7 +41,7 @@ export const Rates = () => {
       })
 
       if (response.result) {
-        setPriceSource(response.data.price_source)
+        setPriceSource(response.data.priceSource)
       }
     } catch (e) {
       setSnackSeverity('error')

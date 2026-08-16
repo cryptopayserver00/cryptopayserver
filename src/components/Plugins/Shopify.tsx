@@ -49,9 +49,9 @@ export const Shopify = () => {
 
       if (response.result) {
         setId(response.data.id)
-        setShopName(response.data.shop_name)
-        setApiKey(response.data.api_key)
-        setAdminApiAccessToken(response.data.admin_api_access_token)
+        setShopName(response.data.shopName)
+        setApiKey(response.data.apiKey)
+        setAdminApiAccessToken(response.data.adminApiAccessToken)
       }
     } catch (e) {
       setSnackSeverity('error')

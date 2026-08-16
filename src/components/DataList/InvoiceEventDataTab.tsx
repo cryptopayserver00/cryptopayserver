@@ -44,7 +44,7 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
           if (response.data.length > 0) {
             const rt: RowType[] = response.data.map((item: any, index: number) => ({
               id: index + 1,
-              date: new Date(item.created_at).toLocaleString(),
+              date: new Date(item.createdAt).toLocaleString(),
               message: item.message,
             }))
             setRows(rt)

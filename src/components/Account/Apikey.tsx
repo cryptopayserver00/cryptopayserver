@@ -292,7 +292,7 @@ function AccountApiKeyTable() {
           return {
             id: item.id,
             label: item.label,
-            key: item.api_key,
+            key: item.apiKey,
             permissions,
           }
         })

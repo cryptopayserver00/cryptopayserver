@@ -156,7 +156,7 @@ const WalletsSend = () => {
       if (response.result) {
         setFromAddress(response.data.address)
         setBalance(response.data.balance)
-        setMainCoin(response.data.main_coin.name)
+        setMainCoin(response.data.mainCoin.name)
 
         await getNonce(chainId, response.data.address)
       }
@@ -247,7 +247,7 @@ const WalletsSend = () => {
         response.data.forEach((item: any) => {
           rt.push({
             id: item.id,
-            chainId: item.chain_id,
+            chainId: item.chainId,
             isMainnet: item.network === 1 ? true : false,
             name: item.name,
             address: item.address,

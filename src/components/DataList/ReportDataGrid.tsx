@@ -83,21 +83,21 @@ export default function ReportDataGrid(props: GridType) {
         if (response.data.length > 0) {
           const rt: RowType[] = response.data.map((item: any, index: number) => ({
             id: index + 1,
-            storeName: item.store_name,
-            sourceType: item.source_type,
-            orderId: item.order_id,
-            chainId: item.chain_id,
-            chain: FindChainNamesByChains(item.chain_id),
-            cryptoAmount: item.crypto_amount + ' ' + item.crypto,
+            storeName: item.storeName,
+            sourceType: item.sourceType,
+            orderId: item.orderId,
+            chainId: item.chainId,
+            chain: FindChainNamesByChains(item.chainId),
+            cryptoAmount: item.cryptoAmount + ' ' + item.crypto,
             fiatAmount: CURRENCY_SYMBOLS[item.currency] + item.amount,
             rate: item.rate,
             description: item.description,
             metadata: item.metadata,
-            buyerEmail: item.buyer_email,
-            orderStatus: item.order_status,
-            paymentMethod: item.payment_method,
-            createdDate: new Date(item.created_at).toLocaleString(),
-            expirationDate: new Date(item.expiration_at).toLocaleString(),
+            buyerEmail: item.buyerEmail,
+            orderStatus: item.orderStatus,
+            paymentMethod: item.paymentMethod,
+            createdDate: new Date(item.createdAt).toLocaleString(),
+            expirationDate: new Date(item.expirationAt).toLocaleString(),
           }))
           setRows(rt)
         } else {

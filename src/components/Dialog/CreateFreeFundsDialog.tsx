@@ -61,7 +61,7 @@ export default function CreateFreeFundsDialog(props: DialogType) {
       if (response.result && response.data.length > 0) {
         const rt: RowType[] = response.data.map((item: any) => ({
           id: item.id,
-          chainId: item.chain_id,
+          chainId: item.chainId,
           isMainnet: item.network === 1,
           name: item.name,
           address: item.address,

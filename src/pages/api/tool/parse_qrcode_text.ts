@@ -1,24 +1,34 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { WEB3 } from '@/packages/web3';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
+import { WEB3 } from '@/packages/web3'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    await CorsMiddleware(req, res, CorsMethod);
+    await CorsMiddleware(req, res, CorsMethod)
 
-    switch (req.method) {
-      case 'GET':
-        const chainId = req.query.chain_id;
-        const text = req.query.text;
-
-        const result = WEB3.parseQRCodeText(Number(chainId), String(text));
-
-        return res.status(200).json({ message: '', result: true, data: result });
-      default:
-        throw 'no support the method of api';
+    if (req.method !== HttpMethod.GET) {
+      return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
+
+    const chainId = Number(req.query.chain_id)
+    if (!chainId) {
+      return res.status(200).json({ message: 'Invalid chainId', result: false, data: null })
+    }
+
+    const text = req.query.text
+    if (!text) {
+      return res.status(200).json({ message: 'Invalid text', result: false, data: null })
+    }
+
+    const result = WEB3.parseQRCodeText(chainId, String(text))
+
+    return res.status(200).json({ message: '', result: true, data: result })
   } catch (e) {
-    console.error(e);
-    return res.status(200).json({ message: '', result: false, data: e });
+    console.error(e)
+    return res.status(500).json({
+      message: 'Internal server error',
+      result: false,
+      data: null,
+    })
   }
 }

@@ -80,7 +80,7 @@ const CreateStore = () => {
         setStoreId(response.data.id)
         setStoreName(response.data.name)
         setStoreCurrency(response.data.currency)
-        setStorePriceSource(response.data.price_source)
+        setStorePriceSource(response.data.priceSource)
         setIsStore(true)
 
         resetWallet()

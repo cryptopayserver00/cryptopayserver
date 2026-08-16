@@ -102,11 +102,11 @@ export default function PullPaymentDataGrid(props: GridType) {
         if (response.data.length > 0) {
           const rt: RowType[] = response.data.map((item: any, index: number) => ({
             id: index + 1,
-            pullPaymentId: item.pull_payment_id,
+            pullPaymentId: item.pullPaymentId,
             name: item.name,
-            createdDate: new Date(item.created_at).toLocaleString(),
-            expirationDate: new Date(item.expiration_at).toLocaleString(),
-            showAutoApproveClaim: item.show_auto_approve_claim === 1 ? 'True' : 'False',
+            createdDate: new Date(item.createdAt).toLocaleString(),
+            expirationDate: new Date(item.expirationAt).toLocaleString(),
+            showAutoApproveClaim: item.showAutoApproveClaim === 1 ? 'True' : 'False',
             refunded: item.refunded,
           }))
           setRows(rt)

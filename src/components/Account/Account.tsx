@@ -104,7 +104,7 @@ const MainAccount = () => {
       if (response.result) {
         setName(response.data.username)
         setEmail(response.data.email)
-        setProfileUrl(response.data.profile_picture_url)
+        setProfileUrl(response.data.profilePictureUrl)
       }
     } catch (e) {
       setSnackSeverity('error')

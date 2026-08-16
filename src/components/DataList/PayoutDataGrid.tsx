@@ -159,15 +159,15 @@ export default function PayoutDataGrid(props: GridType) {
         if (response.data.length > 0) {
           const rt: RowType[] = response.data.map((item: any, index: number) => ({
             id: index + 1,
-            payoutId: item.payout_id,
-            chainId: item.chain_id,
+            payoutId: item.payoutId,
+            chainId: item.chainId,
             address: item.address,
-            createdDate: new Date(item.created_at).toLocaleString(),
+            createdDate: new Date(item.createdAt).toLocaleString(),
             refunded: CURRENCY_SYMBOLS[item.currency] + item.amount,
             crypto: item.crypto,
-            sourceType: item.source_type,
-            externalPaymentId: item.external_payment_id,
-            chainName: FindChainNamesByChains(item.chain_id),
+            sourceType: item.sourceType,
+            externalPaymentId: item.externalPaymentId,
+            chainName: FindChainNamesByChains(item.chainId),
             transaction: item.tx,
             url: '',
           }))

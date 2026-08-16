@@ -132,7 +132,7 @@ const UtxoChainWalletPage = ({
               address: item.address,
               type: item.note,
               balance: item.balance,
-              txUrl: item.tx_url,
+              txUrl: item.txUrl,
               transactions: item.transactions,
             })
           })
@@ -166,11 +166,11 @@ const UtxoChainWalletPage = ({
 
       if (response.result) {
         setSettingId(response.data.id)
-        setPaymentExpire(response.data.payment_expire)
-        setConfirmBlock(response.data.confirm_block)
-        setShowRecommendedFee(response.data.show_recommended_fee === 1)
+        setPaymentExpire(response.data.paymentExpire)
+        setConfirmBlock(response.data.confirmBlock)
+        setShowRecommendedFee(response.data.showRecommendedFee === 1)
         setCurrentUsedAddressId(
-          response.data.current_used_address_id ? response.data.current_used_address_id : 0
+          response.data.currentUsedAddressId ? response.data.currentUsedAddressId : 0
         )
       } else {
         setSnackSeverity('error')

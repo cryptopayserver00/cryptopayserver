@@ -1,73 +1,78 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { WEB3 } from '@/packages/web3';
-import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { GetSecureRandomString } from '@/utils/strings';
-import { PrismaClient } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { WEB3 } from '@/packages/web3'
+import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
+import { GetSecureRandomString } from '@/utils/strings'
+import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    await CorsMiddleware(req, res, CorsMethod);
+    await CorsMiddleware(req, res, CorsMethod)
 
-    switch (req.method) {
-      case 'POST':
-        const prisma = new PrismaClient();
-        const userId = req.body.user_id;
-        const storeId = req.body.store_id;
-        const import_wallet = req.body.import_wallet;
-        const walletAccount = await WEB3.generateWallet(import_wallet);
-        const name = GetSecureRandomString(12);
+    if (req.method !== HttpMethod.POST) {
+      return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
+    }
 
-        const wallet = await prisma.wallets.create({
+    const userId = Number(req.body.user_id)
+    if (!userId) {
+      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
+    }
+
+    const storeId = Number(req.body.store_id)
+    if (!storeId) {
+      return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
+    }
+
+    const importWallet = req.body.import_wallet
+    if (!importWallet) {
+      return res.status(200).json({ message: 'Invalid importWallet', result: false, data: null })
+    }
+
+    const walletAccount = await WEB3.generateWallet(importWallet)
+    const name = GetSecureRandomString(12)
+
+    const wallet = await prisma.wallets.create({
+      data: {
+        user_id: userId,
+        store_id: storeId,
+        name: name,
+        mnemonic: walletAccount.mnemonic,
+        is_backup: 2,
+        is_generate: walletAccount.isGenerate ? 1 : 2,
+        password: '',
+        status: 1,
+      },
+    })
+
+    walletAccount.account &&
+      walletAccount.account.length > 0 &&
+      walletAccount.account.forEach(async (item) => {
+        await prisma.addresses.create({
           data: {
             user_id: userId,
-            store_id: storeId,
-            name: name,
-            mnemonic: walletAccount.mnemonic,
-            is_backup: 2,
-            is_generate: walletAccount.isGenerate ? 1 : 2,
-            password: '',
+            wallet_id: wallet.id,
+            address: item.address,
+            chain_id: item.chain,
+            private_key: item.privateKey ? item.privateKey : '',
+            note: item.note ? item.note : '',
+            network: item.isMainnet ? 1 : 2,
             status: 1,
           },
-        });
+        })
+      })
 
-        if (!wallet) {
-          return res.status(200).json({ message: '', result: false, data: null });
-        }
-
-        walletAccount.account &&
-          walletAccount.account.length > 0 &&
-          walletAccount.account.forEach(async (item) => {
-            const address = await prisma.addresses.create({
-              data: {
-                user_id: userId,
-                wallet_id: wallet.id,
-                address: item.address,
-                chain_id: item.chain,
-                private_key: item.privateKey ? item.privateKey : '',
-                note: item.note ? item.note : '',
-                network: item.isMainnet ? 1 : 2,
-                status: 1,
-              },
-            });
-
-            if (!address) {
-              return res.status(200).json({ message: '', result: false, data: null });
-            }
-          });
-
-        return res.status(200).json({
-          message: '',
-          result: true,
-          data: {
-            wallet_id: wallet.id,
-          },
-        });
-
-      default:
-        throw 'no support the method of api';
-    }
+    return res.status(200).json({
+      message: '',
+      result: true,
+      data: {
+        walletId: wallet.id,
+      },
+    })
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: 'no support the api', result: false, data: e });
+    console.error(e)
+    return res.status(500).json({
+      message: 'Internal server error',
+      result: false,
+      data: null,
+    })
   }
 }

@@ -62,9 +62,9 @@ const SetPassword = () => {
         setSnackOpen(true)
 
         setTimeout(() => {
-          if (response.data.is_backup === 1) {
+          if (response.data.isBackup === 1) {
             router.push('/dashboard')
-          } else if (response.data.is_backup === 2) {
+          } else if (response.data.isBackup === 2) {
             router.push('/wallet/phrase/intro')
           } else {
             setSnackMessage('Input is wrong')

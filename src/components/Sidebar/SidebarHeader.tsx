@@ -78,7 +78,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
             id: item.id,
             name: item.name,
             currency: item.currency,
-            priceSource: item.price_source,
+            priceSource: item.priceSource,
           }))
         )
       } else {
@@ -129,7 +129,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
         setStoreId(response.data.id)
         setStoreName(response.data.name)
         setStoreCurrency(response.data.currency)
-        setStorePriceSource(response.data.price_source)
+        setStorePriceSource(response.data.priceSource)
 
         resetWallet()
 

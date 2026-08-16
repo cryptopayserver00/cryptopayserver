@@ -218,7 +218,7 @@ const PaymentInvoices = () => {
         setSnackMessage('Successful creation!')
         setSnackOpen(true)
         setTimeout(() => {
-          window.location.href = '/payments/invoices/' + response.data.order_id
+          window.location.href = '/payments/invoices/' + response.data.orderId
         }, 2000)
       }
     } catch (e) {

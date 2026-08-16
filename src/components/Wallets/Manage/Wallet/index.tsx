@@ -89,7 +89,7 @@ const ManageWallet = () => {
 
       if (response.result && response.data) {
         setWalletName(response.data.name)
-        setIsBackup(response.data.is_backup === 1 ? true : false)
+        setIsBackup(response.data.isBackup === 1 ? true : false)
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -180,10 +180,10 @@ const ManageWallet = () => {
               scan: false,
             }
 
-            const findBalance = respBalances?.find((item: any) => item.chain_id === coin.chainId)
+            const findBalance = respBalances?.find((item: any) => item.chainId === coin.chainId)
             blockchainCoin.address = findBalance.address ? findBalance?.address : ''
             blockchainCoin.enabled = respCoins?.find(
-              (item: any) => item.chain_id === coin.chainId && item.name === coin.name
+              (item: any) => item.chainId === coin.chainId && item.name === coin.name
             ).enabled
 
             if (respScan.result) {
@@ -191,7 +191,7 @@ const ManageWallet = () => {
             } else {
               const hasScan = respScan.data?.find(
                 (item: any) =>
-                  item.chain_id === coin.chainId && item.address === blockchainCoin.address
+                  item.chainId === coin.chainId && item.address === blockchainCoin.address
               )
 
               blockchainCoin.scan = hasScan ? false : true

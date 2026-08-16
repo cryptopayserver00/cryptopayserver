@@ -67,7 +67,7 @@ const ManagePrivateKey = () => {
           chainId: FindChainIdsByChainNames(item.name),
           isMainnet: item.isMainnet,
           address: element.address,
-          privateKey: element.private_key,
+          privateKey: element.privateKey,
           view: false,
         }))
 

@@ -99,7 +99,7 @@ const Tron = () => {
               address: item.address,
               type: item.note,
               balance: item.balance,
-              txUrl: item.tx_url,
+              txUrl: item.txUrl,
               transactions: item.transactions,
               resource: {
                 bandwidth: item.resource.bandwidth,
@@ -133,11 +133,11 @@ const Tron = () => {
 
       if (response.result) {
         setSettingId(response.data.id)
-        setPaymentExpire(response.data.payment_expire)
-        setConfirmBlock(response.data.confirm_block)
-        setShowRecommendedFee(response.data.show_recommended_fee === 1 ? true : false)
+        setPaymentExpire(response.data.paymentExpire)
+        setConfirmBlock(response.data.confirmBlock)
+        setShowRecommendedFee(response.data.showRecommendedFee === 1 ? true : false)
         setCurrentUsedAddressId(
-          response.data.current_used_address_id ? response.data.current_used_address_id : 0
+          response.data.currentUsedAddressId ? response.data.currentUsedAddressId : 0
         )
       } else {
         showSnack('error', 'The network error occurred. Please try again later.')

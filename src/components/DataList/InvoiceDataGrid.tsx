@@ -83,14 +83,14 @@ export default function InvoiceDataGrid(props: GridType) {
         if (response.data.length > 0) {
           const rt: RowType[] = response.data.map((item: any, index: number) => ({
             id: index + 1,
-            orderId: item.order_id,
-            sourceType: item.source_type,
+            orderId: item.orderId,
+            sourceType: item.sourceType,
             fiatAmount: CURRENCY_SYMBOLS[item.currency] + item.amount,
-            cryptoAmount: `${item.crypto_amount} ${item.crypto}`,
-            chain: FindChainNamesByChains(item.chain_id),
-            createdDate: new Date(item.created_at).toLocaleString(),
-            expirationDate: new Date(item.expiration_at).toLocaleString(),
-            orderStatus: item.order_status,
+            cryptoAmount: `${item.cryptoAmount} ${item.crypto}`,
+            chain: FindChainNamesByChains(item.chainId),
+            createdDate: new Date(item.createdAt).toLocaleString(),
+            expirationDate: new Date(item.expirationAt).toLocaleString(),
+            orderStatus: item.orderStatus,
           }))
           setRows(rt)
         } else {

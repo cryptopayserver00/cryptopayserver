@@ -101,7 +101,7 @@ const Login = () => {
             setStoreId(store_resp.data[0].id)
             setStoreName(store_resp.data[0].name)
             setStoreCurrency(store_resp.data[0].currency)
-            setStorePriceSource(store_resp.data[0].price_source)
+            setStorePriceSource(store_resp.data[0].priceSource)
             setIsStore(true)
 
             const wallet_resp: any = await axios.get(Http.find_wallet, {

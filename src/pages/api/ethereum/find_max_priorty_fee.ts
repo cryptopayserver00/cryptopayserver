@@ -1,26 +1,34 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { WEB3 } from '@/packages/web3';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
+import { WEB3 } from '@/packages/web3'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    await CorsMiddleware(req, res, CorsMethod);
+    await CorsMiddleware(req, res, CorsMethod)
 
-    switch (req.method) {
-      case 'GET':
-        const chainId = req.query.chain_id;
-        const network = req.query.network;
-
-        const fee = await WEB3.getMaxPriortyFee(Number(network) === 1 ? true : false, Number(chainId));
-
-        return res.status(200).json({ message: '', result: true, data: fee });
-      case 'POST':
-        break;
-      default:
-        throw 'no support the method of api';
+    if (req.method !== HttpMethod.GET) {
+      return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
+
+    const chainId = Number(req.query.chain_id)
+    if (!chainId) {
+      return res.status(200).json({ message: 'Invalid chainId', result: false, data: null })
+    }
+
+    const network = Number(req.query.network)
+    if (!network) {
+      return res.status(200).json({ message: 'Invalid network', result: false, data: null })
+    }
+
+    const fee = await WEB3.getMaxPriortyFee(network === 1, chainId)
+
+    return res.status(200).json({ message: '', result: true, data: fee })
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: '', result: false, data: e });
+    console.error(e)
+    return res.status(500).json({
+      message: 'Internal server error',
+      result: false,
+      data: null,
+    })
   }
 }

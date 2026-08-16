@@ -134,19 +134,19 @@ const XRP = () => {
           response.data.forEach(async (item: any) => {
             let tl: XrpTrustLineType[] = []
 
-            item.trust_line &&
-              item.trust_line.length > 0 &&
-              item.trust_line.map((trustItem: any) => {
+            item.trustLine &&
+              item.trustLine.length > 0 &&
+              item.trustLine.map((trustItem: any) => {
                 tl.push({
                   account: trustItem.account,
                   balance: trustItem.balance,
                   currency: DecodeNonstandardCurrencyCode(trustItem.currency),
                   limit: trustItem.limit,
-                  limitPeer: trustItem.limit_peer,
-                  noRipple: trustItem.no_ripple,
-                  noRipplePeer: trustItem.no_ripple_peer,
-                  qualityIn: trustItem.quality_in,
-                  qualityOut: trustItem.quality_out,
+                  limitPeer: trustItem.limitPeer,
+                  noRipple: trustItem.noRipple,
+                  noRipplePeer: trustItem.noRipplePeer,
+                  qualityIn: trustItem.qualityIn,
+                  qualityOut: trustItem.qualityOut,
                 })
               })
 
@@ -156,7 +156,7 @@ const XRP = () => {
               type: item.note,
               balance: item.balance,
               status: item.status,
-              txUrl: item.tx_url,
+              txUrl: item.txUrl,
               transactions: item.transactions,
               trustLine: tl,
             })
@@ -187,11 +187,11 @@ const XRP = () => {
 
       if (response.result) {
         setSettingId(response.data.id)
-        setPaymentExpire(response.data.payment_expire)
-        setConfirmBlock(response.data.confirm_block)
-        setShowRecommendedFee(response.data.show_recommended_fee === 1 ? true : false)
+        setPaymentExpire(response.data.paymentExpire)
+        setConfirmBlock(response.data.confirmBlock)
+        setShowRecommendedFee(response.data.showRecommendedFee === 1 ? true : false)
         setCurrentUsedAddressId(
-          response.data.current_used_address_id ? response.data.current_used_address_id : 0
+          response.data.currentUsedAddressId ? response.data.currentUsedAddressId : 0
         )
       } else {
         showSnack('error', 'The network error occurred. Please try again later.')
@@ -212,10 +212,10 @@ const XRP = () => {
       })
       if (response.result) {
         setFeeObj({
-          baseFee: response.data.base_fee,
-          medianFee: response.data.median_fee,
-          minimumFee: response.data.minimum_fee,
-          openLedgerFee: response.data.open_ledger_fee,
+          baseFee: response.data.baseFee,
+          medianFee: response.data.medianFee,
+          minimumFee: response.data.minimumFee,
+          openLedgerFee: response.data.openLedgerFee,
         })
       }
     } catch (e) {

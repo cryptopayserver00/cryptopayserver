@@ -84,13 +84,13 @@ const ImportMnemonicPhrase = () => {
       })
 
       if (import_wallet_resp.result) {
-        setWalletId(import_wallet_resp.data.wallet_id)
+        setWalletId(import_wallet_resp.data.walletId)
         setIsWallet(true)
         setSnackSeverity('success')
         setSnackMessage('Successful creation!')
         setSnackOpen(true)
 
-        await walletToBlockScan(import_wallet_resp.data.wallet_id)
+        await walletToBlockScan(import_wallet_resp.data.walletId)
 
         setTimeout(() => {
           window.location.href = '/wallet/setPassword'

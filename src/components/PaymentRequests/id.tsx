@@ -106,27 +106,22 @@ const PaymentRequestsDetails = () => {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let rt: PaymentRequestRowType[] = []
-          let paid = 0
-          response.data.forEach((item: any) => {
-            rt.push({
-              orderId: item.order_id,
-              amount: item.amount,
-              currency: item.currency,
-              orderStatus: item.order_status,
-            })
+        let paid = 0
+        const rows: PaymentRequestRowType[] = (response.data ?? []).map((item: any) => {
+          if (item.orderStatus === ORDER_STATUS.Settled) {
+            paid += parseFloat(item.amount)
+          }
 
-            if (item.order_status === ORDER_STATUS.Settled) {
-              paid += parseFloat(item.amount)
-            }
-          })
-          setPaymentRequestRows(rt)
-          setPaidAmount(paid)
-        } else {
-          setPaymentRequestRows([])
-          setPaidAmount(0)
-        }
+          return {
+            orderId: item.orderId,
+            amount: item.amount,
+            currency: item.currency,
+            orderStatus: item.orderStatus,
+          }
+        })
+
+        setPaymentRequestRows(rows)
+        setPaidAmount(paid)
       } else {
         showSnack('error', 'Can not find the data on site!')
       }
@@ -148,28 +143,28 @@ const PaymentRequestsDetails = () => {
 
       if (response.result) {
         setPaymentRequestData({
-          userId: response.data.user_id,
-          storeId: response.data.store_id,
-          storeName: response.data.store_name,
-          storeLogoUrl: response.data.store_logo_url,
-          storeWebsite: response.data.store_website,
-          paymentRequestId: response.data.payment_request_id,
+          userId: response.data.userId,
+          storeId: response.data.storeId,
+          storeName: response.data.storeName,
+          storeLogoUrl: response.data.storeLogoUrl,
+          storeWebsite: response.data.storeWebsite,
+          paymentRequestId: response.data.paymentRequestId,
           network: response.data.network,
           title: response.data.title,
           amount: response.data.amount,
           currency: response.data.currency,
           memo: response.data.memo,
-          expirationDate: new Date(response.data.expiration_at).getTime(),
-          paymentRequestStatus: response.data.payment_request_status,
-          requesCustomerData: response.data.reques_customer_data,
-          showAllowCustomAmount: response.data.show_allow_customAmount === 1 ? true : false,
+          expirationDate: new Date(response.data.expirationAt).getTime(),
+          paymentRequestStatus: response.data.paymentRequestStatus,
+          requesCustomerData: response.data.requesCustomerData,
+          showAllowCustomAmount: response.data.showAllowCustomAmount === 1 ? true : false,
           email: response.data.email,
         })
 
         await getPaymentHistory(
-          response.data.store_id,
+          response.data.storeId,
           response.data.network,
-          response.data.payment_request_id
+          response.data.paymentRequestId
         )
       }
     } catch (e) {
@@ -203,11 +198,11 @@ const PaymentRequestsDetails = () => {
         email: paymentRequestData?.email,
       })
 
-      if (response.result && response.data.order_id) {
+      if (response.result && response.data.orderId) {
         showSnack('success', 'Successful creation!')
 
         setTimeout(() => {
-          window.location.href = '/invoices/' + response.data.order_id
+          window.location.href = '/invoices/' + response.data.orderId
         }, 1000)
       }
     } catch (e) {

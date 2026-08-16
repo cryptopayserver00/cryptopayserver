@@ -1,34 +1,42 @@
-import Cors from 'cors';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import Cors from 'cors'
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+export const HttpMethod = {
+  GET: 'GET',
+  POST: 'POST',
+  PUT: 'PUT',
+  DELETE: 'DELETE',
+  HEAD: 'HEAD',
+}
 
 export const CorsMethod = Cors({
-  methods: ['POST', 'GET', 'PUT', 'DELETE', 'HEAD'],
-});
+  methods: [HttpMethod.POST, HttpMethod.GET, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.HEAD],
+})
 
 export function CorsMiddleware(req: NextApiRequest, res: NextApiResponse, fn: Function) {
   return new Promise((resolve, reject) => {
     fn(req, res, (result: any) => {
       if (result instanceof Error) {
-        return reject(result);
+        return reject(result)
       }
 
-      return resolve(result);
-    });
-  });
+      return resolve(result)
+    })
+  })
 }
 
 export type ResponseData = {
-  message?: string;
-  result?: boolean;
-  data?: any;
-};
+  message?: string
+  result?: boolean
+  data?: any
+}
 
 declare global {
   interface BigInt {
-    toJSON(): string;
+    toJSON(): string
   }
 }
 
 BigInt.prototype.toJSON = function () {
-  return String(this);
-};
+  return String(this)
+}

@@ -113,17 +113,17 @@ export default function PaymentRequestDataGrid(props: GridType) {
         if (response.data.length > 0) {
           const rt: RowType[] = response.data.map((item: any, index: number) => {
             let expiry = 'No Expiry'
-            if (item.expiration_at) {
-              expiry = new Date(item.expiration_at).toLocaleString()
+            if (item.expirationAt) {
+              expiry = new Date(item.expirationAt).toLocaleString()
             }
             return {
               id: index + 1,
               itemId: item.id,
-              paymentRequestId: item.payment_request_id,
+              paymentRequestId: item.paymentRequestId,
               amount: CURRENCY_SYMBOLS[item.currency] + item.amount,
               title: item.title,
               expirationDate: expiry,
-              status: item.payment_request_status,
+              status: item.paymentRequestStatus,
             }
           })
           setRows(rt)

@@ -63,7 +63,7 @@ export default function PaymentRequestSelectChainAndCryptoCard(props: SelectType
           if (respCoins && respCoins.length > 0) {
             newItem.coins = newItem.coins.filter((coin: COIN) => {
               const matchingCoin = respCoins.find(
-                (respCoin: any) => respCoin.chain_id === coin.chainId && respCoin.name === coin.name
+                (respCoin: any) => respCoin.chainId === coin.chainId && respCoin.name === coin.name
               )
               return !matchingCoin || matchingCoin.enabled !== 2
             })

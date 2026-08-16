@@ -70,32 +70,27 @@ const PullPaymentsDetails = () => {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let rt: PayoutRowType[] = []
-          let paid = 0
-          response.data.forEach((item: any) => {
-            rt.push({
-              chain: item.chain_id,
-              chainName: FindChainNamesByChains(item.chain_id as CHAINS),
-              address: item.address,
-              amount: item.amount,
-              cryptoAmount: item.crypto_amount,
-              crypto: item.crypto,
-              currency: item.currency,
-              tx: item.tx,
-              status: item.payout_status,
-            })
+        let paid = 0
+        const rows: PayoutRowType[] = (response.data ?? []).map((item: any) => {
+          if (item.payoutStatus === PAYOUT_STATUS.Completed) {
+            paid += parseFloat(item.amount)
+          }
 
-            if (item.payout_status === PAYOUT_STATUS.Completed) {
-              paid += parseFloat(item.amount)
-            }
-          })
-          setPayoutRows(rt)
-          setAlreadyClaim(paid)
-        } else {
-          setPayoutRows([])
-          setAlreadyClaim(0)
-        }
+          return {
+            chain: item.chainId,
+            chainName: FindChainNamesByChains(item.chainId as CHAINS),
+            address: item.address,
+            amount: item.amount,
+            cryptoAmount: item.cryptoAmount,
+            crypto: item.crypto,
+            currency: item.currency,
+            tx: item.tx,
+            status: item.payoutStatus,
+          }
+        })
+
+        setPayoutRows(rows)
+        setAlreadyClaim(paid)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Can not find the data on site!')
@@ -123,28 +118,28 @@ const PullPaymentsDetails = () => {
 
       if (response.result) {
         setPullPaymentData({
-          userId: response.data.user_id,
-          storeId: response.data.store_id,
+          userId: response.data.userId,
+          storeId: response.data.storeId,
           network: response.data.network,
-          pullPaymentId: response.data.pull_payment_id,
+          pullPaymentId: response.data.pullPaymentId,
           name: response.data.name,
-          storeName: response.data.store_name,
-          storeLogoUrl: response.data.store_logo_url,
-          storeWebsite: response.data.store_website,
+          storeName: response.data.storeName,
+          storeLogoUrl: response.data.storeLogoUrl,
+          storeWebsite: response.data.storeWebsite,
           amount: response.data.amount,
           currency: response.data.currency,
           description: response.data.description,
-          showAutoApproveClaim: response.data.show_auto_approve_claim === 1,
-          createdDate: new Date(response.data.created_at).getTime(),
-          updateDate: new Date(response.data.updated_at).getTime(),
-          expirationDate: new Date(response.data.expiration_at).getTime(),
-          pullPaymentStatus: response.data.pull_payment_status,
+          showAutoApproveClaim: response.data.showAutoApproveClaim === 1,
+          createdDate: new Date(response.data.createdAt).getTime(),
+          updateDate: new Date(response.data.updatedAt).getTime(),
+          expirationDate: new Date(response.data.expirationAt).getTime(),
+          pullPaymentStatus: response.data.pullPaymentStatus,
         })
 
         await getClaimsHistory(
-          response.data.store_id,
+          response.data.storeId,
           response.data.network,
-          response.data.pull_payment_id
+          response.data.pullPaymentId
         )
       }
     } catch (e) {

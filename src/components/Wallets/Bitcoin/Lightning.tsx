@@ -180,15 +180,15 @@ const Lightning = () => {
               text: item.text,
               kind: item.kind,
               server: item.server,
-              accessToken: item.access_token,
-              refreshToken: item.refresh_token,
+              accessToken: item.accessToken,
+              refreshToken: item.refreshToken,
               enabled: item.enabled === 1,
-              showAmountSatoshis: item.show_amount_satoshis === 1,
-              showHopHint: item.show_hop_hint === 1,
-              showUnifyUrlAndQrcode: item.show_unify_url_and_qrcode === 1,
-              showLnurl: item.show_lnurl === 1,
-              showLnurlClassicMode: item.show_lnurl_classic_mode === 1,
-              showAllowPayeePassComment: item.show_allow_payee_pass_comment === 1,
+              showAmountSatoshis: item.showAmountSatoshis === 1,
+              showHopHint: item.showHopHint === 1,
+              showUnifyUrlAndQrcode: item.showUnifyUrlAndQrcode === 1,
+              showLnurl: item.showLnurl === 1,
+              showLnurlClassicMode: item.showLnurlClassicMode === 1,
+              showAllowPayeePassComment: item.showAllowPayeePassComment === 1,
             })
           })
           setRows(rt)

@@ -175,7 +175,7 @@ const ManageAddressBook = () => {
         response.data.forEach((item: any) => {
           rt.push({
             id: item.id,
-            chainId: item.chain_id,
+            chainId: item.chainId,
             isMainnet: item.network === 1,
             name: item.name,
             address: item.address,

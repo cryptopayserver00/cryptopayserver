@@ -81,8 +81,8 @@ const InvoiceDetails = () => {
 
         if (order === undefined) {
           setCrypto(response.data.crypto)
-          setQrCode(response.data.qr_code_text)
-          setDestinationAddress(response.data.destination_address)
+          setQrCode(response.data.qrCodeText)
+          setDestinationAddress(response.data.destinationAddress)
         }
       } else {
         setSnackSeverity('error')

@@ -403,12 +403,12 @@ const Authentication = () => {
                       value={qrCode}
                       width={200}
                       height={200}
-                      imageSettings={{
-                        src: '',
-                        width: 35,
-                        height: 35,
-                        excavate: false,
-                      }}
+                      // imageSettings={{
+                      //   src: '',
+                      //   width: 35,
+                      //   height: 35,
+                      //   excavate: false,
+                      // }}
                     />
                   </div>
                 </div>

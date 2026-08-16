@@ -106,7 +106,7 @@ const Solana = () => {
               address: item.address,
               type: item.note,
               balance: item.balance,
-              txUrl: item.tx_url,
+              txUrl: item.txUrl,
               transactions: item.transactions,
             })
           })
@@ -136,9 +136,9 @@ const Solana = () => {
 
       if (response.result) {
         setSettingId(response.data.id)
-        setPaymentExpire(response.data.payment_expire)
+        setPaymentExpire(response.data.paymentExpire)
         setCurrentUsedAddressId(
-          response.data.current_used_address_id ? response.data.current_used_address_id : 0
+          response.data.currentUsedAddressId ? response.data.currentUsedAddressId : 0
         )
       } else {
         showSnack('error', 'The network error occurred. Please try again later.')

@@ -268,9 +268,9 @@ const Emails = () => {
         setLogin(response.data.login || '')
         setPassword(response.data.password || '')
         setPort(response.data.port || 0)
-        setSenderEmailAddress(response.data.sender_email || '')
-        setShowTls(response.data.show_tls === 1)
-        setSmtpServer(response.data.smtp_server || '')
+        setSenderEmailAddress(response.data.senderEmail || '')
+        setShowTls(response.data.showTls === 1)
+        setSmtpServer(response.data.smtpServer || '')
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -592,7 +592,7 @@ function EmailRuleTable(props: TableType) {
               to: item.recipients,
               subject: item.subject,
               body: item.body,
-              showSendToBuyer: item.show_send_to_buyer === 1,
+              showSendToBuyer: item.showSendToBuyer === 1,
             })
           })
           setRows(rt)

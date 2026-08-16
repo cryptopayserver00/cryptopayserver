@@ -88,22 +88,16 @@ function NotificationsTab() {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          let rt: RowType[] = []
-          response.data.forEach(async (item: any, index: number) => {
-            rt.push({
-              id: item.id,
-              label: item.label,
-              message: item.message,
-              isSeen: item.is_seen,
-              date: new Date(item.created_at).toLocaleString(),
-              url: item.url,
-            })
-          })
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+        const rows: RowType[] = (response.data ?? []).map((item: any) => ({
+          id: item.id,
+          label: item.label,
+          message: item.message,
+          isSeen: item.isSeen,
+          date: new Date(item.createdAt).toLocaleString(),
+          url: item.url,
+        }))
+
+        setRows(rows)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Can not find the data on site!')

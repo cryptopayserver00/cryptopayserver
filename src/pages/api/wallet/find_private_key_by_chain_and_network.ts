@@ -1,66 +1,66 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { ResponseData, CorsMiddleware, CorsMethod } from '..';
-import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain';
-import { PrismaClient } from '@prisma/client';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
+import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain'
+import { prisma } from '@/lib/prisma'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
-    await CorsMiddleware(req, res, CorsMethod);
+    await CorsMiddleware(req, res, CorsMethod)
 
-    switch (req.method) {
-      case 'GET':
-        const prisma = new PrismaClient();
-        const walletId = req.query.wallet_id;
-        const chainId = req.query.chain_id;
-        const network = req.query.network;
-
-        if (!chainId) {
-          return res.status(200).json({ message: '', result: false, data: '' });
-        }
-
-        let dbChainId = chainId || 0;
-
-        if (ETHEREUM_CATEGORY_CHAINS.includes(Number(dbChainId))) {
-          dbChainId = CHAINS.ETHEREUM;
-        }
-
-        const addresses = await prisma.addresses.findMany({
-          where: {
-            wallet_id: Number(walletId),
-            chain_id: Number(dbChainId),
-            network: Number(network),
-            status: 1,
-          },
-          select: {
-            address: true,
-            private_key: true,
-          },
-        });
-
-        if (!addresses) {
-          return res.status(200).json({ message: '', result: false, data: '' });
-        }
-
-        if (Array.isArray(addresses) && addresses.length > 0) {
-          const newRows = addresses.filter((item) => {
-            return {
-              address: item.address,
-              private_key: item.private_key,
-            };
-          });
-
-          return res.status(200).json({ message: '', result: true, data: newRows });
-        }
-
-        return res.status(200).json({ message: '', result: false, data: null });
-
-      case 'POST':
-        break;
-      default:
-        throw 'no support the method of api';
+    if (req.method !== HttpMethod.GET) {
+      return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
+
+    let chainId = Number(req.query.chain_id)
+    if (!chainId) {
+      return res.status(200).json({ message: 'Invalid chainId', result: false, data: null })
+    }
+
+    const network = Number(req.query.network)
+    if (!network) {
+      return res.status(200).json({ message: 'Invalid network', result: false, data: null })
+    }
+
+    const walletId = Number(req.query.wallet_id)
+    if (!walletId) {
+      return res.status(200).json({ message: 'Invalid walletId', result: false, data: null })
+    }
+
+    if (ETHEREUM_CATEGORY_CHAINS.includes(chainId)) {
+      chainId = CHAINS.ETHEREUM
+    }
+
+    const addresses = await prisma.addresses.findMany({
+      where: {
+        wallet_id: walletId,
+        chain_id: chainId,
+        network: network,
+        status: 1,
+      },
+      select: {
+        address: true,
+        private_key: true,
+      },
+    })
+
+    if (Array.isArray(addresses) && addresses.length > 0) {
+      const newRows = addresses.filter((item) => {
+        return {
+          address: item.address,
+          privateKey: item.private_key,
+        }
+      })
+
+      return res.status(200).json({ message: '', result: true, data: newRows })
+    }
+
+    return res.status(200).json({ message: '', result: false, data: null })
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: '', result: false, data: e });
+    console.error(e)
+    return res.status(500).json({
+      message: 'Internal server error',
+      result: false,
+      data: null,
+    })
   }
 }
