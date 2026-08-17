@@ -23,9 +23,10 @@ const Authentication = () => {
   const [isVerifying, setIsVerifying] = useState(false)
   const [isResetting, setIsResetting] = useState(false)
 
-  const { userEmail } = useUserPresistStore(
+  const { userEmail, userId } = useUserPresistStore(
     useShallow((state) => ({
       userEmail: state.userEmail,
+      userId: state.userId,
     }))
   )
 
@@ -37,13 +38,11 @@ const Authentication = () => {
     }))
   )
 
-  const init = async (userEmail: string) => {
+  const init = async (userId: number) => {
     try {
-      if (!userEmail) return
-
-      const response: any = await axios.get(Http.find_user_by_email, {
+      const response: any = await axios.get(Http.find_user_by_userid, {
         params: {
-          email: userEmail,
+          user_id: userId
         },
       })
 
@@ -71,14 +70,14 @@ const Authentication = () => {
   }
 
   useEffect(() => {
-    init(userEmail)
-  }, [userEmail])
+    init(userId)
+  }, [userId])
 
   const onClickResetApp = async () => {
     try {
       setIsResetting(true)
-      const response: any = await axios.put(Http.update_user_by_email, {
-        email: userEmail,
+      const response: any = await axios.put(Http.update_user_by_userid, {
+        user_id: userId,
         authenticator: '',
       })
 
@@ -86,7 +85,7 @@ const Authentication = () => {
         setSnackSeverity('success')
         setSnackMessage('Reset successful!')
         setSnackOpen(true)
-        await init(userEmail)
+        await init(userId)
         setPage(2)
       } else {
         setSnackSeverity('error')
@@ -109,8 +108,8 @@ const Authentication = () => {
     if (VerifyAuthenticator(code, text)) {
       try {
         setIsVerifying(true)
-        const response: any = await axios.put(Http.update_user_by_email, {
-          email: userEmail,
+        const response: any = await axios.put(Http.update_user_by_userid, {
+          user_id: userId,
           authenticator: text,
         })
 
@@ -118,7 +117,7 @@ const Authentication = () => {
           setSnackSeverity('success')
           setSnackMessage('Save successful!')
           setSnackOpen(true)
-          await init(userEmail)
+          await init(userId)
         } else {
           setSnackSeverity('error')
           setSnackMessage('Authentication failed!')

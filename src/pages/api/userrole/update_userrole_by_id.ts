@@ -17,8 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.email !== undefined) updateData.email = req.body.email
-    if (req.body.role !== undefined) updateData.role = req.body.role
+    if (req.body.email) updateData.email = req.body.email
+    if (req.body.role) updateData.role = req.body.role
 
     await prisma.user_roles.update({
       data: updateData,

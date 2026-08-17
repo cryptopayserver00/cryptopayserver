@@ -10,23 +10,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const email = req.body.email
-    if (!email) {
-      return res.status(200).json({ message: 'Invalid email', result: false, data: null })
+    const userId = Number(req.body.user_id)
+    if (!userId) {
+      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
     }
 
-    let updateData: { [key: string]: any } = {}
-
-    if (req.body.username !== undefined) updateData.username = req.body.username
-    if (req.body.profile_picture_url !== undefined)
-      updateData.profile_picture_url = req.body.profile_picture_url
-    if (req.body.authenticator !== undefined) updateData.authenticator = req.body.authenticator
+    const status = 2 // delete
 
     await prisma.users.update({
-      data: updateData,
       where: {
-        email: email,
+        id: userId,
         status: 1,
+      },
+      data: {
+        status: status,
       },
     })
 

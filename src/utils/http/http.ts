@@ -12,9 +12,10 @@ export class Http {
 
   // user
   static find_user_by_email = this.httpPath + '/user/find_user_by_email'
-  static update_user_by_email = this.httpPath + '/user/update_user_by_email'
-  static update_user_password_by_email = this.httpPath + '/user/update_user_password_by_email'
-  static delete_user_by_email = this.httpPath + '/user/delete_user_by_email'
+  static find_user_by_userid = this.httpPath + '/user/find_user_by_userid'
+  static update_user_by_userid = this.httpPath + '/user/update_user_by_userid'
+  static update_user_password_by_userid = this.httpPath + '/user/update_user_password_by_userid'
+  static delete_user_by_userid = this.httpPath + '/user/delete_user_by_userid'
   static create_user = this.httpPath + '/user/create_user'
   static login = this.httpPath + '/user/login'
   static send_reset_email = this.httpPath + '/user/send_reset_email'

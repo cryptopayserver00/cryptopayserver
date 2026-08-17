@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState, useRef } from 'react'
 import { Upload, Trash2, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -6,7 +8,17 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useSnackPresistStore } from '@/lib/store'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useSnackPresistStore, useStorePresistStore, useWalletPresistStore } from '@/lib/store'
 import { useUserPresistStore } from '@/lib/store/user'
 import { FILE_TYPE } from '@/packages/constants'
 import axios from '@/utils/http/axios'
@@ -21,11 +33,27 @@ const MainAccount = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { userEmail } = useUserPresistStore(
+  const { userId, resetUser } = useUserPresistStore(
     useShallow((state) => ({
-      userEmail: state.userEmail,
+      userId: state.userId,
+      resetUser: state.resetUser,
+    }))
+  )
+
+  const { resetStore } = useStorePresistStore(
+    useShallow((state) => ({
+      resetStore: state.resetStore,
+    }))
+  )
+
+  const { resetWallet } = useWalletPresistStore(
+    useShallow((state) => ({
+      resetWallet: state.resetWallet,
     }))
   )
 
@@ -37,28 +65,29 @@ const MainAccount = () => {
     }))
   )
 
+  const showSnack = (severity: 'success' | 'error', message: string) => {
+    setSnackSeverity(severity)
+    setSnackMessage(message)
+    setSnackOpen(true)
+  }
+
   const onClickSave = async () => {
     try {
       setIsSaving(true)
-      const response: any = await axios.put(Http.update_user_by_email, {
+      const response: any = await axios.put(Http.update_user_by_userid, {
+        user_id: userId,
         email,
         username: name,
         profile_picture_url: profileUrl,
       })
 
       if (response.result) {
-        setSnackSeverity('success')
-        setSnackMessage('Update successful!')
-        setSnackOpen(true)
+        showSnack('success', 'Update successful!')
       } else {
-        setSnackSeverity('error')
-        setSnackMessage('Update failed!')
-        setSnackOpen(true)
+        showSnack('error', 'Update failed!')
       }
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
-      setSnackOpen(true)
+      showSnack('error', 'The network error occurred. Please try again later.')
       console.error(e)
     } finally {
       setIsSaving(false)
@@ -68,36 +97,35 @@ const MainAccount = () => {
   const onClickDeleteAccount = async () => {
     try {
       setIsDeleting(true)
-      const response: any = await axios.put(Http.delete_user_by_email, {
-        email,
+      const response: any = await axios.put(Http.delete_user_by_userid, {
+        user_id: userId,
       })
 
       if (response.result) {
-        setSnackSeverity('success')
-        setSnackMessage('Delete successful!')
-        setSnackOpen(true)
+        resetUser()
+        resetStore()
+        resetWallet()
+        showSnack('success', 'Delete successful!')
+        setOpenDeleteDialog(false)
+        setTimeout(() => {
+          window.location.href = '/login'
+        }, 1000)
       } else {
-        setSnackSeverity('error')
-        setSnackMessage('Delete failed!')
-        setSnackOpen(true)
+        showSnack('error', 'Delete failed!')
       }
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
-      setSnackOpen(true)
+      showSnack('error', 'The network error occurred. Please try again later.')
       console.error(e)
     } finally {
       setIsDeleting(false)
     }
   }
 
-  const init = async (userEmail: string) => {
+  const init = async (userId: number) => {
     try {
-      if (!userEmail) return
-
-      const response: any = await axios.get(Http.find_user_by_email, {
+      const response: any = await axios.get(Http.find_user_by_userid, {
         params: {
-          email: userEmail,
+          user_id: userId,
         },
       })
 
@@ -107,23 +135,19 @@ const MainAccount = () => {
         setProfileUrl(response.data.profilePictureUrl)
       }
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
-      setSnackOpen(true)
+      showSnack('error', 'The network error occurred. Please try again later.')
       console.error(e)
     }
   }
 
   useEffect(() => {
-    init(userEmail)
-  }, [userEmail])
+    init(userId)
+  }, [userId])
 
   const uploadFile = async (files: FileList | null) => {
     try {
       if (!files || files.length !== 1) {
-        setSnackSeverity('error')
-        setSnackMessage('At least one file is required')
-        setSnackOpen(true)
+        showSnack('error', 'At least one file is required')
         return
       }
 
@@ -142,18 +166,12 @@ const MainAccount = () => {
 
       if (response.result && response.data.urls[0] !== '') {
         setProfileUrl(response.data.urls[0])
-        setSnackSeverity('success')
-        setSnackMessage('Upload success')
-        setSnackOpen(true)
+        showSnack('success', 'Upload success')
       } else {
-        setSnackSeverity('error')
-        setSnackMessage('Upload Failed')
-        setSnackOpen(true)
+        showSnack('error', 'Upload Failed')
       }
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
-      setSnackOpen(true)
+      showSnack('error', 'The network error occurred. Please try again later.')
       console.error(e)
     } finally {
       setIsUploading(false)
@@ -163,12 +181,21 @@ const MainAccount = () => {
     }
   }
 
+  const handleOpenChange = (open: boolean) => {
+    setOpenDeleteDialog(open)
+    if (!open) {
+      setConfirmText('')
+    }
+  }
+
+  const isConfirmMatched = confirmText === email
+
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Account Settings</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1 text-sm text-muted-foreground">
             Manage your profile information and account preferences
           </p>
         </div>
@@ -257,16 +284,55 @@ const MainAccount = () => {
             </div>
             <Button
               variant="destructive"
-              onClick={onClickDeleteAccount}
+              onClick={() => setOpenDeleteDialog(true)}
               disabled={isDeleting}
-              className="gap-2 shrink-0"
+              className="shrink-0 gap-2"
             >
               <Trash2 className="h-4 w-4" />
-              {isDeleting ? 'Deleting...' : 'Delete account'}
+              Delete account
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={openDeleteDialog} onOpenChange={handleOpenChange}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete your account, wallets, and all associated data. This
+              action <span className="font-semibold text-destructive">cannot be undone</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-2 py-2">
+            <Label htmlFor="confirm-email" className="text-sm">
+              Type <span className="font-mono font-semibold">{email}</span> to confirm
+            </Label>
+            <Input
+              id="confirm-email"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              autoComplete="off"
+              autoFocus
+            />
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!isConfirmMatched || isDeleting}
+              onClick={(e) => {
+                e.preventDefault()
+                onClickDeleteAccount()
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete account'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

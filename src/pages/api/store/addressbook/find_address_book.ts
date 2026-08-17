@@ -12,9 +12,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let findData: { [key: string]: any } = {}
 
-    if (req.query.store_id !== undefined) findData.store_id = Number(req.query.store_id)
-    if (req.query.network !== undefined) findData.network = Number(req.query.network)
-    if (req.query.chain_id !== undefined) findData.chain_id = Number(req.query.chain_id)
+    if (req.query.store_id) findData.store_id = Number(req.query.store_id)
+    if (req.query.network) findData.network = Number(req.query.network)
+    if (req.query.chain_id) findData.chain_id = Number(req.query.chain_id)
     findData.status = 1
 
     const address_books = await prisma.address_books.findMany({

@@ -16,22 +16,18 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
       return res.status(200).json({ message: 'Invalid email', result: false, data: null })
     }
 
-    const username = req.body.username
-    if (!username) {
-      return res.status(200).json({ message: 'Invalid username', result: false, data: null })
-    }
-
     const password = req.body.password
     if (!password) {
       return res.status(200).json({ message: 'Invalid password', result: false, data: null })
     }
 
+    const username = req.body.username
     const cryptoPassword = CryptoJS.SHA256(password).toString()
 
     await prisma.users.create({
       data: {
         email: email,
-        username: username,
+        username: username ? username : "",
         password: cryptoPassword,
         profile_picture_url: '',
         authenticator: '',

@@ -1,24 +1,24 @@
-import axios from 'axios';
-import { IS_DEVELOPMENT } from '@/packages/constants';
+import axios from 'axios'
+import { IS_DEVELOPMENT } from '@/packages/constants'
 
 export type BlockScanWalletType = {
-  address: string;
-  chain_id: number;
-};
+  address: string
+  chain_id: number
+}
 
 export class BLOCKSCAN {
-  static baseUrl = 'https://api.cryptopayserver.online/api';
+  static baseUrl = 'https://api.cryptopayserver.online/api'
 
   static axiosInstance = axios.create({
     timeout: 50000,
-  });
+  })
 
   static async bulkStoreUserWallet(bulk_storage: BlockScanWalletType[]): Promise<[boolean, any]> {
     try {
-      const url = this.baseUrl + '/bulkStoreUserWallet';
+      const url = this.baseUrl + '/bulkStoreUserWallet'
 
       if (!bulk_storage || bulk_storage.length <= 0) {
-        return [false, null];
+        return [false, null]
       }
 
       const response = await this.axiosInstance.post(
@@ -30,27 +30,32 @@ export class BLOCKSCAN {
           headers: {
             accept: 'application/json',
           },
-        },
-      );
+        }
+      )
 
       if (response && response.data) {
         if (response.data.code === 10200) {
-          return [true, null];
+          return [true, null]
         } else if (response.data.code === 10500) {
-          return [false, response.data.data.bulk_storage];
+          return [false, response.data.data.bulk_storage]
         }
       }
 
-      return [false, null];
+      return [false, null]
     } catch (e) {
-      console.error(e);
-      return [false, null];
+      console.error(e)
+      return [false, null]
     }
   }
 
-  static async getFreeCoin(chainId: number, address: string, coin: string, amount: string): Promise<string> {
+  static async getFreeCoin(
+    chainId: number,
+    address: string,
+    coin: string,
+    amount: string
+  ): Promise<string> {
     try {
-      const url = this.baseUrl + '/coinFree';
+      const url = this.baseUrl + '/coinFree'
       const response: any = await this.axiosInstance.get(url, {
         headers: {
           accept: 'application/json',
@@ -61,64 +66,64 @@ export class BLOCKSCAN {
           coin: coin,
           amount: amount,
         },
-      });
+      })
 
       if (response && response.data && response.data.code === 10200) {
-        return response.data.data.hash;
+        return response.data.data.hash
       }
 
-      return '';
+      return ''
     } catch (e) {
-      console.error(e);
-      return '';
+      console.error(e)
+      return ''
     }
   }
 
   static getBlockchainAddressTransactionUrl(chainids: string, address: string): string {
-    const url = this.baseUrl + '/getTransactionsByChainAndAddress';
-    const page = 0;
-    const pageSize = 10;
-    return `${url}/?chainids=${chainids}&addresses=${address}&page=${page}&page_size=${pageSize}`;
+    const url = this.baseUrl + '/getTransactionsByChainAndAddress'
+    const page = 0
+    const pageSize = 10
+    return `${url}/?chainids=${chainids}&addresses=${address}&page=${page}&page_size=${pageSize}`
   }
 
   static async getTransactionsByChainAndAddress(
     chainids?: string,
     addresses?: string,
     page?: number,
-    pageSize?: number,
+    pageSize?: number
   ): Promise<any> {
     try {
-      let findData: { [key: string]: any } = {};
+      let findData: { [key: string]: any } = {}
 
-      if (chainids !== undefined) findData.chainids = chainids;
-      if (addresses !== undefined) findData.addresses = addresses;
+      if (chainids) findData.chainids = chainids
+      if (addresses) findData.addresses = addresses
       if (page) {
-        findData.page = page;
+        findData.page = page
       } else {
-        findData.page = 1;
+        findData.page = 1
       }
 
       if (pageSize) {
-        findData.page_size = pageSize;
+        findData.page_size = pageSize
       } else {
-        findData.page_size = 10;
+        findData.page_size = 10
       }
 
-      const url = this.baseUrl + '/getTransactionsByChainAndAddress';
+      const url = this.baseUrl + '/getTransactionsByChainAndAddress'
       const response: any = await this.axiosInstance.get(url, {
         headers: {
           accept: 'application/json',
         },
         params: findData,
-      });
+      })
       if (response && response.data && response.data.code === 10200) {
-        return response.data.data;
+        return response.data.data
       }
 
-      return null;
+      return null
     } catch (e) {
-      console.error(e);
-      return null;
+      console.error(e)
+      return null
     }
   }
 }

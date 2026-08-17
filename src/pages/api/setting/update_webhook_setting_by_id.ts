@@ -17,12 +17,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.payload_url !== undefined) updateData.payload_url = req.body.payload_url
-    if (req.body.secret !== undefined) updateData.secret = req.body.secret
-    if (req.body.automatic_redelivery !== undefined)
+    if (req.body.payload_url) updateData.payload_url = req.body.payload_url
+    if (req.body.secret) updateData.secret = req.body.secret
+    if (req.body.automatic_redelivery)
       updateData.automatic_redelivery = Number(req.body.automatic_redelivery)
-    if (req.body.enabled !== undefined) updateData.enabled = Number(req.body.enabled)
-    if (req.body.event_type !== undefined) updateData.event_type = Number(req.body.event_type)
+    if (req.body.enabled) updateData.enabled = Number(req.body.enabled)
+    if (req.body.event_type) updateData.event_type = Number(req.body.event_type)
 
     await prisma.webhook_settings.update({
       data: updateData,

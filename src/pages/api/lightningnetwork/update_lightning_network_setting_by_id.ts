@@ -16,16 +16,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.show_amount_satoshis !== undefined)
+    if (req.body.show_amount_satoshis)
       updateData.show_amount_satoshis = Number(req.body.show_amount_satoshis)
-    if (req.body.show_hop_hint !== undefined)
-      updateData.show_hop_hint = Number(req.body.show_hop_hint)
-    if (req.body.show_unify_url_and_qrcode !== undefined)
+    if (req.body.show_hop_hint) updateData.show_hop_hint = Number(req.body.show_hop_hint)
+    if (req.body.show_unify_url_and_qrcode)
       updateData.show_unify_url_and_qrcode = Number(req.body.show_unify_url_and_qrcode)
-    if (req.body.show_lnurl !== undefined) updateData.show_lnurl = Number(req.body.show_lnurl)
-    if (req.body.show_lnurl_classic_mode !== undefined)
+    if (req.body.show_lnurl) updateData.show_lnurl = Number(req.body.show_lnurl)
+    if (req.body.show_lnurl_classic_mode)
       updateData.show_lnurl_classic_mode = Number(req.body.show_lnurl_classic_mode)
-    if (req.body.show_allow_payee_pass_comment !== undefined)
+    if (req.body.show_allow_payee_pass_comment)
       updateData.show_allow_payee_pass_comment = Number(req.body.show_allow_payee_pass_comment)
 
     const wallet_lightning_network = await prisma.wallet_lightning_networks.update({

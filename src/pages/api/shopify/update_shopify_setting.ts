@@ -17,9 +17,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.shop_name !== undefined) updateData.shop_name = req.body.shop_name
-    if (req.body.api_key !== undefined) updateData.api_key = req.body.api_key
-    if (req.body.admin_api_access_token !== undefined)
+    if (req.body.shop_name) updateData.shop_name = req.body.shop_name
+    if (req.body.api_key) updateData.api_key = req.body.api_key
+    if (req.body.admin_api_access_token)
       updateData.admin_api_access_token = req.body.admin_api_access_token
 
     await prisma.shopify_settings.update({

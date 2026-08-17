@@ -17,9 +17,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.label !== undefined) updateData.label = req.body.label
-    if (req.body.message !== undefined) updateData.message = req.body.message
-    if (req.body.is_seen !== undefined) updateData.is_seen = Number(req.body.is_seen)
+    if (req.body.label) updateData.label = req.body.label
+    if (req.body.message) updateData.message = req.body.message
+    if (req.body.is_seen) updateData.is_seen = Number(req.body.is_seen)
 
     const result = await prisma.notifications.updateMany({
       data: updateData,

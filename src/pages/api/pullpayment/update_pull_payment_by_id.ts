@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (req.method !== HttpMethod.PUT) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
-    
+
     const pullPaymentId = Number(req.body.id)
     if (!pullPaymentId) {
       return res.status(200).json({ message: 'Invalid pullPaymentId', result: false, data: null })
@@ -18,15 +18,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.name !== undefined) updateData.name = req.body.name
-    if (req.body.amount !== undefined) updateData.amount = Number(req.body.amount)
-    if (req.body.currency !== undefined) updateData.currency = req.body.currency
-    if (req.body.show_auto_approve_claim !== undefined)
+    if (req.body.name) updateData.name = req.body.name
+    if (req.body.amount) updateData.amount = Number(req.body.amount)
+    if (req.body.currency) updateData.currency = req.body.currency
+    if (req.body.show_auto_approve_claim)
       updateData.show_auto_approve_claim = Number(req.body.show_auto_approve_claim)
-    if (req.body.description !== undefined) updateData.description = req.body.description
-    if (req.body.payout_method !== undefined) updateData.payout_method = req.body.payout_method
-    if (req.body.pull_payment_status !== undefined)
-      updateData.pull_payment_status = req.body.pull_payment_status
+    if (req.body.description) updateData.description = req.body.description
+    if (req.body.payout_method) updateData.payout_method = req.body.payout_method
+    if (req.body.pull_payment_status) updateData.pull_payment_status = req.body.pull_payment_status
 
     await prisma.pull_payments.update({
       data: updateData,

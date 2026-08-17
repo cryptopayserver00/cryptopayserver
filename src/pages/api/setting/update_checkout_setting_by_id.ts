@@ -17,28 +17,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.show_payment_confetti !== undefined)
+    if (req.body.show_payment_confetti)
       updateData.show_payment_confetti = Number(req.body.show_payment_confetti)
-    if (req.body.show_sound !== undefined) updateData.show_sound = Number(req.body.show_sound)
-    if (req.body.show_pay_in_wallet_button !== undefined)
+    if (req.body.show_sound) updateData.show_sound = Number(req.body.show_sound)
+    if (req.body.show_pay_in_wallet_button)
       updateData.show_pay_in_wallet_button = Number(req.body.show_pay_in_wallet_button)
-    if (req.body.show_detect_language !== undefined)
+    if (req.body.show_detect_language)
       updateData.show_detect_language = Number(req.body.show_detect_language)
-    if (req.body.language !== undefined) updateData.language = req.body.language
-    if (req.body.custom_html_title !== undefined)
-      updateData.custom_html_title = req.body.custom_html_title
-    if (req.body.support_url !== undefined) updateData.support_url = req.body.support_url
-    if (req.body.show_payment_method !== undefined)
+    if (req.body.language) updateData.language = req.body.language
+    if (req.body.custom_html_title) updateData.custom_html_title = req.body.custom_html_title
+    if (req.body.support_url) updateData.support_url = req.body.support_url
+    if (req.body.show_payment_method)
       updateData.show_payment_method = Number(req.body.show_payment_method)
-    if (req.body.show_redirect_url !== undefined)
+    if (req.body.show_redirect_url)
       updateData.show_redirect_url = Number(req.body.show_redirect_url)
-    if (req.body.show_public_receipt_page !== undefined)
+    if (req.body.show_public_receipt_page)
       updateData.show_public_receipt_page = Number(req.body.show_public_receipt_page)
-    if (req.body.show_payment_list !== undefined)
+    if (req.body.show_payment_list)
       updateData.show_payment_list = Number(req.body.show_payment_list)
-    if (req.body.show_qrcode_receipt !== undefined)
+    if (req.body.show_qrcode_receipt)
       updateData.show_qrcode_receipt = Number(req.body.show_qrcode_receipt)
-    if (req.body.show_header !== undefined) updateData.show_header = Number(req.body.show_header)
+    if (req.body.show_header) updateData.show_header = Number(req.body.show_header)
 
     await prisma.checkout_settings.update({
       data: updateData,

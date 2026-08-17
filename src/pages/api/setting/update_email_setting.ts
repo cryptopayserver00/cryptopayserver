@@ -17,12 +17,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.smtp_server !== undefined) updateData.smtp_server = req.body.smtp_server
-    if (req.body.port !== undefined) updateData.port = Number(req.body.port)
-    if (req.body.sender_email !== undefined) updateData.sender_email = req.body.sender_email
-    if (req.body.login !== undefined) updateData.login = req.body.login
-    if (req.body.password !== undefined) updateData.password = req.body.password
-    if (req.body.show_tls !== undefined) updateData.show_tls = Number(req.body.show_tls)
+    if (req.body.smtp_server) updateData.smtp_server = req.body.smtp_server
+    if (req.body.port) updateData.port = Number(req.body.port)
+    if (req.body.sender_email) updateData.sender_email = req.body.sender_email
+    if (req.body.login) updateData.login = req.body.login
+    if (req.body.password) updateData.password = req.body.password
+    if (req.body.show_tls) updateData.show_tls = Number(req.body.show_tls)
 
     await prisma.email_settings.update({
       data: updateData,

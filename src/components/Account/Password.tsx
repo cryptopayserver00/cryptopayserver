@@ -19,9 +19,9 @@ const Password = () => {
   const [showConfirm, setShowConfirm] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
 
-  const { userEmail } = useUserPresistStore(
+  const { userId } = useUserPresistStore(
     useShallow((state) => ({
-      userEmail: state.userEmail,
+      userId: state.userId,
     }))
   )
 
@@ -53,8 +53,8 @@ const Password = () => {
 
       setIsUpdating(true)
 
-      const response: any = await axios.put(Http.update_user_password_by_email, {
-        email: userEmail,
+      const response: any = await axios.put(Http.update_user_password_by_userid, {
+        user_id: userId,
         old_password: oldPwd,
         new_password: newPwd,
       })

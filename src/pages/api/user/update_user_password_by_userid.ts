@@ -11,9 +11,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const email = req.body.email
-    if (!email) {
-      return res.status(200).json({ message: 'Invalid email', result: false, data: null })
+    const userId = Number(req.body.user_id)
+    if (!userId) {
+      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
     }
 
     const oldPwd = req.body.old_password
@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         password: newCryptoPassword,
       },
       where: {
-        email: email,
+        id: userId,
         password: oldCryptoPassword,
         status: 1,
       },

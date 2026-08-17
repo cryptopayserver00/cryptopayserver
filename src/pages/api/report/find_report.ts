@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     // let findData: { [key: string]: any } = {}
 
-    // if (req.query.start_date !== undefined) findData.start_date = req.body.start_date
+    // if (req.query.start_date) findData.start_date = req.body.start_date
 
     const reports = await prisma.invoices.findMany({
       where: {

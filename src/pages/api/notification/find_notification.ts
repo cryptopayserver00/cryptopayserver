@@ -11,9 +11,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
     let findData: { [key: string]: any } = {}
 
-    if (req.query.store_id !== undefined) findData.store_id = Number(req.query.store_id)
-    if (req.query.is_seen !== undefined) findData.is_seen = Number(req.query.is_seen)
-    if (req.query.network !== undefined) findData.network = Number(req.query.network)
+    if (req.query.store_id) findData.store_id = Number(req.query.store_id)
+    if (req.query.is_seen) findData.is_seen = Number(req.query.is_seen)
+    if (req.query.network) findData.network = Number(req.query.network)
     findData.status = 1
 
     const notifications = await prisma.notifications.findMany({

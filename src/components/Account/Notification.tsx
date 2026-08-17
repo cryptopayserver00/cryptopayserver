@@ -24,9 +24,10 @@ const Notification = () => {
     }))
   )
 
-  const { storeId } = useStorePresistStore(
+  const { storeId, isStore } = useStorePresistStore(
     useShallow((state) => ({
       storeId: state.storeId,
+      isStore: state.isStore,
     }))
   )
 
@@ -37,6 +38,10 @@ const Notification = () => {
       setSnackOpen: state.setSnackOpen,
     }))
   )
+
+  if (!isStore) {
+    return <div className="py-20 text-center">Not found store, please cerate one...</div>
+  }
 
   const getNotifications = async (userId: number, storeId: number) => {
     try {

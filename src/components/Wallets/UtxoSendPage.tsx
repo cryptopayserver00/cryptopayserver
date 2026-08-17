@@ -575,7 +575,7 @@ function Row({
             </span>
           )}
         </div>
-        {secondaryValue !== undefined && (
+        {secondaryValue && (
           <div className="relative">
             <Input value={secondaryValue} disabled className="w-[160px] pr-14 font-mono text-sm" />
             {secondarySuffix && (

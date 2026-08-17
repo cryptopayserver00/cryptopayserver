@@ -17,12 +17,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.show_approve_payout_process !== undefined)
+    if (req.body.show_approve_payout_process)
       updateData.show_approve_payout_process = Number(req.body.show_approve_payout_process)
-    if (req.body.interval !== undefined) updateData.interval = Number(req.body.interval)
-    if (req.body.fee_block_target !== undefined)
-      updateData.fee_block_target = Number(req.body.fee_block_target)
-    if (req.body.threshold !== undefined) updateData.threshold = Number(req.body.threshold)
+    if (req.body.interval) updateData.interval = Number(req.body.interval)
+    if (req.body.fee_block_target) updateData.fee_block_target = Number(req.body.fee_block_target)
+    if (req.body.threshold) updateData.threshold = Number(req.body.threshold)
 
     await prisma.payout_settings.update({
       data: updateData,

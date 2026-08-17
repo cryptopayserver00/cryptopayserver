@@ -17,10 +17,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.name !== undefined) updateData.name = req.body.name
-    if (req.body.address !== undefined) updateData.address = req.body.address
-    if (req.body.chain_id !== undefined) updateData.chain_id = Number(req.body.chain_id)
-    if (req.body.network !== undefined) updateData.network = Number(req.body.network)
+    if (req.body.name) updateData.name = req.body.name
+    if (req.body.address) updateData.address = req.body.address
+    if (req.body.chain_id) updateData.chain_id = Number(req.body.chain_id)
+    if (req.body.network) updateData.network = Number(req.body.network)
 
     const find_address_books = await prisma.address_books.findMany({
       where: {

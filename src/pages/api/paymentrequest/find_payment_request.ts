@@ -31,10 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (paymentRequestId && Number(paymentRequestId))
       whereData.payment_request_id = paymentRequestId
-    if (
-      paymentRequestStatus !== undefined &&
-      paymentRequestStatus !== PAYMENT_REQUEST_STATUS.AllStatus
-    )
+    if (paymentRequestStatus && paymentRequestStatus !== PAYMENT_REQUEST_STATUS.AllStatus)
       whereData.payment_request_status = paymentRequestStatus
 
     const payment_requests = await prisma.payment_requests.findMany({

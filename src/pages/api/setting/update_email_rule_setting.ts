@@ -17,12 +17,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.trigger !== undefined) updateData.trigger = Number(req.body.trigger)
-    if (req.body.recipients !== undefined) updateData.recipients = req.body.recipients
-    if (req.body.show_send_to_buyer !== undefined)
+    if (req.body.trigger) updateData.trigger = Number(req.body.trigger)
+    if (req.body.recipients) updateData.recipients = req.body.recipients
+    if (req.body.show_send_to_buyer)
       updateData.show_send_to_buyer = Number(req.body.show_send_to_buyer)
-    if (req.body.subject !== undefined) updateData.subject = req.body.subject
-    if (req.body.body !== undefined) updateData.body = req.body.body
+    if (req.body.subject) updateData.subject = req.body.subject
+    if (req.body.body) updateData.body = req.body.body
 
     await prisma.email_rule_settings.update({
       data: updateData,

@@ -18,10 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.payout_status !== undefined) updateData.payout_status = req.body.payout_status
-    if (req.body.tx !== undefined) updateData.tx = req.body.tx
-    if (req.body.crypto_amount !== undefined)
-      updateData.crypto_amount = Number(req.body.crypto_amount)
+    if (req.body.payout_status) updateData.payout_status = req.body.payout_status
+    if (req.body.tx) updateData.tx = req.body.tx
+    if (req.body.crypto_amount) updateData.crypto_amount = Number(req.body.crypto_amount)
 
     const payout = await prisma.payouts.update({
       data: updateData,

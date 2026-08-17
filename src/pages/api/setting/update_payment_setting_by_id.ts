@@ -17,13 +17,11 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.payment_expire !== undefined)
-      updateData.payment_expire = Number(req.body.payment_expire)
-    if (req.body.confirm_block !== undefined)
-      updateData.confirm_block = Number(req.body.confirm_block)
-    if (req.body.show_recommended_fee !== undefined)
+    if (req.body.payment_expire) updateData.payment_expire = Number(req.body.payment_expire)
+    if (req.body.confirm_block) updateData.confirm_block = Number(req.body.confirm_block)
+    if (req.body.show_recommended_fee)
       updateData.show_recommended_fee = Number(req.body.show_recommended_fee)
-    if (req.body.current_used_address_id !== undefined)
+    if (req.body.current_used_address_id)
       updateData.current_used_address_id = Number(req.body.current_used_address_id)
 
     await prisma.payment_settings.update({

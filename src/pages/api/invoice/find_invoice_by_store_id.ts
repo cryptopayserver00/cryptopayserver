@@ -34,8 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     whereData.status = 1
 
     if (orderId && Number(orderId)) whereData.order_id = orderId
-    if (orderStatus !== undefined && orderStatus !== ORDER_STATUS.AllStatus)
-      whereData.order_status = orderStatus
+    if (orderStatus && orderStatus !== ORDER_STATUS.AllStatus) whereData.order_status = orderStatus
 
     const date = new Date()
     switch (time) {

@@ -79,7 +79,7 @@ const InvoiceDetails = () => {
       if (response.result) {
         setOrder(response.data)
 
-        if (order === undefined) {
+        if (!order) {
           setCrypto(response.data.crypto)
           setQrCode(response.data.qrCodeText)
           setDestinationAddress(response.data.destinationAddress)

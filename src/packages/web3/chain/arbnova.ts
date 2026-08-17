@@ -112,7 +112,7 @@ export class ARBNOVA {
             throw new Error('Invalid QR code text format')
         }
 
-        if (matchText[4] !== undefined) {
+        if (matchText[4]) {
           tokenAddress = matchText[4]
           amount = matchText[6]
 

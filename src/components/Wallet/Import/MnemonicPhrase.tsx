@@ -53,10 +53,7 @@ const ImportMnemonicPhrase = () => {
   }
 
   const handleButtonClick = async () => {
-    if (
-      !phrase ||
-      phrase.filter((element) => element !== undefined && element !== '').length !== bit
-    ) {
+    if (!phrase || phrase.filter((element) => element).length !== bit) {
       setSnackSeverity('error')
       setSnackMessage('The input cannot be empty')
       setSnackOpen(true)
