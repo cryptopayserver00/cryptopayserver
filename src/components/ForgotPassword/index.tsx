@@ -37,7 +37,7 @@ const ForgotPassword = () => {
   }
 
   const onResetPassword = async () => {
-    if (!email || email === '' || !IsValidEmail(email)) {
+    if (!email || !IsValidEmail(email)) {
       showSnack('error', 'Incorrect email input')
       return
     }

@@ -76,7 +76,6 @@ const MainAccount = () => {
       setIsSaving(true)
       const response: any = await axios.put(Http.update_user_by_userid, {
         user_id: userId,
-        email,
         username: name,
         profile_picture_url: profileUrl,
       })
@@ -253,6 +252,7 @@ const MainAccount = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
+              disabled
             />
           </div>
 
