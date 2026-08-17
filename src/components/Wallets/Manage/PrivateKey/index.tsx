@@ -62,8 +62,8 @@ const ManagePrivateKey = () => {
         },
       })
 
-      if (response.result && response.data.length > 0) {
-        const rows: PrivateKeyRowType[] = response.data.map((element: any) => ({
+      if (response.result) {
+        const rows: PrivateKeyRowType[] = (response.data ?? []).map((element: any) => ({
           chainId: FindChainIdsByChainNames(item.name),
           isMainnet: item.isMainnet,
           address: element.address,

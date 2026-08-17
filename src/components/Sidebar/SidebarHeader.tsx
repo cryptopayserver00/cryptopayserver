@@ -137,7 +137,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
           params: { store_id: response.data.id },
         })
 
-        if (wallet_resp?.result) {
+        if (wallet_resp.result) {
           setWalletId(wallet_resp.data.id)
           setIsWallet(true)
         }

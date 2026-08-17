@@ -113,13 +113,12 @@ const InvoiceDetails = () => {
     }
   }, [id])
 
-  const countDownTime = () => {
-    if (!order?.expirationDate || order?.expirationDate <= 0) {
+  const countDownTime = (expirationTime?: string) => {
+    if (!expirationTime) {
       return
     }
 
-    const currentTime = Date.now()
-    const remainingTime = order?.expirationDate - currentTime
+    const remainingTime = new Date(expirationTime).getTime() - Date.now()
 
     if (remainingTime <= 0) {
       return
@@ -134,11 +133,11 @@ const InvoiceDetails = () => {
 
   useEffect(() => {
     const activeCountDownTime = setInterval(() => {
-      countDownTime()
+      countDownTime(order?.expirationAt)
     }, 1000)
 
     return () => clearInterval(activeCountDownTime)
-  }, [order?.expirationDate])
+  }, [order?.expirationAt])
 
   const onClickCrypto = () => {
     setCrypto(order?.crypto as COINS)
@@ -157,6 +156,10 @@ const InvoiceDetails = () => {
     setSnackMessage('Successfully copy')
     setSnackSeverity('success')
     setSnackOpen(true)
+  }
+
+  if (!order) {
+    return <div className="py-20 text-center">Loading invoice...</div>
   }
 
   return (
@@ -248,7 +251,7 @@ const InvoiceDetails = () => {
             </div>
 
             <div className="mt-6 flex items-baseline gap-1">
-              <span className="text-3xl font-bold">{order?.totalPrice}</span>
+              <span className="text-3xl font-bold">{order?.cryptoAmount}</span>
               <span className="text-3xl font-bold">{order?.crypto}</span>
             </div>
 
@@ -261,8 +264,8 @@ const InvoiceDetails = () => {
                 <DetailRow
                   label="Due Date"
                   value={
-                    order?.expirationDate
-                      ? new Date(Number(order.expirationDate)).toLocaleString()
+                    order.expirationAt
+                      ? new Date(order.expirationAt).toLocaleString()
                       : 'No due date'
                   }
                 />
@@ -281,7 +284,11 @@ const InvoiceDetails = () => {
             <Separator className="my-8" />
 
             <div className="space-y-1">
-              <DetailRow label="Total Price" value={`${order?.totalPrice} ${order?.crypto}`} bold />
+              <DetailRow
+                label="Total Price"
+                value={`${order.cryptoAmount} ${order?.crypto}`}
+                bold
+              />
               <DetailRow
                 label="Total Fiat"
                 value={`${CURRENCY_SYMBOLS[String(order?.currency)]}${order?.amount}`}
@@ -292,7 +299,11 @@ const InvoiceDetails = () => {
                 value={`1 ${order?.crypto} = ${CURRENCY_SYMBOLS[String(order?.currency)]}${order?.rate}`}
                 bold
               />
-              <DetailRow label="Amount Due" value={`${order?.amountDue} ${order?.crypto}`} bold />
+              <DetailRow
+                label="Amount Due"
+                value={`${order?.cryptoAmount} ${order?.crypto}`}
+                bold
+              />
             </div>
 
             {order?.orderStatus === ORDER_STATUS.Settled && (
@@ -496,7 +507,7 @@ const InvoiceDetails = () => {
                           order?.crypto as COINS
                         )?.decimals
                       }
-                      value={String(order?.totalPrice)}
+                      value={String(order?.cryptoAmount)}
                       buttonSize={'default'}
                       buttonVariant={'default'}
                       fullWidth={true}

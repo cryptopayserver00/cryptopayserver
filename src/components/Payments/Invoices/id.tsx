@@ -181,11 +181,11 @@ const PaymentInvoiceDetails = () => {
               <DetailRow label="State" value={renderStatusBadge(order.orderStatus)} />
               <DetailRow
                 label="Created Date"
-                value={order.createdDate ? new Date(order.createdDate).toLocaleString() : '-'}
+                value={order.createdAt ? new Date(order.createdAt).toLocaleString() : '-'}
               />
               <DetailRow
                 label="Expiration Date"
-                value={order.expirationDate ? new Date(order.expirationDate).toLocaleString() : '-'}
+                value={order.expirationAt ? new Date(order.expirationAt).toLocaleString() : '-'}
               />
               <DetailRow
                 label="Total Amount Due"
@@ -325,7 +325,7 @@ const PaymentInvoiceDetails = () => {
                 label="Total Due"
                 value={
                   <span className="font-bold text-foreground">
-                    {order.amountDue} {order.crypto}
+                    {order.cryptoAmount} {order.crypto}
                   </span>
                 }
               />

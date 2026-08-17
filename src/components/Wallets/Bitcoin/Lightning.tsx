@@ -44,7 +44,22 @@ const CodeBlock = ({ children }: { children: string }) => (
 
 const Lightning = () => {
   const [rows, setRows] = useState<LightningRowType[]>([])
-  const [currentRow, setCurrentRow] = useState<LightningRowType>()
+  const [currentRow, setCurrentRow] = useState<LightningRowType>({
+    id: 0,
+    balance: '',
+    text: '',
+    kind: '',
+    server: '',
+    accessToken: '',
+    refreshToken: '',
+    enabled: false,
+    showAmountSatoshis: false,
+    showHopHint: false,
+    showUnifyUrlAndQrcode: false,
+    showLnurl: false,
+    showLnurlClassicMode: false,
+    showAllowPayeePassComment: false,
+  })
   const [page, setPage] = useState<number>(1)
   const [text, setText] = useState<string>('')
   const [openDialog, setOpenDialog] = useState<boolean>(false)
@@ -189,8 +204,10 @@ const Lightning = () => {
         }))
 
         setRows(rows)
-        setCurrentRow(rows[0])
-        setPage(2)
+        if (rows.length > 0) {
+          setCurrentRow(rows[0])
+          setPage(2)
+        }
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -236,10 +253,6 @@ const Lightning = () => {
       setSnackOpen(true)
       console.error(e)
     }
-  }
-
-  if (!currentRow) {
-    return <div className="py-20 text-center">Loading lightning...</div>
   }
 
   return (
@@ -419,8 +432,11 @@ const Lightning = () => {
           <h1 className="text-3xl font-bold">BTC Lightning</h1>
           <div className="mt-6 flex flex-col gap-3">
             {rows.map((item, index) => (
-              <Card key={index} className="flex items-center justify-between gap-4 p-4">
-                <span>Custom Node</span>
+              <Card
+                key={index}
+                className="grid grid-cols-[1fr_1fr_1fr_auto_auto] items-center gap-4 p-4"
+              >
+                <span className="text-muted-foreground">Custom Node</span>
                 <span className="font-bold">{item.kind}</span>
                 <span className="font-bold">{item.balance}</span>
                 <span className={item.enabled ? 'text-emerald-500' : 'text-red-500'}>

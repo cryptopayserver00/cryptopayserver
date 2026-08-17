@@ -28,10 +28,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    if (apiKeys.length === 0) {
-      return res.status(200).json({ message: 'Invalid apikey', result: false, data: null })
-    }
-
     return res.status(200).json({
       message: '',
       result: true,

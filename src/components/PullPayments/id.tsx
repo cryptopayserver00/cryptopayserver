@@ -130,9 +130,9 @@ const PullPaymentsDetails = () => {
           currency: response.data.currency,
           description: response.data.description,
           showAutoApproveClaim: response.data.showAutoApproveClaim === 1,
-          createdDate: new Date(response.data.createdAt).getTime(),
-          updateDate: new Date(response.data.updatedAt).getTime(),
-          expirationDate: new Date(response.data.expirationAt).getTime(),
+          createdAt: response.data.createdAt,
+          updatedAt: response.data.updatedAt,
+          expirationAt: response.data.expirationAt,
           pullPaymentStatus: response.data.pullPaymentStatus,
         })
 
@@ -220,6 +220,10 @@ const PullPaymentsDetails = () => {
       setSnackOpen(true)
       console.error(e)
     }
+  }
+
+  if (!pullPaymentData) {
+    return <div className="py-20 text-center">Loading pull payment...</div>
   }
 
   return (
@@ -315,18 +319,18 @@ const PullPaymentsDetails = () => {
                   {pullPaymentData?.pullPaymentId ? pullPaymentData?.pullPaymentId : 'None'}
                 </div>
                 <div>
-                  {pullPaymentData?.createdDate
-                    ? new Date(Number(pullPaymentData?.createdDate)).toLocaleString()
+                  {pullPaymentData.createdAt
+                    ? new Date(pullPaymentData.createdAt).toLocaleString()
                     : 'No due date'}
                 </div>
                 <div>
-                  {pullPaymentData?.updateDate
-                    ? new Date(Number(pullPaymentData?.updateDate)).toLocaleString()
+                  {pullPaymentData.updatedAt
+                    ? new Date(pullPaymentData.updatedAt).toLocaleString()
                     : 'No due date'}
                 </div>
                 <div>
-                  {pullPaymentData?.expirationDate
-                    ? new Date(Number(pullPaymentData?.expirationDate)).toLocaleString()
+                  {pullPaymentData.expirationAt
+                    ? new Date(pullPaymentData.expirationAt).toLocaleString()
                     : 'No due date'}
                 </div>
                 <div>{pullPaymentData?.description ? pullPaymentData?.description : 'None'}</div>

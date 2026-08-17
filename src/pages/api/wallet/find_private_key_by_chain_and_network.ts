@@ -43,18 +43,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
     })
 
-    if (Array.isArray(addresses) && addresses.length > 0) {
-      const newRows = addresses.filter((item) => {
-        return {
-          address: item.address,
-          privateKey: item.private_key,
-        }
-      })
-
-      return res.status(200).json({ message: '', result: true, data: newRows })
-    }
-
-    return res.status(200).json({ message: '', result: false, data: null })
+    return res.status(200).json({
+      message: '',
+      result: true,
+      data: addresses.map((item) => ({
+        address: item.address,
+        privateKey: item.private_key,
+      })),
+    })
   } catch (e) {
     console.error(e)
     return res.status(500).json({

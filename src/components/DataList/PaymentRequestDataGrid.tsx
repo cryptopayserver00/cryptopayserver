@@ -105,31 +105,27 @@ export default function PaymentRequestDataGrid(props: GridType) {
           store_id: storeId,
           network: network === 'mainnet' ? 1 : 2,
           payment_request_status: paymentRequestStatus,
-          payment_request_id: paymentRequestId,
+          payment_request_id: paymentRequestId ? paymentRequestId.trim() : '',
         },
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          const rt: RowType[] = response.data.map((item: any, index: number) => {
-            let expiry = 'No Expiry'
-            if (item.expirationAt) {
-              expiry = new Date(item.expirationAt).toLocaleString()
-            }
-            return {
-              id: index + 1,
-              itemId: item.id,
-              paymentRequestId: item.paymentRequestId,
-              amount: CURRENCY_SYMBOLS[item.currency] + item.amount,
-              title: item.title,
-              expirationDate: expiry,
-              status: item.paymentRequestStatus,
-            }
-          })
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+        const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => {
+          let expiry = 'No Expiry'
+          if (item.expirationAt) {
+            expiry = new Date(item.expirationAt).toLocaleString()
+          }
+          return {
+            id: index + 1,
+            itemId: item.id,
+            paymentRequestId: item.paymentRequestId,
+            amount: CURRENCY_SYMBOLS[item.currency] + item.amount,
+            title: item.title,
+            expirationDate: expiry,
+            status: item.paymentRequestStatus,
+          }
+        })
+        setRows(rows)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Can not find the data on site!')

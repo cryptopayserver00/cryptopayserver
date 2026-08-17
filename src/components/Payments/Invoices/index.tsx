@@ -213,7 +213,7 @@ const PaymentInvoices = () => {
         show_btc_url: ln_show_btc_url ? 1 : 2,
       })
 
-      if (response.result && response.data.order_id) {
+      if (response.result && response.data.orderId) {
         setSnackSeverity('success')
         setSnackMessage('Successful creation!')
         setSnackOpen(true)

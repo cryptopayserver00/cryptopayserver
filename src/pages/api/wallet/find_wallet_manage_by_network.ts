@@ -53,35 +53,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             ...[
               {
                 address: item.address,
-                chain_id: CHAINS.ETHEREUM,
+                chainId: CHAINS.ETHEREUM,
               },
               {
                 address: item.address,
-                chain_id: CHAINS.BSC,
+                chainId: CHAINS.BSC,
               },
               {
                 address: item.address,
-                chain_id: CHAINS.ARBITRUM,
+                chainId: CHAINS.ARBITRUM,
               },
               {
                 address: item.address,
-                chain_id: CHAINS.AVALANCHE,
+                chainId: CHAINS.AVALANCHE,
               },
               {
                 address: item.address,
-                chain_id: CHAINS.ARBITRUMNOVA,
+                chainId: CHAINS.ARBITRUMNOVA,
               },
               {
                 address: item.address,
-                chain_id: CHAINS.POLYGON,
+                chainId: CHAINS.POLYGON,
               },
               {
                 address: item.address,
-                chain_id: CHAINS.BASE,
+                chainId: CHAINS.BASE,
               },
               {
                 address: item.address,
-                chain_id: CHAINS.OPTIMISM,
+                chainId: CHAINS.OPTIMISM,
               },
             ]
           )

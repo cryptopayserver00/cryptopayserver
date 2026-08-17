@@ -99,20 +99,16 @@ export default function PullPaymentDataGrid(props: GridType) {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          const rt: RowType[] = response.data.map((item: any, index: number) => ({
-            id: index + 1,
-            pullPaymentId: item.pullPaymentId,
-            name: item.name,
-            createdDate: new Date(item.createdAt).toLocaleString(),
-            expirationDate: new Date(item.expirationAt).toLocaleString(),
-            showAutoApproveClaim: item.showAutoApproveClaim === 1 ? 'True' : 'False',
-            refunded: item.refunded,
-          }))
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+        const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => ({
+          id: index + 1,
+          pullPaymentId: item.pullPaymentId,
+          name: item.name,
+          createdDate: new Date(item.createdAt).toLocaleString(),
+          expirationDate: new Date(item.expirationAt).toLocaleString(),
+          showAutoApproveClaim: item.showAutoApproveClaim === 1 ? 'True' : 'False',
+          refunded: item.refunded,
+        }))
+        setRows(rows)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Can not find the data on site!')

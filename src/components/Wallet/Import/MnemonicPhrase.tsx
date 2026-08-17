@@ -71,6 +71,9 @@ const ImportMnemonicPhrase = () => {
       })
 
       if (response.result) {
+        setWalletId(response.data.id)
+        setIsWallet(true)
+
         setTimeout(() => {
           window.location.href = '/dashboard'
         }, 2000)

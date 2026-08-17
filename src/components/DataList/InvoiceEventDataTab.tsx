@@ -41,16 +41,12 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
         })
 
         if (response.result) {
-          if (response.data.length > 0) {
-            const rt: RowType[] = response.data.map((item: any, index: number) => ({
-              id: index + 1,
-              date: new Date(item.createdAt).toLocaleString(),
-              message: item.message,
-            }))
-            setRows(rt)
-          } else {
-            setRows([])
-          }
+          const rows: RowType[] = (response.data || []).map((item: any, index: number) => ({
+            id: index + 1,
+            date: new Date(item.createdAt).toLocaleString(),
+            message: item.message,
+          }))
+          setRows(rows)
         } else {
           setSnackSeverity('error')
           setSnackMessage('Can not find the data on site!')

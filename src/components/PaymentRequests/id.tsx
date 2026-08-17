@@ -154,7 +154,7 @@ const PaymentRequestsDetails = () => {
           amount: response.data.amount,
           currency: response.data.currency,
           memo: response.data.memo,
-          expirationDate: new Date(response.data.expirationAt).getTime(),
+          expirationAt: response.data.expirationAt,
           paymentRequestStatus: response.data.paymentRequestStatus,
           requesCustomerData: response.data.requesCustomerData,
           showAllowCustomAmount: response.data.showAllowCustomAmount === 1,
@@ -309,8 +309,8 @@ const PaymentRequestsDetails = () => {
                 <DetailRow
                   label="Due Date"
                   value={
-                    paymentRequestData?.expirationDate
-                      ? new Date(Number(paymentRequestData.expirationDate)).toLocaleString()
+                    paymentRequestData?.expirationAt
+                      ? new Date(paymentRequestData.expirationAt).toLocaleString()
                       : 'No due date'
                   }
                 />
@@ -415,8 +415,8 @@ const PaymentRequestsDetails = () => {
                     </span>
 
                     <p className="mt-1 text-muted-foreground">
-                      {paymentRequestData?.expirationDate
-                        ? new Date(Number(paymentRequestData.expirationDate)).toLocaleString()
+                      {paymentRequestData?.expirationAt
+                        ? new Date(paymentRequestData.expirationAt).toLocaleString()
                         : 'No due date'}
                     </p>
 
@@ -431,7 +431,7 @@ const PaymentRequestsDetails = () => {
                       </Button>
                     )}
 
-                    <div className="mt-4 flex items-center gap-2">
+                    <div className="mt-4 grid grid-cols-2 gap-2 fl">
                       <Button variant="outline" className="w-full" onClick={() => window.print()}>
                         Print
                       </Button>

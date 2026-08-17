@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const email = Number(req.query.email)
+    const email = req.query.email
     if (!email) {
       return res.status(200).json({ message: 'Invalid email', result: false, data: null })
     }

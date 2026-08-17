@@ -181,6 +181,7 @@ const ManageWallet = () => {
             }
 
             const findBalance = respBalances?.find((item: any) => item.chainId === coin.chainId)
+            console.log(111, findBalance, respBalances)
             blockchainCoin.address = findBalance.address ? findBalance?.address : ''
             blockchainCoin.enabled = respCoins?.find(
               (item: any) => item.chainId === coin.chainId && item.name === coin.name

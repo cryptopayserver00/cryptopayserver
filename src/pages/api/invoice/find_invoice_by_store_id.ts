@@ -14,13 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
+    const orderId = req.query.order_id
     const orderStatus = req.query.order_status
     const time = req.query.time
-
-    const orderId = Number(req.query.order_id)
-    if (!orderId) {
-      return res.status(200).json({ message: 'Invalid orderId', result: false, data: null })
-    }
 
     const storeId = Number(req.query.store_id)
     if (!storeId) {
@@ -37,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     whereData.network = network
     whereData.status = 1
 
-    if (orderId) whereData.order_id = orderId
+    if (orderId && Number(orderId)) whereData.order_id = orderId
     if (orderStatus !== undefined && orderStatus !== ORDER_STATUS.AllStatus)
       whereData.order_status = orderStatus
 

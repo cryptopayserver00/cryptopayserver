@@ -80,8 +80,7 @@ export default function ReportDataGrid(props: GridType) {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          const rt: RowType[] = response.data.map((item: any, index: number) => ({
+          const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => ({
             id: index + 1,
             storeName: item.storeName,
             sourceType: item.sourceType,
@@ -99,10 +98,7 @@ export default function ReportDataGrid(props: GridType) {
             createdDate: new Date(item.createdAt).toLocaleString(),
             expirationDate: new Date(item.expirationAt).toLocaleString(),
           }))
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+          setRows(rows)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Can not find the data on site!')

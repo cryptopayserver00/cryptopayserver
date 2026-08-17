@@ -156,25 +156,21 @@ export default function PayoutDataGrid(props: GridType) {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          const rt: RowType[] = response.data.map((item: any, index: number) => ({
-            id: index + 1,
-            payoutId: item.payoutId,
-            chainId: item.chainId,
-            address: item.address,
-            createdDate: new Date(item.createdAt).toLocaleString(),
-            refunded: CURRENCY_SYMBOLS[item.currency] + item.amount,
-            crypto: item.crypto,
-            sourceType: item.sourceType,
-            externalPaymentId: item.externalPaymentId,
-            chainName: FindChainNamesByChains(item.chainId),
-            transaction: item.tx,
-            url: '',
-          }))
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+        const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => ({
+          id: index + 1,
+          payoutId: item.payoutId,
+          chainId: item.chainId,
+          address: item.address,
+          createdDate: new Date(item.createdAt).toLocaleString(),
+          refunded: CURRENCY_SYMBOLS[item.currency] + item.amount,
+          crypto: item.crypto,
+          sourceType: item.sourceType,
+          externalPaymentId: item.externalPaymentId,
+          chainName: FindChainNamesByChains(item.chainId),
+          transaction: item.tx,
+          url: '',
+        }))
+        setRows(rows)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Can not find the data on site!')

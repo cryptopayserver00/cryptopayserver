@@ -21,13 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid network', result: false, data: null })
     }
 
-    const paymentRequestId = Number(req.query.payment_request_id)
-    if (!paymentRequestId) {
-      return res
-        .status(200)
-        .json({ message: 'Invalid paymentRequestId', result: false, data: null })
-    }
-
+    const paymentRequestId = req.query.payment_request_id
     const paymentRequestStatus = req.query.payment_request_status
 
     let whereData: { [key: string]: any } = {}
@@ -35,7 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     whereData.network = network
     whereData.status = 1
 
-    if (paymentRequestId) whereData.payment_request_id = paymentRequestId
+    if (paymentRequestId && Number(paymentRequestId))
+      whereData.payment_request_id = paymentRequestId
     if (
       paymentRequestStatus !== undefined &&
       paymentRequestStatus !== PAYMENT_REQUEST_STATUS.AllStatus

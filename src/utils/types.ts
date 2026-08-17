@@ -43,13 +43,13 @@ export type OrderType = {
   orderStatus: string
   paid: number
   paymentMethod: string
-  createdDate: number
-  expirationDate: number
+  createdAt: string
+  updatedAt: string
+  expirationAt: string
   rate: number
   lightningInvoice: string
   lightningUrl: string
-  totalPrice: string
-  amountDue: string
+  cryptoAmount: string
   fromAddress: string
   toAddress: string
   hash: string
@@ -77,7 +77,7 @@ export type PaymentRequestType = {
   amount: number
   currency: string
   memo: string
-  expirationDate: number
+  expirationAt: string
   paymentRequestStatus: string
   requesCustomerData: string
   showAllowCustomAmount: boolean
@@ -105,9 +105,9 @@ export type PullPaymentType = {
   showAutoApproveClaim: boolean
   description: string
   pullPaymentStatus: string
-  createdDate: number
-  updateDate: number
-  expirationDate: number
+  createdAt: string
+  updatedAt: string
+  expirationAt: string
 }
 
 export type PayoutRowType = {

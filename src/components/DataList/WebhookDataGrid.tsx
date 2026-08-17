@@ -128,21 +128,17 @@ export default function WebhookDataGrid(props: GridType) {
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          const rt: RowType[] = response.data.map((item: any, index: number) => ({
-            id: index + 1,
-            webhookId: item.id,
-            automaticRedelivery: item.automaticRedelivery,
-            enabled: item.enabled,
-            eventType: item.eventType,
-            payloadUrl: item.payloadUrl,
-            secret: item.secret,
-            status: item.status,
-          }))
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+        const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => ({
+          id: index + 1,
+          webhookId: item.id,
+          automaticRedelivery: item.automaticRedelivery,
+          enabled: item.enabled,
+          eventType: item.eventType,
+          payloadUrl: item.payloadUrl,
+          secret: item.secret,
+          status: item.status,
+        }))
+        setRows(rows)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Can not find the data on site!')

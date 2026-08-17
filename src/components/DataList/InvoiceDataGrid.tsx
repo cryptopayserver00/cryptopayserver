@@ -74,28 +74,24 @@ export default function InvoiceDataGrid(props: GridType) {
           store_id: currentStoreId,
           network: currentNetwork === 'mainnet' ? 1 : 2,
           order_status: props.orderStatus,
-          order_id: props.orderId,
+          order_id: props.orderId ? props.orderId.trim() : '',
           time: props.time,
         },
       })
 
       if (response.result) {
-        if (response.data.length > 0) {
-          const rt: RowType[] = response.data.map((item: any, index: number) => ({
-            id: index + 1,
-            orderId: item.orderId,
-            sourceType: item.sourceType,
-            fiatAmount: CURRENCY_SYMBOLS[item.currency] + item.amount,
-            cryptoAmount: `${item.cryptoAmount} ${item.crypto}`,
-            chain: FindChainNamesByChains(item.chainId),
-            createdDate: new Date(item.createdAt).toLocaleString(),
-            expirationDate: new Date(item.expirationAt).toLocaleString(),
-            orderStatus: item.orderStatus,
-          }))
-          setRows(rt)
-        } else {
-          setRows([])
-        }
+        const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => ({
+          id: index + 1,
+          orderId: item.orderId,
+          sourceType: item.sourceType,
+          fiatAmount: CURRENCY_SYMBOLS[item.currency] + item.amount,
+          cryptoAmount: `${item.cryptoAmount} ${item.crypto}`,
+          chain: FindChainNamesByChains(item.chainId),
+          createdDate: new Date(item.createdAt).toLocaleString(),
+          expirationDate: new Date(item.expirationAt).toLocaleString(),
+          orderStatus: item.orderStatus,
+        }))
+        setRows(rows)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Can not find the data on site!')
