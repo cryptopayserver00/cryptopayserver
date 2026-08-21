@@ -6,7 +6,7 @@
 
 **开源加密货币支付服务器**
 
-[官网](https://cryptopayserver.online) · [在线演示](https://cryptopayserver.online/login) · [常见问题](https://cryptopayserver.online/#faq) · [文档](https://cryptopayserver.gitbook.io/cryptopayserver) · [Telegram](https://t.me/cryptopayserver)
+[官网](https://cryptopayserver.online) · [在线演示](https://cryptopayserver.online/login) · [常见问题](https://cryptopayserver.online/#faq) · [文档](https://docs.cryptopayserver.online) · [Telegram](https://t.me/cryptopayserver)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](#贡献指南)

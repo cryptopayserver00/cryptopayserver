@@ -164,7 +164,7 @@ export default function Welcome() {
               Chains
             </a>
             <Link
-              href="https://cryptopayserver.gitbook.io/cryptopayserver"
+              href="https://docs.cryptopayserver.online"
               target="_blank"
               className="transition-colors hover:text-white"
             >
@@ -330,7 +330,7 @@ export default function Welcome() {
             variant="ghost"
             className="text-white/60 hover:bg-white/5 hover:text-white"
           >
-            <Link href="https://cryptopayserver.gitbook.io/cryptopayserver" target="_blank">
+            <Link href="https://docs.cryptopayserver.online" target="_blank">
               Read the docs <ArrowUpRight className="ml-1.5 h-4 w-4" />
             </Link>
           </Button>

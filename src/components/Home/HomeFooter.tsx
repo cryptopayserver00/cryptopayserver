@@ -19,17 +19,17 @@ const footerLinks = [
     icon: Send,
   },
   {
-    href: 'https://cryptopayserver.gitbook.io/cryptopayserver',
+    href: 'https://docs.cryptopayserver.online',
     label: 'Donate',
     icon: Heart,
   },
   {
-    href: 'https://cryptopayserver.gitbook.io/cryptopayserver',
+    href: 'https://docs.cryptopayserver.online',
     label: 'API',
     icon: FileText,
   },
   {
-    href: 'https://cryptopayserver.gitbook.io/cryptopayserver',
+    href: 'https://docs.cryptopayserver.online',
     label: 'Docs',
     icon: HelpCircle,
   },

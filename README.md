@@ -6,7 +6,7 @@
 
 **Open Source Crypto Payment Server**
 
-[Website](https://cryptopayserver.online) · [Live Demo](https://cryptopayserver.online/login) · [FAQ](https://cryptopayserver.online/#faq) · [Docs](https://cryptopayserver.gitbook.io/cryptopayserver) · [Telegram](https://t.me/cryptopayserver)
+[Website](https://cryptopayserver.online) · [Live Demo](https://cryptopayserver.online/login) · [FAQ](https://cryptopayserver.online/#faq) · [Docs](https://docs.cryptopayserver.online) · [Telegram](https://t.me/cryptopayserver)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](#contributing)
