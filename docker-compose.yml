@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   app:
-    image: cryptopayserver:0.0.1
+    image: viper00/cryptopayserver:0.0.1
     # build:
     #   context: .
     #   dockerfile: Dockerfile
@@ -45,7 +45,7 @@ services:
       - app-network
 
   migrate:
-    image: cryptopayserver:0.0.1
+    image: viper00/cryptopayserver:0.0.1
     env_file:
       - .env.production
     environment:
