@@ -7,7 +7,6 @@ services:
     #   context: .
     #   dockerfile: Dockerfile
     #   args:
-    #     NEXT_PUBLIC_SITE_URL: https://your-domain.com
     #     NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: your_real_project_id
     #     NEXT_PUBLIC_ENVIRONMENT: production
     restart: always

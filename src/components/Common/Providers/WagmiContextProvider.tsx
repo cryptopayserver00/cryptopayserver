@@ -6,15 +6,14 @@ import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi'
 import { GetAllSupportAppKitNetwork } from '@/utils/web3'
 import { WALLETCONNECT_PROJECT_ID } from '@/packages/constants'
 import { wagmiAdapter } from './WagmiAdapter'
-import { Http } from '@/utils/http/http'
 
 const queryClient = new QueryClient()
 
 const metadata = {
   name: 'Cryptopayserver',
   description: 'Free services to help you buy and sell products and collect cryptocurrencies.',
-  url: Http.httpClient,
-  icons: [`${Http.httpClient}/favicon.ico`],
+  url: window.location.origin,
+  icons: [`/favicon.ico`],
 }
 
 export const projectId = WALLETCONNECT_PROJECT_ID

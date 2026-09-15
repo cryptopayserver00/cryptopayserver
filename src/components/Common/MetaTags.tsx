@@ -2,10 +2,8 @@ import { FC } from 'react'
 import Head from 'next/head'
 import { APP_DESCRIPTION, APP_NAME } from '@/packages/constants'
 import { useRouter } from 'next/router'
-import { Http } from '@/utils/http/http'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || Http.httpClient
-const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.jpg` // 1200x630
+const DEFAULT_OG_IMAGE = `/og-default.jpg` // 1200x630
 
 type Props = {
   title?: string
@@ -31,11 +29,11 @@ const MetaTags: FC<Props> = ({
   const metaImage = image
     ? image.startsWith('http')
       ? image
-      : `${SITE_URL}${image.startsWith('/') ? '' : '/'}${image}`
+      : `${image.startsWith('/') ? '' : '/'}${image}`
     : DEFAULT_OG_IMAGE
 
   const path = canonicalPath ?? router.asPath.split('?')[0]
-  const canonicalUrl = `${SITE_URL}${path === '/' ? '' : path}`
+  const canonicalUrl = `${path === '/' ? '' : path}`
 
   return (
     <Head>
