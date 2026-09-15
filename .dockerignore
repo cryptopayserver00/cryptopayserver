@@ -1,0 +1,17 @@
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+yarn-error.log
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+README.md
+.next
+.vscode
+.idea
+coverage
+*.md
+docker-compose*.yml
