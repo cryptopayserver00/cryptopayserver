@@ -85,7 +85,7 @@ const RECEIPT = [
 ]
 
 function TerminalCard() {
-  const command = 'docker run -d -p 5230:5230 cryptopayserver/cryptopayserver'
+  const command = 'docker run -d -p 8888:3000 viper00/cryptopayserver:0.0.3'
   const [typed, setTyped] = useState('')
   const [done, setDone] = useState(false)
 

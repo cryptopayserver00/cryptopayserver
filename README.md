@@ -100,12 +100,15 @@ No installation needed — try it first:
 ### Docker (Recommended)
 
 ```bash
-# Coming soon — official images will be published on Docker Hub
-# docker run -d \
-#   --name cryptopayserver \
-#   -p 5230:5230 \
-#   -v ~/.cryptopayserver:/var/opt/cryptopayserver \
-#   cryptopayserver/cryptopayserver:stable
+# Official images will be published on Docker Hub, please use `docker-compose.yml` to deplpoy.
+git clone https://github.com/cryptopayserver00/cryptopayserver.git
+
+cd cryptopayserver
+
+docker compose up -d
+
+# prisma support
+docker compose --profile migrate run --rm migrate
 ```
 
 ## Contributing
