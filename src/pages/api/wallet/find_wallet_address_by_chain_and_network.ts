@@ -27,14 +27,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid network', result: false, data: null })
     }
 
+    let dbChainId = chainId
     if (ETHEREUM_CATEGORY_CHAINS.includes(chainId)) {
-      chainId = CHAINS.ETHEREUM
+      dbChainId = CHAINS.ETHEREUM
     }
 
     const addresses = await prisma.addresses.findMany({
       where: {
         wallet_id: walletId,
-        chain_id: chainId,
+        chain_id: dbChainId,
         network: network,
         status: 1,
       },

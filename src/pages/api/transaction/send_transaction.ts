@@ -47,13 +47,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const gasLimit = req.body.gas_limit
     const memo = req.body.memo
 
+    let dbChainId = chainId
     if (ETHEREUM_CATEGORY_CHAINS.includes(chainId)) {
-      chainId = CHAINS.ETHEREUM
+      dbChainId = CHAINS.ETHEREUM
     }
 
     const address = await prisma.addresses.findFirst({
       where: {
-        chain_id: chainId,
+        chain_id: dbChainId,
         network: network,
         address: fromAddress,
         wallet_id: walletId,
