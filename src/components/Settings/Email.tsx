@@ -543,7 +543,7 @@ const Emails = () => {
 
 export default Emails
 
-type RowType = {
+interface RowType {
   id: number
   rid: number
   trigger: EMAIL_RULE_TIGGER_DATA
@@ -554,7 +554,7 @@ type RowType = {
   showSendToBuyer: boolean
 }
 
-type TableType = {
+interface TableType {
   setRuleId: (value: number) => void
   setTrigger: (value: EMAIL_RULE_TIGGER_DATA) => void
   setRecipients: (value: string) => void

@@ -15,7 +15,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
-type RowType = {
+interface RowType {
   id: number
   pullPaymentId: number
   name: string
@@ -25,7 +25,7 @@ type RowType = {
   refunded: number
 }
 
-type GridType = {
+interface GridType {
   status: (typeof PULL_PAYMENT_STATUS)[keyof typeof PULL_PAYMENT_STATUS]
 }
 

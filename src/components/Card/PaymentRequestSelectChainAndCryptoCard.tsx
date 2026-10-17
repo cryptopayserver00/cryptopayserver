@@ -16,7 +16,7 @@ import { Http } from '@/utils/http/http'
 import CreateInvoiceDialog from '@/components/Dialog/CreateInvoiceDialog'
 import { useShallow } from 'zustand/react/shallow'
 
-type SelectType = {
+interface SelectType {
   storeId: number
   network: number
   amount: number

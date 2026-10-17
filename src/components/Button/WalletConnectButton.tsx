@@ -13,7 +13,7 @@ import { ERC20Abi } from '@/packages/web3/abi/erc20'
 import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
 
-type WalletConnectType = {
+interface WalletConnectType {
   network: number
   chainId: CHAINS
   address: string

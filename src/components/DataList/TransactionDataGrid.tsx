@@ -24,7 +24,7 @@ import {
 } from '@/utils/web3'
 import { useShallow } from 'zustand/react/shallow'
 
-type RowType = {
+interface RowType {
   id: number
   chainId: number
   chainName: CHAINNAMES
@@ -38,7 +38,7 @@ type RowType = {
   blockTimestamp: string
 }
 
-type GridType = {
+interface GridType {
   source: 'dashboard' | 'none'
   chain?: CHAINS
   storeId?: number

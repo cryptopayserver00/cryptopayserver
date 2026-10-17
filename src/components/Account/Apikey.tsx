@@ -259,7 +259,7 @@ const ApiKey = () => {
 
 export default ApiKey
 
-type RowType = {
+interface RowType {
   id: number
   label: string
   key: string

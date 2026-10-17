@@ -46,7 +46,7 @@ const Notifications = () => {
 
 export default Notifications
 
-type RowType = {
+interface RowType {
   id: number
   label: string
   message: string

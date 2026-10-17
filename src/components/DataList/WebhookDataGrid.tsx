@@ -14,7 +14,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
-type RowType = {
+interface RowType {
   id: number
   webhookId: number
   automaticRedelivery: number
@@ -25,7 +25,7 @@ type RowType = {
   status: number
 }
 
-type GridType = {
+interface GridType {
   source: 'dashboard' | 'none'
   setIsWebhook: (value: boolean) => void
   setPayloadUrl: (value: string) => void

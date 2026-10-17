@@ -17,7 +17,7 @@ import lightningPayReq, { PaymentRequestObject } from 'bolt11'
 import { SatoshisToBtc } from '@/utils/number'
 import { useShallow } from 'zustand/react/shallow'
 
-type DialogType = {
+interface DialogType {
   openDialog: boolean
   setOpenDialog: (value: boolean) => void
   onClickSendLightningAssets: (value: string) => Promise<void>

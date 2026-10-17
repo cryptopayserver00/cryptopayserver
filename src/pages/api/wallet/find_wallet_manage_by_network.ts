@@ -119,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       network === 1 ? item.isMainnet : !item.isMainnet
     )
 
-    type coinManageType = {
+    interface coinManageType {
       chainId: number
       name: string
       enabled: boolean

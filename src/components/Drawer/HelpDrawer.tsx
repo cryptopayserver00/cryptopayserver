@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/accordion'
 import { Separator } from '@/components/ui/separator'
 
-type DrawerType = {
+interface DrawerType {
   openDrawer: boolean
   setOpenDrawer: (value: boolean) => void
 }

@@ -20,7 +20,7 @@ import { Http } from '@/utils/http/http'
 import { RowType } from '@/components/Payments/Reporting'
 import { useShallow } from 'zustand/react/shallow'
 
-type GridType = {
+interface GridType {
   startDate: number
   endDate: number
   status: (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS]

@@ -7,7 +7,7 @@ import { useSnackPresistStore } from '@/lib/store'
 import { OmitMiddleString } from '@/utils/strings'
 import { useShallow } from 'zustand/react/shallow'
 
-type DialogType = {
+interface DialogType {
   openDialog: boolean
   setOpenDialog: (value: boolean) => void
   websiteUrl: string

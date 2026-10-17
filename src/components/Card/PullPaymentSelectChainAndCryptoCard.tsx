@@ -14,7 +14,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
-type SelectType = {
+interface SelectType {
   storeId: number
   network: number
   amount: number

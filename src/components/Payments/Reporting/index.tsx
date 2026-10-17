@@ -18,7 +18,7 @@ import { REPORT_STATUS } from '@/packages/constants'
 import ReportDataGrid from '@/components/DataList/ReportDataGrid'
 import { CHAINNAMES } from '@/packages/constants/blockchain'
 
-export type RowType = {
+export interface RowType {
   id: number
   storeName: string
   orderId: number

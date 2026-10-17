@@ -22,7 +22,7 @@ import { WALLET } from '@/packages/constants'
 import { CHAINNAMES } from '@/packages/constants/blockchain'
 import { useShallow } from 'zustand/react/shallow'
 
-type DialogType = {
+interface DialogType {
   openDialog: boolean
   setOpenDialog: (value: boolean) => void
 }

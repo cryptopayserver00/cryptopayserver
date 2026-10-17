@@ -19,7 +19,7 @@ import { FindChainNamesByChains } from '@/utils/web3'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 
-type RowType = {
+interface RowType {
   id: number
   chain: CHAINNAMES
   orderId: number
@@ -31,7 +31,7 @@ type RowType = {
   orderStatus: string
 }
 
-type GridType = {
+interface GridType {
   source: 'dashboard' | 'none'
   orderStatus?: string
   orderId?: string

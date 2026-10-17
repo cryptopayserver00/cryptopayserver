@@ -21,7 +21,7 @@ import { FormatNumberToEnglish } from '@/utils/strings'
 import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
 
-type RowType = {
+interface RowType {
   id: number
   coin: string
   price: string
@@ -33,7 +33,7 @@ type RowType = {
   lastUpdatedAt: number
 }
 
-type GridType = {
+interface GridType {
   source: 'dashboard' | 'none'
 }
 

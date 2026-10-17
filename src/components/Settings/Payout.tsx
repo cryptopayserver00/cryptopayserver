@@ -209,7 +209,7 @@ const Payout = () => {
 
 export default Payout
 
-type TableType = {
+interface TableType {
   setId: (value: number) => void
   setIsConfigure: (value: boolean) => void
   setConfigureChain: (value: CHAINS) => void
@@ -219,7 +219,7 @@ type TableType = {
   setThreshold: (value: number) => void
 }
 
-type RowType = {
+interface RowType {
   id: number
   pid: number
   chainId: CHAINS

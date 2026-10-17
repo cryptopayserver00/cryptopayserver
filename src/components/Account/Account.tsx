@@ -24,6 +24,7 @@ import { FILE_TYPE } from '@/packages/constants'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
+import { useAbortableEffect } from '@/hooks/useAbortableEffect'
 
 const MainAccount = () => {
   const [email, setEmail] = useState('')
@@ -139,7 +140,11 @@ const MainAccount = () => {
     }
   }
 
-  useEffect(() => {
+  // useEffect(() => {
+  //   init(userId)
+  // }, [userId])
+
+  useAbortableEffect((signal) => {
     init(userId)
   }, [userId])
 

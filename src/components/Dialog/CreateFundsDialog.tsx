@@ -13,7 +13,7 @@ import {
 import { CHAINS, COIN } from '@/packages/constants/blockchain'
 import { FindChainNamesByChains } from '@/utils/web3'
 
-type DialogType = {
+interface DialogType {
   currency: string
   selectCoinItem: COIN
   openDialog: boolean

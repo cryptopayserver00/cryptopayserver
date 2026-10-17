@@ -1,19 +1,19 @@
-import { BigNumberish } from 'ethers';
-import { CHAINIDS, CHAINS, COIN, COINS } from '@/packages/constants/blockchain';
+import { BigNumberish } from 'ethers'
+import { CHAINIDS, CHAINS, COIN, COINS } from '@/packages/constants/blockchain'
 
-export type WalletAccountType = {
-  isGenerate: boolean;
-  mnemonic: string;
-  account: Array<ChainAccountType>;
-};
+export interface WalletAccountType {
+  isGenerate: boolean
+  mnemonic: string
+  account: Array<ChainAccountType>
+}
 
-export type ChainAccountType = {
-  chain: CHAINS;
-  address: string;
-  privateKey?: string;
-  note?: string;
-  isMainnet: boolean;
-};
+export interface ChainAccountType {
+  chain: CHAINS
+  address: string
+  privateKey?: string
+  note?: string
+  isMainnet: boolean
+}
 
 export enum BTCTYPE {
   NATIVESEGWIT = 'NATIVESEGWIT',
@@ -22,73 +22,73 @@ export enum BTCTYPE {
   LEGACY = 'LEGACY',
 }
 
-export type UnspentTransactionOutput = {
-  txid: string;
-  vout: number;
-  value: number;
-};
+export interface UnspentTransactionOutput {
+  txid: string
+  vout: number
+  value: number
+}
 
-export type BTCFeeRate = {
-  fastest: number;
-  halfHour: number;
-  hour: number;
-  economy: number;
-  minimum: number;
-};
+export interface BTCFeeRate {
+  fastest: number
+  halfHour: number
+  hour: number
+  economy: number
+  minimum: number
+}
 
-export type ETHGasPrice = {
-  fast: string;
-  normal: string;
-  slow: string;
-};
+export interface ETHGasPrice {
+  fast: string
+  normal: string
+  slow: string
+}
 
-export type ETHMaxPriorityFeePerGas = {
-  fast: string;
-  normal: string;
-  slow: string;
-};
+export interface ETHMaxPriorityFeePerGas {
+  fast: string
+  normal: string
+  slow: string
+}
 
-export type TransactionDetail = {
-  hash: string;
-  from?: string;
-  to?: string;
-  value?: string;
-  asset: string;
-  fee: string;
-  type?: TRANSACTIONTYPE;
-  status: TRANSACTIONSTATUS;
-  blockTimestamp?: number;
-  blockNumber?: number;
-  slot?: number;
-  url: string;
-};
+export interface TransactionDetail {
+  hash: string
+  from?: string
+  to?: string
+  value?: string
+  asset: string
+  fee: string
+  type?: TRANSACTIONTYPE
+  status: TRANSACTIONSTATUS
+  blockTimestamp?: number
+  blockNumber?: number
+  slot?: number
+  url: string
+}
 
-export type EthereumTransactionDetail = {
-  chainId: number;
-  address: string;
-  hash: string;
-  amount: string;
-  asset: string;
-  contractAddress: string;
-  type: string;
-  category: string;
-  status: TRANSACTIONSTATUS;
-  blockTimestamp: number;
-};
+export interface EthereumTransactionDetail {
+  chainId: number
+  address: string
+  hash: string
+  amount: string
+  asset: string
+  contractAddress: string
+  type: string
+  category: string
+  status: TRANSACTIONSTATUS
+  blockTimestamp: number
+}
 
-export type SolanaTransactionDetail = {
-  from?: string;
-  to?: string;
-  value?: string;
-  chainId: number;
-  address: string;
-  hash: string;
-  asset: string;
-  contractAddress: string;
-  type: 'Send' | 'Received' | 'None';
-  status: TRANSACTIONSTATUS;
-  blockTimestamp: number;
-};
+export interface SolanaTransactionDetail {
+  from?: string
+  to?: string
+  value?: string
+  chainId: number
+  address: string
+  hash: string
+  asset: string
+  contractAddress: string
+  type: 'Send' | 'Received' | 'None'
+  status: TRANSACTIONSTATUS
+  blockTimestamp: number
+}
 
 export enum TRANSACTIONTYPE {
   RECEIVED = 'RECEIVED',
@@ -103,8 +103,8 @@ export enum TRANSACTIONSTATUS {
 }
 
 export type AssetBalance = {
-  [key in COINS]: string;
-};
+  [key in COINS]: string
+}
 
 export enum TRANSACTIONFUNCS {
   GETTXBYHASH = 'eth_getTransactionByHash',
@@ -115,24 +115,24 @@ export enum TRANSACTIONFUNCS {
   GETNONCE = 'eth_getTransactionCount',
 }
 
-export type ERC20TransactionDetail = {
-  from: string;
-  to: string;
-  hash: string;
-  asset: COINS;
-  value: string;
-};
+export interface ERC20TransactionDetail {
+  from: string
+  to: string
+  hash: string
+  asset: COINS
+  value: string
+}
 
-export type TransactionRequest = {
-  to?: string;
-  from?: string;
-  nonce?: number;
+export interface TransactionRequest {
+  to?: string
+  from?: string
+  nonce?: number
 
-  gasLimit?: number;
-  gasPrice?: number;
+  gasLimit?: number
+  gasPrice?: number
 
   // data?: BytesLike,
-  value?: BigNumberish;
+  value?: BigNumberish
   // chainId?: number
 
   // type?: number;
@@ -143,88 +143,88 @@ export type TransactionRequest = {
 
   // customData?: Record<string, any>;
   // ccipReadEnabled?: boolean;
-};
+}
 
-export type SendTransaction = {
-  coin: COIN;
-  from: string;
-  to: string;
-  value: string;
-  privateKey: string;
-  mnemonic?: string;
-  gasPrice?: string;
-  gasLimit?: number;
-  maxPriorityFeePerGas?: string;
-  feeRate?: number;
-  btcType?: BTCTYPE;
-  nonce?: number;
-  memo?: string;
-};
+export interface SendTransaction {
+  coin: COIN
+  from: string
+  to: string
+  value: string
+  privateKey: string
+  mnemonic?: string
+  gasPrice?: string
+  gasLimit?: number
+  maxPriorityFeePerGas?: string
+  feeRate?: number
+  btcType?: BTCTYPE
+  nonce?: number
+  memo?: string
+}
 
-export type CreateEthereumTransaction = {
-  privateKey?: string;
-  from: string;
-  to: string;
-  value: string;
-  contractAddress?: string;
-  type?: number;
-  chainId: CHAINIDS;
-  data?: string;
-  nonce?: number;
-  gasPrice?: string;
-  maxFeePerGas?: string;
-  gasLimit: number;
-  maxPriorityFeePerGas?: string;
-};
+export interface CreateEthereumTransaction {
+  privateKey?: string
+  from: string
+  to: string
+  value: string
+  contractAddress?: string
+  type?: number
+  chainId: CHAINIDS
+  data?: string
+  nonce?: number
+  gasPrice?: string
+  maxFeePerGas?: string
+  gasLimit: number
+  maxPriorityFeePerGas?: string
+}
 
-export type CreateSolanaTransaction = {
-  privateKey?: string;
-  from: string;
-  to: string;
-  value: string;
-  contractAddress?: string;
-};
+export interface CreateSolanaTransaction {
+  privateKey?: string
+  from: string
+  to: string
+  value: string
+  contractAddress?: string
+}
 
-export type CreateTronTransaction = {
-  privateKey?: string;
-  from: string;
-  to: string;
-  value: string;
-  contractAddress?: string;
-};
+export interface CreateTronTransaction {
+  privateKey?: string
+  from: string
+  to: string
+  value: string
+  contractAddress?: string
+}
 
-export type CreateTonTransaction = {
-  mnemonic: string;
-  privateKey?: string;
-  from: string;
-  to: string;
-  value: string;
-  contractAddress?: string;
-  memo: string;
-};
+export interface CreateTonTransaction {
+  mnemonic: string
+  privateKey?: string
+  from: string
+  to: string
+  value: string
+  contractAddress?: string
+  memo: string
+}
 
-export type CreateXrpTransaction = {
-  mnemonic: string;
-  from: string;
-  to: string;
-  value: string;
-  contractAddress?: string;
-  feeRate?: number;
-};
+export interface CreateXrpTransaction {
+  mnemonic: string
+  from: string
+  to: string
+  value: string
+  contractAddress?: string
+  feeRate?: number
+}
 
-export type CreateXrpTrustLineTransaction = {
-  mnemonic: string;
-  address: string;
-  issuer: string;
-  coin: COINS;
-  limit: string;
-};
+export interface CreateXrpTrustLineTransaction {
+  mnemonic: string
+  address: string
+  issuer: string
+  coin: COINS
+  limit: string
+}
 
-export type QRCodeText = {
-  network: number;
-  networkString: string;
-  address: string;
-  token?: string;
-  tokenAddress?: string;
-  amount: string;
-};
+export interface QRCodeText {
+  network: number
+  networkString: string
+  address: string
+  token?: string
+  tokenAddress?: string
+  amount: string
+}

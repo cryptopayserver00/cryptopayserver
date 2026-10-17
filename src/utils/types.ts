@@ -7,7 +7,7 @@ import {
 } from '@/packages/constants/blockchain'
 import { EthereumTransactionDetail, SolanaTransactionDetail } from '@/packages/web3/types'
 
-export type RouteType = {
+export interface RouteType {
   path: string
   name: string
   title: string
@@ -18,18 +18,18 @@ export type RouteType = {
   needLogin: boolean
 }
 
-export type CoinBalanceType = {
+export interface CoinBalanceType {
   [currency: string]: string
 }
 
-export type StoreType = {
+export interface StoreType {
   id: number
   name: string
   currency: string
   priceSource: string
 }
 
-export type OrderType = {
+export interface OrderType {
   orderId: number
   amount: number
   buyerEmail: string
@@ -65,7 +65,7 @@ export type OrderType = {
   sourceType: string
 }
 
-export type PaymentRequestType = {
+export interface PaymentRequestType {
   userId: number
   storeId: number
   storeName: string
@@ -84,14 +84,14 @@ export type PaymentRequestType = {
   email: string
 }
 
-export type PaymentRequestRowType = {
+export interface PaymentRequestRowType {
   orderId: number
   amount: number
   currency: string
   orderStatus: string
 }
 
-export type PullPaymentType = {
+export interface PullPaymentType {
   userId: number
   storeId: number
   pullPaymentId: number
@@ -110,7 +110,7 @@ export type PullPaymentType = {
   expirationAt: string
 }
 
-export type PayoutRowType = {
+export interface PayoutRowType {
   address: string
   chain: number
   chainName: string
@@ -122,7 +122,7 @@ export type PayoutRowType = {
   status: string
 }
 
-export type ChainWalletType = {
+export interface ChainWalletType {
   id: number
   address: string
   type: string
@@ -131,7 +131,7 @@ export type ChainWalletType = {
   transactions: any[]
 }
 
-export type SolanaWalletType = {
+export interface SolanaWalletType {
   id: number
   address: string
   type: string
@@ -140,7 +140,7 @@ export type SolanaWalletType = {
   transactions: SolanaTransactionDetail[]
 }
 
-export type EvmWalletType = {
+export interface EvmWalletType {
   id: number
   address: string
   type: string
@@ -149,7 +149,7 @@ export type EvmWalletType = {
   transactions: EthereumTransactionDetail[]
 }
 
-export type TronWalletType = {
+export interface TronWalletType {
   id: number
   address: string
   type: string
@@ -162,12 +162,12 @@ export type TronWalletType = {
   }
 }
 
-export type TronResourceType = {
+export interface TronResourceType {
   bandwidth: number
   energy: number
 }
 
-export type XrpWalletType = {
+export interface XrpWalletType {
   id: number
   address: string
   type: string
@@ -178,7 +178,7 @@ export type XrpWalletType = {
   trustLine: XrpTrustLineType[]
 }
 
-export type XrpTrustLineType = {
+export interface XrpTrustLineType {
   account: string
   balance: string
   currency: string
@@ -190,26 +190,26 @@ export type XrpTrustLineType = {
   qualityOut: number
 }
 
-export type XrpFeeType = {
+export interface XrpFeeType {
   baseFee: number
   medianFee: number
   minimumFee: number
   openLedgerFee: number
 }
 
-export type EvmChainFeeType = {
+export interface EvmChainFeeType {
   high: number
   average: number
   low: number
 }
 
-export type EvmMaxPriortyFeeType = {
+export interface EvmMaxPriortyFeeType {
   fast: number
   normal: number
   slow: number
 }
 
-export type UtxoFeeType = {
+export interface UtxoFeeType {
   fastest: number
   halfHour: number
   hour: number
@@ -217,7 +217,7 @@ export type UtxoFeeType = {
   minimum: number
 }
 
-export type AddressBookRowType = {
+export interface AddressBookRowType {
   id: number
   chainId: number
   isMainnet: boolean
@@ -225,7 +225,7 @@ export type AddressBookRowType = {
   address: string
 }
 
-export type AssetCoinType = {
+export interface AssetCoinType {
   coin: string
   price: string
   number: number
@@ -236,7 +236,7 @@ export type AssetCoinType = {
   twentyFourHChange: string
 }
 
-export type AssetWalletType = {
+export interface AssetWalletType {
   walletId: number
   walletName: string
   address: string
@@ -247,7 +247,7 @@ export type AssetWalletType = {
   currencySymbol: string
 }
 
-export type LightningRowType = {
+export interface LightningRowType {
   id: number
   balance: string
   text: string
@@ -264,7 +264,7 @@ export type LightningRowType = {
   showAllowPayeePassComment: boolean
 }
 
-export type PrivateKeyRowType = {
+export interface PrivateKeyRowType {
   chainId: number
   isMainnet: boolean
   address: string
@@ -272,7 +272,7 @@ export type PrivateKeyRowType = {
   view: boolean
 }
 
-export type BlockchainCoinType = {
+export interface BlockchainCoinType {
   chainId: CHAINS
   icon: any
   name: COINS
@@ -282,7 +282,7 @@ export type BlockchainCoinType = {
   scan: boolean
 }
 
-export type BlockchainType = {
+export interface BlockchainType {
   icon: any
   name: CHAINNAMES
   desc: string

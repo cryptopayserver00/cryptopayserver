@@ -7,7 +7,7 @@ import { COINGECKO_IDS, CURRENCY, CURRENCY_SYMBOLS } from '@/packages/constants'
 import { BigMul } from '@/utils/number'
 import { prisma } from '@/lib/prisma'
 
-type CoinType = {
+interface CoinType {
   coin: string
   price: string
   number: number
@@ -18,7 +18,7 @@ type CoinType = {
   twentyFourHChange: string
 }
 
-type CoinMapItem = {
+interface CoinMapItem {
   unit: string
   number: number
   price: number

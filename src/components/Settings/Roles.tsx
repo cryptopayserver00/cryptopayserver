@@ -263,7 +263,7 @@ export const Roles = () => {
 
 export default Roles
 
-type RowType = {
+interface RowType {
   id: number
   rid: number
   role: string
@@ -272,7 +272,7 @@ type RowType = {
   inUse: boolean
 }
 
-type TableType = {
+interface TableType {
   editPermissions: (id: number, role: string, permissionids: number[]) => void
 }
 

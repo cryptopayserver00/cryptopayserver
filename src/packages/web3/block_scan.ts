@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { IS_DEVELOPMENT } from '@/packages/constants'
 
-export type BlockScanWalletType = {
+export interface BlockScanWalletType {
   address: string
   chain_id: number
 }

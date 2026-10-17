@@ -12,7 +12,7 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
-type RowType = {
+interface RowType {
   id: number
   date: string
   message: string

@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from '@/packages/constants/blockchain'
 import CreateFreeFundsDialog from '@/components/Dialog/CreateFreeFundsDialog'
 
-type SelectType = {
+interface SelectType {
   network: number
   amount: number
   currency: string

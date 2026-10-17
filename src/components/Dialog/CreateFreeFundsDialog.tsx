@@ -18,7 +18,7 @@ import { FindChainNamesByChains } from '@/utils/web3'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 
-type RowType = {
+interface RowType {
   id: number
   chainId: number
   isMainnet: boolean
@@ -26,7 +26,7 @@ type RowType = {
   address: string
 }
 
-type DialogType = {
+interface DialogType {
   network: number
   selectCoinItem: COIN
   openDialog: boolean

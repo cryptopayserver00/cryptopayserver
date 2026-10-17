@@ -1,7 +1,7 @@
 import { COINPAIR } from '@/packages/constants'
 import { useEffect, useRef, memo } from 'react'
 
-type WidgetType = {
+interface WidgetType {
   coinPair: (typeof COINPAIR)[keyof typeof COINPAIR]
 }
 

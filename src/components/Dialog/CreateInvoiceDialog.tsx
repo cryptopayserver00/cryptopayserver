@@ -14,7 +14,7 @@ import { CURRENCY_SYMBOLS } from '@/packages/constants'
 import { CHAINS, COIN } from '@/packages/constants/blockchain'
 import { FindChainNamesByChains } from '@/utils/web3'
 
-type DialogType = {
+interface DialogType {
   selectCoinItem: COIN
   currency: string
   amount: number

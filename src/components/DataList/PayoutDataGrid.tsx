@@ -18,7 +18,7 @@ import { OmitMiddleString } from '@/utils/strings'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { useShallow } from 'zustand/react/shallow'
 
-type RowType = {
+interface RowType {
   id: number
   chainId: number
   payoutId: number
@@ -33,7 +33,7 @@ type RowType = {
   url: string
 }
 
-type GridType = {
+interface GridType {
   status: (typeof PAYOUT_STATUS)[keyof typeof PAYOUT_STATUS]
 }
 

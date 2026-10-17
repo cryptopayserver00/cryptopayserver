@@ -186,14 +186,14 @@ export const Users = () => {
 
 export default Users
 
-type RowType = {
+interface RowType {
   id: number
   rid: number
   email: string
   role: string
 }
 
-type TableType = {
+interface TableType {
   defaultRole: string[]
 }
 
