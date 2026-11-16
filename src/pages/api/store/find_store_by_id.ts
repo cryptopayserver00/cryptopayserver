@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import { requireOwnedStore } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -15,9 +16,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid id', result: false, data: null })
     }
 
+    const owned = await requireOwnedStore(req, res, id, req.query.user_id)
+    if (!owned) return
+
     const store = await prisma.stores.findFirst({
       where: {
-        id: id,
+        id: owned.storeId,
+        user_id: owned.userId,
         status: 1,
       },
     })

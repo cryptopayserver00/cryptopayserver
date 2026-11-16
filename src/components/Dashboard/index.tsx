@@ -47,7 +47,7 @@ const Dashboard = () => {
         },
       })
 
-      if (response.result && !response.data.password) {
+      if (response.result && !response.data.hasPassword) {
         setEnablePasswordWarn(true)
       } else {
         setEnablePasswordWarn(false)

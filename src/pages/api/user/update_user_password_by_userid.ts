@@ -1,7 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
-import CryptoJS from 'crypto-js'
 import { prisma } from '@/lib/prisma'
+import {
+  clearPending2faCookie,
+  forbidden,
+  hashPassword,
+  requireAuthUserId,
+  setSessionCookie,
+  validatePasswordStrength,
+  verifyPassword,
+} from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -11,10 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
+    const userId = await requireAuthUserId(req, res, req.body.user_id)
+    if (!userId) return
 
     const oldPwd = req.body.old_password
     if (!oldPwd) {
@@ -26,8 +32,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid newPwd', result: false, data: null })
     }
 
-    const oldCryptoPassword = CryptoJS.SHA256(oldPwd).toString()
-    const newCryptoPassword = CryptoJS.SHA256(newPwd).toString()
+    const passwordError = validatePasswordStrength(String(newPwd))
+    if (passwordError) {
+      return res.status(200).json({ message: passwordError, result: false, data: null })
+    }
+
+    const user = await prisma.users.findFirst({
+      where: { id: userId, status: 1 },
+    })
+    if (!user) {
+      return res.status(200).json({ message: 'Cannot find user', result: false, data: null })
+    }
+
+    const { ok } = await verifyPassword(oldPwd, user.password)
+    if (!ok) {
+      return forbidden(res, 'Invalid password')
+    }
+
+    const newCryptoPassword = await hashPassword(newPwd)
 
     await prisma.users.update({
       data: {
@@ -35,10 +57,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       },
       where: {
         id: userId,
-        password: oldCryptoPassword,
         status: 1,
       },
     })
+
+    // Invalidate other sessions (pwdv changes) and re-issue cookie for this client.
+    clearPending2faCookie(res)
+    await setSessionCookie(res, userId, newCryptoPassword)
 
     return res.status(200).json({ message: '', result: true, data: null })
   } catch (e) {

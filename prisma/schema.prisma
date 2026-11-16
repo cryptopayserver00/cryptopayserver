@@ -32,6 +32,9 @@ model addresses {
   status      Int
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+
+  @@index([wallet_id, chain_id, network, status])
+  @@index([user_id, status])
 }
 
 model api_key_settings {
@@ -142,11 +145,16 @@ model invoices {
   status              Int
   created_at          DateTime @default(now())
   updated_at          DateTime @updatedAt
-  expiration_at       DateTime @updatedAt
+  expiration_at       DateTime
   hash                String?
   from_address        String?
   to_address          String?
   block_timestamp     BigInt?
+
+  @@index([order_status, status])
+  @@index([store_id, status])
+  @@index([user_id, store_id])
+  @@index([expiration_at, order_status, status])
 }
 
 model notification_settings {
@@ -171,6 +179,9 @@ model notifications {
   status     Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index([user_id, store_id, status])
+  @@index([user_id, is_seen, status])
 }
 
 model pay_buttons {
@@ -197,7 +208,11 @@ model payment_requests {
   status                   Int
   created_at               DateTime @default(now())
   updated_at               DateTime @updatedAt
-  expiration_at            DateTime @updatedAt
+  expiration_at            DateTime
+
+  @@index([store_id, status])
+  @@index([user_id, store_id, status])
+  @@index([expiration_at, payment_request_status, status])
 }
 
 model payment_settings {
@@ -213,6 +228,9 @@ model payment_settings {
   status                  Int
   created_at              DateTime @default(now())
   updated_at              DateTime @updatedAt
+
+  @@index([store_id, chain_id, network, status])
+  @@index([user_id, store_id, status])
 }
 
 model payout_settings {
@@ -274,7 +292,11 @@ model pull_payments {
   status                  Int
   created_at              DateTime @default(now())
   updated_at              DateTime @updatedAt
-  expiration_at           DateTime @updatedAt
+  expiration_at           DateTime
+
+  @@index([store_id, status])
+  @@index([user_id, store_id, status])
+  @@index([expiration_at, pull_payment_status, status])
 }
 
 model shopify_settings {
@@ -333,6 +355,9 @@ model wallets {
   status      Int
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+
+  @@index([user_id, store_id, status])
+  @@index([store_id, status])
 }
 
 model wallet_coin_enables {

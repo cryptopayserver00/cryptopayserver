@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/auth'
+import { readAccessToken, verifyPublicResource } from '@/lib/security/public-token'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,11 +12,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
+    if (!rateLimit(req, res, { scope: 'pub-find-payment-request-by-', limit: 60, windowMs: 15 * 60 * 1000 })) {
+      return
+    }
+
     const paymentRequestId = Number(req.query.id)
     if (!paymentRequestId) {
       return res
         .status(200)
         .json({ message: 'Invalid paymentRequestId', result: false, data: null })
+    }
+
+    if (!verifyPublicResource('payment_request', paymentRequestId, readAccessToken(req))) {
+      return res.status(403).json({ message: 'Invalid or missing access token', result: false, data: null })
     }
 
     const payment_request = await prisma.payment_requests.findFirst({
@@ -31,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const store = await prisma.stores.findFirst({
       where: {
         id: payment_request.store_id,
+        status: 1,
       },
     })
 
@@ -43,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       result: true,
       data: {
         id: payment_request.id,
-        userId: payment_request.user_id,
+        // Public checkout: omit merchant userId; store/network still needed for UX.
         storeId: payment_request.store_id,
         network: payment_request.network,
         status: payment_request.status,
@@ -54,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         amount: payment_request.amount,
         currency: payment_request.currency,
         showAllowCustomAmount: payment_request.show_allow_custom_amount,
-        email: payment_request.email,
+        // Do not expose merchant/buyer email on the public page.
         requestCustomerData: payment_request.request_customer_data,
         memo: payment_request.memo,
         paymentRequestStatus: payment_request.payment_request_status,

@@ -4,6 +4,18 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { LNDHUB } from '@/packages/lightning/core/lndhub'
 import { LIGHTNING } from '@/packages/lightning'
 import { prisma } from '@/lib/prisma'
+import {
+  assertLightningOwnedByUser,
+  forbidden,
+  rateLimit,
+  requireAccountPassword,
+  requireAuth,
+} from '@/lib/auth'
+import {
+  encryptLightningCredentials,
+  unwrapLightningCredentials,
+} from '@/lib/crypto/lightning'
+import { assertSafeHttpUrl } from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -13,9 +25,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
+    const session = await requireAuth(req, res)
+    if (!session) return
+
+    if (!rateLimit(req, res, { scope: 'ln-send', limit: 30, windowMs: 15 * 60 * 1000 })) {
+      return
+    }
+
     const id = Number(req.body.lightning_id)
     if (!id) {
       return res.status(200).json({ message: 'Invalid id', result: false, data: null })
+    }
+
+    if (!(await assertLightningOwnedByUser(id, session.userId))) {
+      return forbidden(res)
+    }
+
+    if (
+      !(await requireAccountPassword(
+        res,
+        session.userId,
+        req.body.account_password || req.body.password,
+        'Account password required to send Lightning payment'
+      ))
+    ) {
+      return
     }
 
     const invoice = req.body.invoice
@@ -26,6 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const find_lightning_network = await prisma.wallet_lightning_networks.findFirst({
       where: {
         id: id,
+        user_id: session.userId,
         status: 1,
       },
     })
@@ -34,6 +69,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res
         .status(200)
         .json({ message: 'Invalid find lightning network', result: false, data: null })
+    }
+
+    const serverUrl = /^https?:\/\//i.test(find_lightning_network.server)
+      ? find_lightning_network.server
+      : `https://${find_lightning_network.server}`
+    const safeServer = await assertSafeHttpUrl(serverUrl, { allowHttp: true })
+    if (!safeServer.ok) {
+      return res.status(200).json({ message: safeServer.message, result: false, data: null })
+    }
+
+    const creds = unwrapLightningCredentials(find_lightning_network)
+    if (Object.keys(creds.upgrades).length > 0) {
+      await prisma.wallet_lightning_networks.update({
+        where: { id: find_lightning_network.id },
+        data: creds.upgrades,
+      })
     }
 
     let isPay = false
@@ -49,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           '',
           '',
           '',
-          String(find_lightning_network.rune)
+          creds.rune
         )
         break
       case LIGHTNINGNAME.LNBITS:
@@ -60,17 +111,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           find_lightning_network.server,
           invoice,
           '',
-          String(find_lightning_network.macaroon),
-          String(find_lightning_network.certthumbprint)
+          creds.macaroon,
+          creds.certthumbprint
         )
         break
-      case LIGHTNINGNAME.LNDHUB:
-        let access_token = ''
+      case LIGHTNINGNAME.LNDHUB: {
+        let access_token = creds.accessToken
         if (
           new Date().getTime() >
           LNDHUB.accessTokenMaxAge + find_lightning_network.updated_at.getTime()
         ) {
-          // expired
           const [isAuthorized, data] = await LIGHTNING.testConnection(
             LIGHTNINGNAME.LNDHUB,
             find_lightning_network.server
@@ -80,10 +130,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               .status(200)
               .json({ message: 'Invalid authorized', result: false, data: null })
           }
+          const sealedTokens = encryptLightningCredentials({
+            access_token: data.accessToken,
+            refresh_token: data.refreshToken,
+          })
           await prisma.wallet_lightning_networks.update({
             data: {
-              access_token: data.accessToken,
-              refresh_token: data.refreshToken,
+              access_token: sealedTokens.access_token,
+              refresh_token: sealedTokens.refresh_token,
             },
             where: {
               id: find_lightning_network.id,
@@ -91,9 +145,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             },
           })
 
-          access_token = data.access_token
-        } else {
-          access_token = String(find_lightning_network.access_token)
+          access_token = String(data.accessToken || '')
         }
 
         isPay = await LIGHTNING.payInvoice(
@@ -103,6 +155,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           access_token
         )
         break
+      }
       case LIGHTNINGNAME.OPENNODE:
         break
       default:

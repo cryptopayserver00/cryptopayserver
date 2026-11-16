@@ -3,6 +3,14 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { WEB3 } from '@/packages/web3'
 import { FindTokenByChainIdsAndSymbol } from '@/utils/web3'
 import { prisma } from '@/lib/prisma'
+import {
+  assertWalletOwnedByUser,
+  forbidden,
+  rateLimit,
+  requireAuthUserId,
+  requireWalletPasswordIfSet,
+} from '@/lib/auth'
+import { decryptSecret } from '@/lib/crypto/secrets'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -12,14 +20,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
+    const userId = await requireAuthUserId(req, res, req.body.user_id)
+    if (!userId) return
+
+    if (!rateLimit(req, res, { scope: 'xrp-trust', limit: 20, windowMs: 15 * 60 * 1000 })) {
+      return
     }
 
     const walletId = Number(req.body.wallet_id)
     if (!walletId) {
       return res.status(200).json({ message: 'Invalid walletId', result: false, data: null })
+    }
+
+    if (!(await assertWalletOwnedByUser(walletId, userId))) {
+      return forbidden(res)
     }
 
     const chainId = Number(req.body.chain_id)
@@ -72,11 +86,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const wallet = await prisma.wallets.findFirst({
       where: {
         id: address.wallet_id,
+        user_id: userId,
         status: 1,
       },
       select: {
+        id: true,
         mnemonic: true,
         store_id: true,
+        password: true,
       },
     })
 
@@ -84,8 +101,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Cannot find wallet', result: false, data: null })
     }
 
+    if (!(await requireWalletPasswordIfSet(res, wallet, req.body.wallet_password))) {
+      return
+    }
+
     const hash = await WEB3.createTokenTrustLine(network === 1, chainId, {
-      mnemonic: wallet.mnemonic,
+      mnemonic: decryptSecret(wallet.mnemonic),
       address: fromAddress,
       issuer: String(
         FindTokenByChainIdsAndSymbol(WEB3.getChainIds(address.network === 1, chainId), coin)

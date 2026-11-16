@@ -27,6 +27,8 @@ const ApiKey = () => {
   const [label, setLabel] = useState<string>('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [permissions, setPermissions] = useState<APIKEYPERMISSION[]>(APIKEYPERMISSIONS)
+  const [createdApiKey, setCreatedApiKey] = useState<string>('')
+  const [copiedCreated, setCopiedCreated] = useState(false)
 
   const { userId } = useUserPresistStore(
     useShallow((state) => ({
@@ -78,8 +80,10 @@ const ApiKey = () => {
       })
 
       if (response.result) {
+        setCreatedApiKey(response.data?.apiKey || '')
+        setCopiedCreated(false)
         setSnackSeverity('success')
-        setSnackMessage('Save successful!')
+        setSnackMessage('API key created — copy it now, it will not be shown again.')
         setSnackOpen(true)
 
         clearData()
@@ -125,6 +129,43 @@ const ApiKey = () => {
               Generate Key
             </Button>
           </div>
+
+          {createdApiKey ? (
+            <Card className="border-amber-200 bg-amber-50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Copy your API key now</CardTitle>
+                <CardDescription>
+                  This is the only time the full key is shown. Store it securely.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <code className="flex-1 break-all rounded-md bg-white px-3 py-2 text-sm border">
+                  {createdApiKey}
+                </code>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2 shrink-0"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(createdApiKey)
+                      setCopiedCreated(true)
+                    } catch {
+                      setSnackSeverity('error')
+                      setSnackMessage('Copy failed')
+                      setSnackOpen(true)
+                    }
+                  }}
+                >
+                  {copiedCreated ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copiedCreated ? 'Copied' : 'Copy'}
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setCreatedApiKey('')}>
+                  Dismiss
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardContent className="pt-6">

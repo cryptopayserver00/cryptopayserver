@@ -67,7 +67,16 @@ export default function WebhookDataGrid(props: GridType) {
   const onClickTest = async (row: RowType) => {
     try {
       setTestingId(row.webhookId)
-      await axios.get(row.payloadUrl)
+      // Send a signed ping so merchants can verify HMAC headers end-to-end
+      const { WEBHOOK } = await import('@/utils/webhook')
+      await WEBHOOK.sendWebhook(
+        row.payloadUrl,
+        { ping: true, webhookId: row.webhookId },
+        {
+          secret: row.secret,
+          event: 'webhook.test',
+        }
+      )
       setSnackSeverity('success')
       setSnackMessage('Testing successful!')
       setSnackOpen(true)

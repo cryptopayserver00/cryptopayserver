@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { WEB3 } from '@/packages/web3'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
+import { rateLimit, requireAccountPassword, requireAuth } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -8,6 +9,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (req.method !== HttpMethod.POST) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
+    }
+
+    const session = await requireAuth(req, res)
+    if (!session) return
+
+    if (!rateLimit(req, res, { scope: 'import-pk', limit: 20, windowMs: 15 * 60 * 1000 })) {
+      return
+    }
+
+    if (
+      !(await requireAccountPassword(
+        res,
+        session.userId,
+        req.body.account_password || req.body.password,
+        'Account password required to import private key'
+      ))
+    ) {
+      return
     }
 
     const chainId = Number(req.body.chain_id)

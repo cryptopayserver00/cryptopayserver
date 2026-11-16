@@ -1,7 +1,21 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
-import { randomUUID } from 'crypto'
 import { prisma } from '@/lib/prisma'
+import { requireAuthUserId, assertStoreOwnedByUser, forbidden } from '@/lib/auth'
+import { ROLEPERMISSIONS, USER_ROLE } from '@/packages/constants'
+
+const ALLOWED_PERMISSION_IDS = new Set(ROLEPERMISSIONS.map((p) => p.id))
+
+function sanitizePermissions(raw: string): string | null {
+  const ids = raw
+    .split(',')
+    .map((p) => Number(p.trim()))
+    .filter((n) => Number.isFinite(n) && n > 0)
+  if (ids.length === 0) return null
+  if (ids.some((id) => !ALLOWED_PERMISSION_IDS.has(id))) return null
+  // Dedupe and sort for stable storage.
+  return [...new Set(ids)].sort((a, b) => a - b).join(',')
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -11,24 +25,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
+    const userId = await requireAuthUserId(req, res, req.body.user_id)
+    if (!userId) return
 
     const storeId = Number(req.body.store_id)
     if (!storeId) {
       return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
     }
+    if (!(await assertStoreOwnedByUser(storeId, userId))) {
+      return forbidden(res)
+    }
 
-    const role = req.body.role
+    const role = String(req.body.role || '')
     if (!role) {
       return res.status(200).json({ message: 'Invalid role', result: false, data: null })
     }
+    if (role === USER_ROLE.Owner) {
+      return res.status(200).json({ message: 'Cannot create Owner role', result: false, data: null })
+    }
 
-    const permissions = req.body.permissions
+    const permissions = sanitizePermissions(String(req.body.permissions || ''))
     if (!permissions) {
-      return res.status(200).json({ message: 'Invalid permissions', result: false, data: null })
+      return res.status(200).json({
+        message: 'permissions must be a comma-separated list of known permission ids',
+        result: false,
+        data: null,
+      })
     }
 
     const create_role = await prisma.roles.create({

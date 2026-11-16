@@ -96,9 +96,13 @@ const MainAccount = () => {
 
   const onClickDeleteAccount = async () => {
     try {
+      const password = window.prompt('Enter your account password to delete this account')
+      if (!password) return
+
       setIsDeleting(true)
       const response: any = await axios.put(Http.delete_user_by_userid, {
         user_id: userId,
+        password,
       })
 
       if (response.result) {
@@ -111,7 +115,7 @@ const MainAccount = () => {
           window.location.href = '/login'
         }, 1000)
       } else {
-        showSnack('error', 'Delete failed!')
+        showSnack('error', response.message || 'Delete failed!')
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')

@@ -54,12 +54,20 @@ const ManagePrivateKey = () => {
 
   const onClickPrivateKeyItem = async (item: BLOCKCHAIN) => {
     try {
-      const response: any = await axios.get(Http.find_private_key_by_chain_and_network, {
-        params: {
-          wallet_id: walletId,
-          chain_id: FindChainIdsByChainNames(item.name),
-          network: item.isMainnet ? 1 : 2,
-        },
+      const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
+        '@/utils/wallet-password'
+      )
+      const accountPassword = promptAccountPassword('Enter your account password to export keys')
+      if (accountPassword === null) return
+      const walletPassword = await promptWalletPasswordIfNeeded(walletId)
+      if (walletPassword === null) return
+
+      const response: any = await axios.post(Http.find_private_key_by_chain_and_network, {
+        wallet_id: walletId,
+        chain_id: FindChainIdsByChainNames(item.name),
+        network: item.isMainnet ? 1 : 2,
+        account_password: accountPassword,
+        wallet_password: walletPassword,
       })
 
       if (response.result) {
@@ -73,13 +81,14 @@ const ManagePrivateKey = () => {
 
         setRows(rows)
       } else {
-        showSnack('error', 'Can not find the data on site!')
+        showSnack('error', response.message || 'Can not find the data on site!')
       }
 
       setCurrentItem(item)
       setOpen(true)
     } catch (e) {
       console.error(e)
+      showSnack('error', e instanceof Error ? e.message : 'Failed to export private key')
     }
   }
 

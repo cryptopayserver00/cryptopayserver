@@ -13,6 +13,7 @@ const SetPassword = () => {
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [accountPassword, setAccountPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -41,6 +42,7 @@ const SetPassword = () => {
       if (
         !password ||
         !confirmPassword ||
+        !accountPassword ||
         !isValidPassword(password) ||
         !isValidPassword(confirmPassword) ||
         password !== confirmPassword
@@ -54,7 +56,14 @@ const SetPassword = () => {
       const response: any = await axios.put(Http.update_pwd_by_wallet_id, {
         wallet_id: walletId,
         password: password,
+        account_password: accountPassword,
       })
+      if (!response.result) {
+        setSnackSeverity('error')
+        setSnackMessage(response.message || 'Update failed!')
+        setSnackOpen(true)
+        return
+      }
 
       if (response.result) {
         setSnackSeverity('success')
@@ -105,6 +114,17 @@ const SetPassword = () => {
         </div>
 
         <div className="space-y-4 pt-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Account password</label>
+            <input
+              type="password"
+              value={accountPassword}
+              onChange={(e) => setAccountPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              autoComplete="current-password"
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
             <div className="relative">

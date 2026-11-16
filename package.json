@@ -7,9 +7,17 @@
   "type": "module",
   "scripts": {
     "dev": "next dev -p 8888",
+    "dev:all": "concurrently -k -n web,worker -c cyan,magenta \"yarn dev\" \"yarn worker\"",
     "build": "next build",
     "start": "next start -p 8888",
-    "lint": "next lint"
+    "start:all": "concurrently -k -n web,worker -c cyan,magenta \"yarn start\" \"yarn worker\"",
+    "worker": "node scripts/schedule-worker.mjs",
+    "lint": "eslint . --max-warnings 2000",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@icons-pack/react-simple-icons": "^13.13.0",
@@ -34,6 +42,7 @@
     "@types/qrcode": "^1.5.5",
     "@types/react-color": "^3.0.13",
     "axios": "^1.11.0",
+    "bcryptjs": "^3.0.3",
     "big.js": "^6.2.1",
     "bip32": "^4.0.0",
     "bip39": "^3.1.0",
@@ -55,6 +64,7 @@
     "i18next": "^25.2.0",
     "i18next-browser-languagedetector": "^8.1.0",
     "i18next-http-backend": "^3.0.2",
+    "jose": "^6.2.17",
     "lucide-react": "^1.21.0",
     "mainnet-js": "^3.1.7",
     "next": "^16.2.9",
@@ -88,12 +98,14 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^24.1.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.3.5",
-    "typescript": "^5"
+    "eslint-config-next": "16.2.9",
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": "^16.0.0 || ^18.0.0 || >=20.0.0"

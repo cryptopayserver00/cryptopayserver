@@ -3,6 +3,8 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { PAYMENT_REQUEST_STATUS } from '@/packages/constants'
 import { GenerateOrderIDByTime } from '@/utils/number'
 import { prisma } from '@/lib/prisma'
+import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
+import { signPublicResource } from '@/lib/security/public-token'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -12,15 +14,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
-
-    const storeId = Number(req.body.store_id)
-    if (!storeId) {
-      return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
-    }
+    const access = await requireStorePermission(
+      req,
+      res,
+      req.body.store_id,
+      STORE_PERMISSION.ModifyPaymentRequests,
+      req.body.user_id
+    )
+    if (!access) return
+    const userId = access.userId
+    const storeId = access.storeId
 
     const network = Number(req.body.network)
     if (!network) {
@@ -28,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     const amount = Number(req.body.amount)
-    if (!amount) {
+    if (!Number.isFinite(amount) || amount <= 0) {
       return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
     }
 
@@ -65,6 +68,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       result: true,
       data: {
         id: payment_request.id,
+        paymentRequestId: paymentRequestId,
+        accessToken: signPublicResource('payment_request', paymentRequestId),
       },
     })
   } catch (e) {

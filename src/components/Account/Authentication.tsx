@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { QRCodeSVG } from 'qrcode.react'
-import { ArrowLeft, Copy, Check, Shield, ShieldOff, RefreshCw, Eye, Smartphone } from 'lucide-react'
+import { ArrowLeft, Copy, Check, Shield, ShieldOff, RefreshCw, Smartphone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -46,13 +46,10 @@ const Authentication = () => {
         },
       })
 
-      if (response.result && response.data.authenticator && response.data.authenticator !== '') {
+      if (response.result && response.data.hasAuthenticator) {
         setIsSetup(true)
-        setText(response.data.authenticator)
-        const link = `otpauth://totp/CryptoPayServer:${userEmail}?secret=${
-          response.data.authenticator
-        }&issuer=CryptoPayServer&digits=6`
-        setQrCode(link)
+        setText('')
+        setQrCode('')
         setPage(1)
       } else {
         setIsSetup(false)
@@ -75,10 +72,17 @@ const Authentication = () => {
 
   const onClickResetApp = async () => {
     try {
+      const accountPassword = window.prompt('Enter your account password to reset 2FA')
+      if (!accountPassword) return
+      const totpCode = window.prompt('Enter your current authenticator code')
+      if (!totpCode) return
+
       setIsResetting(true)
       const response: any = await axios.put(Http.update_user_by_userid, {
         user_id: userId,
         authenticator: '',
+        password: accountPassword,
+        totp_code: totpCode,
       })
 
       if (response.result) {
@@ -89,7 +93,7 @@ const Authentication = () => {
         setPage(2)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Reset failed!')
+        setSnackMessage(response.message || 'Reset failed!')
         setSnackOpen(true)
       }
     } catch (e) {
@@ -107,11 +111,27 @@ const Authentication = () => {
 
     if (VerifyAuthenticator(code, text)) {
       try {
+        const accountPassword = window.prompt('Enter your account password to enable 2FA')
+        if (!accountPassword) return
+
         setIsVerifying(true)
-        const response: any = await axios.put(Http.update_user_by_userid, {
+        const payload: Record<string, string | number> = {
           user_id: userId,
           authenticator: text,
-        })
+          password: accountPassword,
+          setup_totp_code: code,
+        }
+        // Replacing an existing authenticator requires the old TOTP as well.
+        if (isSetup) {
+          const totpCode = window.prompt('Enter your current authenticator code')
+          if (!totpCode) {
+            setIsVerifying(false)
+            return
+          }
+          payload.current_totp_code = totpCode
+        }
+
+        const response: any = await axios.put(Http.update_user_by_userid, payload)
 
         if (response.result) {
           setSnackSeverity('success')
@@ -120,7 +140,7 @@ const Authentication = () => {
           await init(userId)
         } else {
           setSnackSeverity('error')
-          setSnackMessage('Authentication failed!')
+          setSnackMessage(response.message || 'Authentication failed!')
           setSnackOpen(true)
         }
       } catch (e) {
@@ -229,30 +249,6 @@ const Authentication = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      Configure app
-                    </CardTitle>
-                    <CardDescription>
-                      Display the key or QR code to configure an authenticator app with your current
-                      setup.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button
-                      onClick={() => {
-                        setPage(2)
-                        clearData()
-                      }}
-                      className="gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      Check
-                    </Button>
-                  </CardContent>
-                </Card>
               </div>
             ) : (
               <Card>

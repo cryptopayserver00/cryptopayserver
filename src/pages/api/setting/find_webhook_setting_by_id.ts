@@ -1,6 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import {
+  forbidden,
+  getStoreAccess,
+  requireAuth,
+  STORE_PERMISSION,
+  storeAccessHasPermission,
+} from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -9,6 +16,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (req.method !== HttpMethod.GET) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
+
+    const session = await requireAuth(req, res)
+    if (!session) return
 
     const id = Number(req.query.id)
     if (!id) {
@@ -23,7 +33,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
 
     if (!webhook_setting) {
-      return res.status(200).json({ message: 'Cannot find', result: false, data: null })
+      return forbidden(res, 'Cannot find')
+    }
+
+    const access = await getStoreAccess(webhook_setting.store_id, session.userId)
+    if (
+      !access ||
+      (!storeAccessHasPermission(access, STORE_PERMISSION.ModifyWebhooks) &&
+        !storeAccessHasPermission(access, STORE_PERMISSION.ViewStores))
+    ) {
+      return forbidden(res)
     }
 
     return res.status(200).json({
@@ -37,7 +56,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         createdAt: webhook_setting.created_at,
         updatedAt: webhook_setting.updated_at,
         payloadUrl: webhook_setting.payload_url,
-        secret: webhook_setting.secret,
+        secret: '',
+        hasSecret: Boolean(webhook_setting.secret),
         automaticRedelivery: webhook_setting.automatic_redelivery,
         enabled: webhook_setting.enabled,
         eventType: webhook_setting.event_type,

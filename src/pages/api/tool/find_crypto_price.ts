@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { CRYPTOPRICE } from '@/packages/web3/crypto_price'
+import { rateLimit } from '@/lib/auth'
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -8,6 +9,11 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
 
     if (req.method !== HttpMethod.GET) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
+    }
+
+    // Used by public payment-request checkout; keep unauthenticated but rate-limited.
+    if (!rateLimit(req, res, { scope: 'crypto-price', limit: 60, windowMs: 15 * 60 * 1000 })) {
+      return
     }
 
     const ids = req.query.ids

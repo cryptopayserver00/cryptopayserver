@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '@/pages/api'
 import { prisma } from '@/lib/prisma'
+import { requireOwnedStore } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,9 +11,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    let findData: { [key: string]: any } = {}
+    const owned = await requireOwnedStore(req, res, req.query.store_id, req.query.user_id)
+    if (!owned) return
 
-    if (req.query.store_id) findData.store_id = Number(req.query.store_id)
+    let findData: { [key: string]: any } = {}
+    findData.store_id = owned.storeId
+    findData.user_id = owned.userId
     if (req.query.network) findData.network = Number(req.query.network)
     if (req.query.chain_id) findData.chain_id = Number(req.query.chain_id)
     findData.status = 1

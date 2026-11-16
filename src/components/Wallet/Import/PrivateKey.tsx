@@ -54,12 +54,19 @@ const ImportPrivateKey = () => {
         return
       }
 
+      const { promptAccountPassword } = await import('@/utils/wallet-password')
+      const accountPassword = promptAccountPassword(
+        'Enter your account password to import private key'
+      )
+      if (accountPassword === null) return
+
       const response: any = await axios.post(Http.save_wallet_by_private_key, {
         user_id: userId,
         store_id: storeId,
         chain_id: FindChainIdsByChainNames(chainName),
         network: network === 'mainnet' ? 1 : 2,
         private_key: privateKey,
+        account_password: accountPassword,
       })
 
       if (response.result) {

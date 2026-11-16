@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { CHAINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
+import { requireStorePermission, STORE_PERMISSION, storeAccessHasPermission } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -11,15 +12,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const storeId = Number(req.query.store_id)
-    if (!storeId) {
-      return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
-    }
-
-    const userId = Number(req.query.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
+    const access = await requireStorePermission(
+      req,
+      res,
+      req.query.store_id,
+      STORE_PERMISSION.ViewStores,
+      req.query.user_id
+    )
+    if (!access) return
+    const { userId, storeId } = access
 
     const network = Number(req.query.network)
     if (!network) {
@@ -35,7 +36,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
 
     if (payout_setting.length === 0) {
-      // create default role
+      if (!storeAccessHasPermission(access, STORE_PERMISSION.ModifyStores)) {
+        return res.status(200).json({ message: '', result: true, data: [] })
+      }
       const chainValues = Object.values(CHAINS)
       const filteredChainValues = chainValues.filter((value) => typeof value === 'number')
       const data = filteredChainValues.map((item) => ({

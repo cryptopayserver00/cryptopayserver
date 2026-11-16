@@ -4,6 +4,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { BLOCKSCAN, BlockScanWalletType } from '@/packages/web3/block_scan'
 import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
+import { requireAuthUserId, assertStoreOwnedByUser, assertWalletOwnedByUser, forbidden } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -13,14 +14,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
+    const userId = await requireAuthUserId(req, res, req.body.user_id)
+    if (!userId) return
 
     const walletId = Number(req.body.wallet_id)
     if (!walletId) {
       return res.status(200).json({ message: 'Invalid walletId', result: false, data: null })
+    }
+    if (!(await assertWalletOwnedByUser(walletId, userId))) {
+      return forbidden(res)
     }
 
     const addresses = await prisma.addresses.findMany({

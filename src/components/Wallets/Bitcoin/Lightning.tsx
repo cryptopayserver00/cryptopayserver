@@ -89,8 +89,10 @@ const Lightning = () => {
     try {
       if (!text) return
 
-      const response: any = await axios.get(Http.test_connection, {
-        params: { network: network === 'mainnet' ? 1 : 2, store_id: storeId, text },
+      const response: any = await axios.post(Http.test_connection, {
+        network: network === 'mainnet' ? 1 : 2,
+        store_id: storeId,
+        text,
       })
 
       if (response.result) {
@@ -114,11 +116,18 @@ const Lightning = () => {
     try {
       if (!text) return
 
+      const { promptAccountPassword } = await import('@/utils/wallet-password')
+      const accountPassword = promptAccountPassword(
+        'Enter your account password to save Lightning credentials'
+      )
+      if (accountPassword === null) return
+
       const response: any = await axios.post(Http.create_lightning_network, {
         user_id: userId,
         network: network === 'mainnet' ? 1 : 2,
         store_id: storeId,
         text,
+        account_password: accountPassword,
       })
 
       if (response.result) {
@@ -233,9 +242,16 @@ const Lightning = () => {
         return
       }
 
+      const { promptAccountPassword } = await import('@/utils/wallet-password')
+      const accountPassword = promptAccountPassword(
+        'Enter your account password to send Lightning payment'
+      )
+      if (accountPassword === null) return
+
       const response: any = await axios.post(Http.send_lightning_network_transaction, {
         lightning_id: currentRow.id,
         invoice,
+        account_password: accountPassword,
       })
 
       if (response.result) {
@@ -244,7 +260,7 @@ const Lightning = () => {
         setSnackOpen(true)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Send failed!')
+        setSnackMessage(response.message || 'Send failed!')
         setSnackOpen(true)
       }
     } catch (e) {

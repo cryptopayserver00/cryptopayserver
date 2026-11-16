@@ -9,8 +9,14 @@ export const HttpMethod = {
   HEAD: 'HEAD',
 }
 
+const corsOrigin = process.env.CORS_ORIGIN || undefined
+
 export const CorsMethod = Cors({
   methods: [HttpMethod.POST, HttpMethod.GET, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.HEAD],
+  origin: corsOrigin
+    ? corsOrigin.split(',').map((item) => item.trim())
+    : false,
+  credentials: true,
 })
 
 export function CorsMiddleware(req: NextApiRequest, res: NextApiResponse, fn: Function) {

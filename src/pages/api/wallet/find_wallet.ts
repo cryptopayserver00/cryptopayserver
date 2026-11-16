@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import { assertStoreOwnedByUser, forbidden, requireAuth } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,15 +11,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
+    const session = await requireAuth(req, res)
+    if (!session) return
+
     const storeId = Number(req.query.store_id)
     if (!storeId) {
       return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
     }
 
+    if (!(await assertStoreOwnedByUser(storeId, session.userId))) {
+      return forbidden(res)
+    }
+
     const wallet = await prisma.wallets.findFirst({
       where: {
         store_id: storeId,
+        user_id: session.userId,
         status: 1,
+      },
+      select: {
+        id: true,
       },
     })
 

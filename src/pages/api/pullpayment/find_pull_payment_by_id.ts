@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/auth'
+import { readAccessToken, verifyPublicResource } from '@/lib/security/public-token'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,9 +12,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
+    if (!rateLimit(req, res, { scope: 'pub-find-pull-payment-by-id', limit: 60, windowMs: 15 * 60 * 1000 })) {
+      return
+    }
+
     const pullPaymentId = Number(req.query.id)
     if (!pullPaymentId) {
       return res.status(200).json({ message: 'Invalid pullPaymentId', result: false, data: null })
+    }
+
+    if (!verifyPublicResource('pull_payment', pullPaymentId, readAccessToken(req))) {
+      return res.status(403).json({ message: 'Invalid or missing access token', result: false, data: null })
     }
 
     const pull_payments = await prisma.pull_payments.findFirst({
@@ -29,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const store = await prisma.stores.findFirst({
       where: {
         id: pull_payments.store_id,
+        status: 1,
       },
     })
 
@@ -42,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       data: {
         id: pull_payments.id,
         name: pull_payments.name,
-        userId: pull_payments.user_id,
+        // Public claim page: omit merchant userId.
         storeId: pull_payments.store_id,
         network: pull_payments.network,
         status: pull_payments.status,

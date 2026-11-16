@@ -69,7 +69,8 @@ const requestStatusAlertClass = (status?: string) => {
 
 const PaymentRequestsDetails = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, t: accessTokenQuery } = router.query
+  const accessToken = String(accessTokenQuery || '')
 
   const [page, setPage] = useState<number>(1)
 
@@ -102,6 +103,7 @@ const PaymentRequestsDetails = () => {
           network: network,
           source_type: INVOICE_SOURCE_TYPE.PaymentRequest,
           external_payment_id: paymentRequestId,
+          t: accessToken,
         },
       })
 
@@ -117,6 +119,7 @@ const PaymentRequestsDetails = () => {
             amount: item.amount,
             currency: item.currency,
             orderStatus: item.orderStatus,
+            accessToken: item.accessToken,
           }
         })
 
@@ -138,6 +141,7 @@ const PaymentRequestsDetails = () => {
       const response: any = await axios.get(Http.find_payment_request_by_id, {
         params: {
           id: id,
+          t: accessToken,
         },
       })
 
@@ -174,8 +178,8 @@ const PaymentRequestsDetails = () => {
   }
 
   useEffect(() => {
-    id && init(id)
-  }, [id])
+    id && accessToken && init(id)
+  }, [id, accessToken])
 
   const onClickCoin = async (item: COIN, cryptoAmount: string, rate: number) => {
     if (!item || !cryptoAmount || !rate) {
@@ -196,13 +200,17 @@ const PaymentRequestsDetails = () => {
         crypto_amount: cryptoAmount,
         rate: rate,
         email: paymentRequestData?.email,
+        access_token: accessToken,
       })
 
       if (response.result && response.data.orderId) {
         showSnack('success', 'Successful creation!')
 
         setTimeout(() => {
-          window.location.href = '/invoices/' + response.data.orderId
+          const token = response.data.accessToken
+            ? `?t=${encodeURIComponent(response.data.accessToken)}`
+            : ''
+          window.location.href = '/invoices/' + response.data.orderId + token
         }, 1000)
       }
     } catch (e) {
@@ -342,7 +350,10 @@ const PaymentRequestsDetails = () => {
                                 variant="link"
                                 className="h-auto p-0"
                                 onClick={() => {
-                                  window.location.href = '/invoices/' + row.orderId
+                                  const token = row.accessToken
+                                    ? `?t=${encodeURIComponent(row.accessToken)}`
+                                    : ''
+                                  window.location.href = '/invoices/' + row.orderId + token
                                 }}
                               >
                                 {row.orderId}

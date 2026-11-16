@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import { requireAuthUserId, assertStoreOwnedByUser, forbidden } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -15,15 +16,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
     }
 
-    const userId = Number(req.query.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
+    const userId = await requireAuthUserId(req, res, req.query.user_id)
+    if (!userId) return
+    if (!(await assertStoreOwnedByUser(storeId, userId))) {
+      return forbidden(res)
     }
 
     const shopify_setting = await prisma.shopify_settings.findFirst({
       where: {
-        store_id: Number(storeId),
-        user_id: Number(userId),
+        store_id: storeId,
+        user_id: userId,
         status: 1,
       },
     })
@@ -38,8 +40,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       data: {
         id: shopify_setting.id,
         shopName: shopify_setting.shop_name,
-        apiKey: shopify_setting.api_key,
-        adminApiAccessToken: shopify_setting.admin_api_access_token,
+        // Never return Shopify secrets — leave blank unless the user re-enters them.
+        apiKey: '',
+        adminApiAccessToken: '',
+        hasApiKey: Boolean(shopify_setting.api_key),
+        hasAdminApiAccessToken: Boolean(shopify_setting.admin_api_access_token),
       },
     })
   } catch (e) {

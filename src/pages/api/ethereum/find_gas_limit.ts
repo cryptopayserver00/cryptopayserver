@@ -3,6 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { WEB3 } from '@/packages/web3'
 import { FindTokenByChainIdsAndSymbol } from '@/utils/web3'
 import { COINS } from '@/packages/constants/blockchain'
+import { assertAddressOwnedByUser, rateLimit, requireAuth } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,6 +11,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (req.method !== HttpMethod.GET) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
+    }
+
+    const session = await requireAuth(req, res)
+    if (!session) return
+
+    if (!rateLimit(req, res, { scope: 'rpc-proxy', limit: 120, windowMs: 15 * 60 * 1000 })) {
+      return
     }
 
     const from = req.query.from
@@ -41,6 +49,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!coin) {
       return res.status(200).json({ message: 'Invalid coin', result: false, data: null })
+    }
+
+    if (
+      !(await assertAddressOwnedByUser(String(from), session.userId, {
+        chainId,
+        network,
+      }))
+    ) {
+      return res.status(200).json({ message: 'From address not owned', result: false, data: null })
     }
 
     const token = FindTokenByChainIdsAndSymbol(

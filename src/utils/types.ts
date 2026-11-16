@@ -89,6 +89,7 @@ export interface PaymentRequestRowType {
   amount: number
   currency: string
   orderStatus: string
+  accessToken?: string
 }
 
 export interface PullPaymentType {

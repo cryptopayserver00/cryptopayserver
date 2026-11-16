@@ -58,9 +58,14 @@ const GenerateWallet = () => {
         return
       }
 
+      const { promptAccountPassword } = await import('@/utils/wallet-password')
+      const accountPassword = promptAccountPassword('Enter your account password to create wallet')
+      if (accountPassword === null) return
+
       const create_wallet_resp: any = await axios.post(Http.create_wallet, {
         user_id: userId,
         store_id: storeId,
+        account_password: accountPassword,
       })
 
       if (create_wallet_resp.result) {

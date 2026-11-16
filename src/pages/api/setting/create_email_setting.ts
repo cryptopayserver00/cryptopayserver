@@ -1,6 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
+import { encryptSecret } from '@/lib/crypto/secrets'
+import { assertSafeHostname, isAllowedSmtpPort } from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,22 +13,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
-
-    const storeId = Number(req.body.store_id)
-    if (!storeId) {
-      return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
-    }
+    const access = await requireStorePermission(
+      req,
+      res,
+      req.body.store_id,
+      STORE_PERMISSION.ModifyStores,
+      req.body.user_id
+    )
+    if (!access) return
+    const userId = access.userId
+    const storeId = access.storeId
 
     const port = Number(req.body.port)
-    if (!port) {
-      return res.status(200).json({ message: 'Invalid port', result: false, data: null })
+    if (!isAllowedSmtpPort(port)) {
+      return res.status(200).json({
+        message: 'SMTP port must be one of 25, 465, 587, 2525',
+        result: false,
+        data: null,
+      })
     }
 
-    const smtpServer = req.body.smtp_server
+    const smtpServer = String(req.body.smtp_server || '')
+    const safeHost = await assertSafeHostname(smtpServer)
+    if (!safeHost.ok) {
+      return res.status(200).json({ message: safeHost.message, result: false, data: null })
+    }
+
     const senderEmail = req.body.sender_email
     const login = req.body.login
     const password = req.body.password
@@ -35,11 +48,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       data: {
         user_id: userId,
         store_id: storeId,
-        smtp_server: smtpServer,
+        smtp_server: safeHost.host,
         port: port,
         sender_email: senderEmail,
         login: login,
-        password: password,
+        password: encryptSecret(String(password || '')),
         show_tls: showTls,
         status: 1,
       },

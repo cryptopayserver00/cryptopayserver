@@ -6,6 +6,21 @@ import { CHAINS, LIGHTNINGNAME } from '@/packages/constants/blockchain'
 import { LIGHTNING } from '@/packages/lightning'
 import { LNDHUB } from '@/packages/lightning/core/lndhub'
 import { prisma } from '@/lib/prisma'
+import {
+  apiKeyHasPermission,
+  getStoreAccess,
+  requireAuthOrApiKey,
+  STORE_PERMISSION,
+  storeAccessHasPermission,
+  forbidden,
+} from '@/lib/auth'
+import {
+  encryptLightningCredentials,
+  unwrapLightningCredentials,
+} from '@/lib/crypto/lightning'
+import { resolveAndValidateInvoicePrice } from '@/lib/security/invoice-price'
+import { signPublicResource } from '@/lib/security/public-token'
+import { assertSafeHttpUrl } from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -20,20 +35,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const description = req.body.description
     const buyerEmail = req.body.buyer_email
     const metadata = req.body.metadata
-    const notificationUrl = req.body.notification_url
+    let notificationUrl = req.body.notification_url ? String(req.body.notification_url) : ''
     const notificationEmail = req.body.notification_email
     const showBtcLn = req.body.show_btc_ln
     const showBtcUrl = req.body.show_btc_url
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
+    const owned = await requireAuthOrApiKey(req, res, req.body.store_id, req.body.user_id)
+    if (!owned) return
+    const { userId, storeId } = owned
+
+    // APIKEYPERMISSIONS id 2 = Create an invoice
+    if (owned.via === 'api_key' && !apiKeyHasPermission(owned.permissions, 2)) {
+      return res.status(403).json({
+        message: 'API key lacks create-invoice permission',
+        result: false,
+        data: null,
+      })
     }
 
-    const storeId = Number(req.body.store_id)
-    if (!storeId) {
-      return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
+    if (owned.via === 'session' && owned.actorUserId) {
+      const access = await getStoreAccess(owned.storeId, owned.actorUserId)
+      if (!access || !storeAccessHasPermission(access, STORE_PERMISSION.ModifyInvoices)) {
+        return forbidden(res, 'Insufficient store permission')
+      }
     }
+
 
     const chainId = Number(req.body.chain_id)
     if (!chainId) {
@@ -50,12 +76,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
     }
 
-    const crypto_amount = Number(req.body.crypto_amount)
+    let crypto_amount = Number(req.body.crypto_amount)
     if (!crypto_amount) {
       return res.status(200).json({ message: 'Invalid crypto amount', result: false, data: null })
     }
 
-    const rate = Number(req.body.rate)
+    let rate = Number(req.body.rate)
     if (!rate) {
       return res.status(200).json({ message: 'Invalid rate', result: false, data: null })
     }
@@ -66,6 +92,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!crypto) {
       return res.status(200).json({ message: 'Invalid crypto', result: false, data: null })
+    }
+
+    const priced = await resolveAndValidateInvoicePrice({
+      crypto: String(crypto),
+      currency: String(currency),
+      amount,
+      clientRate: rate,
+      clientCryptoAmount: crypto_amount,
+    })
+    if (!priced.ok) {
+      return res.status(200).json({ message: priced.message, result: false, data: null })
+    }
+    rate = priced.rate
+    crypto_amount = priced.cryptoAmount
+
+    if (notificationUrl) {
+      const safeNotify = await assertSafeHttpUrl(notificationUrl)
+      if (!safeNotify.ok) {
+        return res.status(200).json({ message: safeNotify.message, result: false, data: null })
+      }
+      notificationUrl = safeNotify.url.toString()
     }
 
     const orderId = GenerateOrderIDByTime()
@@ -95,6 +142,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const address = await prisma.addresses.findFirst({
       where: {
         id: payment_setting.current_used_address_id,
+        user_id: userId,
+        status: 1,
       },
       select: {
         address: true,
@@ -134,7 +183,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       if (find_lightning_network) {
         if (showBtcLn === 1) {
+          const serverUrl = /^https?:\/\//i.test(find_lightning_network.server)
+            ? find_lightning_network.server
+            : `https://${find_lightning_network.server}`
+          const safeLn = await assertSafeHttpUrl(serverUrl, { allowHttp: true })
+          if (!safeLn.ok) {
+            return res.status(200).json({ message: safeLn.message, result: false, data: null })
+          }
+
           const lndDescription = `Pay invoice (Order ID: ${orderId})`
+          const lnCreds = unwrapLightningCredentials(find_lightning_network)
+          if (Object.keys(lnCreds.upgrades).length > 0) {
+            await prisma.wallet_lightning_networks.update({
+              where: { id: find_lightning_network.id },
+              data: lnCreds.upgrades,
+            })
+          }
           switch (find_lightning_network.kind) {
             case LIGHTNINGNAME.BLINK:
               break
@@ -148,7 +212,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 '',
                 '',
                 '',
-                String(find_lightning_network.rune)
+                lnCreds.rune
               )
               break
             case LIGHTNINGNAME.LNBITS:
@@ -161,17 +225,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 lndDescription,
                 '',
                 '',
-                String(find_lightning_network.macaroon),
-                String(find_lightning_network.certthumbprint)
+                lnCreds.macaroon,
+                lnCreds.certthumbprint
               )
               break
-            case LIGHTNINGNAME.LNDHUB:
-              let access_token = ''
+            case LIGHTNINGNAME.LNDHUB: {
+              let access_token = lnCreds.accessToken
               if (
                 new Date().getTime() >
                 LNDHUB.accessTokenMaxAge + find_lightning_network.updated_at.getTime()
               ) {
-                // expired
                 const [isAuthorized, data] = await LIGHTNING.testConnection(
                   LIGHTNINGNAME.LNDHUB,
                   find_lightning_network.server
@@ -181,10 +244,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                     .status(200)
                     .json({ message: 'Invalid authorized', result: false, data: null })
                 }
+                const sealedTokens = encryptLightningCredentials({
+                  access_token: data.accessToken,
+                  refresh_token: data.refreshToken,
+                })
                 const result = await prisma.wallet_lightning_networks.updateMany({
                   data: {
-                    access_token: data.accessToken,
-                    refresh_token: data.refreshToken,
+                    access_token: sealedTokens.access_token,
+                    refresh_token: sealedTokens.refresh_token,
                   },
                   where: {
                     id: find_lightning_network.id,
@@ -198,9 +265,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                     .json({ message: 'Cannot update', result: false, data: null })
                 }
 
-                access_token = data.access_token
-              } else {
-                access_token = String(find_lightning_network.access_token)
+                access_token = String(data.accessToken || '')
               }
 
               lightningInvoice = await LIGHTNING.addInvoice(
@@ -212,6 +277,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 access_token
               )
               break
+            }
             case LIGHTNINGNAME.OPENNODE:
               break
             default:
@@ -316,6 +382,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       result: true,
       data: {
         orderId: orderId,
+        accessToken: signPublicResource('invoice', orderId),
       },
     })
   } catch (e) {

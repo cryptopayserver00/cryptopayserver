@@ -49,13 +49,12 @@ const FreeCoin = () => {
         return
       }
 
-      const response: any = await axios.get(Http.get_free_coin, {
-        params: {
-          amount: amount,
-          chain_id: item.chainId,
-          coin: item.name,
-          address: address,
-        },
+      const response: any = await axios.post(Http.get_free_coin, {
+        amount: amount,
+        chain_id: item.chainId,
+        coin: item.name,
+        address: address,
+        network: 2,
       })
 
       if (response.result && response.data && response.data.hash) {

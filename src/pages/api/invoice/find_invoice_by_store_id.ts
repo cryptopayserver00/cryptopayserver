@@ -5,6 +5,7 @@ import { FindTokenByChainIdsAndSymbol } from '@/utils/web3'
 import { WEB3 } from '@/packages/web3'
 import { COINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
+import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -14,14 +15,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
+    const access = await requireStorePermission(
+      req,
+      res,
+      req.query.store_id,
+      STORE_PERMISSION.ModifyInvoices,
+      req.query.user_id
+    )
+    if (!access) return
+    const storeId = access.storeId
+
     const orderId = req.query.order_id
     const orderStatus = req.query.order_status
     const time = req.query.time
-
-    const storeId = Number(req.query.store_id)
-    if (!storeId) {
-      return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
-    }
 
     const network = Number(req.query.network)
     if (!network) {

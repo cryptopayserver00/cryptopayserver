@@ -5,16 +5,6 @@ import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
 import { isValidPassword } from '@/utils/verify'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -31,7 +21,6 @@ import { useShallow } from 'zustand/react/shallow'
 const ManagePassword = () => {
   const [password, setPassword] = useState<string>('')
   const [isPassword, setIsPassword] = useState<boolean>(false)
-  const [openDeletePassword, setOpenDeletePassword] = useState<boolean>(false)
   const [openSetPassword, setOpenSetPassword] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -55,18 +44,6 @@ const ManagePassword = () => {
     setSnackOpen(true)
   }
 
-  const onClickDeletePassword = async () => {
-    const response: any = await axios.put(Http.update_pwd_by_wallet_id, {
-      wallet_id: walletId,
-      password: '',
-    })
-    if (response.result) {
-      showSnack('success', 'Successful update!')
-      await init(walletId)
-      setOpenDeletePassword(false)
-    }
-  }
-
   const onClickSetPassword = async () => {
     try {
       if (!password || !isValidPassword(password)) {
@@ -74,14 +51,30 @@ const ManagePassword = () => {
         return
       }
 
+      let oldPassword = ''
+      let accountPassword = ''
+      if (isPassword) {
+        const entered = window.prompt('Enter your current wallet password')
+        if (!entered) return
+        oldPassword = entered
+      } else {
+        const entered = window.prompt('Enter your account password to set a wallet password')
+        if (!entered) return
+        accountPassword = entered
+      }
+
       const response: any = await axios.put(Http.update_pwd_by_wallet_id, {
         wallet_id: walletId,
         password: password,
+        old_password: oldPassword,
+        account_password: accountPassword,
       })
       if (response.result) {
         showSnack('success', 'Successful update!')
         await init(walletId)
         setOpenSetPassword(false)
+      } else {
+        showSnack('error', response.message || 'Update failed!')
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -99,7 +92,7 @@ const ManagePassword = () => {
         },
       })
 
-      if (response.result && response.data.password !== '') {
+      if (response.result && (response.data.hasPassword || response.data.password)) {
         setIsPassword(true)
       } else {
         setIsPassword(false)
@@ -132,43 +125,16 @@ const ManagePassword = () => {
 
             <div className="mt-4 flex items-center justify-between">
               <span className="font-semibold">Operate</span>
-              {isPassword ? (
-                <Button variant="destructive" onClick={() => setOpenDeletePassword(true)}>
-                  Delete Password
-                </Button>
-              ) : (
-                <Button
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={() => setOpenSetPassword(true)}
-                >
-                  Set Password
-                </Button>
-              )}
+              <Button
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => setOpenSetPassword(true)}
+              >
+                {isPassword ? 'Change Password' : 'Set Password'}
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      <AlertDialog open={openDeletePassword} onOpenChange={setOpenDeletePassword}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete your password?</AlertDialogTitle>
-            <AlertDialogDescription>
-              If you delete your password, you will no longer need password support during the
-              payment process, which may raise a range of security risks.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Disagree</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={onClickDeletePassword}
-            >
-              Agree
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <Dialog open={openSetPassword} onOpenChange={setOpenSetPassword}>
         <DialogContent>

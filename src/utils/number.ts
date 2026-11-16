@@ -1,4 +1,5 @@
-import Big from 'big.js';
+import Big from 'big.js'
+import { randomBytes } from 'crypto'
 
 // +
 export function BigAdd(a: string, b: string): string {
@@ -36,20 +37,19 @@ export function BigDiv(a: string, b: string): string {
   return num1.div(num2).toString();
 }
 
+/**
+ * Cryptographically strong public resource id (15-digit, Number-safe).
+ * Name kept for call-site compatibility — no longer time-based / guessable.
+ */
 export function GenerateOrderIDByTime(): number {
-  const now = new Date();
-
-  const year = now.getFullYear().toString();
-  const month = (now.getMonth() + 1).toString().padStart(2, '0');
-  const day = now.getDate().toString().padStart(2, '0');
-  const hours = now.getHours().toString().padStart(2, '0');
-  const minutes = now.getMinutes().toString().padStart(2, '0');
-  const seconds = now.getSeconds().toString().padStart(2, '0');
-  const milliseconds = now.getMilliseconds().toString().padStart(3, '0');
-
-  const orderIDString = `${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
-
-  return parseInt(orderIDString, 10);
+  // 15 digits in [1e14, 1e15) — within Number.MAX_SAFE_INTEGER
+  const buf = randomBytes(7) // 56 bits
+  let n = 0
+  for (let i = 0; i < buf.length; i++) {
+    n = n * 256 + buf[i]
+  }
+  // Map into [1e14, 1e15)
+  return 100_000_000_000_000 + (n % 900_000_000_000_000)
 }
 
 export function WeiToGwei(wei: number): number {

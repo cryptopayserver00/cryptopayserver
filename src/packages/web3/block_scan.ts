@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { IS_DEVELOPMENT } from '@/packages/constants'
 
 export interface BlockScanWalletType {
   address: string
@@ -7,7 +6,11 @@ export interface BlockScanWalletType {
 }
 
 export class BLOCKSCAN {
-  static baseUrl = 'https://api.cryptopayserver.online/api'
+  static get baseUrl(): string {
+    const raw =
+      process.env.BLOCKSCAN_BASE_URL || 'https://api.cryptopayserver.online/api'
+    return raw.replace(/\/$/, '')
+  }
 
   static axiosInstance = axios.create({
     timeout: 50000,

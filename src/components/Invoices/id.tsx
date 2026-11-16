@@ -49,7 +49,8 @@ const DetailRow = ({
 
 const InvoiceDetails = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, t: accessTokenQuery } = router.query
+  const accessToken = String(accessTokenQuery || '')
 
   const [countdownVal, setCountdownVal] = useState<string>('0')
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -73,6 +74,7 @@ const InvoiceDetails = () => {
       const response: any = await axios.get(Http.find_invoice_by_id, {
         params: {
           id: id,
+          t: accessToken,
         },
       })
 
@@ -109,9 +111,10 @@ const InvoiceDetails = () => {
 
   useEffect(() => {
     if (id) {
+      // Public pages should pass ?t=; logged-in merchants may open without token.
       init(id)
     }
-  }, [id])
+  }, [id, accessToken])
 
   const countDownTime = (expirationTime?: string) => {
     if (!expirationTime) {

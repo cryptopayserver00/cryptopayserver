@@ -16,6 +16,12 @@ import { CHAINS, LIGHTNINGNAME } from '@/packages/constants/blockchain'
 import { LNDHUB } from '@/packages/lightning/core/lndhub'
 import { LIGHTNING } from '@/packages/lightning'
 import { prisma } from '@/lib/prisma'
+import { requireCronSecret } from '@/lib/auth'
+import {
+  encryptLightningCredentials,
+  unwrapLightningCredentials,
+} from '@/lib/crypto/lightning'
+import { assertSafeHttpUrl } from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -24,6 +30,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (req.method !== HttpMethod.GET) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
+
+    if (!requireCronSecret(req, res)) return
 
     console.log('Schedule Blockscan')
     const now = new Date()
@@ -36,6 +44,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
 
     for (const item of invoices) {
+      const activeStore = await prisma.stores.findFirst({
+        where: { id: item.store_id, status: 1 },
+        select: { id: true },
+      })
+      if (!activeStore) {
+        continue
+      }
+
+      const paymentSetting = await prisma.payment_settings.findFirst({
+        where: {
+          store_id: item.store_id,
+          chain_id: item.chain_id,
+          network: item.network,
+          status: 1,
+        },
+        select: { confirm_block: true },
+      })
+      const requiredConfirmations = Math.max(0, Number(paymentSetting?.confirm_block || 0))
+
       let lightningInvoiceStatus = false
 
       if (
@@ -53,6 +80,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         if (find_lightning_networks && find_lightning_networks.length > 0) {
           for (const lightItem of find_lightning_networks) {
+            const serverUrl = /^https?:\/\//i.test(lightItem.server)
+              ? lightItem.server
+              : `https://${lightItem.server}`
+            const safeServer = await assertSafeHttpUrl(serverUrl, { allowHttp: true })
+            if (!safeServer.ok) {
+              continue
+            }
+
+            const lnCreds = unwrapLightningCredentials(lightItem)
+            if (Object.keys(lnCreds.upgrades).length > 0) {
+              await prisma.wallet_lightning_networks.update({
+                where: { id: lightItem.id },
+                data: lnCreds.upgrades,
+              })
+            }
+
             switch (lightItem.kind) {
               case LIGHTNINGNAME.BLINK:
                 break
@@ -64,7 +107,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   '',
                   '',
                   '',
-                  String(lightItem.rune)
+                  lnCreds.rune
                 )
                 if (lightningInvoiceStatus) {
                   break
@@ -77,20 +120,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   lightItem.server,
                   item.lightning_invoice,
                   '',
-                  String(lightItem.macaroon),
-                  String(lightItem.certthumbprint)
+                  lnCreds.macaroon,
+                  lnCreds.certthumbprint
                 )
                 if (lightningInvoiceStatus) {
                   break
                 }
-              case LIGHTNINGNAME.LNDHUB:
-                let access_token = ''
+              case LIGHTNINGNAME.LNDHUB: {
+                let access_token = lnCreds.accessToken
 
                 if (
                   new Date().getTime() >
                   LNDHUB.accessTokenMaxAge + lightItem.updated_at.getTime()
                 ) {
-                  // expired
                   const [isAuthorized, data] = await LIGHTNING.testConnection(
                     LIGHTNINGNAME.LNDHUB,
                     lightItem.server
@@ -98,10 +140,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   if (!isAuthorized) {
                     break
                   }
+                  const sealedTokens = encryptLightningCredentials({
+                    access_token: data.accessToken,
+                    refresh_token: data.refreshToken,
+                  })
                   await prisma.wallet_lightning_networks.update({
                     data: {
-                      access_token: data.accessToken,
-                      refresh_token: data.refreshToken,
+                      access_token: sealedTokens.access_token,
+                      refresh_token: sealedTokens.refresh_token,
                     },
                     where: {
                       id: lightItem.id,
@@ -109,9 +155,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                     },
                   })
 
-                  access_token = data.access_token
-                } else {
-                  access_token = String(lightItem.access_token)
+                  access_token = String(data.accessToken || '')
                 }
 
                 lightningInvoiceStatus = await LIGHTNING.getInvoiceStatus(
@@ -123,6 +167,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 if (lightningInvoiceStatus) {
                   break
                 }
+                break
+              }
               case LIGHTNINGNAME.OPENNODE:
                 break
               default:
@@ -158,8 +204,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               String(item.destination_address).toLowerCase() &&
             String(txItem.transact_type) === 'receive' &&
             String(txItem.token) === String(item.crypto) &&
-            Number(txItem.amount) === item.crypto_amount &&
-            new Date(txItem.block_timestamp).getTime() > item.created_at.getTime()
+            // Exact amount (float-safe). Overpay must not settle a smaller shared-address invoice.
+            (() => {
+              const paid = Number(txItem.amount)
+              const due = Number(item.crypto_amount)
+              if (!Number.isFinite(paid) || !Number.isFinite(due) || due <= 0) return false
+              const tol = Math.max(1e-12, Math.abs(due) * 1e-9)
+              return Math.abs(paid - due) <= tol
+            })() &&
+            new Date(txItem.block_timestamp).getTime() > item.created_at.getTime() &&
+            (() => {
+              if (requiredConfirmations <= 0) return true
+              const confRaw = txItem.confirmations ?? txItem.confirmation
+              // Fail closed when merchant requires confirmations but explorer omits them.
+              if (confRaw === undefined || confRaw === null || confRaw === '') return false
+              return Number(confRaw) >= requiredConfirmations
+            })()
           ) {
             // Does db have this hash of invoice
             const same_invoice = await prisma.invoices.findFirst({
@@ -189,7 +249,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         let invoice_event_datas = []
 
         if (lightningInvoiceStatus) {
-          invoice = await prisma.invoices.update({
+          const settled = await prisma.invoices.updateMany({
             data: {
               order_status: ORDER_STATUS.Settled,
               block_timestamp: new Date().getTime(),
@@ -201,6 +261,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               status: 1,
             },
           })
+          if (settled.count === 0) {
+            continue
+          }
+          invoice = await prisma.invoices.findFirst({ where: { id: item.id, status: 1 } })
+          if (!invoice) continue
 
           invoice_event_datas.push({
             invoice_id: item.id,
@@ -211,7 +276,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         }
 
         if (generalInvoiceStatus) {
-          invoice = await prisma.invoices.update({
+          // Atomic claim: only one Processing invoice may take this hash.
+          const settled = await prisma.invoices.updateMany({
             data: {
               hash: hash,
               from_address: fromAddress,
@@ -224,8 +290,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               id: item.id,
               order_status: ORDER_STATUS.Processing,
               status: 1,
+              OR: [{ hash: null }, { hash: '' }],
             },
           })
+          if (settled.count === 0) {
+            continue
+          }
+          invoice = await prisma.invoices.findFirst({ where: { id: item.id, status: 1 } })
+          if (!invoice) continue
 
           invoice_event_datas.push({
             invoice_id: item.id,
@@ -259,8 +331,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               lightning_url: invoice.lightning_url ? invoice.lightning_url : undefined,
             }
             if (invoice.notification_url && invoice.notification_url !== '') {
-              // notify(webhook) to url
-              await WEBHOOK.sendWebhook(invoice.notification_url, notifyBody)
+              try {
+                await WEBHOOK.sendWebhook(invoice.notification_url, notifyBody, {
+                  event: 'invoice.settled',
+                })
+              } catch (e) {
+                console.error('invoice notification_url webhook failed', e)
+              }
+            }
+
+            try {
+              const storeHooks = await prisma.webhook_settings.findMany({
+                where: {
+                  store_id: invoice.store_id,
+                  status: 1,
+                  enabled: 1,
+                },
+              })
+              await WEBHOOK.deliverStoreWebhooks(
+                invoice.store_id,
+                notifyBody,
+                'invoice.settled',
+                storeHooks
+              )
+            } catch (e) {
+              console.error('store webhook delivery failed', e)
             }
 
             if (invoice.notification_email && invoice.notification_email !== '') {

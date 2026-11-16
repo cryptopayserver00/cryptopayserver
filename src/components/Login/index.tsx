@@ -18,8 +18,10 @@ import { SiteLogo } from '../Logo/SiteLogo'
 import { useShallow } from 'zustand/react/shallow'
 
 const Login = () => {
-  const [email, setEmail] = useState<string>('test@cryptopayserver.online')
-  const [password, setPassword] = useState<string>('bUvJZEmnipC!Wr,6')
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [totpCode, setTotpCode] = useState<string>('')
+  const [requires2fa, setRequires2fa] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -65,6 +67,45 @@ const Login = () => {
     setSnackOpen(true)
   }
 
+  const finishLogin = async (user: { id: number; email: string; username: string }) => {
+    setUserId(user.id)
+    setUserEmail(user.email)
+    setUsername(user.username)
+    setIsLogin(true)
+
+    const store_resp: any = await axios.get(Http.find_store, {
+      params: {
+        user_id: user.id,
+      },
+    })
+
+    if (store_resp.result) {
+      if (store_resp.data.length > 0) {
+        setStoreId(store_resp.data[0].id)
+        setStoreName(store_resp.data[0].name)
+        setStoreCurrency(store_resp.data[0].currency)
+        setStorePriceSource(store_resp.data[0].priceSource)
+        setIsStore(true)
+
+        const wallet_resp: any = await axios.get(Http.find_wallet, {
+          params: {
+            store_id: store_resp.data[0].id,
+          },
+        })
+        if (wallet_resp.result) {
+          setWalletId(wallet_resp.data.id)
+          setIsWallet(true)
+        }
+
+        window.location.href = '/dashboard'
+      } else {
+        window.location.href = '/stores/create'
+      }
+    } else {
+      showSnack('error', 'Can not find the store on site!')
+    }
+  }
+
   const onLogin = async () => {
     if (!email || email === '' || !IsValidEmail(email)) {
       showSnack('error', 'Incorrect email input')
@@ -84,45 +125,41 @@ const Login = () => {
         password: password,
       })
 
+      if (response.result && response.data?.requires2fa) {
+        setRequires2fa(true)
+        showSnack('success', 'Enter your authenticator code')
+        return
+      }
+
       if (response.result) {
-        setUserId(response.data.id)
-        setUserEmail(response.data.email)
-        setUsername(response.data.username)
-        setIsLogin(true)
-
-        const store_resp: any = await axios.get(Http.find_store, {
-          params: {
-            user_id: response.data.id,
-          },
-        })
-
-        if (store_resp.result) {
-          if (store_resp.data.length > 0) {
-            setStoreId(store_resp.data[0].id)
-            setStoreName(store_resp.data[0].name)
-            setStoreCurrency(store_resp.data[0].currency)
-            setStorePriceSource(store_resp.data[0].priceSource)
-            setIsStore(true)
-
-            const wallet_resp: any = await axios.get(Http.find_wallet, {
-              params: {
-                store_id: store_resp.data[0].id,
-              },
-            })
-            if (wallet_resp.result) {
-              setWalletId(wallet_resp.data.id)
-              setIsWallet(true)
-            }
-
-            window.location.href = '/dashboard'
-          } else {
-            window.location.href = '/stores/create'
-          }
-        } else {
-          showSnack('error', 'Can not find the store on site!')
-        }
+        await finishLogin(response.data)
       } else {
         showSnack('error', 'Incorrect username or password!')
+      }
+    } catch (e) {
+      showSnack('error', 'The network error occurred. Please try again later.')
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const onVerify2fa = async () => {
+    if (!totpCode || totpCode.length < 6) {
+      showSnack('error', 'Enter a valid authenticator code')
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response: any = await axios.post(Http.verify_2fa, {
+        code: totpCode,
+      })
+
+      if (response.result) {
+        await finishLogin(response.data)
+      } else {
+        showSnack('error', response.message || 'Invalid authenticator code')
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -150,78 +187,120 @@ const Login = () => {
 
           <Card className="mt-8 w-full max-w-[450px] border-none shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl">Sign in</CardTitle>
+              <CardTitle className="text-2xl">
+                {requires2fa ? 'Two-factor authentication' : 'Sign in'}
+              </CardTitle>
             </CardHeader>
 
             <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="test@cryptopayserver.online"
-                />
-              </div>
+              {!requires2fa ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                    />
+                  </div>
 
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Button
-                    variant="link"
-                    className="h-auto p-0 text-sm font-normal text-muted-foreground"
-                    onClick={() => {
-                      window.location.href = '/forgot-password'
-                    }}
-                  >
-                    Forgot password?
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      <Button
+                        variant="link"
+                        className="h-auto p-0 text-sm font-normal text-muted-foreground"
+                        onClick={() => {
+                          window.location.href = '/forgot-password'
+                        }}
+                      >
+                        Forgot password?
+                      </Button>
+                    </div>
+
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') onLogin()
+                        }}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button className="mt-6 w-full" size="lg" onClick={onLogin} disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Sign in
                   </Button>
-                </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="totp">Authenticator code</Label>
+                    <Input
+                      id="totp"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      value={totpCode}
+                      onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') onVerify2fa()
+                      }}
+                      placeholder="123456"
+                    />
+                  </div>
 
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') onLogin()
-                    }}
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  <Button
+                    className="mt-6 w-full"
+                    size="lg"
+                    onClick={onVerify2fa}
+                    disabled={loading}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Verify
+                  </Button>
 
-              {/* <div className="mt-3 flex items-center gap-2">
-                <Checkbox id="remember" />
-                <Label htmlFor="remember" className="font-normal">Remember me</Label>
-              </div> */}
+                  <Button
+                    className="mt-2 w-full"
+                    size="lg"
+                    variant="ghost"
+                    onClick={() => {
+                      setRequires2fa(false)
+                      setTotpCode('')
+                    }}
+                  >
+                    Back
+                  </Button>
+                </>
+              )}
 
-              <Button className="mt-6 w-full" size="lg" onClick={onLogin} disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign in
-              </Button>
-
-              <Button
-                className="mt-2 w-full"
-                size="lg"
-                variant="ghost"
-                onClick={() => {
-                  window.location.href = '/register'
-                }}
-              >
-                Create your account
-              </Button>
+              {!requires2fa && (
+                <Button
+                  className="mt-2 w-full"
+                  size="lg"
+                  variant="ghost"
+                  onClick={() => {
+                    window.location.href = '/register'
+                  }}
+                >
+                  Create your account
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>

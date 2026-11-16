@@ -12,7 +12,10 @@ export class Http {
   static delete_user_by_userid = this.baseApiPath + '/user/delete_user_by_userid'
   static create_user = this.baseApiPath + '/user/create_user'
   static login = this.baseApiPath + '/user/login'
+  static verify_2fa = this.baseApiPath + '/user/verify_2fa'
+  static logout = this.baseApiPath + '/user/logout'
   static send_reset_email = this.baseApiPath + '/user/send_reset_email'
+  static reset_password = this.baseApiPath + '/user/reset_password'
 
   // apikey
   static find_apikey_setting = this.baseApiPath + '/apikey/find_apikey_setting'
@@ -109,6 +112,7 @@ export class Http {
   static update_wallet_coin_enable_by_id =
     this.baseApiPath + '/wallet/update_wallet_coin_enable_by_id'
   static find_wallet_manage_by_network = this.baseApiPath + '/wallet/find_wallet_manage_by_network'
+  static revoke_wallet_by_id = this.baseApiPath + '/wallet/revoke_wallet_by_id'
 
   // lightning network
   static find_lightning_network = this.baseApiPath + '/lightningnetwork/find_lightning_network'
@@ -116,6 +120,8 @@ export class Http {
   static create_lightning_network = this.baseApiPath + '/lightningnetwork/create_lightning_network'
   static update_lightning_network_setting_by_id =
     this.baseApiPath + '/lightningnetwork/update_lightning_network_setting_by_id'
+  static delete_lightning_network_by_id =
+    this.baseApiPath + '/lightningnetwork/delete_lightning_network_by_id'
   static send_lightning_network_transaction =
     this.baseApiPath + '/lightningnetwork/send_lightning_network_transaction'
 

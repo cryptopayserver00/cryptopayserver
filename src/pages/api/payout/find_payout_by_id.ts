@@ -1,6 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import {
+  forbidden,
+  getStoreAccess,
+  requireAuthUserId,
+  STORE_PERMISSION,
+  storeAccessHasPermission,
+} from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -9,6 +16,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (req.method !== HttpMethod.GET) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
+
+    const userId = await requireAuthUserId(req, res, req.query.user_id)
+    if (!userId) return
 
     const payoutId = Number(req.query.id)
     if (!payoutId) {
@@ -24,6 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!payout) {
       return res.status(200).json({ message: 'Cannot find payout', result: false, data: null })
+    }
+
+    const access = await getStoreAccess(payout.store_id, userId)
+    if (!access || !storeAccessHasPermission(access, STORE_PERMISSION.ManagePayouts)) {
+      return forbidden(res)
     }
 
     return res.status(200).json({

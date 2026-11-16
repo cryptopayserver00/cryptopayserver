@@ -1,49 +1,40 @@
-import axios from 'axios';
-// import { useUserPresistStore } from 'lib/store';
+import axios from 'axios'
 
-// const { setShowProgress } = useUserPresistStore.getState();
+axios.defaults.withCredentials = true
 
 axios.interceptors.request.use(
   (config) => {
-    // setShowProgress(true);
-
     if (!config.headers.get('Content-Type')) {
-      config.headers.set('Content-Type', 'application/json; charset=utf-8');
+      config.headers.set('Content-Type', 'application/json; charset=utf-8')
     }
 
     if (!config.headers.get('Accept')) {
-      config.headers.set('Accept', 'application/json');
+      config.headers.set('Accept', 'application/json')
     }
 
-    // auth
-
-    config.timeout = 50000;
-    return config;
+    config.timeout = 50000
+    return config
   },
   (error) => {
-    // setShowProgress(false);
-    return Promise.reject(error);
-  },
-);
+    return Promise.reject(error)
+  }
+)
 
 axios.interceptors.response.use(
   (response) => {
-    // setShowProgress(false);
-
     if (response && response.status === 200) {
-      return Promise.resolve(response.data);
+      return Promise.resolve(response.data)
     }
-    return Promise.reject(response);
+    return Promise.reject(response)
   },
   (error) => {
-    // setShowProgress(false);
-
     if (error.response && error.response.status === 401) {
-      window.location.href = '/';
-    } else {
-      return Promise.reject(error);
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login'
+      }
     }
-  },
-);
+    return Promise.reject(error)
+  }
+)
 
-export default axios;
+export default axios

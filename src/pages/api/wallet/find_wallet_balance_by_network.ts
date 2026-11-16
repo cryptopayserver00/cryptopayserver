@@ -6,6 +6,7 @@ import { CRYPTOPRICE } from '@/packages/web3/crypto_price'
 import { COINGECKO_IDS, CURRENCY, CURRENCY_SYMBOLS } from '@/packages/constants'
 import { BigMul } from '@/utils/number'
 import { prisma } from '@/lib/prisma'
+import { assertStoreOwnedByUser, forbidden, requireOwnedWallet } from '@/lib/auth'
 
 interface CoinType {
   coin: string
@@ -47,19 +48,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid network', result: false, data: null })
     }
 
-    const walletId = Number(req.query.wallet_id)
-    if (!walletId) {
-      return res.status(200).json({ message: 'Invalid walletId', result: false, data: null })
-    }
+    const ownedWallet = await requireOwnedWallet(req, res, req.query.wallet_id)
+    if (!ownedWallet) return
+    const walletId = ownedWallet.walletId
+    const userId = ownedWallet.userId
 
     const storeId = Number(req.query.store_id)
     if (!storeId) {
       return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
     }
 
+    if (!(await assertStoreOwnedByUser(storeId, userId))) {
+      return forbidden(res)
+    }
+
     const wallet = await prisma.wallets.findFirst({
       where: {
         id: walletId,
+        user_id: userId,
         status: 1,
       },
       select: {

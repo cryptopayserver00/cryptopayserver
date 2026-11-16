@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import { Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -8,12 +9,16 @@ import { Label } from '@/components/ui/label'
 import { useSnackPresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
-import { IsValidEmail } from '@/utils/verify'
+import { IsValidEmail, isValidPassword } from '@/utils/verify'
 import { SiteLogo } from '../Logo/SiteLogo'
 import { useShallow } from 'zustand/react/shallow'
 
 const ForgotPassword = () => {
+  const router = useRouter()
   const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [confirmPassword, setConfirmPassword] = useState<string>('')
+  const [token, setToken] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
   const { isLogin } = useUserPresistStore(
@@ -36,7 +41,15 @@ const ForgotPassword = () => {
     setSnackOpen(true)
   }
 
-  const onResetPassword = async () => {
+  useEffect(() => {
+    if (!router.isReady) return
+    const q = router.query.token
+    if (typeof q === 'string' && q) {
+      setToken(q)
+    }
+  }, [router.isReady, router.query.token])
+
+  const onSendResetEmail = async () => {
     if (!email || !IsValidEmail(email)) {
       showSnack('error', 'Incorrect email input')
       return
@@ -44,14 +57,49 @@ const ForgotPassword = () => {
 
     try {
       setLoading(true)
-      const response: any = await axios.get(Http.send_reset_email, {
-        params: { email },
+      const response: any = await axios.post(Http.send_reset_email, { email })
+
+      if (response.result) {
+        showSnack('success', 'If the account exists, a reset email has been sent')
+      } else {
+        showSnack('error', 'Unable to send reset email')
+      }
+    } catch (e) {
+      showSnack('error', 'The network error occurred. Please try again later.')
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const onSetNewPassword = async () => {
+    if (!token) {
+      showSnack('error', 'Missing reset token')
+      return
+    }
+    if (!password || !isValidPassword(password)) {
+      showSnack('error', 'Incorrect password input')
+      return
+    }
+    if (password !== confirmPassword) {
+      showSnack('error', 'Passwords do not match')
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response: any = await axios.post(Http.reset_password, {
+        token,
+        password,
       })
 
       if (response.result) {
-        showSnack('success', 'Email already sent')
+        showSnack('success', 'Password updated. Please sign in.')
+        setTimeout(() => {
+          window.location.href = '/login'
+        }, 800)
       } else {
-        showSnack('error', 'Incorrect email')
+        showSnack('error', response.message || 'Unable to reset password')
       }
     } catch (e) {
       showSnack('error', 'The network error occurred. Please try again later.')
@@ -79,33 +127,73 @@ const ForgotPassword = () => {
 
           <Card className="mt-8 w-full max-w-[450px] border-none shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl">Forgot Password</CardTitle>
+              <CardTitle className="text-2xl">
+                {token ? 'Set new password' : 'Forgot Password'}
+              </CardTitle>
             </CardHeader>
 
             <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') onResetPassword()
-                  }}
-                  placeholder="you@example.com"
-                />
-              </div>
+              {!token ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') onSendResetEmail()
+                      }}
+                      placeholder="you@example.com"
+                    />
+                  </div>
 
-              <Button
-                className="mt-6 w-full"
-                size="lg"
-                onClick={onResetPassword}
-                disabled={loading}
-              >
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Send reset email
-              </Button>
+                  <Button
+                    className="mt-6 w-full"
+                    size="lg"
+                    onClick={onSendResetEmail}
+                    disabled={loading}
+                  >
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Send reset email
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">New password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    <Label htmlFor="confirm">Confirm password</Label>
+                    <Input
+                      id="confirm"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') onSetNewPassword()
+                      }}
+                    />
+                  </div>
+
+                  <Button
+                    className="mt-6 w-full"
+                    size="lg"
+                    onClick={onSetNewPassword}
+                    disabled={loading}
+                  >
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Update password
+                  </Button>
+                </>
+              )}
 
               <Button
                 className="mt-2 w-full"

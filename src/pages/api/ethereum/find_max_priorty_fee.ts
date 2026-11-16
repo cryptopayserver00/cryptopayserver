@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { WEB3 } from '@/packages/web3'
+import { rateLimit, requireAuth } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -8,6 +9,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (req.method !== HttpMethod.GET) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
+    }
+
+    if (!(await requireAuth(req, res))) return
+
+    if (!rateLimit(req, res, { scope: 'rpc-proxy', limit: 120, windowMs: 15 * 60 * 1000 })) {
+      return
     }
 
     const chainId = Number(req.query.chain_id)

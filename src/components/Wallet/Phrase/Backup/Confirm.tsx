@@ -18,6 +18,7 @@ const PhraseBackupConfirm = () => {
   const [selectMems, setSelectMems] = useState<SelectMems[]>([])
   const [phrase, setPhrase] = useState<string[]>([])
   const [selectWord, setSelectWord] = useState<Record<number, string>>({})
+  const [accountPassword, setAccountPassword] = useState('')
 
   const { userId } = useUserPresistStore(
     useShallow((state) => ({
@@ -48,8 +49,15 @@ const PhraseBackupConfirm = () => {
 
   const updateWalletBackup = async () => {
     try {
+      let password = accountPassword
+      if (!password) {
+        const entered = window.prompt('Enter your account password to confirm backup')
+        if (!entered) return
+        password = entered
+      }
       const response: any = await axios.put(Http.update_backup_by_wallet_id, {
         wallet_id: walletId,
+        account_password: password,
       })
       if (response.result) {
         setSnackSeverity('success')
@@ -71,11 +79,35 @@ const PhraseBackupConfirm = () => {
   const fetchWalletData = async () => {
     try {
       if (isWallet) {
-        const response: any = await axios.get(Http.find_wallet_by_id, {
+        const meta: any = await axios.get(Http.find_wallet_by_id, {
           params: { id: walletId },
         })
+        if (!meta.result) {
+          setSnackSeverity('error')
+          setSnackMessage('Cannot find the wallet, please try again later.')
+          setSnackOpen(true)
+          return
+        }
 
-        if (response.result) {
+        const enteredAccountPassword = window.prompt('Enter your account password to continue')
+        if (!enteredAccountPassword) return
+        setAccountPassword(enteredAccountPassword)
+
+        let walletPassword = ''
+        if (meta.data?.hasPassword) {
+          const entered = window.prompt('Enter your wallet password to continue')
+          if (!entered) return
+          walletPassword = entered
+        }
+
+        const response: any = await axios.post(Http.find_wallet_by_id, {
+          id: walletId,
+          reveal: 1,
+          account_password: enteredAccountPassword,
+          wallet_password: walletPassword,
+        })
+
+        if (response.result && response.data?.mnemonic) {
           const phraseArray = response.data.mnemonic.split(' ')
           setPhrase(phraseArray)
 
@@ -92,7 +124,7 @@ const PhraseBackupConfirm = () => {
           setSelectMems(randomIndices.map(createMem).sort((a, b) => a.index - b.index))
         } else {
           setSnackSeverity('error')
-          setSnackMessage('Cannot find the wallet, please try again later.')
+          setSnackMessage(response.message || 'Cannot find the wallet, please try again later.')
           setSnackOpen(true)
         }
       }

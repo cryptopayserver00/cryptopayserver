@@ -15,6 +15,7 @@ export class LNDHUB {
 
   static axiosInstance = axios.create({
     timeout: 50000,
+    maxRedirects: 0, // prevent redirect-based SSRF after DNS allowlist checks
   });
 
   static accessTokenMaxAge = 7200000;

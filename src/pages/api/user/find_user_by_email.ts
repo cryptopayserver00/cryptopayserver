@@ -1,7 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
-import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/auth'
 
+/**
+ * Intentionally does not reveal whether an email is registered (anti-enumeration).
+ * Registration should rely on create_user uniqueness errors instead.
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
     await CorsMiddleware(req, res, CorsMethod)
@@ -10,36 +14,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
+    if (!rateLimit(req, res, { scope: 'find-email', limit: 20, windowMs: 15 * 60 * 1000 })) {
+      return
+    }
+
     const email = req.query.email
     if (!email) {
       return res.status(200).json({ message: 'Invalid email', result: false, data: null })
-    }
-
-    const user = await prisma.users.findFirst({
-      where: {
-        email: String(email),
-        status: 1,
-      },
-      select: {
-        username: true,
-        email: true,
-        profile_picture_url: true,
-        authenticator: true,
-      },
-    })
-
-    if (!user) {
-      return res.status(200).json({ message: 'Cannot find', result: false, data: null })
     }
 
     return res.status(200).json({
       message: '',
       result: true,
       data: {
-        username: user.username,
-        email: user.email,
-        profilePictureUrl: user.profile_picture_url,
-        authenticator: user.authenticator,
+        exists: false,
       },
     })
   } catch (e) {

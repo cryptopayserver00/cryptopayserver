@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { WEB3 } from '@/packages/web3'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '@/pages/api'
 import { prisma } from '@/lib/prisma'
+import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -11,15 +12,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
-
-    const storeId = Number(req.body.store_id)
-    if (!storeId) {
-      return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
-    }
+    const access = await requireStorePermission(
+      req,
+      res,
+      req.body.store_id,
+      STORE_PERMISSION.ModifyStores,
+      req.body.user_id
+    )
+    if (!access) return
+    const userId = access.userId
+    const storeId = access.storeId
 
     const network = Number(req.body.network)
     if (!network) {
@@ -59,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
 
     if (find_address_book) {
-      return res.status(200).json({ message: 'Cannot find', result: false, data: null })
+      return res.status(200).json({ message: 'Address already exists', result: false, data: null })
     }
 
     const address_book = await prisma.address_books.create({

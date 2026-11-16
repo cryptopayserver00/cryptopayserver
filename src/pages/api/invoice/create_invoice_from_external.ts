@@ -1,8 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { GenerateOrderIDByTime } from '@/utils/number'
-import { INVOICE_SOURCE_TYPE, ORDER_STATUS } from '@/packages/constants'
+import { INVOICE_SOURCE_TYPE, ORDER_STATUS, PAYMENT_REQUEST_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
+import { rateLimit } from '@/lib/auth'
+import { resolveAndValidateInvoicePrice } from '@/lib/security/invoice-price'
+import {
+  readAccessToken,
+  signPublicResource,
+  verifyPublicResource,
+} from '@/lib/security/public-token'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -12,14 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
-
-    const storeId = Number(req.body.store_id)
-    if (!storeId) {
-      return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
+    if (!rateLimit(req, res, { scope: 'ext-invoice', limit: 30, windowMs: 15 * 60 * 1000 })) {
+      return
     }
 
     const externalPaymentId = Number(req.body.payment_request_id)
@@ -29,33 +30,90 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         .json({ message: 'Invalid externalPaymentId', result: false, data: null })
     }
 
+    if (!verifyPublicResource('payment_request', externalPaymentId, readAccessToken(req))) {
+      return res
+        .status(403)
+        .json({ message: 'Invalid or missing access token', result: false, data: null })
+    }
+
+    // Never trust client-supplied user_id / store_id — derive from payment request.
+    const paymentRequest = await prisma.payment_requests.findFirst({
+      where: {
+        payment_request_id: externalPaymentId,
+        status: 1,
+      },
+      select: {
+        user_id: true,
+        store_id: true,
+        network: true,
+        amount: true,
+        currency: true,
+        email: true,
+        payment_request_status: true,
+        show_allow_custom_amount: true,
+        expiration_at: true,
+      },
+    })
+
+    if (!paymentRequest) {
+      return res.status(200).json({ message: 'Invalid payment request', result: false, data: null })
+    }
+
+    if (
+      paymentRequest.expiration_at &&
+      new Date(paymentRequest.expiration_at).getTime() < Date.now()
+    ) {
+      return res.status(200).json({ message: 'Payment request expired', result: false, data: null })
+    }
+
+    if (paymentRequest.payment_request_status !== PAYMENT_REQUEST_STATUS.Pending) {
+      return res
+        .status(200)
+        .json({ message: 'Payment request not open', result: false, data: null })
+    }
+
+    const userId = paymentRequest.user_id
+    const storeId = paymentRequest.store_id
+
+    const store = await prisma.stores.findFirst({
+      where: { id: storeId, status: 1 },
+      select: { id: true },
+    })
+    if (!store) {
+      return res.status(200).json({ message: 'Store unavailable', result: false, data: null })
+    }
+
     const chainId = Number(req.body.chain_id)
     if (!chainId) {
       return res.status(200).json({ message: 'Invalid chainId', result: false, data: null })
     }
 
     const network = Number(req.body.network)
-    if (!network) {
+    if (!network || network !== paymentRequest.network) {
       return res.status(200).json({ message: 'Invalid network', result: false, data: null })
     }
 
     const amount = Number(req.body.amount)
-    if (!amount) {
+    if (!amount || amount <= 0) {
+      return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
+    }
+    const allowCustom = paymentRequest.show_allow_custom_amount === 1
+    if (!allowCustom && amount !== paymentRequest.amount) {
       return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
     }
 
-    const crypto_amount = Number(req.body.crypto_amount)
+    let crypto_amount = Number(req.body.crypto_amount)
     if (!crypto_amount) {
       return res.status(200).json({ message: 'Invalid crypto amount', result: false, data: null })
     }
 
-    const rate = Number(req.body.rate)
+    let rate = Number(req.body.rate)
     if (!rate) {
       return res.status(200).json({ message: 'Invalid rate', result: false, data: null })
     }
 
-    const currency = req.body.currency
-    if (!currency) {
+    const currency = String(req.body.currency || '')
+    if (!currency || currency !== paymentRequest.currency) {
       return res.status(200).json({ message: 'Invalid currency', result: false, data: null })
     }
 
@@ -64,7 +122,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid crypto', result: false, data: null })
     }
 
-    const email = req.body.email
+    const priced = await resolveAndValidateInvoicePrice({
+      crypto: String(crypto),
+      currency,
+      amount,
+      clientRate: rate,
+      clientCryptoAmount: crypto_amount,
+    })
+    if (!priced.ok) {
+      return res.status(200).json({ message: priced.message, result: false, data: null })
+    }
+    rate = priced.rate
+    crypto_amount = priced.cryptoAmount
+
+    const email = String(req.body.email || paymentRequest.email || '')
     if (!email) {
       return res.status(200).json({ message: 'Invalid email', result: false, data: null })
     }
@@ -76,6 +147,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         user_id: userId,
         store_id: storeId,
         chain_id: chainId,
+        network: network,
         status: 1,
       },
       select: {
@@ -95,6 +167,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const address = await prisma.addresses.findFirst({
       where: {
         id: payment_setting.current_used_address_id,
+        user_id: userId,
+        status: 1,
       },
       select: {
         address: true,
@@ -110,14 +184,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     const paid = 2 // unpaid
-    const orderStatus = ORDER_STATUS.Processing // settled, invalid, expired, processing
+    const orderStatus = ORDER_STATUS.Processing
 
     const now = new Date()
-    // const createDate = now.getTime();
     const expirationDate = new Date(
       now.setMinutes(now.getMinutes() + payment_setting.payment_expire)
     )
-    // const expirationDate = now.getTime() + payment_setting.payment_expire * 60 * 1000;
 
     const sourceType = INVOICE_SOURCE_TYPE.PaymentRequest
 
@@ -156,8 +228,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       })
     }
 
-    // create event of invoice
-    const invoice_events = await prisma.invoice_events.createMany({
+    await prisma.invoice_events.createMany({
       data: [
         {
           invoice_id: invoice.id,
@@ -191,6 +262,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       result: true,
       data: {
         orderId: orderId,
+        accessToken: signPublicResource('invoice', orderId),
       },
     })
   } catch (e) {

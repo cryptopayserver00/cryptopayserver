@@ -145,6 +145,7 @@ const PaymentInvoiceDetails = () => {
           <Button
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm"
             onClick={() => {
+              // Merchant session can open checkout without token; buyers need ?t=.
               window.location.href = '/invoices/' + order.orderId
             }}
           >

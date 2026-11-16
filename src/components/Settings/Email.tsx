@@ -162,12 +162,10 @@ const Emails = () => {
         return
       }
 
-      const response: any = await axios.get(Http.test_email_setting, {
-        params: {
-          store_id: storeId,
-          user_id: userId,
-          email: testEmail,
-        },
+      const response: any = await axios.post(Http.test_email_setting, {
+        store_id: storeId,
+        user_id: userId,
+        email: testEmail,
       })
 
       if (response.result) {
@@ -207,7 +205,7 @@ const Emails = () => {
           port: port,
           sender_email: senderEmailAddress,
           login: login,
-          password: password,
+          ...(password ? { password } : {}),
           show_tls: showTls ? 1 : 2,
         })
 
@@ -266,7 +264,7 @@ const Emails = () => {
       if (response.result) {
         setId(response.data.id)
         setLogin(response.data.login || '')
-        setPassword(response.data.password || '')
+        setPassword('')
         setPort(response.data.port || 0)
         setSenderEmailAddress(response.data.senderEmail || '')
         setShowTls(response.data.showTls === 1)
@@ -336,6 +334,7 @@ const Emails = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder={id ? 'Leave blank to keep current password' : undefined}
                   className="pr-10"
                 />
                 <Button

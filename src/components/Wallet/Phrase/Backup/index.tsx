@@ -45,15 +45,38 @@ const PhraseBackup = () => {
   const init = async (isWallet: boolean, walletId: number) => {
     try {
       if (isWallet) {
-        const response: any = await axios.get(Http.find_wallet_by_id, {
+        const meta: any = await axios.get(Http.find_wallet_by_id, {
           params: { id: walletId },
         })
+        if (!meta.result) {
+          setSnackSeverity('error')
+          setSnackMessage('Cannot find the wallet, please try again later.')
+          setSnackOpen(true)
+          return
+        }
 
-        if (response.result) {
+        const accountPassword = window.prompt('Enter your account password to view the mnemonic')
+        if (!accountPassword) return
+
+        let walletPassword = ''
+        if (meta.data?.hasPassword) {
+          const entered = window.prompt('Enter your wallet password to view the mnemonic')
+          if (!entered) return
+          walletPassword = entered
+        }
+
+        const response: any = await axios.post(Http.find_wallet_by_id, {
+          id: walletId,
+          reveal: 1,
+          account_password: accountPassword,
+          wallet_password: walletPassword,
+        })
+
+        if (response.result && response.data?.mnemonic) {
           setPhrase(response.data.mnemonic.split(' '))
         } else {
           setSnackSeverity('error')
-          setSnackMessage('Cannot find the wallet, please try again later.')
+          setSnackMessage(response.message || 'Cannot find the wallet, please try again later.')
           setSnackOpen(true)
         }
       }

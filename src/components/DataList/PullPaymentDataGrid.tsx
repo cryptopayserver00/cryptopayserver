@@ -23,6 +23,7 @@ interface RowType {
   expirationDate: string
   showAutoApproveClaim: string
   refunded: number
+  accessToken: string
 }
 
 interface GridType {
@@ -59,9 +60,16 @@ export default function PullPaymentDataGrid(props: GridType) {
   const onClickArchive = async (id: number) => {
     try {
       setArchivingId(id)
+      const { promptAccountPassword } = await import('@/utils/wallet-password')
+      const accountPassword = promptAccountPassword(
+        'Enter your account password to archive pull payment'
+      )
+      if (accountPassword === null) return
+
       const response: any = await axios.put(Http.update_pull_payment_by_id, {
         id,
         pull_payment_status: PULL_PAYMENT_STATUS.Archived,
+        account_password: accountPassword,
       })
 
       if (response.result) {
@@ -107,6 +115,7 @@ export default function PullPaymentDataGrid(props: GridType) {
           expirationDate: new Date(item.expirationAt).toLocaleString(),
           showAutoApproveClaim: item.showAutoApproveClaim === 1 ? 'True' : 'False',
           refunded: item.refunded,
+          accessToken: item.accessToken || '',
         }))
         setRows(rows)
       } else {
@@ -140,7 +149,7 @@ export default function PullPaymentDataGrid(props: GridType) {
         className="h-8 gap-1.5"
         onClick={(e: any) => {
           e.stopPropagation()
-          window.location.href = `/pull-payments/${row.pullPaymentId}`
+          window.location.href = `/pull-payments/${row.pullPaymentId}?t=${encodeURIComponent(row.accessToken || '')}`
         }}
       >
         <ExternalLink className="h-3.5 w-3.5" />
@@ -223,7 +232,7 @@ export default function PullPaymentDataGrid(props: GridType) {
                   key={row.id}
                   className="cursor-pointer"
                   onClick={() => {
-                    window.location.href = `/pull-payments/${row.pullPaymentId}`
+                    window.location.href = `/pull-payments/${row.pullPaymentId}?t=${encodeURIComponent(row.accessToken || '')}`
                   }}
                 >
                   <TableCell className="font-medium">{row.id}</TableCell>

@@ -14,9 +14,37 @@ services:
       - .env.production
     environment:
       - DATABASE_URL=mysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_DATABASE}
+      - PORT=3000
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:3000/api/health',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - shared-network
+
+  worker:
+    image: viper00/cryptopayserver:0.0.3
+    restart: always
+    env_file:
+      - .env.production
+    environment:
+      - DATABASE_URL=mysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_DATABASE}
+      - SCHEDULE_BASE_URL=http://app:3000/api/schedule/
+      - ENABLE_SCHEDULE_WORKER=true
+    command: node scripts/schedule-worker.mjs
+    depends_on:
+      - app
     networks:
       - shared-network
 

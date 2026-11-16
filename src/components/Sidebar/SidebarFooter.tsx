@@ -19,6 +19,8 @@ import { LANGUAGES } from '@/packages/constants'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
+import axios from '@/utils/http/axios'
+import { Http } from '@/utils/http/http'
 
 interface SidebarFooterProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode
@@ -215,13 +217,16 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
             <Button
               variant="ghost"
               className="w-full justify-start gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => {
+              onClick={async () => {
+                try {
+                  await axios.post(Http.logout)
+                } catch {
+                  // still clear local state even if logout API fails
+                }
                 resetUser()
                 resetStore()
                 resetWallet()
-                setTimeout(() => {
-                  window.location.href = '/login'
-                }, 1000)
+                window.location.href = '/login'
               }}
             >
               <LogOut className="h-4 w-4" />

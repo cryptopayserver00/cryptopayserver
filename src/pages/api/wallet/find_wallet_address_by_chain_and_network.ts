@@ -3,6 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { WEB3 } from '@/packages/web3'
 import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
+import { requireOwnedWallet } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -12,10 +13,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const walletId = Number(req.query.wallet_id)
-    if (!walletId) {
-      return res.status(200).json({ message: 'Invalid walletId', result: false, data: null })
-    }
+    const ownedWallet = await requireOwnedWallet(req, res, req.query.wallet_id)
+    if (!ownedWallet) return
+    const walletId = ownedWallet.walletId
+    const userId = ownedWallet.userId
 
     let chainId = Number(req.query.chain_id)
     if (!chainId) {
@@ -35,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const addresses = await prisma.addresses.findMany({
       where: {
         wallet_id: walletId,
+        user_id: userId,
         chain_id: dbChainId,
         network: network,
         status: 1,

@@ -3,6 +3,15 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { LIGHTNING } from '@/packages/lightning'
 import { LIGHTNINGNAME } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
+import {
+  assertStoreOwnedByUser,
+  forbidden,
+  rateLimit,
+  requireAccountPassword,
+  requireAuthUserId,
+} from '@/lib/auth'
+import { encryptLightningCredentials } from '@/lib/crypto/lightning'
+import { assertSafeHttpUrl } from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -12,14 +21,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
+    const userId = await requireAuthUserId(req, res, req.body.user_id)
+    if (!userId) return
+
+    if (!rateLimit(req, res, { scope: 'ln-create', limit: 20, windowMs: 15 * 60 * 1000 })) {
+      return
+    }
+
+    if (
+      !(await requireAccountPassword(
+        res,
+        userId,
+        req.body.account_password || req.body.password,
+        'Account password required to save Lightning credentials'
+      ))
+    ) {
+      return
     }
 
     const storeId = Number(req.body.store_id)
     if (!storeId) {
       return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
+    }
+    if (!(await assertStoreOwnedByUser(storeId, userId))) {
+      return forbidden(res)
     }
 
     const network = Number(req.body.network)
@@ -57,6 +82,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid lightning name', result: false, data: null })
     }
 
+    const serverUrl = /^https?:\/\//i.test(server) ? server : `https://${server}`
+    const safeServer = await assertSafeHttpUrl(serverUrl, { allowHttp: true })
+    if (!safeServer.ok) {
+      return res.status(200).json({ message: safeServer.message, result: false, data: null })
+    }
+
     const [isAuthorized, data] = await LIGHTNING.testConnection(
       type as LIGHTNINGNAME,
       server,
@@ -75,15 +106,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         status: 1,
       },
     })
+    const sealed = encryptLightningCredentials({
+      macaroon,
+      certthumbprint,
+      rune,
+      access_token: data.accessToken,
+      refresh_token: data.refreshToken,
+    })
+
     if (find_wallet_lightning_network) {
       // update one
       const result = await prisma.wallet_lightning_networks.updateMany({
         data: {
           kind: type,
           server: server,
-          macaroon: macaroon ? macaroon : undefined,
-          certthumbprint: certthumbprint ? certthumbprint : undefined,
-          rune: rune ? rune : undefined,
+          macaroon: sealed.macaroon || undefined,
+          certthumbprint: sealed.certthumbprint || undefined,
+          rune: sealed.rune || undefined,
+          access_token: sealed.access_token || undefined,
+          refresh_token: sealed.refresh_token || undefined,
         },
         where: {
           id: find_wallet_lightning_network.id,
@@ -105,11 +146,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         store_id: storeId,
         kind: type,
         server: server,
-        access_token: data.accessToken ? data.accessToken : undefined,
-        refresh_token: data.refreshToken ? data.refreshToken : undefined,
-        certthumbprint: certthumbprint ? certthumbprint : undefined,
-        macaroon: macaroon ? macaroon : undefined,
-        rune: rune ? rune : undefined,
+        access_token: sealed.access_token || undefined,
+        refresh_token: sealed.refresh_token || undefined,
+        certthumbprint: sealed.certthumbprint || undefined,
+        macaroon: sealed.macaroon || undefined,
+        rune: sealed.rune || undefined,
         enabled: 1,
         status: 1,
       },

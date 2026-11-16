@@ -50,8 +50,8 @@ export const Shopify = () => {
       if (response.result) {
         setId(response.data.id)
         setShopName(response.data.shopName)
-        setApiKey(response.data.apiKey)
-        setAdminApiAccessToken(response.data.adminApiAccessToken)
+        setApiKey('')
+        setAdminApiAccessToken('')
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -69,7 +69,7 @@ export const Shopify = () => {
     try {
       if (id === 0) {
         const response: any = await axios.post(Http.create_shopify_setting, {
-          user_id: storeId,
+          user_id: userId,
           store_id: storeId,
           shop_name: shopName,
           api_key: apiKey,
@@ -89,8 +89,8 @@ export const Shopify = () => {
         const response: any = await axios.put(Http.update_shopify_setting, {
           id: id,
           shop_name: shopName,
-          api_key: apiKey,
-          admin_api_access_token: adminApiAccessToken,
+          ...(apiKey ? { api_key: apiKey } : {}),
+          ...(adminApiAccessToken ? { admin_api_access_token: adminApiAccessToken } : {}),
         })
 
         if (response.result) {
@@ -189,7 +189,7 @@ export const Shopify = () => {
             <Label htmlFor="api-key">API KEY</Label>
             <Input
               id="api-key"
-              placeholder="Enter Shopify API Key"
+              placeholder={id ? 'Leave blank to keep current key' : 'Enter Shopify API Key'}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
             />
@@ -200,7 +200,9 @@ export const Shopify = () => {
             <Input
               id="admin-token"
               type="password"
-              placeholder="Enter Admin API Access Token"
+              placeholder={
+                id ? 'Leave blank to keep current token' : 'Enter Admin API Access Token'
+              }
               value={adminApiAccessToken}
               onChange={(e) => setAdminApiAccessToken(e.target.value)}
             />

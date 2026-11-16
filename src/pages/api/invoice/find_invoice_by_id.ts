@@ -4,6 +4,14 @@ import { WEB3 } from '@/packages/web3'
 import { FindTokenByChainIdsAndSymbol } from '@/utils/web3'
 import { COINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
+import {
+  getSessionFromRequest,
+  getStoreAccess,
+  rateLimit,
+  STORE_PERMISSION,
+  storeAccessHasPermission,
+} from '@/lib/auth'
+import { readAccessToken, verifyPublicResource } from '@/lib/security/public-token'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -11,6 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (req.method !== HttpMethod.GET) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
+    }
+
+    if (!rateLimit(req, res, { scope: 'pub-find-invoice-by-id', limit: 60, windowMs: 15 * 60 * 1000 })) {
+      return
     }
 
     const id = Number(req.query.id)
@@ -27,6 +39,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!invoice) {
       return res.status(200).json({ message: 'Invalid invoice', result: false, data: null })
+    }
+
+    const tokenOk = verifyPublicResource('invoice', id, readAccessToken(req))
+    if (!tokenOk) {
+      const session = await getSessionFromRequest(req)
+      const access =
+        session && (await getStoreAccess(invoice.store_id, session.userId))
+      const owns =
+        access &&
+        (storeAccessHasPermission(access, STORE_PERMISSION.ViewStores) ||
+          storeAccessHasPermission(access, STORE_PERMISSION.ModifyInvoices))
+      if (!owns) {
+        return res
+          .status(403)
+          .json({ message: 'Invalid or missing access token', result: false, data: null })
+      }
     }
 
     const token = FindTokenByChainIdsAndSymbol(
@@ -55,11 +83,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       cryptoAmount
     )
 
+    // Public checkout payload — no buyer PII; chain tx details only after settlement.
+    const settled = String(invoice.order_status).toLowerCase().includes('settled') ||
+      String(invoice.order_status).toLowerCase().includes('complete') ||
+      invoice.paid === 1
+
     return res.status(200).json({
       message: '',
       result: true,
       data: {
-        userId: invoice.user_id,
         storeId: invoice.store_id,
         chainId: invoice.chain_id,
         network: invoice.network,
@@ -72,25 +104,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         lightningInvoice: invoice.lightning_invoice,
         lightningUrl: invoice.lightning_url,
         description: invoice.description,
-        buyerEmail: invoice.buyer_email,
         orderStatus: invoice.order_status,
         paymentMethod: invoice.payment_method,
         destinationAddress: invoice.destination_address,
         paid: invoice.paid,
-        metadata: invoice.metadata,
-        notificationUrl: invoice.notification_url,
-        notificationEmail: invoice.notification_email,
-        matchTxId: invoice.match_tx_id,
-        externalPaymentId: invoice.external_payment_id,
         sourceType: invoice.source_type,
         status: invoice.status,
         createdAt: invoice.created_at,
         updatedAt: invoice.updated_at,
         expirationAt: invoice.expiration_at,
-        hash: invoice.hash,
-        fromAddress: invoice.from_address,
-        toAddress: invoice.to_address,
-        blockTimestamp: invoice.block_timestamp,
+        hash: settled ? invoice.hash : undefined,
+        fromAddress: settled ? invoice.from_address : undefined,
+        toAddress: settled ? invoice.to_address : undefined,
+        blockTimestamp: settled ? invoice.block_timestamp : undefined,
         qrLightningCodeText: invoice.lightning_invoice
           ? `lightning:${invoice.lightning_invoice?.toUpperCase()}`
           : undefined,

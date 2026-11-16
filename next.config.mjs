@@ -1,40 +1,4 @@
 /** @type {import('next').NextConfig} */
-import cron from 'node-cron'
-import axios from 'axios'
-
-const baseUrl = '/api/schedule/'
-
-cron.schedule('*/10 * * * * *', async () => {
-  try {
-    await axios.get(baseUrl + 'schedule_blockscan')
-  } catch (e) {
-    // console.error(e);
-  }
-})
-
-cron.schedule('*/60 * * * * *', async () => {
-  try {
-    await axios.get(baseUrl + 'schedule_invoice_expired')
-  } catch (e) {
-    // console.error(e);
-  }
-})
-
-cron.schedule('*/60 * * * * *', async () => {
-  try {
-    await axios.get(baseUrl + 'schedule_pull_payment_expired')
-  } catch (e) {
-    // console.error(e);
-  }
-})
-
-cron.schedule('*/60 * * * * *', async () => {
-  try {
-    await axios.get(baseUrl + 'schedule_payment_request_expired')
-  } catch (e) {
-    // console.error(e);
-  }
-})
 
 const nextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
@@ -42,17 +6,42 @@ const nextConfig = {
   output: 'standalone',
 
   reactStrictMode: true,
+  // Do not allow arbitrary remote image optimization (SSRF via /_next/image).
+  // Prefer same-origin /uploads; external logos should use <img> or be allowlisted.
   images: {
-    remotePatterns: [
+    remotePatterns: [],
+    unoptimized: false,
+  },
+
+  async headers() {
+    return [
       {
-        protocol: 'https',
-        hostname: '**',
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https: http:",
+              "font-src 'self' data:",
+              "connect-src 'self' https: http: wss: ws:",
+              "frame-ancestors 'self'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join('; '),
+          },
+        ],
       },
-      {
-        protocol: 'http',
-        hostname: '**',
-      },
-    ],
+    ]
   },
 }
 

@@ -1,43 +1,98 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.js
 .yarn/install-state.gz
-.vscode
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/versions
 
-# testing
-/coverage
+# testing / coverage
+coverage
+.nyc_output
+*.lcov
 
 # next.js
-/.next/
-/out/
+.next
+out
 
-# production
-/build
+# production / build
+build
+dist
 
-# misc
+# caches
+.swc
+.turbo
+.cache
+*.tsbuildinfo
+
+# misc OS
 .DS_Store
-*.pem
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
 
-# debug
+# IDE / editors
+.vscode
+.idea
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# debug / logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+lerna-debug.log*
 
-# local env files
-.env*.local
+# local env & secrets (keep .env.example)
 .env
-.env.production
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
+*.key
+!*.key.example
 
-# vercel
+# vercel / deploy
 .vercel
+.netlify
 
 # typescript
-*.tsbuildinfo
 next-env.d.ts
 
-# file
-/public/uploads/
+# prisma (local SQLite / generated if used)
+prisma/*.db
+prisma/*.db-journal
+prisma/dev.db*
+
+# vitest / playwright
+test-results
+playwright-report
+blob-report
+playwright/.cache
+
+# local uploads & runtime data
+public/uploads
+tmp
+temp
+*.tmp
+*.temp
+
+# optional local tooling
+*.local
+.eslintcache
+.stylelintcache

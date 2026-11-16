@@ -4,6 +4,15 @@ import { LIGHTNINGNAME } from '@/packages/constants/blockchain'
 import { LNDHUB } from '@/packages/lightning/core/lndhub'
 import { LIGHTNING } from '@/packages/lightning'
 import { prisma } from '@/lib/prisma'
+import {
+  assertStoreOwnedByUser,
+  forbidden,
+  requireAuthUserId,
+} from '@/lib/auth'
+import {
+  encryptLightningCredentials,
+  unwrapLightningCredentials,
+} from '@/lib/crypto/lightning'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -13,14 +22,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.query.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
+    const userId = await requireAuthUserId(req, res, req.query.user_id)
+    if (!userId) return
 
     const storeId = Number(req.query.store_id)
     if (!storeId) {
       return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
+    }
+
+    if (!(await assertStoreOwnedByUser(storeId, userId))) {
+      return forbidden(res)
     }
 
     const network = Number(req.query.network)
@@ -40,7 +51,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (find_lightning_network.length > 0) {
       for (const item of find_lightning_network) {
-        let text = ''
         const find_lightning_network_setting =
           await prisma.wallet_lightning_network_settings.findFirst({
             where: {
@@ -51,6 +61,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           return res
             .status(200)
             .json({ message: 'Invalid find lightning network setting', result: false, data: null })
+        }
+
+        const creds = unwrapLightningCredentials(item)
+        if (Object.keys(creds.upgrades).length > 0) {
+          await prisma.wallet_lightning_networks.update({
+            where: { id: item.id },
+            data: creds.upgrades,
+          })
         }
 
         let balance = 0
@@ -64,9 +82,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               '',
               '',
               '',
-              String(item.rune)
+              creds.rune
             )
-            text = `type=${item.kind.toLowerCase()};server=${item.server};rune=${item.rune};`
             break
           case LIGHTNINGNAME.LNBITS:
             break
@@ -75,17 +92,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               LIGHTNINGNAME.LND,
               item.server,
               '',
-              String(item.macaroon),
-              String(item.certthumbprint)
+              creds.macaroon,
+              creds.certthumbprint
             )
-            text = `type=${item.kind.toLowerCase()};server=${item.server};macaroon=${
-              item.macaroon
-            };certthumbprint=${item.certthumbprint}`
             break
-          case LIGHTNINGNAME.LNDHUB:
-            let access_token = ''
+          case LIGHTNINGNAME.LNDHUB: {
+            let access_token = creds.accessToken
             if (new Date().getTime() > LNDHUB.accessTokenMaxAge + item.updated_at.getTime()) {
-              // expired
               const [isAuthorized, data] = await LIGHTNING.testConnection(
                 LIGHTNINGNAME.LNDHUB,
                 item.server
@@ -93,10 +106,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               if (!isAuthorized) {
                 break
               }
+              const sealedTokens = encryptLightningCredentials({
+                access_token: data.accessToken,
+                refresh_token: data.refreshToken,
+              })
               const result = await prisma.wallet_lightning_networks.updateMany({
                 data: {
-                  access_token: data.accessToken,
-                  refresh_token: data.refreshToken,
+                  access_token: sealedTokens.access_token,
+                  refresh_token: sealedTokens.refresh_token,
                 },
                 where: {
                   id: item.id,
@@ -106,21 +123,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               if (result.count === 0) {
                 break
               }
-
-              access_token = data.access_token
-            } else {
-              access_token = String(item.access_token)
+              access_token = String(data.accessToken || '')
             }
 
             balance = await LIGHTNING.getBalance(LIGHTNINGNAME.LNDHUB, item.server, access_token)
-            text = `type=${item.kind.toLowerCase()};server=${item.server};`
             break
+          }
           case LIGHTNINGNAME.OPENNODE:
             break
           default:
             break
         }
 
+        // Never return raw LN credentials to the browser.
         datas.push({
           id: item.id,
           userId: item.user_id,
@@ -130,14 +145,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           updatedAt: item.updated_at,
           kind: item.kind,
           server: item.server,
-          accessToken: item.access_token,
-          refreshToken: item.refresh_token,
-          macaroon: item.macaroon,
-          certthumbprint: item.certthumbprint,
-          rune: item.rune,
           enabled: item.enabled,
           balance: balance,
-          text: text,
+          text: `type=${String(item.kind).toLowerCase()};server=${item.server};`,
+          hasCredentials: Boolean(
+            creds.macaroon || creds.rune || creds.accessToken || creds.certthumbprint
+          ),
           showAmountSatoshis: find_lightning_network_setting.show_amount_satoshis,
           showHopHint: find_lightning_network_setting.show_hop_hint,
           showUnifyUrlAndQrcode: find_lightning_network_setting.show_unify_url_and_qrcode,

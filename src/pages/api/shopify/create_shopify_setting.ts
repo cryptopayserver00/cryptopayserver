@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import { requireAuthUserId, assertStoreOwnedByUser, forbidden } from '@/lib/auth'
+import { encryptSecret } from '@/lib/crypto/secrets'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,14 +12,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
+    const userId = await requireAuthUserId(req, res, req.body.user_id)
+    if (!userId) return
 
     const storeId = Number(req.body.store_id)
     if (!storeId) {
       return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
+    }
+    if (!(await assertStoreOwnedByUser(storeId, userId))) {
+      return forbidden(res)
     }
 
     const shopName = req.body.shop_name
@@ -29,8 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         user_id: userId,
         store_id: storeId,
         shop_name: shopName,
-        api_key: apiKey,
-        admin_api_access_token: adminApiAccessToken,
+        api_key: encryptSecret(String(apiKey || '')),
+        admin_api_access_token: encryptSecret(String(adminApiAccessToken || '')),
         status: 1,
       },
     })
@@ -42,23 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         id: shopify_setting.id,
       },
     })
-
-    // const createQuery =
-    //   'INSERT INTO shopify_settings (user_id, store_id, shop_name, api_key, admin_api_access_token, status) VALUES (?, ?, ?, ?, ?, ?)';
-    // const createValues = [userId, storeId, shopName, apiKey, adminApiAccessToken, 1];
-    // const [ResultSetHeader]: any = await connection.query(createQuery, createValues);
-    // const id = ResultSetHeader.insertId;
-    // if (id === 0) {
-    //   return res.status(200).json({ message: '', result: false, data: null });
-    // }
-
-    // return res.status(200).json({
-    //   message: '',
-    //   result: true,
-    //   data: {
-    //     id: id,
-    //   },
-    // });
   } catch (e) {
     console.error(e)
     return res.status(500).json({

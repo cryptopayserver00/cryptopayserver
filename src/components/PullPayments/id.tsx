@@ -38,7 +38,8 @@ import { PayoutRowType, PullPaymentType } from '@/utils/types'
 
 const PullPaymentsDetails = () => {
   const router = useRouter()
-  const { id } = router.query
+  const { id, t: accessTokenQuery } = router.query
+  const accessToken = String(accessTokenQuery || '')
 
   const [page, setPage] = useState<number>(1)
   const [websiteUrl, setWebsiteUrl] = useState<string>('')
@@ -66,6 +67,7 @@ const PullPaymentsDetails = () => {
           network: network,
           source_type: PAYOUT_SOURCE_TYPE.PullPayment,
           external_payment_id: pullPaymentId,
+          t: accessToken,
         },
       })
 
@@ -113,6 +115,7 @@ const PullPaymentsDetails = () => {
       const response: any = await axios.get(Http.find_pull_payment_by_id, {
         params: {
           id: id,
+          t: accessToken,
         },
       })
 
@@ -151,8 +154,8 @@ const PullPaymentsDetails = () => {
   }
 
   useEffect(() => {
-    id && init(id)
-  }, [id])
+    id && accessToken && init(id)
+  }, [id, accessToken])
 
   const onClickShowQR = async () => {
     setShowQR(true)
@@ -203,6 +206,7 @@ const PullPaymentsDetails = () => {
         currency: pullPaymentData?.currency,
         crypto: item.name,
         external_payment_id: pullPaymentData?.pullPaymentId,
+        access_token: accessToken,
       })
 
       if (create_payout_resp.result) {

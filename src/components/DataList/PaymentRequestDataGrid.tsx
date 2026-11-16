@@ -24,6 +24,7 @@ interface RowType {
   amount: string
   expirationDate: string
   status: string
+  accessToken: string
 }
 
 interface GridType {
@@ -62,7 +63,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
   )
 
   const onClickView = (row: RowType) => {
-    window.location.href = `/payment-requests/${row.paymentRequestId}`
+    window.location.href = `/payment-requests/${row.paymentRequestId}?t=${encodeURIComponent(row.accessToken || '')}`
   }
 
   const onClickArchive = async (row: RowType) => {
@@ -123,6 +124,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
             title: item.title,
             expirationDate: expiry,
             status: item.paymentRequestStatus,
+            accessToken: item.accessToken || '',
           }
         })
         setRows(rows)

@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import { assertStoreOwnedByUser, forbidden, requireAuth } from '@/lib/auth'
+import { USER_ROLE } from '@/packages/constants'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,9 +12,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
+    const session = await requireAuth(req, res)
+    if (!session) return
+
     const id = Number(req.body.id)
     if (!id) {
       return res.status(200).json({ message: 'Invalid id', result: false, data: null })
+    }
+    const owned = await prisma.user_roles.findFirst({
+      where: { id: Number(id), user_id: session.userId, status: 1 },
+      select: { id: true, store_id: true, role: true },
+    })
+    if (!owned) {
+      return forbidden(res)
+    }
+    if (!(await assertStoreOwnedByUser(owned.store_id, session.userId))) {
+      return forbidden(res)
+    }
+    if (owned.role === USER_ROLE.Owner) {
+      return res
+        .status(200)
+        .json({ message: 'Cannot remove Owner role assignment', result: false, data: null })
     }
 
     await prisma.user_roles.update({
@@ -20,7 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         status: 2,
       },
       where: {
-        id: id,
+        id: owned.id,
+        user_id: session.userId,
         status: 1,
       },
     })

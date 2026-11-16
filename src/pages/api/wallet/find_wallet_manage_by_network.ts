@@ -4,6 +4,7 @@ import { BLOCKCHAINNAMES, CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/co
 import { WEB3 } from '@/packages/web3'
 import { BLOCKSCAN, BlockScanWalletType } from '@/packages/web3/block_scan'
 import { prisma } from '@/lib/prisma'
+import { assertStoreOwnedByUser, forbidden, requireOwnedWallet } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -13,24 +14,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const storeId = Number(req.query.store_id)
-    if (!storeId) {
-      return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
-    }
-
     const network = Number(req.query.network)
     if (!network) {
       return res.status(200).json({ message: 'Invalid network', result: false, data: null })
     }
 
-    const walletId = Number(req.query.wallet_id)
-    if (!walletId) {
-      return res.status(200).json({ message: 'Invalid walletId', result: false, data: null })
+    const ownedWallet = await requireOwnedWallet(req, res, req.query.wallet_id)
+    if (!ownedWallet) return
+    const walletId = ownedWallet.walletId
+    const userId = ownedWallet.userId
+
+    const storeId = Number(req.query.store_id)
+    if (!storeId) {
+      return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
+    }
+
+    if (!(await assertStoreOwnedByUser(storeId, userId))) {
+      return forbidden(res)
     }
 
     const addresses = await prisma.addresses.findMany({
       where: {
         wallet_id: walletId,
+        user_id: userId,
         network: network,
         status: 1,
       },

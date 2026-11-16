@@ -1,6 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import {
+  requireAuthUserId,
+  assertStoreOwnedByUser,
+  forbidden,
+  apiKeyHint,
+} from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,14 +16,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.query.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
+    const userId = await requireAuthUserId(req, res, req.query.user_id)
+    if (!userId) return
 
     const storeId = Number(req.query.store_id)
     if (!storeId) {
       return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
+    }
+    if (!(await assertStoreOwnedByUser(storeId, userId))) {
+      return forbidden(res)
     }
 
     const apiKeys = await prisma.api_key_settings.findMany({
@@ -39,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         createdAt: item.created_at,
         updatedAt: item.updated_at,
         label: item.label,
-        apiKey: item.api_key,
+        apiKey: apiKeyHint(item.api_key),
         permissions: item.permissions,
       })),
     })

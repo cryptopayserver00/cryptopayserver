@@ -77,10 +77,15 @@ const ImportMnemonicPhrase = () => {
         return
       }
 
+      const { promptAccountPassword } = await import('@/utils/wallet-password')
+      const accountPassword = promptAccountPassword('Enter your account password to import wallet')
+      if (accountPassword === null) return
+
       const import_wallet_resp: any = await axios.post(Http.save_wallet, {
         import_wallet: phrase.join(' '),
         store_id: storeId,
         user_id: userId,
+        account_password: accountPassword,
       })
 
       if (import_wallet_resp.result) {

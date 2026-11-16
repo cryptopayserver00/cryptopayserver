@@ -7,6 +7,15 @@ import { BTC } from '@/packages/web3/chain/btc'
 import { GweiToWei } from '@/utils/number'
 import { NOTIFICATION_TYPE } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
+import {
+  assertWalletOwnedByUser,
+  forbidden,
+  rateLimit,
+  requireAccountPassword,
+  requireAuthUserId,
+  requireWalletPasswordIfSet,
+} from '@/lib/auth'
+import { decryptAndUpgrade } from '@/lib/crypto/secrets'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -16,14 +25,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
+    const userId = await requireAuthUserId(req, res, req.body.user_id)
+    if (!userId) return
+
+    if (!rateLimit(req, res, { scope: 'send-tx', limit: 30, windowMs: 15 * 60 * 1000 })) {
+      return
     }
 
     const walletId = Number(req.body.wallet_id)
     if (!walletId) {
       return res.status(200).json({ message: 'Invalid walletId', result: false, data: null })
+    }
+
+    if (!(await assertWalletOwnedByUser(walletId, userId))) {
+      return forbidden(res)
     }
 
     let chainId = Number(req.body.chain_id)
@@ -62,6 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         status: 1,
       },
       select: {
+        id: true,
         wallet_id: true,
         private_key: true,
         note: true,
@@ -77,11 +93,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const wallet = await prisma.wallets.findFirst({
       where: {
         id: address.wallet_id,
+        user_id: userId,
         status: 1,
       },
       select: {
+        id: true,
         mnemonic: true,
         store_id: true,
+        password: true,
       },
     })
 
@@ -89,11 +108,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Cannot find', result: false, data: null })
     }
 
+    if (
+      !(await requireAccountPassword(
+        res,
+        userId,
+        req.body.account_password || req.body.password,
+        'Account password required to send'
+      ))
+    ) {
+      return
+    }
+
+    if (!(await requireWalletPasswordIfSet(res, wallet, req.body.wallet_password))) {
+      return
+    }
+
+    const privateKeyUpgrade = decryptAndUpgrade(address.private_key)
+    const mnemonicUpgrade = decryptAndUpgrade(wallet.mnemonic)
+    if (privateKeyUpgrade.upgraded) {
+      await prisma.addresses.update({
+        where: { id: address.id },
+        data: { private_key: privateKeyUpgrade.upgraded },
+      })
+    }
+    if (mnemonicUpgrade.upgraded) {
+      await prisma.wallets.update({
+        where: { id: wallet.id },
+        data: { mnemonic: mnemonicUpgrade.upgraded },
+      })
+    }
+    const privateKey = privateKeyUpgrade.plaintext
+    const mnemonic = mnemonicUpgrade.plaintext
+
     const hash = await WEB3.sendTransaction(address.network === 1, {
       coin: FindTokenByChainIdsAndSymbol(WEB3.getChainIds(address.network === 1, chainId), coin),
       value: value,
-      privateKey: address.private_key,
-      mnemonic: wallet.mnemonic,
+      privateKey: privateKey,
+      mnemonic: mnemonic,
       feeRate: feeRate,
       btcType: coin === COINS.BTC ? BTC.getType(address.note) : undefined,
       from: address.address,

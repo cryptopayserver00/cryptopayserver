@@ -2,15 +2,25 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { LIGHTNINGNAME } from '@/packages/constants/blockchain'
 import { LIGHTNING } from '@/packages/lightning'
+import { requireAuth, rateLimit } from '@/lib/auth'
+import { assertSafeHttpUrl } from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
     await CorsMiddleware(req, res, CorsMethod)
 
-    if (req.method !== HttpMethod.GET) {
+    // POST only — never put macaroon/rune in query strings (access logs / Referer).
+    if (req.method !== HttpMethod.POST) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
-    const text = req.query.text
+
+    if (!(await requireAuth(req, res))) return
+
+    if (!rateLimit(req, res, { scope: 'ln-test', limit: 20, windowMs: 15 * 60 * 1000 })) {
+      return
+    }
+
+    const text = req.body.text
     if (!text) {
       return res.status(200).json({ message: 'Invalid text', result: false, data: null })
     }
@@ -40,7 +50,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid lightning name', result: false, data: null })
     }
 
-    const [isAuthorized, _] = await LIGHTNING.testConnection(
+    const serverUrl = /^https?:\/\//i.test(server) ? server : `https://${server}`
+    const safeServer = await assertSafeHttpUrl(serverUrl, { allowHttp: true })
+    if (!safeServer.ok) {
+      return res.status(200).json({ message: safeServer.message, result: false, data: null })
+    }
+
+    const [isAuthorized] = await LIGHTNING.testConnection(
       type as LIGHTNINGNAME,
       server,
       macaroon,

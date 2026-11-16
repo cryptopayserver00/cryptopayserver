@@ -1,8 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
-import CryptoJS from 'crypto-js'
 import { NOTIFICATION_TYPE } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
+import {
+  hashPassword,
+  rateLimit,
+  setPending2faCookie,
+  setSessionCookie,
+  verifyPassword,
+} from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,6 +16,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (req.method !== HttpMethod.POST) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
+    }
+
+    if (!rateLimit(req, res, { scope: 'login', limit: 10, windowMs: 15 * 60 * 1000 })) {
+      return
     }
 
     const email = req.body.email
@@ -22,18 +32,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid password', result: false, data: null })
     }
 
-    const cryptoPassword = CryptoJS.SHA256(password).toString()
-
     const user = await prisma.users.findFirst({
       where: {
         email: email,
-        password: cryptoPassword,
         status: 1,
       },
     })
 
     if (!user) {
       return res.status(200).json({ message: 'Cannot find user', result: false, data: null })
+    }
+
+    const { ok, needsRehash } = await verifyPassword(password, user.password)
+    if (!ok) {
+      return res.status(200).json({ message: 'Cannot find user', result: false, data: null })
+    }
+
+    let passwordHash = user.password
+    if (needsRehash) {
+      passwordHash = await hashPassword(password)
+      await prisma.users.update({
+        where: { id: user.id },
+        data: { password: passwordHash },
+      })
+    }
+
+    // Require TOTP when authenticator is configured
+    if (user.authenticator) {
+      await setPending2faCookie(res, user.id)
+      return res.status(200).json({
+        message: '',
+        result: true,
+        data: {
+          requires2fa: true,
+        },
+      })
     }
 
     const stores = await prisma.stores.findMany({
@@ -45,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (stores && stores.length > 0) {
       const message = `You have a new login: ${new Date().toLocaleString()}`
-      const result = await prisma.notifications.createMany({
+      await prisma.notifications.createMany({
         data: [
           {
             user_id: user.id,
@@ -69,11 +102,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         ],
       })
-
-      if (result.count === 0) {
-        return res.status(200).json({ message: 'Cannot create many', result: false, data: null })
-      }
     }
+
+    await setSessionCookie(res, user.id, passwordHash)
 
     return res.status(200).json({
       message: '',
@@ -82,6 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         id: user.id,
         email: user.email,
         username: user.username,
+        requires2fa: false,
       },
     })
   } catch (e) {

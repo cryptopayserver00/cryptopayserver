@@ -1,6 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '@/pages/api'
 import { prisma } from '@/lib/prisma'
+import {
+  forbidden,
+  getStoreAccess,
+  requireAuthUserId,
+  STORE_PERMISSION,
+  storeAccessHasPermission,
+} from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -9,6 +16,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (req.method !== HttpMethod.GET) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
+
+    const userId = await requireAuthUserId(req, res, req.query.user_id)
+    if (!userId) return
 
     const id = Number(req.query.id)
     if (!id) {
@@ -26,6 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res
         .status(200)
         .json({ message: 'Cannot find address book', result: false, data: null })
+    }
+
+    const access = await getStoreAccess(address_book.store_id, userId)
+    if (!access || !storeAccessHasPermission(access, STORE_PERMISSION.ViewStores)) {
+      return forbidden(res)
     }
 
     return res.status(200).json({

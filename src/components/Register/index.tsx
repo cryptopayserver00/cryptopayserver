@@ -59,19 +59,6 @@ const Register = () => {
 
       setIsLoading(true)
 
-      const response: any = await axios.get(Http.find_user_by_email, {
-        params: {
-          email: email,
-        },
-      })
-      if (response.result) {
-        setSnackSeverity('error')
-        setSnackMessage('User already exists!')
-        setSnackOpen(true)
-        setIsLoading(false)
-        return
-      }
-
       const create_user_resp: any = await axios.post(Http.create_user, {
         email: email,
         password: password,
@@ -84,6 +71,9 @@ const Register = () => {
           window.location.href = '/login'
         }, 2000)
       } else {
+        setSnackSeverity('error')
+        setSnackMessage(create_user_resp.message || 'Unable to create account')
+        setSnackOpen(true)
         setIsLoading(false)
       }
     } catch (e) {

@@ -113,7 +113,7 @@ const General = () => {
         logo_url: logoUrl ? logoUrl : '',
         custom_css_url: customCssUrl ? customCssUrl : '',
         currency: currency ? currency : '',
-        allow_anyone_create_invoice: allowAnyoneCreateInvoice ? 1 : 2,
+        allow_anyone_create_invoice: 2,
         add_additional_fee_to_invoice: addAdditionalFeeToInvoice,
         invoice_expires_if_not_paid_full_amount: invoiceExpiresIfNotPaidFullAmount,
         invoice_paid_less_than_precent: invoicePaidLessThanPrecent,
@@ -337,24 +337,10 @@ const General = () => {
         </div>
 
         <div className="flex items-center space-x-3 pt-2">
-          <Switch
-            id="allow-invoice"
-            checked={allowAnyoneCreateInvoice}
-            onCheckedChange={setAllowAnyoneCreateInvoice}
-          />
-          <Label htmlFor="allow-invoice" className="cursor-pointer">
-            Allow anyone to create invoice
+          <Switch id="allow-invoice" checked={false} disabled />
+          <Label htmlFor="allow-invoice" className="cursor-not-allowed text-muted-foreground">
+            Allow anyone to create invoice (not available)
           </Label>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
-            onClick={() => {
-              window.location.href = '#'
-            }}
-          >
-            <AlertCircle className="h-4 w-4" />
-          </Button>
         </div>
 
         <div className="space-y-2 pt-2">

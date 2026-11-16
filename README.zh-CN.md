@@ -6,16 +6,16 @@
 
 **开源加密货币支付服务器**
 
-[官网](https://cryptopayserver.online) · [在线演示](https://cryptopayserver.online/login) · [常见问题](https://cryptopayserver.online/#faq) · [文档](https://docs.cryptopayserver.online) · [Telegram](https://t.me/cryptopayserver)
+[官网](https://cryptopayserver.online) · [在线演示](https://cryptopayserver.online/login) · [常见问题](https://cryptopayserver.online/#faq) · [文档](https://docs.cryptopayserver.online) · [Telegram](https://t.me/cryptopayserver) · [English](./README.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](#贡献指南)
-[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Support-yellow?logo=buymeacoffee)](#)
+[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](./.github/workflows/ci.yml)
 
 </div>
 
 **Cryptopayserver** 是一款免费、开源、可自托管的加密货币支付服务器。
-支持跨多条区块链和多种资产接收付款——密钥由你掌控，数据由你保管。没有追踪、没有广告、没有中间商抽成。
+支持跨多条区块链和多种资产收款——密钥由你掌控，数据由你保管。没有追踪、没有广告、没有中间商抽成。
 
 <div align="center">
   <img src="./docs/images/default.jpg" width="600" alt="Cryptopayserver dashboard preview">
@@ -23,120 +23,200 @@
 
 ## 为什么选择 Cryptopayserver？
 
-Cryptopayserver 专为重视自主权与简洁性的人打造：
-
-- 💼 支持跨多条区块链接收加密货币付款
-- 🏦 非常适合长期持有（buy-and-hold）策略
-- 🎯 清晰的资产组合洞察与交易概览
-- 👻 隐私优先——你的数据永远不会离开你的服务器
-- 🧘 极简设计，专注核心功能
-- 😎 完全自托管，**零遥测**
-- 👌 开源，易于二次开发
+- 一个后台覆盖多链收款
+- 自托管钱包（助记词 / 私钥），密钥留在你自己的基础设施上
+- 面向商户：发票、付款请求、拉取付款、出款、Webhook
+- 隐私优先——无遥测、无内置第三方统计
+- MIT 开源，便于二次开发与扩展
 
 ## 功能特性
 
-### 支持的链
+### 支持的链与网络
 
-- 比特币（含闪电网络）
-- 以太坊
-- Solana
-- 币安智能链（BSC）
-- 莱特币
-- XRP
-- TON
-- Tron
-- 更多链持续支持中（可自定义扩展）
+| 类型 | 网络 |
+| ---- | ---- |
+| UTXO | Bitcoin（含闪电网络）、Litecoin、Bitcoin Cash |
+| 账户 / 账本 | XRP、TON、Tron、Solana |
+| EVM | Ethereum、BNB Smart Chain、Arbitrum、Arbitrum Nova、Avalanche、Polygon、Base、Optimism |
 
-### 核心能力
+应用内可切换主网 / 测试网，后续会持续扩展更多网络。
 
-**仪表盘**
-一目了然地查看每日订单数、交易量、销售额和店铺状态。
+### 支付能力
 
-**钱包管理**
+- **发票（Invoices）** — 通过界面或 API 创建结账发票，跟踪状态，二维码付款
+- **付款请求（Payment Requests）** — 可复用的请求式收款链接
+- **拉取付款（Pull Payments）** — 用于退款、分销、奖励等可领取出款
+- **出款（Payouts）** — 从店铺钱包出款，支持出款相关配置
+- **报表（Reports）** — 店铺销售与支付报表
+- **Webhook** — 支付事件的签名回调通知
 
-- 通过助记词创建钱包（支持导入/导出）
-- 多链地址生成
-- 余额概览、Gas 费估算与资产转账
-- 安全查看私钥等敏感数据
+### 钱包
 
-**店铺管理**
-创建与钱包关联的店铺，立即开始接收付款。
+- 通过助记词或私钥生成 / 导入钱包
+- 单一种子派生多链地址
+- 余额、手续费估算、链上转账与闪电支付
+- 钱包密码保护、备份提醒、撤销 / 轮换
+- 闪电后端：LND、Core Lightning、LNBits、LNDHub、Blink、OpenNode
 
-**系统通知**
-版本更新、交易到账、订单完成等事件的应用内提醒。
+### 店铺与账户
 
-**插件与集成**
+- 多店铺管理，并与钱包关联
+- 结账、支付、邮件、通知、API Key 等设置
+- 角色与权限，便于团队协作
+- 账户安全：会话 Cookie、可选 **2FA（TOTP）**、SMTP 密码重置
+- 店铺 **API Key**（请求头 `X-API-Key`）用于程序化创建发票
+
+### 插件
 
 - Shopify
-- 收银台（POS）
-- 支付按钮
-- 众筹
-- 支持接入外部电商平台与小型应用
+- 收银台（Point of Sale）
+- 支付按钮（Pay Button）
+- 众筹（Crowdfunding）
 
-**其他服务**
+### 运维
 
-- 测试网 / 主网切换
-- 汇率与货币对服务
-- 邮件通知
-- 自动化工具
-- 区块链扫描服务
+- 后台 **定时 Worker**：区块扫描，以及发票 / 付款请求 / 拉取付款过期处理
+- 健康检查：`GET /api/health`
+- 可选配置 CoinGecko、Tron、TON API Key，用于行情与链上数据
+- 多语言：`public/locales`（en、zh、ja、ko、es、fr、pt、ru、hi 等）
 
-## 技术栈
+## 架构概览
 
-基于现代 Web 技术、使用 **TypeScript** 构建。
+```
+┌─────────────────┐     ┌──────────────────┐     ┌────────────┐
+│  Next.js 应用   │────▶│  MySQL (Prisma)  │     │  Blockscan │
+│  （API + 界面） │     └──────────────────┘     │  / RPC     │
+└────────▲────────┘                               └────────────┘
+         │ cron + x-cron-secret
+┌────────┴────────┐
+│ schedule-worker │
+└─────────────────┘
+```
 
-| 层级 | 技术                           |
-| ---- | ------------------------------ |
-| 后端 | Next.js、MySQL、Prisma、Redis  |
-| 前端 | React、Tailwindcss、Radix-ui   |
+- **应用**：Next.js（React + API Routes）、Prisma、MySQL 8
+- **Worker**：`scripts/schedule-worker.mjs` 调用受保护的 `/api/schedule/*` 任务
+- **鉴权**：HTTP-only 会话 Cookie；部分发票接口支持 API Key；敏感路由带有 CSRF 与限流
+
+## 环境要求
+
+- **Node.js** 20+（18+ 可能可用；CI 使用 20）
+- **Yarn** 1.x
+- **MySQL** 8.0+
+- **Docker** + Docker Compose（生产环境推荐）
 
 ## 快速开始
 
-### 体验在线演示
+### 在线演示
 
-无需安装，先体验一下：
-**[在线演示](https://cryptopayserver.online/login)**
+无需安装，先体验：**[在线演示](https://cryptopayserver.online/login)**
+
+### 本地开发
+
+```bash
+git clone https://github.com/cryptopayserver00/cryptopayserver.git
+cd cryptopayserver
+
+cp .env.example .env
+# 填写 SESSION_SECRET、ENCRYPTION_KEY、CRON_SECRET、DATABASE_URL、APP_BASE_URL 等
+# 生成密钥：openssl rand -base64 48
+
+yarn install
+yarn db:generate
+yarn db:migrate
+
+# 仅启动 Web（端口 8888）
+yarn dev
+
+# Web + 定时 Worker
+yarn dev:all
+```
+
+浏览器打开 [http://127.0.0.1:8888](http://127.0.0.1:8888)。
+
+常用命令：
+
+| 命令 | 说明 |
+| ---- | ---- |
+| `yarn dev` / `yarn start` | 开发 / 生产 Web 服务（端口 8888） |
+| `yarn worker` | 单独运行定时 Worker |
+| `yarn dev:all` / `yarn start:all` | Web + Worker 一起跑 |
+| `yarn db:generate` | 生成 Prisma Client |
+| `yarn db:migrate` | 执行迁移（`prisma migrate deploy`） |
+| `yarn test` | 单元测试（Vitest） |
+| `yarn lint` / `yarn typecheck` | ESLint / TypeScript 检查 |
 
 ### Docker（推荐）
 
-```bash
-# 官方镜像将发布到 Docker Hub
-git clone https://github.com/cryptopayserver00/cryptopayserver.git
+`docker-compose.yml` 会启动 **app**、**worker** 与 **MySQL**。Compose 使用名为 `shared-network` 的外部 Docker 网络。
 
+```bash
+git clone https://github.com/cryptopayserver00/cryptopayserver.git
 cd cryptopayserver
 
-docker compose up -d
+cp .env.example .env.production
+# 配置 MYSQL_ROOT_PASSWORD、DB_*、SESSION_SECRET、ENCRYPTION_KEY、CRON_SECRET、APP_BASE_URL 等
 
-# prisma support
+docker network create shared-network   # 只需执行一次
+
+docker compose up -d
 docker compose --profile migrate run --rm migrate
 ```
 
+宿主机端口 **8888** 映射到容器 `3000`，健康检查走 `/api/health`。
+
+若要从源码构建而非使用已发布镜像，可在 `docker-compose.yml` 中取消注释 `build:`，并注释掉 `image:`。
+
+## 配置说明
+
+将 [`.env.example`](./.env.example) 复制为 `.env`（本地）或 `.env.production`（Docker）。重要变量：
+
+| 变量 | 作用 |
+| ---- | ---- |
+| `SESSION_SECRET` | 会话 / JWT 签名（建议 ≥ 32 字符） |
+| `ENCRYPTION_KEY` | 加密库内敏感字段 |
+| `CRON_SECRET` | 校验定时 Worker（≥ 16 字符） |
+| `DATABASE_URL` | Prisma MySQL 连接串 |
+| `APP_BASE_URL` | 对外访问根地址（密码重置邮件等；不从 `Host` 推断） |
+| `DISABLE_PUBLIC_REGISTRATION` | 设为 `true` 关闭公开注册 |
+| `CORS_ORIGIN` | 可选，逗号分隔的跨域白名单 |
+| `TRUST_PROXY` | 仅在可信反向代理后设为 `true` |
+| `ENABLE_SCHEDULE_WORKER` / `SCHEDULE_BASE_URL` | Worker 开关与任务基址 |
+| `SMTP_*` | 可选系统 SMTP（密码重置） |
+| `BLOCKSCAN_BASE_URL` | 区块链扫描 / 水龙头 API |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect（Reown）项目 ID |
+| `COINGECKO_AUTH` / `TRON_API_KEY_*` / `TON_API_KEY` | 可选第三方 API |
+
+切勿提交真实的 `.env` / `.env.production`（已在 `.gitignore` 中忽略），以 `.env.example` 作为模板即可。
+
+## 安全说明
+
+- 项目目前为 **beta（v0.x）**，详见 [SECURITY.md](./SECURITY.md)
+- 安全问题请私信 **viper.aur123@gmail.com**（请勿公开提 Issue）
+- 生产环境建议在反向代理（Caddy / nginx）上启用 TLS 与限流
+- 上线前务必设置高强度的 `SESSION_SECRET`、`ENCRYPTION_KEY`、`CRON_SECRET`
+- 创建首个管理员后，建议关闭公开注册
+
 ## 贡献指南
 
-我们欢迎各种形式的贡献！无论是修复 bug、添加新功能、完善文档，还是帮助翻译——每一份贡献都很重要。
+欢迎各种形式的贡献：修 bug、加功能、写文档、做翻译。
 
-**参与方式：**
+- [报告问题](https://github.com/cryptopayserver00/cryptopayserver/issues/new?template=bug_report.md)
+- [功能建议](https://github.com/cryptopayserver00/cryptopayserver/issues/new?template=feature_request.md)
+- [提交 PR](https://github.com/cryptopayserver00/cryptopayserver/pulls)
+- [协助翻译](./public/locales)
 
-- 🐛 [报告问题](https://github.com/cryptopayserver00/cryptopayserver/issues/new?template=bug_report.md)
-- 💡 [提出功能建议](https://github.com/cryptopayserver00/cryptopayserver/issues/new?template=feature_request.md)
-- 🔧 [提交 Pull Request](https://github.com/cryptopayserver00/cryptopayserver/pulls)
-- 📖 [完善文档](https://github.com/cryptopayserver00/cryptopayserver/tree/master/docs)
-- 🌍 [协助翻译](https://github.com/cryptopayserver00/cryptopayserver/tree/master/public/locales)
+CI 会在 `main` / `master` 与 PR 上执行：安装依赖 → Prisma generate → typecheck → lint → 测试 → build。
 
-## 赞助商
+## 赞助
 
-喜欢 Cryptopayserver？欢迎 [在 GitHub 上赞助我们](https://github.com/sponsors/cryptopayserver00)，帮助项目持续成长！
-
-<!-- ## Star 历史
-
-[![Star History Chart](https://api.star-history.com/svg?repos=cryptopayserver00/cryptopayserver&type=Date)](https://star-history.com/#cryptopayserver00/cryptopayserver&Date) -->
+喜欢 Cryptopayserver？欢迎 [在 GitHub 上赞助](https://github.com/sponsors/cryptopayserver00)，帮助项目持续成长。
 
 ## 隐私政策
 
-Cryptopayserver 将隐私作为核心设计原则。作为一款自托管应用，你的所有数据都保存在你自己的基础设施上。没有遥测、没有追踪、没有数据收集。详情请参阅我们的 [隐私政策](https://cryptopayserver.online/privacy)。
+Cryptopayserver 是自托管软件，数据保存在你自己的基础设施上，无遥测、无内置追踪。详情见 [隐私政策](https://cryptopayserver.online/privacy)。
 
 ## 许可证
 
-© 2025 - 2026 [Cryptopayserver](https://cryptopayserver.online)
+© 2025–2026 [Cryptopayserver](https://cryptopayserver.online)
 
-Cryptopayserver 是基于 [MIT 许可证](LICENSE) 开源的软件。
+基于 [MIT 许可证](./LICENSE) 开源。

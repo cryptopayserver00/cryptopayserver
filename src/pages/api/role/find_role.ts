@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { DEFAULT_USER_ROLE_PERMISSIONS, USER_ROLE } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
+import { requireAuthUserId, assertStoreOwnedByUser, assertWalletOwnedByUser, forbidden } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -16,9 +17,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid storeId', result: false, data: null })
     }
 
-    const userId = Number(req.query.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
+    const userId = await requireAuthUserId(req, res, req.query.user_id)
+    if (!userId) return
+    if (!(await assertStoreOwnedByUser(storeId, userId))) {
+      return forbidden(res)
     }
 
     const roles = await prisma.roles.findMany({

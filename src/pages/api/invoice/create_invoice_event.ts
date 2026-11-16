@@ -1,6 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import {
+  forbidden,
+  getStoreAccess,
+  requireAuthUserId,
+  STORE_PERMISSION,
+  storeAccessHasPermission,
+} from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -9,6 +16,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (req.method !== HttpMethod.POST) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
+
+    const userId = await requireAuthUserId(req, res, req.body.user_id)
+    if (!userId) return
 
     const invoiceId = Number(req.body.invoice_id)
     if (!invoiceId) {
@@ -25,11 +35,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid message', result: false, data: null })
     }
 
+    const invoice = await prisma.invoices.findFirst({
+      where: {
+        id: invoiceId,
+        order_id: orderId,
+        status: 1,
+      },
+      select: {
+        user_id: true,
+        store_id: true,
+      },
+    })
+
+    if (!invoice) {
+      return res.status(200).json({ message: 'Invalid invoice', result: false, data: null })
+    }
+
+    const access = await getStoreAccess(invoice.store_id, userId)
+    if (!access || !storeAccessHasPermission(access, STORE_PERMISSION.ModifyInvoices)) {
+      return forbidden(res, 'Insufficient store permission')
+    }
+
     const invoice_event = await prisma.invoice_events.create({
       data: {
         invoice_id: invoiceId,
         order_id: orderId,
-        message: message,
+        message: String(message).slice(0, 2000),
         status: 1,
       },
     })

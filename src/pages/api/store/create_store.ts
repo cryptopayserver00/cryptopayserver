@@ -3,6 +3,7 @@ import { CHAINS } from '@/packages/constants/blockchain'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { NOTIFICATION, NOTIFICATIONS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
+import { requireAuthUserId, assertStoreOwnedByUser, assertWalletOwnedByUser, forbidden } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -12,10 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const userId = Number(req.body.user_id)
-    if (!userId) {
-      return res.status(200).json({ message: 'Invalid userId', result: false, data: null })
-    }
+    const userId = await requireAuthUserId(req, res, req.body.user_id)
+    if (!userId) return
 
     const name = req.body.name
     if (!name) {
@@ -49,7 +48,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         website: website,
         logo_url: '',
         custom_css_url: '',
-        allow_anyone_create_invoice: 1,
+        // Public unauthenticated invoice creation is not implemented — keep disabled.
+        allow_anyone_create_invoice: 2,
         add_additional_fee_to_invoice: 1,
         invoice_expires_if_not_paid_full_amount: 1,
         invoice_paid_less_than_precent: 10,

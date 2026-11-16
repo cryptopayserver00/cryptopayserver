@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,8 +11,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
+    const access = await requireStorePermission(
+      req,
+      res,
+      req.query.store_id,
+      STORE_PERMISSION.ModifyInvoices,
+      req.query.user_id
+    )
+    if (!access) return
+
     const invoices = await prisma.invoices.findMany({
       where: {
+        store_id: access.storeId,
+        user_id: access.userId,
         status: 1,
       },
       orderBy: {

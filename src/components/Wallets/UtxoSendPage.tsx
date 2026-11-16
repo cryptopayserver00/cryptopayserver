@@ -292,7 +292,17 @@ const UtxoSendPage = ({
 
   const onClickSignAndPay = async () => {
     try {
+      const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
+        '@/utils/wallet-password'
+      )
+      const accountPassword = promptAccountPassword('Enter your account password to send')
+      if (accountPassword === null) return
+      const walletPassword = await promptWalletPasswordIfNeeded(walletId)
+      if (walletPassword === null) return
+
       const response: any = await axios.post(Http.send_transaction, {
+        account_password: accountPassword,
+        wallet_password: walletPassword,
         chain_id: chainId,
         from_address: fromAddress,
         to_address: destinationAddress,
@@ -311,6 +321,7 @@ const UtxoSendPage = ({
             tx: response.data.hash,
             crypto_amount: amount,
             payout_status: PAYOUT_STATUS.Completed,
+            account_password: accountPassword,
           })
 
           if (!update_payout_resp.result) {

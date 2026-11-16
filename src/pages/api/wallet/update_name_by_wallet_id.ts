@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
+import { requireOwnedWallet } from '@/lib/auth'
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -10,10 +11,8 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    const walletId = Number(req.body.wallet_id)
-    if (!walletId) {
-      return res.status(200).json({ message: 'Invalid walletId', result: false, data: null })
-    }
+    const owned = await requireOwnedWallet(req, res, req.body.wallet_id)
+    if (!owned) return
 
     const name = req.body.name
     if (!name) {
@@ -25,7 +24,8 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
         name: name,
       },
       where: {
-        id: walletId,
+        id: owned.walletId,
+        user_id: owned.userId,
         status: 1,
       },
     })
