@@ -5,6 +5,7 @@ import {
   assertWalletOwnedByUser,
   forbidden,
   hashPassword,
+  rateLimit,
   requireAuth,
   validatePasswordStrength,
   verifyPassword,
@@ -20,6 +21,16 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
 
     const session = await requireAuth(req, res)
     if (!session) return
+
+    if (
+      !(await rateLimit(req, res, {
+        scope: `wallet-pwd:${session.userId}`,
+        limit: 10,
+        windowMs: 15 * 60 * 1000,
+      }))
+    ) {
+      return
+    }
 
     const walletId = Number(req.body.wallet_id)
     if (!walletId) {

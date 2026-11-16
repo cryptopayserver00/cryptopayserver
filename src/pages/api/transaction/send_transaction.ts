@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const userId = await requireAuthUserId(req, res, req.body.user_id)
     if (!userId) return
 
-    if (!rateLimit(req, res, { scope: 'send-tx', limit: 30, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'send-tx', limit: 30, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
@@ -110,6 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (
       !(await requireAccountPassword(
+        req,
         res,
         userId,
         req.body.account_password || req.body.password,

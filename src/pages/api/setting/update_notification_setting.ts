@@ -8,6 +8,18 @@ import {
   STORE_PERMISSION,
   storeAccessHasPermission,
 } from '@/lib/auth'
+import { NOTIFICATIONS } from '@/packages/constants'
+
+const ALLOWED_NOTIFICATION_IDS = new Set(NOTIFICATIONS.map((n) => n.id))
+
+function sanitizeNotificationIds(raw: unknown): string | null {
+  const ids = String(raw || '')
+    .split(',')
+    .map((p) => Number(p.trim()))
+    .filter((n) => Number.isFinite(n) && n > 0 && ALLOWED_NOTIFICATION_IDS.has(n))
+  if (ids.length === 0) return null
+  return [...new Set(ids)].sort((a, b) => a - b).join(',')
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -37,14 +49,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return forbidden(res, 'Insufficient store permission')
     }
 
-    const notifications = req.body.notifications
+    const notifications = sanitizeNotificationIds(req.body.notifications)
     if (!notifications) {
-      return res.status(200).json({ message: 'Invalid notifications', result: false, data: null })
+      return res.status(200).json({
+        message: 'notifications must be a comma-separated list of known notification ids',
+        result: false,
+        data: null,
+      })
     }
 
     await prisma.notification_settings.update({
       data: {
-        notifications: notifications,
+        notifications,
       },
       where: {
         id: owned.id,

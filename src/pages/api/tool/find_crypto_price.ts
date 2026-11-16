@@ -12,7 +12,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
     }
 
     // Used by public payment-request checkout; keep unauthenticated but rate-limited.
-    if (!rateLimit(req, res, { scope: 'crypto-price', limit: 60, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'crypto-price', limit: 60, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 

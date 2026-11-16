@@ -6,6 +6,8 @@ import {
   assertStoreOwnedByUser,
   forbidden,
   generateApiKey,
+  rateLimit,
+  requireAccountPassword,
   sealApiKey,
 } from '@/lib/auth'
 import { APIKEYPERMISSIONS } from '@/packages/constants'
@@ -20,6 +22,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.body.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'create-apikey', limit: 20, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
+
+    if (
+      !(await requireAccountPassword(
+        req,
+        res,
+        userId,
+        req.body.account_password || req.body.password,
+        'Account password required to create API key'
+      ))
+    ) {
+      return
+    }
 
     const storeId = Number(req.body.store_id)
     if (!storeId) {

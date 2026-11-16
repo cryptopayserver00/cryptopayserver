@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { createPasswordResetToken, rateLimit } from '@/lib/auth'
+import { assertSameOrigin, createPasswordResetToken, rateLimit } from '@/lib/auth'
 import { EMAIL } from '@/utils/email'
 
 function resolveAppBaseUrl(): string | null {
@@ -25,7 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    if (!rateLimit(req, res, { scope: 'reset-email', limit: 5, windowMs: 60 * 60 * 1000 })) {
+    if (!assertSameOrigin(req, res)) return
+
+    if (!(await rateLimit(req, res, { scope: 'reset-email', limit: 5, windowMs: 60 * 60 * 1000 }))) {
       return
     }
 
@@ -64,7 +66,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     const token = await createPasswordResetToken(user.id, user.email, user.password)
-    const resetUrl = `${baseUrl}/forgot-password?token=${encodeURIComponent(token)}`
+    // Put token in the URL fragment so it is not sent to the server / proxies / Referer.
+    const resetUrl = `${baseUrl}/forgot-password#token=${encodeURIComponent(token)}`
 
     const subject = 'Reset your CryptoPayServer password'
     const text = `Hi ${user.username || user.email},\n\nUse this link to reset your password (valid for 15 minutes):\n${resetUrl}\n\nIf you did not request this, ignore this email.`

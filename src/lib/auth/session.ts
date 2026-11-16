@@ -1,4 +1,4 @@
-import { createHash } from 'crypto'
+import { createHash, randomBytes } from 'crypto'
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '@/lib/prisma'
@@ -9,6 +9,7 @@ import {
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
 } from './constants'
+import { consumePasswordResetJti } from './reset-jti'
 
 export type SessionPayload = {
   userId: number
@@ -59,6 +60,7 @@ export async function createPasswordResetToken(
   email: string,
   passwordHash: string
 ): Promise<string> {
+  const jti = randomBytes(16).toString('hex')
   return new SignJWT({
     userId,
     email,
@@ -67,6 +69,7 @@ export async function createPasswordResetToken(
     pwdv: passwordVersion(passwordHash),
   })
     .setProtectedHeader({ alg: 'HS256' })
+    .setJti(jti)
     .setSubject(String(userId))
     .setIssuedAt()
     .setExpirationTime(`${PASSWORD_RESET_MAX_AGE_SECONDS}s`)
@@ -100,7 +103,7 @@ export async function verifyPending2faToken(token: string): Promise<SessionPaylo
 
 export async function verifyPasswordResetToken(
   token: string
-): Promise<{ userId: number; email: string; pwdv: string | null } | null> {
+): Promise<{ userId: number; email: string; pwdv: string | null; jti: string | null } | null> {
   try {
     const { payload } = await jwtVerify(token, getSessionSecret())
     if (payload.typ !== 'password_reset') return null
@@ -108,10 +111,17 @@ export async function verifyPasswordResetToken(
     const email = String(payload.email || '')
     if (!Number.isFinite(userId) || userId <= 0 || !email) return null
     const pwdv = typeof payload.pwdv === 'string' ? payload.pwdv : null
-    return { userId, email, pwdv }
+    const jti = typeof payload.jti === 'string' ? payload.jti : null
+    return { userId, email, pwdv, jti }
   } catch {
     return null
   }
+}
+
+/** Consume reset jti after pwdv checks pass — makes the token one-time. */
+export async function consumePasswordResetTokenJti(jti: string | null): Promise<boolean> {
+  if (!jti) return false
+  return consumePasswordResetJti(jti)
 }
 
 function payloadToSession(payload: JWTPayload): SessionPayload | null {
@@ -199,7 +209,8 @@ function buildSetCookie(name: string, value: string, maxAge: number): string {
     'Path=/',
     `Max-Age=${maxAge}`,
     'HttpOnly',
-    'SameSite=Lax',
+    // Strict: session cookies must not ride along on cross-site navigations.
+    'SameSite=Strict',
   ]
   if (shouldUseSecureCookies()) parts.push('Secure')
   return parts.join('; ')

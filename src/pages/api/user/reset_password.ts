@@ -2,8 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
 import {
+  assertSameOrigin,
   clearPending2faCookie,
   clearSessionCookie,
+  consumePasswordResetTokenJti,
   hashPassword,
   passwordVersion,
   rateLimit,
@@ -19,7 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    if (!rateLimit(req, res, { scope: 'reset-password', limit: 10, windowMs: 60 * 60 * 1000 })) {
+    if (!assertSameOrigin(req, res)) return
+
+    if (!(await rateLimit(req, res, { scope: 'reset-password', limit: 10, windowMs: 60 * 60 * 1000 }))) {
       return
     }
 
@@ -47,8 +51,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid or expired token', result: false, data: null })
     }
 
-    // One-time use: token is bound to the pre-reset password fingerprint.
+    // Bound to pre-reset password fingerprint.
     if (!payload.pwdv || payload.pwdv !== passwordVersion(user.password)) {
+      return res.status(200).json({ message: 'Invalid or expired token', result: false, data: null })
+    }
+
+    // True one-time use via jti (pwdv alone still allows reuse until password changes).
+    if (!(await consumePasswordResetTokenJti(payload.jti))) {
       return res.status(200).json({ message: 'Invalid or expired token', result: false, data: null })
     }
 

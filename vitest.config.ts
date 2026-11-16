@@ -11,6 +11,7 @@ export default defineConfig({
       'tests/password-version.test.ts',
       'tests/safe-url.test.ts',
       'tests/public-token.test.ts',
+      'tests/reset-jti.test.ts',
     ],
     environment: 'node',
   },

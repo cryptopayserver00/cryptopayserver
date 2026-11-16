@@ -34,8 +34,12 @@ async function lookupApiKey(apiKey: string): Promise<ApiKeyContext | null> {
     },
   })
 
-  if (!row) {
-    // Legacy plaintext rows
+  // Legacy plaintext lookup — opt-in only (set ALLOW_LEGACY_PLAINTEXT_API_KEYS=true during migration).
+  if (
+    !row &&
+    (process.env.ALLOW_LEGACY_PLAINTEXT_API_KEYS === 'true' ||
+      process.env.ALLOW_LEGACY_PLAINTEXT_API_KEYS === '1')
+  ) {
     row = await prisma.api_key_settings.findFirst({
       where: {
         api_key: apiKey,

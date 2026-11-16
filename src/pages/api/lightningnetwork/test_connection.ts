@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!(await requireAuth(req, res))) return
 
-    if (!rateLimit(req, res, { scope: 'ln-test', limit: 20, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'ln-test', limit: 20, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 

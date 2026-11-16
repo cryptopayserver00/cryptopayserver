@@ -125,7 +125,7 @@ const Login = () => {
         password: password,
       })
 
-      if (response.result && response.data?.requires2fa) {
+      if (response.data?.requires2fa) {
         setRequires2fa(true)
         showSnack('success', 'Enter your authenticator code')
         return

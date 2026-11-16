@@ -280,12 +280,17 @@ const PullPaymentsDetails = () => {
                   <Store className="h-5 w-5" />
                 </div>
               )}
-              <Link
-                href={String(pullPaymentData?.storeWebsite)}
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                {pullPaymentData?.storeName}
-              </Link>
+              {pullPaymentData?.storeWebsite &&
+              /^https?:\/\//i.test(String(pullPaymentData.storeWebsite)) ? (
+                <Link
+                  href={String(pullPaymentData.storeWebsite)}
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  {pullPaymentData?.storeName}
+                </Link>
+              ) : (
+                <span className="text-sm font-medium">{pullPaymentData?.storeName}</span>
+              )}
               {pullPaymentData?.network === 2 && (
                 <Badge variant="outline" className="border-amber-500 text-amber-600 bg-amber-50">
                   TestMode

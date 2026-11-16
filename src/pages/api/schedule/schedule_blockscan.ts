@@ -412,8 +412,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             }
 
             break
-          case INVOICE_SOURCE_TYPE.Payout:
-            const update_payout = await prisma.payouts.update({
+          case INVOICE_SOURCE_TYPE.Payout: {
+            const payoutRow = await prisma.payouts.findFirst({
+              where: {
+                payout_id: invoice.external_payment_id,
+                payout_status: PAYOUT_STATUS.InProgress,
+                status: 1,
+              },
+            })
+            if (!payoutRow?.tx) {
+              break
+            }
+            const { verifyPayoutOnChain } = await import('@/lib/payout/verify-on-chain')
+            const verified = await verifyPayoutOnChain({
+              chainId: payoutRow.chain_id,
+              network: payoutRow.network,
+              txHash: String(payoutRow.tx),
+              destination: payoutRow.address,
+              crypto: payoutRow.crypto,
+              expectedAmount:
+                payoutRow.crypto_amount != null ? Number(payoutRow.crypto_amount) : null,
+            })
+            if (!verified.ok) {
+              // Stay InProgress until explorer confirms SUCCESS.
+              break
+            }
+            await prisma.payouts.updateMany({
               data: {
                 payout_status: PAYOUT_STATUS.Completed,
               },
@@ -423,10 +447,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 status: 1,
               },
             })
-            if (!update_payout) {
-              continue
-            }
             break
+          }
           case INVOICE_SOURCE_TYPE.PullPayment:
             break
           case INVOICE_SOURCE_TYPE.Sales:

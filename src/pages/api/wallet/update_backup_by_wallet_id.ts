@@ -14,12 +14,13 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
     const owned = await requireOwnedWallet(req, res, req.body.wallet_id)
     if (!owned) return
 
-    if (!rateLimit(req, res, { scope: 'wallet-backup', limit: 20, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'wallet-backup', limit: 20, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
     if (
       !(await requireAccountPassword(
+        req,
         res,
         owned.userId,
         req.body.account_password || req.body.password,

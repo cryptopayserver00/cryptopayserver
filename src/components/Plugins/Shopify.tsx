@@ -67,6 +67,16 @@ export const Shopify = () => {
 
   const onClickSave = async () => {
     try {
+      const needsStepUp =
+        id === 0 || Boolean(apiKey && !apiKey.startsWith('•')) || Boolean(adminApiAccessToken && !adminApiAccessToken.startsWith('•'))
+      let accountPassword = ''
+      if (needsStepUp) {
+        const { promptAccountPassword } = await import('@/utils/wallet-password')
+        const entered = promptAccountPassword('Enter your account password to save Shopify credentials')
+        if (entered === null) return
+        accountPassword = entered
+      }
+
       if (id === 0) {
         const response: any = await axios.post(Http.create_shopify_setting, {
           user_id: userId,
@@ -74,6 +84,7 @@ export const Shopify = () => {
           shop_name: shopName,
           api_key: apiKey,
           admin_api_access_token: adminApiAccessToken,
+          account_password: accountPassword,
         })
 
         if (response.result) {
@@ -82,7 +93,7 @@ export const Shopify = () => {
           setSnackOpen(true)
         } else {
           setSnackSeverity('error')
-          setSnackMessage('Failed create!')
+          setSnackMessage(response.message || 'Failed create!')
           setSnackOpen(true)
         }
       } else if (id > 0) {
@@ -91,6 +102,7 @@ export const Shopify = () => {
           shop_name: shopName,
           ...(apiKey ? { api_key: apiKey } : {}),
           ...(adminApiAccessToken ? { admin_api_access_token: adminApiAccessToken } : {}),
+          ...(accountPassword ? { account_password: accountPassword } : {}),
         })
 
         if (response.result) {
@@ -99,7 +111,7 @@ export const Shopify = () => {
           setSnackOpen(true)
         } else {
           setSnackSeverity('error')
-          setSnackMessage('Failed update!')
+          setSnackMessage(response.message || 'Failed update!')
           setSnackOpen(true)
         }
       }

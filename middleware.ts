@@ -34,11 +34,25 @@ async function hasValidSession(req: NextRequest): Promise<boolean> {
   }
 }
 
+function timingSafeEqualString(a: string, b: string): boolean {
+  const enc = new TextEncoder()
+  const bufA = enc.encode(a)
+  const bufB = enc.encode(b)
+  if (bufA.byteLength !== bufB.byteLength) return false
+  // Constant-time compare (Edge-compatible; no node:crypto required).
+  let diff = 0
+  for (let i = 0; i < bufA.byteLength; i++) {
+    diff |= bufA[i]! ^ bufB[i]!
+  }
+  return diff === 0
+}
+
 function hasValidCronSecret(req: NextRequest): boolean {
   const expected = process.env.CRON_SECRET
   if (!expected || expected.length < 16) return false
   const provided = req.headers.get(CRON_HEADER_NAME)
-  return Boolean(provided && provided === expected)
+  if (!provided) return false
+  return timingSafeEqualString(provided, expected)
 }
 
 function hasApiKeyHeader(req: NextRequest): boolean {
@@ -46,11 +60,58 @@ function hasApiKeyHeader(req: NextRequest): boolean {
   return Boolean(apiKey && apiKey.trim())
 }
 
+function generateNonce(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]!)
+  }
+  return btoa(binary)
+}
+
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    // Nonce + strict-dynamic: Next.js scripts carry the nonce; follow-on loads allowed.
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    // Styles still need unsafe-inline for Tailwind / CSS-in-JS until hashed.
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https: wss:",
+    "object-src 'none'",
+    "frame-ancestors 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ')
+}
+
+function withPageSecurityHeaders(req: NextRequest): NextResponse {
+  const nonce = generateNonce()
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set('x-nonce', nonce)
+
+  const res = NextResponse.next({
+    request: { headers: requestHeaders },
+  })
+  res.headers.set('Content-Security-Policy', buildCsp(nonce))
+  res.headers.set('x-nonce', nonce)
+  return res
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
+  // HTML / app routes — attach CSP nonce (skip static asset-looking paths).
   if (!pathname.startsWith('/api/')) {
-    return NextResponse.next()
+    if (
+      pathname.startsWith('/_next/') ||
+      pathname.startsWith('/uploads/') ||
+      pathname.includes('.')
+    ) {
+      return NextResponse.next()
+    }
+    return withPageSecurityHeaders(req)
   }
 
   // Liveness probe — no auth
@@ -89,5 +150,8 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: [
+    '/api/:path*',
+    '/((?!_next/static|_next/image|favicon.ico|uploads/).*)',
+  ],
 }

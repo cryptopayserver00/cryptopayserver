@@ -9,6 +9,7 @@ import { prisma } from '@/lib/prisma'
 import {
   apiKeyHasPermission,
   getStoreAccess,
+  rateLimit,
   requireAuthOrApiKey,
   STORE_PERMISSION,
   storeAccessHasPermission,
@@ -28,6 +29,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (req.method !== HttpMethod.POST) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
+    }
+
+    if (!(await rateLimit(req, res, { scope: 'create-invoice', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
     }
 
     const currency = req.body.currency

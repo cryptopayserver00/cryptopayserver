@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
-import { clearPending2faCookie, clearSessionCookie } from '@/lib/auth'
+import { assertSameOrigin, clearPending2faCookie, clearSessionCookie } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -9,6 +9,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (req.method !== HttpMethod.POST) {
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
+
+    if (!assertSameOrigin(req, res)) return
 
     clearSessionCookie(res)
     clearPending2faCookie(res)

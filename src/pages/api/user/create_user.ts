@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { hashPassword, rateLimit, validatePasswordStrength } from '@/lib/auth'
+import { assertSameOrigin, hashPassword, rateLimit, validatePasswordStrength } from '@/lib/auth'
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -11,7 +11,9 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    if (!rateLimit(req, res, { scope: 'register', limit: 5, windowMs: 60 * 60 * 1000 })) {
+    if (!assertSameOrigin(req, res)) return
+
+    if (!(await rateLimit(req, res, { scope: 'register', limit: 5, windowMs: 60 * 60 * 1000 }))) {
       return
     }
 

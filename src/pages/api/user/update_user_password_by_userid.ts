@@ -5,6 +5,7 @@ import {
   clearPending2faCookie,
   forbidden,
   hashPassword,
+  rateLimit,
   requireAuthUserId,
   setSessionCookie,
   validatePasswordStrength,
@@ -21,6 +22,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.body.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: `change-password:${userId}`, limit: 10, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const oldPwd = req.body.old_password
     if (!oldPwd) {

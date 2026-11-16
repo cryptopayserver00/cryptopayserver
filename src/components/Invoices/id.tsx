@@ -226,9 +226,13 @@ const InvoiceDetails = () => {
                 ) : (
                   <StoreIcon className="h-5 w-5 text-muted-foreground" />
                 )}
-                <Link href={String(order?.storeWebsite)} className="hover:underline">
-                  {order?.storeName}
-                </Link>
+                {order?.storeWebsite && /^https?:\/\//i.test(String(order.storeWebsite)) ? (
+                  <Link href={String(order.storeWebsite)} className="hover:underline">
+                    {order?.storeName}
+                  </Link>
+                ) : (
+                  <span>{order?.storeName}</span>
+                )}
                 {order?.network === 2 && (
                   <Badge className="border-transparent bg-amber-100 text-amber-800 hover:bg-amber-100">
                     TestMode

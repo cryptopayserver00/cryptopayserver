@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import type { ResponseData } from '@/pages/api'
+import { getRedisClient } from '@/lib/redis'
 
 type Bucket = {
   count: number
@@ -19,8 +20,6 @@ function clientKey(req: NextApiRequest, scope: string): string {
   if (process.env.TRUST_PROXY === 'true' || process.env.TRUST_PROXY === '1') {
     const forwarded = req.headers['x-forwarded-for']
     const raw = Array.isArray(forwarded) ? forwarded[0] : forwarded
-    // Right-most hop is typically the proxy-appended client when the proxy appends.
-    // Prefer the first hop when the edge proxy replaces XFF with the real client.
     const first = String(raw || '')
       .split(',')[0]
       .trim()
@@ -30,17 +29,25 @@ function clientKey(req: NextApiRequest, scope: string): string {
   return `${scope}:${ip}`
 }
 
-/**
- * Simple in-memory rate limiter (per process).
- * Suitable for single-instance self-hosting; multi-instance needs Redis later.
- */
-export function rateLimit(
-  req: NextApiRequest,
+function rejectTooMany(
   res: NextApiResponse<ResponseData>,
-  options: { scope: string; limit: number; windowMs: number }
+  retryAfterSec: number
+): false {
+  res.setHeader('Retry-After', String(Math.max(1, retryAfterSec)))
+  res.status(429).json({
+    message: 'Too many requests',
+    result: false,
+    data: null,
+  })
+  return false
+}
+
+function rateLimitMemory(
+  key: string,
+  res: NextApiResponse<ResponseData>,
+  options: { limit: number; windowMs: number }
 ): boolean {
   const now = Date.now()
-  const key = clientKey(req, options.scope)
   const existing = buckets.get(key)
 
   if (!existing || existing.resetAt <= now) {
@@ -49,19 +56,44 @@ export function rateLimit(
   }
 
   if (existing.count >= options.limit) {
-    const retryAfter = Math.max(1, Math.ceil((existing.resetAt - now) / 1000))
-    res.setHeader('Retry-After', String(retryAfter))
-    res.status(429).json({
-      message: 'Too many requests',
-      result: false,
-      data: null,
-    })
-    return false
+    return rejectTooMany(res, Math.ceil((existing.resetAt - now) / 1000))
   }
 
   existing.count += 1
   buckets.set(key, existing)
   return true
+}
+
+/**
+ * Rate limiter. Uses Redis when REDIS_URL is set (multi-instance safe),
+ * otherwise in-process memory (single-instance).
+ */
+export async function rateLimit(
+  req: NextApiRequest,
+  res: NextApiResponse<ResponseData>,
+  options: { scope: string; limit: number; windowMs: number }
+): Promise<boolean> {
+  const key = clientKey(req, options.scope)
+  const redis = await getRedisClient()
+  if (redis) {
+    const redisKey = `rl:${key}`
+    try {
+      const count = await redis.incr(redisKey)
+      if (count === 1) {
+        await redis.pexpire(redisKey, options.windowMs)
+      }
+      if (count > options.limit) {
+        const ttl = await redis.pttl(redisKey)
+        const retryAfter = ttl > 0 ? Math.ceil(ttl / 1000) : Math.ceil(options.windowMs / 1000)
+        return rejectTooMany(res, retryAfter)
+      }
+      return true
+    } catch (e) {
+      console.error('[rate-limit] Redis error, falling back to memory:', e)
+      return rateLimitMemory(key, res, options)
+    }
+  }
+  return rateLimitMemory(key, res, options)
 }
 
 /** Test helper / periodic cleanup of expired buckets */

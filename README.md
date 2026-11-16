@@ -180,6 +180,9 @@ Copy [`.env.example`](./.env.example) to `.env` (local) or `.env.production` (Do
 | `DISABLE_PUBLIC_REGISTRATION` | Set `true` to close public signup |
 | `CORS_ORIGIN` | Optional comma-separated allowed origins |
 | `TRUST_PROXY` | `true` only behind a trusted reverse proxy |
+| `REDIS_URL` | Optional Redis for multi-instance rate limiting (empty = in-memory) |
+| `FORCE_SECURE_COOKIES` | Force `Secure` cookies outside production (also auto when `APP_BASE_URL` is https) |
+| `ALLOW_LEGACY_PLAINTEXT_API_KEYS` | Temporary migration: accept plaintext API keys in DB and re-hash on use |
 | `ENABLE_SCHEDULE_WORKER` / `SCHEDULE_BASE_URL` | Worker on/off and job base URL |
 | `SMTP_*` | Optional system SMTP for password reset |
 | `BLOCKSCAN_BASE_URL` | Blockchain scan / faucet API |

@@ -1,9 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { PAYOUT_SOURCE_TYPE, PAYOUT_STATUS, PULL_PAYMENT_STATUS } from '@/packages/constants'
-import { CHAINS } from '@/packages/constants/blockchain'
-import { WEB3 } from '@/packages/web3'
-import { TRANSACTIONSTATUS } from '@/packages/web3/types'
 import { prisma } from '@/lib/prisma'
 import {
   forbidden,
@@ -14,6 +11,7 @@ import {
   STORE_PERMISSION,
   storeAccessHasPermission,
 } from '@/lib/auth'
+import { verifyPayoutOnChain } from '@/lib/payout/verify-on-chain'
 
 const ALLOWED_TRANSITIONS: Record<string, ReadonlySet<string>> = {
   [PAYOUT_STATUS.AwaitingApproval]: new Set([
@@ -40,74 +38,6 @@ function isPlausibleTxHash(txHash: string): boolean {
   return /^[a-zA-Z0-9:_-]+$/.test(txHash)
 }
 
-function addressesMatch(a: string, b: string): boolean {
-  return a === b || a.toLowerCase() === b.toLowerCase()
-}
-
-async function verifyPayoutOnChain(opts: {
-  chainId: number
-  network: number
-  txHash: string
-  destination: string
-  crypto: string
-  expectedAmount?: number | null
-}): Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'mismatch' }> {
-  let detail: Awaited<ReturnType<typeof WEB3.getTransactionDetail>> | null = null
-  try {
-    detail = await WEB3.getTransactionDetail(
-      opts.network === 1,
-      opts.chainId as CHAINS,
-      opts.txHash
-    )
-  } catch {
-    return { ok: false, reason: 'not_found' }
-  }
-
-  if (!detail?.hash) {
-    return { ok: false, reason: 'not_found' }
-  }
-
-  // Sparse explorer responses must not complete a payout — require destination + value.
-  if (!detail.to || detail.value === undefined || detail.value === null || detail.value === '') {
-    return { ok: false, reason: 'not_found' }
-  }
-
-  // Only confirmed success may complete; PENDING parks as InProgress via not_found.
-  if (!detail.status || detail.status === TRANSACTIONSTATUS.PENDING) {
-    return { ok: false, reason: 'not_found' }
-  }
-  if (detail.status !== TRANSACTIONSTATUS.SUCCESS) {
-    return { ok: false, reason: 'mismatch' }
-  }
-
-  if (!addressesMatch(String(detail.to), opts.destination)) {
-    return { ok: false, reason: 'mismatch' }
-  }
-
-  if (opts.crypto) {
-    if (!detail.asset) {
-      return { ok: false, reason: 'not_found' }
-    }
-    if (String(detail.asset).toUpperCase() !== String(opts.crypto).toUpperCase()) {
-      return { ok: false, reason: 'mismatch' }
-    }
-  }
-
-  if (opts.expectedAmount != null && Number.isFinite(opts.expectedAmount) && opts.expectedAmount > 0) {
-    const paid = Number(detail.value)
-    const due = Number(opts.expectedAmount)
-    if (!Number.isFinite(paid)) {
-      return { ok: false, reason: 'not_found' }
-    }
-    const tol = Math.max(1e-12, Math.abs(due) * 1e-6)
-    if (Math.abs(paid - due) > tol) {
-      return { ok: false, reason: 'mismatch' }
-    }
-  }
-
-  return { ok: true }
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
     await CorsMiddleware(req, res, CorsMethod)
@@ -119,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const session = await requireAuth(req, res)
     if (!session) return
 
-    if (!rateLimit(req, res, { scope: 'payout-update', limit: 60, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'payout-update', limit: 60, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
@@ -165,6 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (statusAfter === PAYOUT_STATUS.Completed) {
       if (
         !(await requireAccountPassword(
+          req,
           res,
           session.userId,
           req.body.account_password || req.body.password,

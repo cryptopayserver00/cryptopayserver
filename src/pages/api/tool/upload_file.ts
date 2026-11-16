@@ -59,27 +59,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const session = await requireAuth(req, res)
     if (!session) return
 
-    if (!rateLimit(req, res, { scope: 'upload', limit: 30, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'upload', limit: 30, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
     const fileType = req.query.file_type
 
     let filePath = ''
+    /** Images stay public for store branding; documents are private (auth download API). */
+    let publicStatic = true
 
     switch (fileType) {
       case FILE_TYPE.Image:
         filePath = 'image'
+        publicStatic = true
         break
       case FILE_TYPE.Document:
         filePath = 'document'
+        publicStatic = false
         break
       default:
         // Audio/video/compressed/other disabled until content sniffing is complete.
         return res.status(200).json({ message: 'Invalid file type', result: false, data: null })
     }
 
-    const uploadDir = path.join(process.cwd(), `public/uploads/${filePath}`)
+    const uploadDir = publicStatic
+      ? path.join(process.cwd(), `public/uploads/${filePath}`)
+      : path.join(process.cwd(), `storage/uploads/${filePath}`)
 
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true })
@@ -151,7 +157,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       const safeName = `${Date.now()}-${randomBytes(8).toString('hex')}${ext}`
       const dest = path.join(uploadDir, safeName)
       fs.renameSync(item.filepath, dest)
-      urls.push(`/uploads/${filePath}/${safeName}`)
+
+      if (publicStatic) {
+        urls.push(`/uploads/${filePath}/${safeName}`)
+      } else {
+        // Auth-gated download — not under public/
+        urls.push(`/api/tool/download_file?name=${encodeURIComponent(safeName)}`)
+      }
     }
 
     if (urls.length === 0) {

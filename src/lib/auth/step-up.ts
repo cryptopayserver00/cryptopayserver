@@ -1,17 +1,30 @@
-import type { NextApiResponse } from 'next'
+import type { NextApiRequest, NextApiResponse } from 'next'
 import type { ResponseData } from '@/pages/api'
 import { prisma } from '@/lib/prisma'
 import { verifyPassword } from './password'
+import { rateLimit } from './rate-limit'
 
 /**
  * Require the account login password for high-risk actions (send / export / LN pay).
+ * Rate-limits password attempts per IP + userId to slow brute force on hijacked sessions.
  */
 export async function requireAccountPassword(
+  req: NextApiRequest,
   res: NextApiResponse<ResponseData>,
   userId: number,
   passwordRaw: unknown,
   message = 'Account password required'
 ): Promise<boolean> {
+  if (
+    !(await rateLimit(req, res, {
+      scope: `step-up:${userId}`,
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+    }))
+  ) {
+    return false
+  }
+
   const password = String(passwordRaw || '')
   if (!password) {
     // 200 so UI interceptors can surface the message (axios only resolves 200).

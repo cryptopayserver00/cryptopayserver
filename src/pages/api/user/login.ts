@@ -3,6 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { NOTIFICATION_TYPE } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
 import {
+  assertSameOrigin,
   hashPassword,
   rateLimit,
   setPending2faCookie,
@@ -18,7 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    if (!rateLimit(req, res, { scope: 'login', limit: 10, windowMs: 15 * 60 * 1000 })) {
+    // Login CSRF: require same-origin so attackers cannot bind victim browsers to their account.
+    if (!assertSameOrigin(req, res)) return
+
+    if (!(await rateLimit(req, res, { scope: 'login', limit: 10, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
@@ -40,12 +44,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
 
     if (!user) {
-      return res.status(200).json({ message: 'Cannot find user', result: false, data: null })
+      return res.status(200).json({ message: 'Invalid credentials', result: false, data: null })
     }
 
     const { ok, needsRehash } = await verifyPassword(password, user.password)
     if (!ok) {
-      return res.status(200).json({ message: 'Cannot find user', result: false, data: null })
+      return res.status(200).json({ message: 'Invalid credentials', result: false, data: null })
     }
 
     let passwordHash = user.password
@@ -57,12 +61,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       })
     }
 
-    // Require TOTP when authenticator is configured
+    // Require TOTP when authenticator is configured.
+    // result:false — login is not complete; cookie holds pending state (not a success signal).
     if (user.authenticator) {
       await setPending2faCookie(res, user.id)
       return res.status(200).json({
-        message: '',
-        result: true,
+        message: 'Additional verification required',
+        result: false,
         data: {
           requires2fa: true,
         },

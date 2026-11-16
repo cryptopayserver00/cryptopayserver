@@ -270,9 +270,14 @@ const PaymentRequestsDetails = () => {
                 ) : (
                   <StoreIcon className="h-5 w-5 text-muted-foreground" />
                 )}
-                <Link href={String(paymentRequestData?.storeWebsite)} className="hover:underline">
-                  {paymentRequestData?.storeName}
-                </Link>
+                {paymentRequestData?.storeWebsite &&
+                /^https?:\/\//i.test(String(paymentRequestData.storeWebsite)) ? (
+                  <Link href={String(paymentRequestData.storeWebsite)} className="hover:underline">
+                    {paymentRequestData?.storeName}
+                  </Link>
+                ) : (
+                  <span>{paymentRequestData?.storeName}</span>
+                )}
                 {paymentRequestData?.network === 2 && (
                   <Badge className="border-transparent bg-amber-100 text-amber-800 hover:bg-amber-100">
                     TestMode

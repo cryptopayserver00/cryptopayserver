@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { assertSafeHttpUrl, isBlockedWebhookHostname } from '@/lib/security/safe-url'
+import {
+  assertSafeHttpUrl,
+  isBlockedWebhookHostname,
+  sanitizePublicWebsiteUrl,
+} from '@/lib/security/safe-url'
 
 describe('safe-url', () => {
   it('blocks private hostnames', () => {
@@ -22,5 +26,13 @@ describe('safe-url', () => {
 
     const ok = await assertSafeHttpUrl('https://example.com/hook', { resolveDns: false })
     expect(ok.ok).toBe(true)
+  })
+
+  it('sanitizes public website links', () => {
+    expect(sanitizePublicWebsiteUrl('javascript:alert(1)')).toBe('')
+    expect(sanitizePublicWebsiteUrl('data:text/html,hi')).toBe('')
+    expect(sanitizePublicWebsiteUrl('https://user:pass@evil.com')).toBe('')
+    expect(sanitizePublicWebsiteUrl('https://shop.example/')).toContain('https://shop.example')
+    expect(sanitizePublicWebsiteUrl('http://localhost:3000')).toContain('http://localhost:3000')
   })
 })

@@ -180,6 +180,9 @@ docker compose --profile migrate run --rm migrate
 | `DISABLE_PUBLIC_REGISTRATION` | 设为 `true` 关闭公开注册 |
 | `CORS_ORIGIN` | 可选，逗号分隔的跨域白名单 |
 | `TRUST_PROXY` | 仅在可信反向代理后设为 `true` |
+| `REDIS_URL` | 可选 Redis，用于多实例限流（空则用内存） |
+| `FORCE_SECURE_COOKIES` | 非 production 也强制 Secure Cookie（`APP_BASE_URL` 为 https 时也会自动开启） |
+| `ALLOW_LEGACY_PLAINTEXT_API_KEYS` | 迁移用：临时接受库内明文 API Key，并在使用时自动改哈希 |
 | `ENABLE_SCHEDULE_WORKER` / `SCHEDULE_BASE_URL` | Worker 开关与任务基址 |
 | `SMTP_*` | 可选系统 SMTP（密码重置） |
 | `BLOCKSCAN_BASE_URL` | 区块链扫描 / 水龙头 API |

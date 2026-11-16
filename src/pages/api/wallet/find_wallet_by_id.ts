@@ -56,12 +56,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       })
     }
 
-    if (!rateLimit(req, res, { scope: 'export-mnemonic', limit: 10, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'export-mnemonic', limit: 10, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
     if (
       !(await requireAccountPassword(
+        req,
         res,
         session.userId,
         req.body.account_password || req.body.password,

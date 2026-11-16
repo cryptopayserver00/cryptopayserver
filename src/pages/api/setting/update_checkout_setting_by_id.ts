@@ -48,7 +48,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (req.body.show_detect_language)
       updateData.show_detect_language = Number(req.body.show_detect_language)
     if (req.body.language) updateData.language = req.body.language
-    if (req.body.custom_html_title) updateData.custom_html_title = req.body.custom_html_title
+    if (req.body.custom_html_title !== undefined) {
+      // Plain-text title only — strip tags to avoid stored XSS if ever rendered as HTML.
+      const title = String(req.body.custom_html_title || '')
+        .replace(/<[^>]*>/g, '')
+        .replace(/[<>"'`]/g, '')
+        .trim()
+        .slice(0, 200)
+      updateData.custom_html_title = title
+    }
     if (req.body.support_url !== undefined) {
       const supportUrl = String(req.body.support_url || '').trim()
       if (supportUrl) {

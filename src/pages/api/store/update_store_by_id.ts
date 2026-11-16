@@ -33,8 +33,8 @@ function normalizeUploadPublicPath(raw: string): string | null {
   if (normalized !== decoded || !normalized.startsWith('/uploads/') || normalized.includes('..')) {
     return null
   }
-  // Only allow known upload subdirs produced by upload_file.
-  if (!/^\/uploads\/(image|document)\/[A-Za-z0-9._-]+$/.test(normalized)) {
+  // Store branding assets must be public images only (documents are private).
+  if (!/^\/uploads\/image\/[A-Za-z0-9._-]+$/.test(normalized)) {
     return null
   }
   return normalized
@@ -68,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       const logoUrl = normalizeUploadPublicPath(String(req.body.logo_url))
       if (logoUrl === null) {
         return res.status(200).json({
-          message: 'logo_url must be a local /uploads/image|document path',
+          message: 'logo_url must be a local /uploads/image path',
           result: false,
           data: null,
         })
@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       const cssUrl = normalizeUploadPublicPath(String(req.body.custom_css_url))
       if (cssUrl === null) {
         return res.status(200).json({
-          message: 'custom_css_url must be a local /uploads/image|document path',
+          message: 'custom_css_url must be a local /uploads/image path',
           result: false,
           data: null,
         })

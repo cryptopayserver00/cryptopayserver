@@ -3,6 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { NOTIFICATION_TYPE } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
 import {
+  assertSameOrigin,
   clearPending2faCookie,
   getPending2faFromRequest,
   rateLimit,
@@ -19,7 +20,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    if (!rateLimit(req, res, { scope: 'verify-2fa', limit: 15, windowMs: 15 * 60 * 1000 })) {
+    if (!assertSameOrigin(req, res)) return
+
+    if (!(await rateLimit(req, res, { scope: 'verify-2fa', limit: 15, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 

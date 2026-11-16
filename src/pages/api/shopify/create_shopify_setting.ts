@@ -1,7 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireAuthUserId, assertStoreOwnedByUser, forbidden } from '@/lib/auth'
+import {
+  assertStoreOwnedByUser,
+  forbidden,
+  rateLimit,
+  requireAccountPassword,
+  requireAuthUserId,
+} from '@/lib/auth'
 import { encryptSecret } from '@/lib/crypto/secrets'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -14,6 +20,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.body.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'shopify-create', limit: 20, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
+
+    if (
+      !(await requireAccountPassword(
+        req,
+        res,
+        userId,
+        req.body.account_password || req.body.password,
+        'Account password required to save Shopify credentials'
+      ))
+    ) {
+      return
+    }
 
     const storeId = Number(req.body.store_id)
     if (!storeId) {

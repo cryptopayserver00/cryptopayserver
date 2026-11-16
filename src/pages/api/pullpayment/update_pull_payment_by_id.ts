@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import {
   forbidden,
   getStoreAccess,
+  rateLimit,
   requireAccountPassword,
   requireAuth,
   STORE_PERMISSION,
@@ -32,6 +33,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const session = await requireAuth(req, res)
     if (!session) return
+
+    if (
+      !(await rateLimit(req, res, {
+        scope: `pull-payment-update:${session.userId}`,
+        limit: 60,
+        windowMs: 15 * 60 * 1000,
+      }))
+    ) {
+      return
+    }
 
     const pullPaymentId = Number(req.body.id)
     if (!pullPaymentId) {
@@ -119,6 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       if (nextStatus === PULL_PAYMENT_STATUS.Archived) {
         if (
           !(await requireAccountPassword(
+            req,
             res,
             session.userId,
             req.body.account_password || req.body.password,

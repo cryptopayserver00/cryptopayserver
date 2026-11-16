@@ -3,7 +3,8 @@ import { CHAINS } from '@/packages/constants/blockchain'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { NOTIFICATION, NOTIFICATIONS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
-import { requireAuthUserId, assertStoreOwnedByUser, assertWalletOwnedByUser, forbidden } from '@/lib/auth'
+import { requireAuthUserId } from '@/lib/auth'
+import { sanitizePublicWebsiteUrl } from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -31,9 +32,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid priceSource', result: false, data: null })
     }
 
-    const website = req.body.website
+    // Link-only field (shown on checkout) — block javascript:/data: etc., allow http(s).
+    const website = sanitizePublicWebsiteUrl(req.body.website)
     if (!website) {
-      return res.status(200).json({ message: 'Invalid website', result: false, data: null })
+      return res.status(200).json({
+        message: 'website must be an http(s) URL',
+        result: false,
+        data: null,
+      })
     }
 
     const brandColor = '#000000'

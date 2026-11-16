@@ -160,3 +160,21 @@ export function isAllowedSmtpPort(port: unknown): port is number {
   const n = Number(port)
   return Number.isInteger(n) && ALLOWED_SMTP_PORTS.has(n)
 }
+
+/**
+ * Sync sanitize for merchant website links shown on public checkout pages.
+ * Rejects javascript:/data:/vbscript: and non-http(s) schemes.
+ */
+export function sanitizePublicWebsiteUrl(raw: unknown): string {
+  const value = String(raw || '').trim()
+  if (!value) return ''
+  let url: URL
+  try {
+    url = new URL(value)
+  } catch {
+    return ''
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') return ''
+  if (url.username || url.password) return ''
+  return url.toString()
+}

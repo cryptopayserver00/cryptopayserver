@@ -70,6 +70,10 @@ const ApiKey = () => {
         return
       }
 
+      const { promptAccountPassword } = await import('@/utils/wallet-password')
+      const accountPassword = promptAccountPassword('Enter your account password to create API key')
+      if (accountPassword === null) return
+
       setIsGenerating(true)
 
       const response: any = await axios.post(Http.create_apikey_setting, {
@@ -77,6 +81,7 @@ const ApiKey = () => {
         store_id: storeId,
         label: label,
         permissions: ids.join(','),
+        account_password: accountPassword,
       })
 
       if (response.result) {

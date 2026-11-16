@@ -43,29 +43,30 @@ function mockRes() {
 describe('rateLimit', () => {
   beforeEach(() => {
     clearRateLimitBuckets()
+    delete process.env.REDIS_URL
   })
 
-  it('allows requests under the limit', () => {
+  it('allows requests under the limit', async () => {
     const req = mockReq('10.0.0.1')
     for (let i = 0; i < 3; i++) {
       const out = mockRes()
-      expect(rateLimit(req, out.res, { scope: 'test-a', limit: 3, windowMs: 60_000 })).toBe(
+      expect(await rateLimit(req, out.res, { scope: 'test-a', limit: 3, windowMs: 60_000 })).toBe(
         true
       )
       expect(out.statusCode).toBe(200)
     }
   })
 
-  it('blocks when the limit is exceeded', () => {
+  it('blocks when the limit is exceeded', async () => {
     const req = mockReq('10.0.0.2')
     for (let i = 0; i < 2; i++) {
       const out = mockRes()
-      expect(rateLimit(req, out.res, { scope: 'test-b', limit: 2, windowMs: 60_000 })).toBe(
+      expect(await rateLimit(req, out.res, { scope: 'test-b', limit: 2, windowMs: 60_000 })).toBe(
         true
       )
     }
     const blocked = mockRes()
-    expect(rateLimit(req, blocked.res, { scope: 'test-b', limit: 2, windowMs: 60_000 })).toBe(
+    expect(await rateLimit(req, blocked.res, { scope: 'test-b', limit: 2, windowMs: 60_000 })).toBe(
       false
     )
     expect(blocked.statusCode).toBe(429)

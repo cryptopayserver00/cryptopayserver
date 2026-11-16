@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireAuthUserId, verifyPassword } from '@/lib/auth'
+import { rateLimit, requireAuthUserId, verifyPassword } from '@/lib/auth'
 import { decryptAndUpgrade, encryptSecret } from '@/lib/crypto/secrets'
 import { VerifyAuthenticator } from '@/utils/totp'
 
@@ -15,6 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.body.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: `update-user:${userId}`, limit: 30, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const currentUser = await prisma.users.findFirst({
       where: { id: userId, status: 1 },

@@ -26,12 +26,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const userId = await requireAuthUserId(req, res, req.body.user_id)
     if (!userId) return
 
-    if (!rateLimit(req, res, { scope: 'gas-fee', limit: 60, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'gas-fee', limit: 60, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
     if (
       !(await requireAccountPassword(
+        req,
         res,
         userId,
         req.body.account_password || req.body.password,

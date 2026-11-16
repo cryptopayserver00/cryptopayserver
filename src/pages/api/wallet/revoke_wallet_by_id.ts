@@ -19,12 +19,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const owned = await requireOwnedWallet(req, res, req.body.wallet_id, req.body.user_id)
     if (!owned) return
 
-    if (!rateLimit(req, res, { scope: 'revoke-wallet', limit: 10, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'revoke-wallet', limit: 10, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
     if (
       !(await requireAccountPassword(
+        req,
         res,
         owned.userId,
         req.body.account_password || req.body.password,

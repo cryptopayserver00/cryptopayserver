@@ -3,6 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/auth'
 import { readAccessToken, verifyPublicResource } from '@/lib/security/public-token'
+import { sanitizePublicWebsiteUrl } from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -12,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    if (!rateLimit(req, res, { scope: 'pub-find-pull-payment-by-id', limit: 60, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'pub-find-pull-payment-by-id', limit: 60, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
@@ -70,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         storeName: store.name,
         storeBrandColor: store.brand_color,
         storeLogoUrl: store.logo_url,
-        storeWebsite: store.website,
+        storeWebsite: sanitizePublicWebsiteUrl(store.website),
       },
     })
   } catch (e) {

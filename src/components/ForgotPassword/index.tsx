@@ -43,11 +43,23 @@ const ForgotPassword = () => {
 
   useEffect(() => {
     if (!router.isReady) return
-    const q = router.query.token
-    if (typeof q === 'string' && q) {
-      setToken(q)
+    // Prefer fragment token (not logged / not in Referer); fall back to legacy query param.
+    let fromHash = ''
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const params = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      fromHash = params.get('token') || ''
     }
-  }, [router.isReady, router.query.token])
+    const q = router.query.token
+    const fromQuery = typeof q === 'string' ? q : ''
+    const next = fromHash || fromQuery
+    if (next) {
+      setToken(next)
+      // Drop query token from the address bar after capture.
+      if (fromQuery && !fromHash) {
+        router.replace('/forgot-password', undefined, { shallow: true })
+      }
+    }
+  }, [router.isReady, router.query.token, router])
 
   const onSendResetEmail = async () => {
     if (!email || !IsValidEmail(email)) {

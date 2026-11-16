@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireAuth, forbidden } from '@/lib/auth'
+import { forbidden, rateLimit, requireAccountPassword, requireAuth } from '@/lib/auth'
 import { encryptSecret } from '@/lib/crypto/secrets'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -14,6 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const session = await requireAuth(req, res)
     if (!session) return
+
+    if (!(await rateLimit(req, res, { scope: 'shopify-update', limit: 30, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const id = Number(req.body.id)
     if (!id) {
@@ -39,6 +43,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const adminToken = String(req.body.admin_api_access_token || '')
     if (adminToken && !adminToken.startsWith('•')) {
       updateData.admin_api_access_token = encryptSecret(adminToken)
+    }
+
+    // Step-up only when rotating credentials (shop_name alone is low risk).
+    if (updateData.api_key || updateData.admin_api_access_token) {
+      if (
+        !(await requireAccountPassword(
+          req,
+          res,
+          session.userId,
+          req.body.account_password || req.body.password,
+          'Account password required to update Shopify credentials'
+        ))
+      ) {
+        return
+      }
     }
 
     await prisma.shopify_settings.update({

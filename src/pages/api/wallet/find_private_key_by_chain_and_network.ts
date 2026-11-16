@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const session = await requireAuth(req, res)
     if (!session) return
 
-    if (!rateLimit(req, res, { scope: 'export-pk', limit: 20, windowMs: 15 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'export-pk', limit: 20, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
@@ -56,6 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
     if (
       !(await requireAccountPassword(
+        req,
         res,
         session.userId,
         req.body.account_password || req.body.password,

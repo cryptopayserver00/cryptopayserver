@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const session = await requireAuth(req, res)
     if (!session) return
 
-    if (!rateLimit(req, res, { scope: 'free-coin', limit: 5, windowMs: 60 * 60 * 1000 })) {
+    if (!(await rateLimit(req, res, { scope: 'free-coin', limit: 5, windowMs: 60 * 60 * 1000 }))) {
       return
     }
 

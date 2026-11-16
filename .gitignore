@@ -87,6 +87,7 @@ playwright/.cache
 
 # local uploads & runtime data
 public/uploads
+storage/uploads
 tmp
 temp
 *.tmp
