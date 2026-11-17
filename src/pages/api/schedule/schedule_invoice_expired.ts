@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!requireCronSecret(req, res)) return
 
-    console.log('Schedule Invoice Expired')
+    console.info('Schedule Invoice Expired')
 
     const now = new Date()
     const invoices = await prisma.invoices.findMany({

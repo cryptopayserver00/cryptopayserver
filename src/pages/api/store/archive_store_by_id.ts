@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { assertStoreOwnedByUser, forbidden, requireAuth } from '@/lib/auth'
+import { rateLimit, assertStoreOwnedByUser, forbidden, requireAuth } from '@/lib/auth'
 import { revokeStoreIntegrations } from '@/lib/store/revoke-integrations'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -14,6 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const session = await requireAuth(req, res)
     if (!session) return
+
+    if (!(await rateLimit(req, res, { scope: `archive_store_by_id:${session.userId}`, limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const id = Number(req.body.id)
     if (!id) {

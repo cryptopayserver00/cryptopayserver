@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { forbidden, requireAuth } from '@/lib/auth'
+import { rateLimit, forbidden, requireAuth } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -13,6 +13,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const session = await requireAuth(req, res)
     if (!session) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-update_lightning_network_setting_by_i', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const id = Number(req.body.id)
     if (!id) {

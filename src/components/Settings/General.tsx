@@ -3,6 +3,16 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Upload, AlertCircle } from 'lucide-react'
 import { SketchPicker } from 'react-color'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,6 +32,7 @@ import {
   useWalletPresistStore,
 } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { CURRENCY, FILE_TYPE } from '@/packages/constants'
 import { useShallow } from 'zustand/react/shallow'
@@ -33,11 +44,12 @@ const General = () => {
   const [logoUrl, setLogoUrl] = useState<string>('')
   const [customCssUrl, setCustomCssUrl] = useState<string>('')
   const [currency, setCurrency] = useState<string>(CURRENCY[0])
-  const [allowAnyoneCreateInvoice, setAllowAnyoneCreateInvoice] = useState<boolean>(false)
   const [addAdditionalFeeToInvoice, setAddAdditionalFeeToInvoice] = useState<number>(1)
   const [invoiceExpiresIfNotPaidFullAmount, setInvoiceExpiresIfNotPaidFullAmount] =
     useState<number>(0)
   const [invoicePaidLessThanPrecent, setInvoicePaidLessThanPrecent] = useState<number>(0)
+  const [storeAction, setStoreAction] = useState<'archive' | 'delete' | null>(null)
+  const [storeActionBusy, setStoreActionBusy] = useState(false)
 
   const { resetUser } = useUserPresistStore(
     useShallow((state) => ({
@@ -81,14 +93,13 @@ const General = () => {
         setBrandColor(response.data.brandColor)
         setLogoUrl(response.data.logoUrl)
         setCustomCssUrl(response.data.customCssUrl)
-        setAllowAnyoneCreateInvoice(response.data.allowAnyoneCreateInvoice === 1)
         setAddAdditionalFeeToInvoice(response.data.add_additionalFeeToInvoice)
-        setInvoiceExpiresIfNotPaidFullAmount(response.data.invoiceExpiresIfNotPaidFullAmount)
+        setInvoiceExpiresIfNotPaidFullAmount(response.data.invoice_expiresIfNotPaidFullAmount)
         setInvoicePaidLessThanPrecent(response.data.invoicePaidLessThanPrecent)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -102,7 +113,7 @@ const General = () => {
     try {
       if (!CURRENCY.includes(currency)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect currency')
+        setSnackMessage('Please select a valid currency')
         setSnackOpen(true)
         return
       }
@@ -121,70 +132,59 @@ const General = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Save successful!')
+        setSnackMessage('Saved successfully!')
         setSnackOpen(true)
 
         await init(storeId)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('The update failed, please try again later.')
+        setSnackMessage('Update failed. Please try again later.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
   }
 
-  const onClickArchiveStore = async () => {
+  const onConfirmStoreAction = async () => {
+    if (!storeAction) return
     try {
-      const response: any = await axios.put(Http.archive_store_by_id, {
-        id: storeId,
-      })
+      setStoreActionBusy(true)
+      const response: any = await axios.put(
+        storeAction === 'archive' ? Http.archive_store_by_id : Http.delete_store_by_id,
+        {
+          id: storeId,
+        }
+      )
 
       if (response.result) {
         resetUser()
         resetStore()
         resetWallet()
+        setStoreAction(null)
 
         setTimeout(() => {
           window.location.href = '/login'
         }, 1000)
+      } else {
+        setSnackSeverity('error')
+        setSnackMessage(response.message || 'Store action failed')
+        setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
+    } finally {
+      setStoreActionBusy(false)
     }
   }
 
-  const onClickDeleteStore = async () => {
-    try {
-      const response: any = await axios.put(Http.delete_store_by_id, {
-        id: storeId,
-      })
-
-      if (response.result) {
-        resetUser()
-        resetStore()
-        resetWallet()
-
-        setTimeout(() => {
-          window.location.href = '/login'
-        }, 1000)
-      }
-    } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
-      setSnackOpen(true)
-      console.error(e)
-    }
-  }
-
-  const uploadFile = async (data: any) => {
+  const uploadFile = async (data: FileList | null, kind: 'logo' | 'css') => {
     try {
       if (!data || data.length !== 1) {
         setSnackSeverity('error')
@@ -193,8 +193,22 @@ const General = () => {
         return
       }
 
+      const file = data[0]
+      if (kind === 'css' && !file.name.toLowerCase().endsWith('.css')) {
+        setSnackSeverity('error')
+        setSnackMessage('Custom CSS must be a .css file')
+        setSnackOpen(true)
+        return
+      }
+      if (kind === 'logo' && file.name.toLowerCase().endsWith('.css')) {
+        setSnackSeverity('error')
+        setSnackMessage('Logo must be an image file')
+        setSnackOpen(true)
+        return
+      }
+
       const formData = new FormData()
-      formData.append('file', data[0])
+      formData.append('file', file)
 
       const response: any = await axios.post(Http.upload_file, formData, {
         params: {
@@ -206,7 +220,11 @@ const General = () => {
       })
 
       if (response.result && response.data.urls[0] !== '') {
-        setLogoUrl(response.data.urls[0])
+        if (kind === 'css') {
+          setCustomCssUrl(response.data.urls[0])
+        } else {
+          setLogoUrl(response.data.urls[0])
+        }
 
         setSnackSeverity('success')
         setSnackMessage('Upload success')
@@ -218,7 +236,7 @@ const General = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -277,9 +295,11 @@ const General = () => {
               <input
                 id="logo-upload"
                 type="file"
+                accept="image/png,image/jpeg,image/gif,image/webp,.png,.jpg,.jpeg,.gif,.webp"
                 className="hidden"
-                onChange={async (event: any) => {
-                  await uploadFile(event.target.files)
+                onChange={async (event) => {
+                  await uploadFile(event.target.files, 'logo')
+                  event.target.value = ''
                 }}
               />
             </Label>
@@ -293,6 +313,7 @@ const General = () => {
               <Link
                 href={customCssUrl}
                 target="_blank"
+                rel="noreferrer"
                 className="text-sm text-primary underline hover:opacity-80"
               >
                 {customCssUrl}
@@ -305,12 +326,21 @@ const General = () => {
                 <Upload className="h-4 w-4" />
                 Upload file
               </span>
-              <input id="css-upload" type="file" className="hidden" />
+              <input
+                id="css-upload"
+                type="file"
+                accept=".css,text/css"
+                className="hidden"
+                onChange={async (event) => {
+                  await uploadFile(event.target.files, 'css')
+                  event.target.value = ''
+                }}
+              />
             </Label>
           </div>
           <p className="text-xs text-muted-foreground">
             Use this CSS to customize the public/customer-facing pages of this store. (Invoice,
-            Payment Request, Pull Payment, etc.)
+            Payment Request, Pull Payment, etc.) Upload a .css file, then Save.
           </p>
         </div>
       </div>
@@ -347,12 +377,12 @@ const General = () => {
           <div className="flex items-center space-x-2">
             <Label>Add additional fee (network fee) to invoice …</Label>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              onClick={() => {
-                window.location.href = '#'
-              }}
+              title="Controls when network fees are added on top of the invoice amount."
+              aria-label="About additional network fee"
             >
               <AlertCircle className="h-4 w-4" />
             </Button>
@@ -380,12 +410,12 @@ const General = () => {
               Invoice expires if the full amount has not been paid after …
             </Label>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              onClick={() => {
-                window.location.href = '#'
-              }}
+              title="Invoice is marked expired if the full amount is not paid within this many minutes."
+              aria-label="About invoice expiry"
             >
               <AlertCircle className="h-4 w-4" />
             </Button>
@@ -410,12 +440,12 @@ const General = () => {
               Consider the invoice paid even if the paid amount is ... % less than expected
             </Label>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              onClick={() => {
-                window.location.href = '#'
-              }}
+              title="Tolerance for underpayment before the invoice is still considered paid."
+              aria-label="About underpayment tolerance"
             >
               <AlertCircle className="h-4 w-4" />
             </Button>
@@ -450,17 +480,58 @@ const General = () => {
         <div className="flex flex-wrap gap-4">
           <Button
             variant="outline"
-            onClick={onClickArchiveStore}
+            onClick={() => setStoreAction('archive')}
             className="border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50"
           >
             Archive this store
           </Button>
 
-          <Button variant="destructive" onClick={onClickDeleteStore}>
+          <Button variant="destructive" onClick={() => setStoreAction('delete')}>
             Delete this store
           </Button>
         </div>
       </div>
+
+      <AlertDialog
+        open={storeAction !== null}
+        onOpenChange={(open) => {
+          if (!open && !storeActionBusy) setStoreAction(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {storeAction === 'archive' ? 'Archive this store?' : 'Delete this store?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {storeAction === 'archive'
+                ? 'Archiving hides the store from day-to-day use. You will be signed out of the current store context.'
+                : 'Deleting permanently removes this store and its settings. This action cannot be undone.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={storeActionBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={storeActionBusy}
+              onClick={(e) => {
+                e.preventDefault()
+                onConfirmStoreAction()
+              }}
+              className={
+                storeAction === 'delete'
+                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                  : undefined
+              }
+            >
+              {storeActionBusy
+                ? 'Working...'
+                : storeAction === 'archive'
+                  ? 'Archive store'
+                  : 'Delete store'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

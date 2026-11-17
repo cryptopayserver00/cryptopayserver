@@ -78,7 +78,7 @@ const ImportMnemonicPhrase = () => {
       }
 
       const { promptAccountPassword } = await import('@/utils/wallet-password')
-      const accountPassword = promptAccountPassword('Enter your account password to import wallet')
+      const accountPassword = await promptAccountPassword('Enter your account password to import wallet')
       if (accountPassword === null) return
 
       const import_wallet_resp: any = await axios.post(Http.save_wallet, {
@@ -92,7 +92,7 @@ const ImportMnemonicPhrase = () => {
         setWalletId(import_wallet_resp.data.walletId)
         setIsWallet(true)
         setSnackSeverity('success')
-        setSnackMessage('Successful creation!')
+        setSnackMessage('Created successfully!')
         setSnackOpen(true)
 
         await walletToBlockScan(import_wallet_resp.data.walletId)

@@ -16,6 +16,7 @@ import { Switch } from '@/components/ui/switch'
 import SendLightningAssetsDialog from '@/components/Dialog/SendLightningAssetsDialog'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import lightningPayReq from 'bolt11'
 import { BtcToSatoshis } from '@/utils/number'
@@ -97,7 +98,7 @@ const Lightning = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Test successfully')
+        setSnackMessage('Connection test succeeded')
         setSnackOpen(true)
       } else {
         setSnackSeverity('error')
@@ -106,7 +107,7 @@ const Lightning = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -117,7 +118,7 @@ const Lightning = () => {
       if (!text) return
 
       const { promptAccountPassword } = await import('@/utils/wallet-password')
-      const accountPassword = promptAccountPassword(
+      const accountPassword = await promptAccountPassword(
         'Enter your account password to save Lightning credentials'
       )
       if (accountPassword === null) return
@@ -132,7 +133,7 @@ const Lightning = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Save successful!')
+        setSnackMessage('Saved successfully!')
         setSnackOpen(true)
         await init(userId, storeId, network)
         setText('')
@@ -144,7 +145,7 @@ const Lightning = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -169,7 +170,7 @@ const Lightning = () => {
         await init(userId, storeId, network)
         setPage(2)
         setSnackSeverity('success')
-        setSnackMessage('Update successful!')
+        setSnackMessage('Updated successfully!')
         setSnackOpen(true)
       } else {
         setSnackSeverity('error')
@@ -178,7 +179,7 @@ const Lightning = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -220,7 +221,7 @@ const Lightning = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -235,7 +236,20 @@ const Lightning = () => {
       if (!currentRow?.id || !invoice) return
 
       const decodeInvoice = lightningPayReq.decode(invoice)
-      if (Number(decodeInvoice.satoshis) >= BtcToSatoshis(Number(currentRow?.balance))) {
+      if (decodeInvoice.satoshis == null) {
+        setSnackSeverity('error')
+        setSnackMessage('Invoice has no fixed amount')
+        setSnackOpen(true)
+        return
+      }
+      const balanceSats = BtcToSatoshis(Number(currentRow?.balance))
+      if (!Number.isFinite(balanceSats)) {
+        setSnackSeverity('error')
+        setSnackMessage('Could not read Lightning balance')
+        setSnackOpen(true)
+        return
+      }
+      if (Number(decodeInvoice.satoshis) >= balanceSats) {
         setSnackSeverity('error')
         setSnackMessage('Insufficient balance, please try again')
         setSnackOpen(true)
@@ -243,7 +257,7 @@ const Lightning = () => {
       }
 
       const { promptAccountPassword } = await import('@/utils/wallet-password')
-      const accountPassword = promptAccountPassword(
+      const accountPassword = await promptAccountPassword(
         'Enter your account password to send Lightning payment'
       )
       if (accountPassword === null) return
@@ -265,7 +279,7 @@ const Lightning = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -309,6 +323,7 @@ const Lightning = () => {
                   <Link
                     href="https://github.com/ElementsProject/lightning"
                     target="_blank"
+                    rel="noreferrer"
                     className="text-primary hover:underline"
                   >
                     Core Lightning
@@ -321,49 +336,22 @@ const Lightning = () => {
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="charge">
-              <AccordionTrigger>
-                <span className="font-bold">
-                  <Link
-                    href="https://github.com/ElementsProject/lightning-charge"
-                    target="_blank"
-                    className="text-primary hover:underline"
-                  >
-                    Lightning Charge
-                  </Link>
-                </span>
+            <AccordionItem value="charge" disabled>
+              <AccordionTrigger disabled className="opacity-60">
+                <span className="font-bold">Lightning Charge</span>
                 <span className="ml-2 font-normal text-muted-foreground">
-                  via HTTPS (coming soon)
+                  via HTTPS (not supported yet)
                 </span>
               </AccordionTrigger>
-              <AccordionContent>
-                <CodeBlock>{CODE_SNIPPETS.charge}</CodeBlock>
-              </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="eclair">
-              <AccordionTrigger>
-                <span className="font-bold">
-                  <Link
-                    href="https://github.com/ACINQ/eclair"
-                    target="_blank"
-                    className="text-primary hover:underline"
-                  >
-                    Eclair
-                  </Link>
-                </span>
+            <AccordionItem value="eclair" disabled>
+              <AccordionTrigger disabled className="opacity-60">
+                <span className="font-bold">Eclair</span>
                 <span className="ml-2 font-normal text-muted-foreground">
-                  via HTTPS (coming soon)
+                  via HTTPS (not supported yet)
                 </span>
               </AccordionTrigger>
-              <AccordionContent className="space-y-2">
-                <CodeBlock>{CODE_SNIPPETS.eclair1}</CodeBlock>
-                <p className="text-sm text-muted-foreground">
-                  Note that bitcoin-host and bitcoin-auth are optional, only useful if you want to
-                  use GetDepositAddress on Eclair:
-                </p>
-                <CodeBlock>{CODE_SNIPPETS.eclair2}</CodeBlock>
-              </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="lnd">
@@ -372,6 +360,7 @@ const Lightning = () => {
                   <Link
                     href="https://docs.lightning.engineering/"
                     target="_blank"
+                    rel="noreferrer"
                     className="text-primary hover:underline"
                   >
                     LND
@@ -411,6 +400,7 @@ const Lightning = () => {
                   <Link
                     href="https://bluewallet.io/lndhub/"
                     target="_blank"
+                    rel="noreferrer"
                     className="text-primary hover:underline"
                   >
                     LNDhub
@@ -461,6 +451,7 @@ const Lightning = () => {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Open lightning connection details"
                   onClick={() => {
                     setCurrentRow(item)
                     setPage(3)

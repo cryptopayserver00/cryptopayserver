@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
 import {
+  rateLimit,
   forbidden,
   getStoreAccess,
   requireAuthUserId,
@@ -19,6 +20,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.body.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-create_invoice_event', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const invoiceId = Number(req.body.invoice_id)
     if (!invoiceId) {

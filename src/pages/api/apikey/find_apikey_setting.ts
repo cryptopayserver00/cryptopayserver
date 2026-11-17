@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
 import {
+  rateLimit,
   requireAuthUserId,
   assertStoreOwnedByUser,
   forbidden,
@@ -18,6 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.query.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_apikey_setting', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const storeId = Number(req.query.store_id)
     if (!storeId) {

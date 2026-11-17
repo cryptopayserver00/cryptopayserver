@@ -66,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return
     }
 
-    if (!(await requireWalletPasswordIfSet(res, wallet, req.body.wallet_password))) {
+    if (!(await requireWalletPasswordIfSet(req, res, wallet, req.body.wallet_password))) {
       return
     }
 

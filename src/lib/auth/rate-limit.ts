@@ -15,7 +15,7 @@ const buckets = new Map<string, Bucket>()
  * sitting behind a trusted reverse proxy that strips/overwrites XFF.
  */
 function clientKey(req: NextApiRequest, scope: string): string {
-  let ip = req.socket.remoteAddress || 'unknown'
+  let ip = req.socket?.remoteAddress || 'unknown'
 
   if (process.env.TRUST_PROXY === 'true' || process.env.TRUST_PROXY === '1') {
     const forwarded = req.headers['x-forwarded-for']

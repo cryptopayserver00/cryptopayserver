@@ -6,7 +6,7 @@ import { CRYPTOPRICE } from '@/packages/web3/crypto_price'
 import { COINGECKO_IDS, CURRENCY, CURRENCY_SYMBOLS } from '@/packages/constants'
 import { BigMul } from '@/utils/number'
 import { prisma } from '@/lib/prisma'
-import { assertStoreOwnedByUser, forbidden, requireOwnedWallet } from '@/lib/auth'
+import { assertStoreOwnedByUser, forbidden, rateLimit, requireOwnedWallet } from '@/lib/auth'
 
 interface CoinType {
   coin: string
@@ -50,6 +50,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const ownedWallet = await requireOwnedWallet(req, res, req.query.wallet_id)
     if (!ownedWallet) return
+
+    if (
+      !(await rateLimit(req, res, {
+        scope: 'rl-find_wallet_balance',
+        limit: 120,
+        windowMs: 15 * 60 * 1000,
+      }))
+    ) {
+      return
+    }
+
     const walletId = ownedWallet.walletId
     const userId = ownedWallet.userId
 

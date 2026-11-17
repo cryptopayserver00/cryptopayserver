@@ -1,5 +1,35 @@
-export const SESSION_COOKIE_NAME = 'cps_session'
-export const PENDING_2FA_COOKIE_NAME = 'cps_pending_2fa'
+/** Base cookie names (without __Host- prefix). */
+export const SESSION_COOKIE_BASE_NAME = 'cps_session'
+export const PENDING_2FA_COOKIE_BASE_NAME = 'cps_pending_2fa'
+
+/**
+ * Prefer USE_HOST_PREFIX_COOKIES=true on HTTPS apex hosts.
+ * Requires Secure + Path=/ and forbids Domain (browser-enforced for __Host-).
+ */
+export function useHostPrefixCookies(): boolean {
+  return (
+    process.env.USE_HOST_PREFIX_COOKIES === 'true' ||
+    process.env.USE_HOST_PREFIX_COOKIES === '1'
+  )
+}
+
+export function getSessionCookieName(): string {
+  return useHostPrefixCookies()
+    ? `__Host-${SESSION_COOKIE_BASE_NAME}`
+    : SESSION_COOKIE_BASE_NAME
+}
+
+export function getPending2faCookieName(): string {
+  return useHostPrefixCookies()
+    ? `__Host-${PENDING_2FA_COOKIE_BASE_NAME}`
+    : PENDING_2FA_COOKIE_BASE_NAME
+}
+
+/** @deprecated Use getSessionCookieName() — kept for grep/docs; equals base name. */
+export const SESSION_COOKIE_NAME = SESSION_COOKIE_BASE_NAME
+/** @deprecated Use getPending2faCookieName() */
+export const PENDING_2FA_COOKIE_NAME = PENDING_2FA_COOKIE_BASE_NAME
+
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7 // 7 days
 export const PENDING_2FA_MAX_AGE_SECONDS = 60 * 5 // 5 minutes
 export const PASSWORD_RESET_MAX_AGE_SECONDS = 60 * 15 // 15 minutes

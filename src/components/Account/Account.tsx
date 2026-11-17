@@ -22,6 +22,7 @@ import { useSnackPresistStore, useStorePresistStore, useWalletPresistStore } fro
 import { useUserPresistStore } from '@/lib/store/user'
 import { FILE_TYPE } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 import { useAbortableEffect } from '@/hooks/useAbortableEffect'
@@ -82,12 +83,12 @@ const MainAccount = () => {
       })
 
       if (response.result) {
-        showSnack('success', 'Update successful!')
+        showSnack('success', 'Updated successfully!')
       } else {
         showSnack('error', 'Update failed!')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     } finally {
       setIsSaving(false)
@@ -96,7 +97,10 @@ const MainAccount = () => {
 
   const onClickDeleteAccount = async () => {
     try {
-      const password = window.prompt('Enter your account password to delete this account')
+      const { promptAccountPassword } = await import('@/utils/wallet-password')
+      const password = await promptAccountPassword(
+        'Enter your account password to delete this account'
+      )
       if (!password) return
 
       setIsDeleting(true)
@@ -109,7 +113,7 @@ const MainAccount = () => {
         resetUser()
         resetStore()
         resetWallet()
-        showSnack('success', 'Delete successful!')
+        showSnack('success', 'Deleted successfully!')
         setOpenDeleteDialog(false)
         setTimeout(() => {
           window.location.href = '/login'
@@ -118,7 +122,7 @@ const MainAccount = () => {
         showSnack('error', response.message || 'Delete failed!')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     } finally {
       setIsDeleting(false)
@@ -139,7 +143,7 @@ const MainAccount = () => {
         setProfileUrl(response.data.profilePictureUrl)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -179,7 +183,7 @@ const MainAccount = () => {
         showSnack('error', 'Upload Failed')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     } finally {
       setIsUploading(false)

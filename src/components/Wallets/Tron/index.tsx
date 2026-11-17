@@ -11,6 +11,7 @@ import {
 import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import { GetBlockchainAddressUrl } from '@/utils/chain/tron'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import TronSVG from '@/assets/chain/tron.svg'
 import TransactionsTab from '@/components/Tab/TransactionTab'
@@ -106,10 +107,10 @@ const Tron = () => {
 
         setWallet(rows)
       } else {
-        showSnack('error', 'Can not find the data on site!')
+        showSnack('error', 'Could not load data.')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -134,10 +135,10 @@ const Tron = () => {
           response.data.currentUsedAddressId ? response.data.currentUsedAddressId : 0
         )
       } else {
-        showSnack('error', 'The network error occurred. Please try again later.')
+        showSnack('error', 'Could not load data.')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -152,11 +153,11 @@ const Tron = () => {
         current_used_address_id: currentUsedAddressId,
       })
       if (response.result) {
-        showSnack('success', 'Successful update!')
+        showSnack('success', 'Updated successfully!')
         await init(walletId, storeId, network)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -210,7 +211,7 @@ const Tron = () => {
               Private Key
             </Button>
             <Button onClick={onClickRescanAddress}>Rescan address</Button>
-            <Button variant="ghost" size="icon" onClick={() => setIsSettings(!isSettings)}>
+            <Button variant="ghost" size="icon" aria-label="Wallet settings" aria-pressed={isSettings} onClick={() => setIsSettings(!isSettings)}>
               <Settings className="h-5 w-5" />
             </Button>
           </div>
@@ -243,7 +244,7 @@ const Tron = () => {
 
               <div className="mt-4 space-y-2">
                 <Label>
-                  Payment invalid if transactions fails to confirm … after invoice expiration
+                  Payment invalid if the transaction fails to confirm … after invoice expiration
                 </Label>
                 <div className="relative w-[220px]">
                   <Input
@@ -270,8 +271,8 @@ const Tron = () => {
                   <SelectContent>
                     <SelectItem value="0">Is unconfirmed</SelectItem>
                     <SelectItem value="1">Has at least 1 confirmation</SelectItem>
-                    <SelectItem value="2">Has at least 2 confirmation</SelectItem>
-                    <SelectItem value="3">Has at least 6 confirmation</SelectItem>
+                    <SelectItem value="2">Has at least 2 confirmations</SelectItem>
+                    <SelectItem value="3">Has at least 6 confirmations</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -301,7 +302,7 @@ const Tron = () => {
                           type="button"
                           onClick={async () => {
                             await navigator.clipboard.writeText(item.address)
-                            showSnack('success', 'Successfully copy')
+                            showSnack('success', 'Copied successfully')
                           }}
                           className="mt-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors hover:bg-muted"
                         >

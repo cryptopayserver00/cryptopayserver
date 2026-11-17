@@ -15,6 +15,7 @@ import {
 } from '@/lib/store'
 import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { BigDiv } from '@/utils/number'
 import { OmitMiddleString } from '@/utils/strings'
@@ -90,7 +91,7 @@ const BitcoinCashSend = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -140,7 +141,7 @@ const BitcoinCashSend = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -161,7 +162,7 @@ const BitcoinCashSend = () => {
       return response.result
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
       return false
@@ -219,7 +220,7 @@ const BitcoinCashSend = () => {
       const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
         '@/utils/wallet-password'
       )
-      const accountPassword = promptAccountPassword('Enter your account password to send')
+      const accountPassword = await promptAccountPassword('Enter your account password to send')
       if (accountPassword === null) return
       const walletPassword = await promptWalletPasswordIfNeeded(walletId)
       if (walletPassword === null) return
@@ -249,21 +250,21 @@ const BitcoinCashSend = () => {
 
           if (!update_payout_resp.result) {
             setSnackSeverity('error')
-            setSnackMessage('Can not update the status of payout!')
+            setSnackMessage('Could not update payout status.')
             setSnackOpen(true)
             return
           }
         }
 
         setSnackSeverity('success')
-        setSnackMessage('Successful creation!')
+        setSnackMessage('Created successfully!')
         setSnackOpen(true)
         setBlockExplorerLink(GetBlockchainTxUrl(network === 'mainnet', response.data.hash))
         setPage(3)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -447,6 +448,7 @@ const BitcoinCashSend = () => {
             <Link
               href={blockExplorerLink}
               target="_blank"
+              rel="noreferrer"
               className="mt-2 inline-flex items-center justify-center gap-1.5 text-primary hover:underline"
             >
               <Eye className="h-4 w-4" /> View on Block Explorer

@@ -61,7 +61,6 @@ export class LND {
           },
         },
       );
-      console.log('payInvoice', response);
       if (response.status === 200 && response.data) {
         //   const paymentHash = getTagDataFromPaymentRequest(invoice, 'payment_hash');
         const preimage = Buffer.from(response.payment_preimage, 'base64').toString('hex');
@@ -130,7 +129,6 @@ export class LND {
         },
       });
       if (response.status === 200 && response.data) {
-        console.log('getInvoiceStatus', response.data);
         const preimage = (response.r_preimage && Buffer.from(response.r_preimage, 'base64').toString('hex')) || null;
         return response.data.settled ? true : false;
       }
@@ -175,7 +173,6 @@ export class LND {
           cert: certthumbprint,
         },
       });
-      console.log('getNodeInfo', response);
       if (response.status === 200 && response.data) {
         return response.data;
       }
@@ -215,7 +212,6 @@ export class LND {
           },
         },
       );
-      console.log('openChannel', response);
       if (response.status === 200 && response.data) {
         return true;
       }

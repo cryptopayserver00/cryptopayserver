@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireOwnedStore } from '@/lib/auth'
+import { rateLimit, requireOwnedStore } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -18,6 +18,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const owned = await requireOwnedStore(req, res, id, req.query.user_id)
     if (!owned) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_store_by_id', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const store = await prisma.stores.findFirst({
       where: {

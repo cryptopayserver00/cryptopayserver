@@ -166,6 +166,7 @@ export default function Welcome() {
             <Link
               href="https://docs.cryptopayserver.online"
               target="_blank"
+              rel="noreferrer"
               className="transition-colors hover:text-white"
             >
               Docs
@@ -173,6 +174,7 @@ export default function Welcome() {
             <Link
               href="https://github.com/cryptopayserver00/cryptopayserver"
               target="_blank"
+              rel="noreferrer"
               className="transition-colors hover:text-white"
             >
               GitHub
@@ -215,7 +217,13 @@ export default function Welcome() {
               size="lg"
               className="bg-[#E8A33D] font-medium text-[#0A0F1A] hover:bg-[#E8A33D]/90"
             >
-              <Link href="/register">
+              <Link
+                href={
+                  process.env.NEXT_PUBLIC_DISABLE_PUBLIC_REGISTRATION === 'true'
+                    ? '/login'
+                    : '/register'
+                }
+              >
                 Get started <ArrowRight className="ml-1.5 h-4 w-4" />
               </Link>
             </Button>
@@ -225,7 +233,7 @@ export default function Welcome() {
               variant="outline"
               className="border-white/15 bg-transparent text-white hover:bg-white/5"
             >
-              <Link href="https://github.com/cryptopayserver00/cryptopayserver" target="_blank">
+              <Link href="https://github.com/cryptopayserver00/cryptopayserver" target="_blank" rel="noreferrer">
                 <SiGithub className="mr-1.5 h-4 w-4" /> View source
               </Link>
             </Button>
@@ -320,7 +328,13 @@ export default function Welcome() {
             size="lg"
             className="bg-[#E8A33D] font-medium text-[#0A0F1A] hover:bg-[#E8A33D]/90"
           >
-            <Link href="/register">
+            <Link
+              href={
+                process.env.NEXT_PUBLIC_DISABLE_PUBLIC_REGISTRATION === 'true'
+                  ? '/login'
+                  : '/register'
+              }
+            >
               Create your account <ArrowRight className="ml-1.5 h-4 w-4" />
             </Link>
           </Button>
@@ -330,7 +344,7 @@ export default function Welcome() {
             variant="ghost"
             className="text-white/60 hover:bg-white/5 hover:text-white"
           >
-            <Link href="https://docs.cryptopayserver.online" target="_blank">
+            <Link href="https://docs.cryptopayserver.online" target="_blank" rel="noreferrer">
               Read the docs <ArrowUpRight className="ml-1.5 h-4 w-4" />
             </Link>
           </Button>
@@ -344,6 +358,7 @@ export default function Welcome() {
             <Link
               href="https://github.com/cryptopayserver00/cryptopayserver"
               target="_blank"
+              rel="noreferrer"
               className="flex items-center gap-1.5 transition-colors hover:text-white"
             >
               <SiGithub className="h-3.5 w-3.5" /> GitHub
@@ -351,6 +366,7 @@ export default function Welcome() {
             <Link
               href="https://t.me/cryptopayserver"
               target="_blank"
+              rel="noreferrer"
               className="flex items-center gap-1.5 transition-colors hover:text-white"
             >
               <Send className="h-3.5 w-3.5" /> Telegram

@@ -3,7 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { GenerateOrderIDByTime } from '@/utils/number'
 import { PULL_PAYMENT_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
-import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
+import { rateLimit, requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 import { signPublicResource } from '@/lib/security/public-token'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -22,6 +22,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       req.body.user_id
     )
     if (!access) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-create_pull_payment', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const userId = access.userId
     const storeId = access.storeId
 

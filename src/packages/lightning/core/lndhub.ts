@@ -87,7 +87,6 @@ export class LNDHUB {
         },
       );
       if (response.status === 200 && response.data) {
-        console.log('payInvoice', response.data);
 
         let preimage = '';
         if (response.data.payment_preimage) {
@@ -102,7 +101,6 @@ export class LNDHUB {
           if (preimage) {
             // const paymentHash = createHash('sha256').update(Buffer.from(preimage, 'hex')).digest('hex');
             // Optionally use paymentHash for validation
-            console.log('preimage', preimage);
           }
         }
         return true;

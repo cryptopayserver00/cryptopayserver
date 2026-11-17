@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useSnackPresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail, isValidPassword } from '@/utils/verify'
 import { SiteLogo } from '../Logo/SiteLogo'
@@ -63,7 +64,7 @@ const ForgotPassword = () => {
 
   const onSendResetEmail = async () => {
     if (!email || !IsValidEmail(email)) {
-      showSnack('error', 'Incorrect email input')
+      showSnack('error', 'Please enter a valid email')
       return
     }
 
@@ -77,7 +78,7 @@ const ForgotPassword = () => {
         showSnack('error', 'Unable to send reset email')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     } finally {
       setLoading(false)
@@ -90,7 +91,7 @@ const ForgotPassword = () => {
       return
     }
     if (!password || !isValidPassword(password)) {
-      showSnack('error', 'Incorrect password input')
+      showSnack('error', 'Please enter a valid password')
       return
     }
     if (password !== confirmPassword) {
@@ -114,7 +115,7 @@ const ForgotPassword = () => {
         showSnack('error', response.message || 'Unable to reset password')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     } finally {
       setLoading(false)

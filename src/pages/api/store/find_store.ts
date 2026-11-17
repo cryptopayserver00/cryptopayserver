@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { getStoreAccess, requireAuthUserId, storeAccessHasPermission, STORE_PERMISSION } from '@/lib/auth'
+import { rateLimit, getStoreAccess, requireAuthUserId, storeAccessHasPermission, STORE_PERMISSION } from '@/lib/auth'
 
 function mapStore(item: {
   id: number
@@ -48,6 +48,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.query.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_store', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const ownedStores = await prisma.stores.findMany({
       where: {

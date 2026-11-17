@@ -3,6 +3,8 @@ import {
   assertSafeHttpUrl,
   isBlockedWebhookHostname,
   sanitizePublicWebsiteUrl,
+  sanitizeStoreCustomCssUrl,
+  sanitizeStoreLogoUrl,
 } from '@/lib/security/safe-url'
 
 describe('safe-url', () => {
@@ -34,5 +36,19 @@ describe('safe-url', () => {
     expect(sanitizePublicWebsiteUrl('https://user:pass@evil.com')).toBe('')
     expect(sanitizePublicWebsiteUrl('https://shop.example/')).toContain('https://shop.example')
     expect(sanitizePublicWebsiteUrl('http://localhost:3000')).toContain('http://localhost:3000')
+  })
+
+  it('sanitizes store custom css urls', () => {
+    expect(sanitizeStoreCustomCssUrl('/uploads/image/1/brand.css')).toBe('/uploads/image/1/brand.css')
+    expect(sanitizeStoreCustomCssUrl('/uploads/image/1/../2/x.css')).toBe('')
+    expect(sanitizeStoreCustomCssUrl('https://evil.com/x.css')).toBe('')
+    expect(sanitizeStoreCustomCssUrl('/uploads/image/1/brand.png')).toBe('')
+    expect(sanitizeStoreCustomCssUrl('/api/tool/download_file?name=x.css')).toBe('')
+  })
+
+  it('sanitizes store logo urls', () => {
+    expect(sanitizeStoreLogoUrl('/uploads/image/9/logo.png')).toBe('/uploads/image/9/logo.png')
+    expect(sanitizeStoreLogoUrl('/uploads/image/9/logo.css')).toBe('')
+    expect(sanitizeStoreLogoUrl('https://cdn.evil/logo.png')).toBe('')
   })
 })

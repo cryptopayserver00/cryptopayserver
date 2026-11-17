@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Check, X } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,6 +26,7 @@ import {
 import { ROLEPERMISSION, ROLEPERMISSIONS, USER_ROLE } from '@/packages/constants'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -70,7 +81,7 @@ export const Roles = () => {
 
         if (response.result) {
           setSnackSeverity('success')
-          setSnackMessage('Save successful!')
+          setSnackMessage('Saved successfully!')
           setSnackOpen(true)
 
           setPage(1)
@@ -81,7 +92,7 @@ export const Roles = () => {
         }
       } catch (e) {
         setSnackSeverity('error')
-        setSnackMessage('The network error occurred. Please try again later.')
+        setSnackMessage(getApiErrorMessage(e))
         setSnackOpen(true)
         console.error(e)
       } finally {
@@ -111,7 +122,7 @@ export const Roles = () => {
 
         if (response.result) {
           setSnackSeverity('success')
-          setSnackMessage('Save successful!')
+          setSnackMessage('Saved successfully!')
           setSnackOpen(true)
 
           setPage(1)
@@ -122,7 +133,7 @@ export const Roles = () => {
         }
       } catch (e) {
         setSnackSeverity('error')
-        setSnackMessage('The network error occurred. Please try again later.')
+        setSnackMessage(getApiErrorMessage(e))
         setSnackOpen(true)
         console.error(e)
       } finally {
@@ -278,6 +289,7 @@ interface TableType {
 
 function StoreRoles(props: TableType) {
   const [rows, setRows] = useState<RowType[]>([])
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
 
   const { userId } = useUserPresistStore(
     useShallow((state) => ({
@@ -328,7 +340,7 @@ function StoreRoles(props: TableType) {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -344,12 +356,13 @@ function StoreRoles(props: TableType) {
         await init(userId, storeId)
 
         setSnackSeverity('success')
-        setSnackMessage('remvoe Success.')
+        setSnackMessage('Removed successfully!')
         setSnackOpen(true)
+        setPendingDeleteId(null)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -407,9 +420,7 @@ function StoreRoles(props: TableType) {
                         variant="ghost"
                         size="sm"
                         className="text-destructive hover:text-destructive"
-                        onClick={() => {
-                          onClickRemove(row.rid)
-                        }}
+                        onClick={() => setPendingDeleteId(row.rid)}
                       >
                         Remove
                       </Button>
@@ -427,6 +438,34 @@ function StoreRoles(props: TableType) {
           )}
         </TableBody>
       </Table>
+
+      <AlertDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteId(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove role?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Users assigned this role may lose access until you assign another role.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault()
+                if (pendingDeleteId !== null) onClickRemove(pendingDeleteId)
+              }}
+            >
+              Remove role
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

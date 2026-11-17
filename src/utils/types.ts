@@ -62,6 +62,7 @@ export interface OrderType {
   storeBrandColor: string
   storeLogoUrl: string
   storeWebsite: string
+  storeCustomCssUrl?: string
   sourceType: string
 }
 
@@ -71,6 +72,8 @@ export interface PaymentRequestType {
   storeName: string
   storeLogoUrl: string
   storeWebsite: string
+  storeBrandColor?: string
+  storeCustomCssUrl?: string
   paymentRequestId: number
   network: number
   title: string
@@ -101,6 +104,8 @@ export interface PullPaymentType {
   storeName: string
   storeLogoUrl: string
   storeWebsite: string
+  storeBrandColor?: string
+  storeCustomCssUrl?: string
   amount: number
   currency: string
   showAutoApproveClaim: boolean

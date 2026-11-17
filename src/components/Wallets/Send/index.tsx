@@ -12,6 +12,7 @@ import {
 } from '@/lib/store'
 import { CHAINS, COIN, COINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { BigDiv, BigMul, GweiToEther, WeiToGwei } from '@/utils/number'
 import { OmitMiddleString } from '@/utils/strings'
@@ -161,7 +162,7 @@ const WalletsSend = () => {
         await getNonce(chainId, response.data.address)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -184,7 +185,7 @@ const WalletsSend = () => {
       }
       return false
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
       return false
     }
@@ -207,14 +208,14 @@ const WalletsSend = () => {
         setMaxFee(WeiToGwei(response.data.normal))
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
 
   const getMaxPriortyFee = async (chainId: number, network: string) => {
     try {
-      const response: any = await axios.get(Http.find_max_priorty_fee, {
+      const response: any = await axios.get(Http.find_max_priority_fee, {
         params: {
           chain_id: chainId,
           network: network === 'mainnet' ? 1 : 2,
@@ -229,7 +230,7 @@ const WalletsSend = () => {
         setMaxPriortyFee(WeiToGwei(response.data.normal))
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -272,7 +273,7 @@ const WalletsSend = () => {
           setNonce(response.data)
         }
       } catch (e) {
-        showSnack('error', 'The network error occurred. Please try again later.')
+        showSnack('error', getApiErrorMessage(e))
         console.error(e)
       }
     }
@@ -309,7 +310,7 @@ const WalletsSend = () => {
         }
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -333,7 +334,7 @@ const WalletsSend = () => {
       })
       return response.result
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
       return false
     }
@@ -395,24 +396,24 @@ const WalletsSend = () => {
     }
 
     if (!checkNonce()) {
-      showSnack('error', 'Incorrect nonce amount')
+      showSnack('error', 'Please enter a valid nonce')
       return
     }
 
     if (!checkMaxFee()) {
-      showSnack('error', 'Incorrect max fee')
+      showSnack('error', 'Please enter a valid max fee')
       return
     }
 
     if (Number(chainId) !== CHAINS.BSC) {
       if (!checkMaxPriortyFee()) {
-        showSnack('error', 'Incorrect max priorty fee')
+        showSnack('error', 'Please enter a valid max priority fee')
         return
       }
     }
 
     if (!(await checkGasLimit())) {
-      showSnack('error', 'Incorrect gas limit')
+      showSnack('error', 'Please enter a valid gas limit')
       return
     } else {
       setDisplaySign(true)
@@ -450,7 +451,7 @@ const WalletsSend = () => {
       const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
         '@/utils/wallet-password'
       )
-      const accountPassword = promptAccountPassword('Enter your account password to send')
+      const accountPassword = await promptAccountPassword('Enter your account password to send')
       if (accountPassword === null) return
       const walletPassword = await promptWalletPasswordIfNeeded(walletId)
       if (walletPassword === null) return
@@ -468,6 +469,7 @@ const WalletsSend = () => {
         coin: coin,
         nonce: nonce,
         max_fee: maxFee,
+        max_priority_fee: maxPriortyFee,
         max_priorty_fee: maxPriortyFee,
         gas_limit: gasLimit,
       })
@@ -483,12 +485,12 @@ const WalletsSend = () => {
           })
 
           if (!update_payout_resp.result) {
-            showSnack('error', 'Can not update the status of payout!')
+            showSnack('error', 'Could not update payout status.')
             return
           }
         }
 
-        showSnack('success', 'Successful creation!')
+        showSnack('success', 'Created successfully!')
 
         setBlockExplorerLink(
           GetBlockchainTxUrlByChainIds(network === 'mainnet', Number(chainId), response.data.hash)
@@ -496,7 +498,7 @@ const WalletsSend = () => {
         setPage(3)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -523,7 +525,7 @@ const WalletsSend = () => {
         showSnack('error', 'Invalid parsing')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -725,7 +727,7 @@ const WalletsSend = () => {
             {Number(chainId) !== CHAINS.BSC && (
               <>
                 <div className="mt-6 space-y-2">
-                  <Label>Max priorty fee (gwei)</Label>
+                  <Label>Max priority fee (gwei)</Label>
                   <Input
                     type="number"
                     className="w-48"
@@ -735,7 +737,7 @@ const WalletsSend = () => {
                 </div>
 
                 <div className="mt-6 flex flex-wrap items-center gap-3">
-                  <span className="text-sm">Select the max priorty fee</span>
+                  <span className="text-sm">Select the max priority fee</span>
                   <ToggleGroup
                     type="single"
                     value={maxPriortyFeeAlignment}
@@ -795,7 +797,7 @@ const WalletsSend = () => {
 
             {Number(chainId) !== CHAINS.BSC && (
               <div className="mt-4 flex items-center justify-between gap-4">
-                <span className="text-sm text-muted-foreground">Max priorty fee</span>
+                <span className="text-sm text-muted-foreground">Max priority fee</span>
                 <SuffixInput value={maxPriortyFee} suffix="Gwei" />
               </div>
             )}
@@ -838,6 +840,7 @@ const WalletsSend = () => {
             <Link
               href={blockExplorerLink}
               target="_blank"
+              rel="noreferrer"
               className="mt-3 flex items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <Eye className="h-4 w-4" />

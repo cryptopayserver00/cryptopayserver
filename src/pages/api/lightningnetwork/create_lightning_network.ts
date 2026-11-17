@@ -137,6 +137,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         return res.status(200).json({ message: 'Invalid update', result: false, data: null })
       }
 
+      const existingSettings = await prisma.wallet_lightning_network_settings.findFirst({
+        where: { lnd_id: find_wallet_lightning_network.id },
+      })
+      if (!existingSettings) {
+        await prisma.wallet_lightning_network_settings.create({
+          data: {
+            lnd_id: find_wallet_lightning_network.id,
+            user_id: userId,
+            store_id: storeId,
+            show_amount_satoshis: 2,
+            show_hop_hint: 2,
+            show_unify_url_and_qrcode: 2,
+            show_lnurl: 1,
+            show_lnurl_classic_mode: 1,
+            show_allow_payee_pass_comment: 1,
+            status: 1,
+          },
+        })
+      }
+
       return res.status(200).json({ message: '', result: true, data: null })
     }
 

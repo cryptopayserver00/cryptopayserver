@@ -12,6 +12,7 @@ import {
 } from '@/lib/store'
 import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { BigDiv } from '@/utils/number'
 import { DecodeNonstandardCurrencyCode, OmitMiddleString } from '@/utils/strings'
@@ -110,7 +111,7 @@ const XrpSend = () => {
         await getTokenTrustLine(response.data.address)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -140,7 +141,7 @@ const XrpSend = () => {
         setTrustLines(rows)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
       return false
     }
@@ -158,7 +159,7 @@ const XrpSend = () => {
         setNetworkFee(response.data.baseFee)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -219,7 +220,7 @@ const XrpSend = () => {
         }
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -243,7 +244,7 @@ const XrpSend = () => {
       })
       return response.result
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
       return false
     }
@@ -298,7 +299,7 @@ const XrpSend = () => {
       const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
         '@/utils/wallet-password'
       )
-      const accountPassword = promptAccountPassword('Enter your account password to send')
+      const accountPassword = await promptAccountPassword('Enter your account password to send')
       if (accountPassword === null) return
       const walletPassword = await promptWalletPasswordIfNeeded(walletId)
       if (walletPassword === null) return
@@ -328,19 +329,19 @@ const XrpSend = () => {
           })
 
           if (!update_payout_resp.result) {
-            showSnack('error', 'Can not update the status of payout!')
+            showSnack('error', 'Could not update payout status.')
             return
           }
         }
 
-        showSnack('success', 'Successful creation!')
+        showSnack('success', 'Created successfully!')
 
         setBlockExplorerLink(GetBlockchainTxUrl(network === 'mainnet', response.data.hash))
 
         setPage(3)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -461,6 +462,7 @@ const XrpSend = () => {
                             activeTrustLine.account
                           )}
                           target="_blank"
+                          rel="noreferrer"
                           className="text-primary hover:underline"
                         >
                           {activeTrustLine.account}
@@ -562,6 +564,7 @@ const XrpSend = () => {
             <Link
               href={blockExplorerLink}
               target="_blank"
+              rel="noreferrer"
               className="mt-3 flex items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <Eye className="h-4 w-4" />

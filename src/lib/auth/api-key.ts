@@ -9,6 +9,7 @@ import { assertSameOrigin } from './csrf'
 import { getStoreAccess } from './rbac'
 import { getSessionFromRequest } from './session'
 import { isHashedApiKey, sealApiKey } from './api-key-crypto'
+import { rateLimit } from './rate-limit'
 import type { ResponseData } from '@/pages/api'
 
 export type ApiKeyContext = {
@@ -16,6 +17,21 @@ export type ApiKeyContext = {
   storeId: number
   apiKeyId: number
   permissions: string
+}
+
+/** Legacy plaintext API-key lookup — never in production. */
+function legacyPlaintextApiKeysAllowed(): boolean {
+  const enabled =
+    process.env.ALLOW_LEGACY_PLAINTEXT_API_KEYS === 'true' ||
+    process.env.ALLOW_LEGACY_PLAINTEXT_API_KEYS === '1'
+  if (!enabled) return false
+  if (process.env.NODE_ENV === 'production') {
+    console.error(
+      '[api-key] ALLOW_LEGACY_PLAINTEXT_API_KEYS is ignored in production; re-hash keys with yarn secrets:reencrypt'
+    )
+    return false
+  }
+  return true
 }
 
 export function readApiKey(req: NextApiRequest): string | null {
@@ -34,12 +50,8 @@ async function lookupApiKey(apiKey: string): Promise<ApiKeyContext | null> {
     },
   })
 
-  // Legacy plaintext lookup — opt-in only (set ALLOW_LEGACY_PLAINTEXT_API_KEYS=true during migration).
-  if (
-    !row &&
-    (process.env.ALLOW_LEGACY_PLAINTEXT_API_KEYS === 'true' ||
-      process.env.ALLOW_LEGACY_PLAINTEXT_API_KEYS === '1')
-  ) {
+  // Legacy plaintext lookup — non-production migration only.
+  if (!row && legacyPlaintextApiKeysAllowed()) {
     row = await prisma.api_key_settings.findFirst({
       where: {
         api_key: apiKey,
@@ -90,6 +102,9 @@ export async function requireApiKey(
 
   const ctx = await lookupApiKey(apiKey)
   if (!ctx) {
+    if (!(await rateLimit(req, res, { scope: 'api-key-fail', limit: 30, windowMs: 15 * 60 * 1000 }))) {
+      return null
+    }
     unauthorized(res, 'Invalid API key')
     return null
   }
@@ -172,6 +187,9 @@ export async function requireAuthOrApiKey(
 
   const ctx = await lookupApiKey(apiKey)
   if (!ctx) {
+    if (!(await rateLimit(req, res, { scope: 'api-key-fail', limit: 30, windowMs: 15 * 60 * 1000 }))) {
+      return null
+    }
     unauthorized(res, 'Invalid API key')
     return null
   }

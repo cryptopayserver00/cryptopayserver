@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { Check, X, Eye, EyeOff, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,6 +7,16 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   Select,
   SelectContent,
@@ -27,6 +36,7 @@ import {
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { EMAIL_RULE_TIGGER_DATA, EMAIL_RULE_TIGGER_DATAS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail } from '@/utils/verify'
 import { useShallow } from 'zustand/react/shallow'
@@ -82,6 +92,9 @@ const Emails = () => {
   const onClickSaveRule = async () => {
     try {
       if (!trigger || !recipients || !subject || !body) {
+        setSnackSeverity('error')
+        setSnackMessage('Please complete all required rule fields')
+        setSnackOpen(true)
         return
       }
 
@@ -89,7 +102,7 @@ const Emails = () => {
       for (const item of emails) {
         if (!IsValidEmail(item.trim())) {
           setSnackSeverity('error')
-          setSnackMessage('Incorrect email input')
+          setSnackMessage('Please enter a valid email')
           setSnackOpen(true)
           return
         }
@@ -107,7 +120,7 @@ const Emails = () => {
 
         if (response.result) {
           setSnackSeverity('success')
-          setSnackMessage('Update successful!')
+          setSnackMessage('Updated successfully!')
           setSnackOpen(true)
 
           await init(storeId, userId)
@@ -130,7 +143,7 @@ const Emails = () => {
 
         if (response.result) {
           setSnackSeverity('success')
-          setSnackMessage('Save successful!')
+          setSnackMessage('Saved successfully!')
           setSnackOpen(true)
 
           await init(storeId, userId)
@@ -143,7 +156,7 @@ const Emails = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -152,12 +165,15 @@ const Emails = () => {
   const onClickTestEmail = async () => {
     try {
       if (!testEmail) {
+        setSnackSeverity('error')
+        setSnackMessage('Please enter a test email address')
+        setSnackOpen(true)
         return
       }
 
       if (!IsValidEmail(testEmail)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect email input')
+        setSnackMessage('Please enter a valid email')
         setSnackOpen(true)
         return
       }
@@ -179,7 +195,7 @@ const Emails = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -187,13 +203,20 @@ const Emails = () => {
 
   const onClickSaveEmailServer = async () => {
     try {
-      if (!smtpServer || !port || !senderEmailAddress || !login || !password) {
+      if (!smtpServer || !port || !senderEmailAddress || !login || (!(id && id > 0) && !password)) {
+        setSnackSeverity('error')
+        setSnackMessage(
+          id && id > 0
+            ? 'Please complete SMTP server, port, sender, and login'
+            : 'Please complete all SMTP server fields'
+        )
+        setSnackOpen(true)
         return
       }
 
       if (!IsValidEmail(senderEmailAddress)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect email input')
+        setSnackMessage('Please enter a valid email')
         setSnackOpen(true)
         return
       }
@@ -211,7 +234,7 @@ const Emails = () => {
 
         if (response.result) {
           setSnackSeverity('success')
-          setSnackMessage('Update successful!')
+          setSnackMessage('Updated successfully!')
           setSnackOpen(true)
 
           await init(storeId, userId)
@@ -234,7 +257,7 @@ const Emails = () => {
 
         if (response.result) {
           setSnackSeverity('success')
-          setSnackMessage('Save successful!')
+          setSnackMessage('Saved successfully!')
           setSnackOpen(true)
 
           await init(storeId, userId)
@@ -246,7 +269,7 @@ const Emails = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -272,7 +295,7 @@ const Emails = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -390,9 +413,13 @@ const Emails = () => {
           <div className="space-y-4 pt-4 border-t">
             <h3 className="text-xl font-semibold tracking-tight text-foreground">Email Rules</h3>
             <p className="text-sm text-muted-foreground">
-              <Link href="#" className="text-primary underline hover:opacity-80">
+              <button
+                type="button"
+                className="text-primary underline hover:opacity-80"
+                onClick={() => setPage(2)}
+              >
                 Email rules
-              </Link>{' '}
+              </button>{' '}
               allow CryptoPay Server to send customized emails from your store based on events.
             </p>
             <Button size="lg" onClick={() => setPage(2)}>
@@ -565,6 +592,7 @@ interface TableType {
 
 function EmailRuleTable(props: TableType) {
   const [rows, setRows] = useState<RowType[]>([])
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
 
   const { userId } = useUserPresistStore(
     useShallow((state) => ({
@@ -611,7 +639,7 @@ function EmailRuleTable(props: TableType) {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -631,12 +659,13 @@ function EmailRuleTable(props: TableType) {
         await init(userId, storeId)
 
         setSnackSeverity('success')
-        setSnackMessage('delete Success.')
+        setSnackMessage('Deleted successfully!')
         setSnackOpen(true)
+        setPendingDeleteId(null)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -702,7 +731,7 @@ function EmailRuleTable(props: TableType) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onClickDelete(row.rid)}
+                      onClick={() => setPendingDeleteId(row.rid)}
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       Delete
@@ -720,6 +749,34 @@ function EmailRuleTable(props: TableType) {
           )}
         </TableBody>
       </Table>
+
+      <AlertDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteId(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete email rule?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This rule will stop sending automated emails for its trigger event.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault()
+                if (pendingDeleteId !== null) onClickDelete(pendingDeleteId)
+              }}
+            >
+              Delete rule
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { GetAllMainnetChainIds, GetAllTestnetChainIds } from '@/utils/web3'
 import { BLOCKSCAN } from '@/packages/web3/block_scan'
 import { WEB3 } from '@/packages/web3'
 import { prisma } from '@/lib/prisma'
-import { requireOwnedStore } from '@/lib/auth'
+import { rateLimit, requireOwnedStore } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -16,10 +16,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const owned = await requireOwnedStore(req, res, req.query.store_id, req.query.user_id)
     if (!owned) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_transaction', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
+
     const storeId = owned.storeId
 
-    const chainId = Number(req.query.chain_id)
-    if (!chainId) {
+    const chainId = req.query.chain_id !== undefined && req.query.chain_id !== ''
+      ? Number(req.query.chain_id)
+      : 0
+    if (req.query.chain_id !== undefined && req.query.chain_id !== '' && !Number.isFinite(chainId)) {
       return res.status(200).json({ message: 'Invalid chainId', result: false, data: null })
     }
 
@@ -28,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid network', result: false, data: null })
     }
 
-    const address = req.query.address
+    const address = String(req.query.address || '')
     if (!address) {
       return res.status(200).json({ message: 'Invalid address', result: false, data: null })
     }
@@ -47,7 +54,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
 
     if (!wallet) {
-      return res.status(200).json({ message: 'Cannot find', result: false, data: null })
+      return res.status(200).json({
+        message: '',
+        result: true,
+        data: { transactions: [], page: Number(page) || 1, total: 0 },
+      })
     }
 
     const addresses = await prisma.addresses.findMany({

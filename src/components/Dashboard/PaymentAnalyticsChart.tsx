@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { STORE_STAT_ITEM_TYPE, STORE_STAT_TIME_TYPE } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { useShallow } from 'zustand/react/shallow'
@@ -45,9 +46,9 @@ const PaymentAnalyticsChart = () => {
     itemAlignment: string
   ) => {
     try {
-      if (!crypto) return
+      if (!currentStoreId) return
 
-      const response: any = await axios.get(Http.fint_store_stat, {
+      const response: any = await axios.get(Http.find_store_stat, {
         params: {
           id: currentStoreId,
           network: currentNetwork === 'mainnet' ? 1 : 2,
@@ -93,7 +94,7 @@ const PaymentAnalyticsChart = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

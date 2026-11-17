@@ -13,6 +13,7 @@ import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import { SolanaTransactionDetail } from '@/packages/web3/types'
 import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from '@/utils/chain/solana'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import SolanaSVG from '@/assets/chain/solana.svg'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
@@ -109,10 +110,10 @@ const Solana = () => {
 
         setWallet(rows)
       } else {
-        showSnack('error', 'Can not find the data on site!')
+        showSnack('error', 'Could not load data.')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -135,10 +136,10 @@ const Solana = () => {
           response.data.currentUsedAddressId ? response.data.currentUsedAddressId : 0
         )
       } else {
-        showSnack('error', 'The network error occurred. Please try again later.')
+        showSnack('error', 'Could not load data.')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -155,7 +156,7 @@ const Solana = () => {
         setFeeRate(response.data)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -168,11 +169,11 @@ const Solana = () => {
         current_used_address_id: currentUsedAddressId,
       })
       if (response.result) {
-        showSnack('success', 'Successful update!')
+        showSnack('success', 'Updated successfully!')
         await init(userId, storeId, walletId, network)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -231,7 +232,7 @@ const Solana = () => {
               Private Key
             </Button>
             <Button onClick={onClickRescanAddress}>Rescan address</Button>
-            <Button variant="ghost" size="icon" onClick={() => setIsSettings(!isSettings)}>
+            <Button variant="ghost" size="icon" aria-label="Wallet settings" aria-pressed={isSettings} onClick={() => setIsSettings(!isSettings)}>
               <Settings className="h-5 w-5" />
             </Button>
           </div>
@@ -273,7 +274,7 @@ const Solana = () => {
 
               <div className="mt-4 space-y-2">
                 <Label>
-                  Payment invalid if transactions fails to confirm … after invoice expiration
+                  Payment invalid if the transaction fails to confirm … after invoice expiration
                 </Label>
                 <div className="relative w-[220px]">
                   <Input
@@ -306,7 +307,7 @@ const Solana = () => {
                           type="button"
                           onClick={async () => {
                             await navigator.clipboard.writeText(item.address)
-                            showSnack('success', 'Successfully copy')
+                            showSnack('success', 'Copied successfully')
                           }}
                           className="mt-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors hover:bg-muted"
                         >
@@ -397,6 +398,7 @@ function TransactionsTab({ rows }: { rows: SolanaTransactionDetail[] }) {
                   <Link
                     href={GetBlockchainTxUrl(getNetwork() === 'mainnet', row.hash)}
                     target="_blank"
+                    rel="noreferrer"
                     className="text-primary hover:underline"
                   >
                     {row.hash}

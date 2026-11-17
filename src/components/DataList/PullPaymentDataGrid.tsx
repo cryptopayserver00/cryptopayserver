@@ -8,10 +8,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { PULL_PAYMENT_STATUS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -36,6 +47,7 @@ export default function PullPaymentDataGrid(props: GridType) {
   const [rows, setRows] = useState<RowType[]>([])
   const [page, setPage] = useState(0)
   const [archivingId, setArchivingId] = useState<number | null>(null)
+  const [pendingArchive, setPendingArchive] = useState<RowType | null>(null)
 
   const { network } = useUserPresistStore(
     useShallow((state) => ({
@@ -61,7 +73,7 @@ export default function PullPaymentDataGrid(props: GridType) {
     try {
       setArchivingId(id)
       const { promptAccountPassword } = await import('@/utils/wallet-password')
-      const accountPassword = promptAccountPassword(
+      const accountPassword = await promptAccountPassword(
         'Enter your account password to archive pull payment'
       )
       if (accountPassword === null) return
@@ -74,7 +86,7 @@ export default function PullPaymentDataGrid(props: GridType) {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Update successful!')
+        setSnackMessage('Updated successfully!')
         setSnackOpen(true)
         await init(network, storeId, props.status)
       } else {
@@ -84,7 +96,7 @@ export default function PullPaymentDataGrid(props: GridType) {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -120,12 +132,12 @@ export default function PullPaymentDataGrid(props: GridType) {
         setRows(rows)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -165,7 +177,7 @@ export default function PullPaymentDataGrid(props: GridType) {
         disabled={archivingId === row.pullPaymentId}
         onClick={(e: any) => {
           e.stopPropagation()
-          onClickArchive(row.pullPaymentId)
+          setPendingArchive(row)
         }}
       >
         <Archive className="h-3.5 w-3.5" />
@@ -265,6 +277,7 @@ export default function PullPaymentDataGrid(props: GridType) {
             Page {page + 1} of {totalPages}
           </span>
           <Button
+            aria-label="Previous page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -274,6 +287,7 @@ export default function PullPaymentDataGrid(props: GridType) {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
+            aria-label="Next page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -284,6 +298,37 @@ export default function PullPaymentDataGrid(props: GridType) {
           </Button>
         </div>
       )}
+
+      <AlertDialog
+        open={pendingArchive !== null}
+        onOpenChange={(open) => {
+          if (!open && archivingId === null) setPendingArchive(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive pull payment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Archived pull payments stop accepting new claims. Existing payout history remains
+              visible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archivingId !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={archivingId !== null}
+              onClick={(e) => {
+                e.preventDefault()
+                if (pendingArchive) {
+                  onClickArchive(pendingArchive.pullPaymentId).finally(() => setPendingArchive(null))
+                }
+              }}
+            >
+              {archivingId !== null ? 'Archiving...' : 'Archive'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

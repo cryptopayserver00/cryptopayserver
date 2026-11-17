@@ -132,6 +132,7 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
                   variant={userTheme === 'auto' ? 'default' : 'outline'}
                   size="icon"
                   className="h-9 w-9"
+                  aria-label="Auto theme"
                   onClick={() => setUserTheme('auto')}
                 >
                   <Monitor className="h-4 w-4" />
@@ -140,6 +141,7 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
                   variant={userTheme === 'light' ? 'default' : 'outline'}
                   size="icon"
                   className="h-9 w-9"
+                  aria-label="Light theme"
                   onClick={() => setUserTheme('light')}
                 >
                   <Sun className="h-4 w-4" />
@@ -148,6 +150,7 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
                   variant={userTheme === 'dark' ? 'default' : 'outline'}
                   size="icon"
                   className="h-9 w-9"
+                  aria-label="Dark theme"
                   onClick={() => setUserTheme('dark')}
                 >
                   <Moon className="h-4 w-4" />

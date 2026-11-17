@@ -3,11 +3,12 @@ import { SignJWT, jwtVerify, type JWTPayload } from 'jose'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '@/lib/prisma'
 import {
-  PENDING_2FA_COOKIE_NAME,
+  getPending2faCookieName,
+  getSessionCookieName,
   PENDING_2FA_MAX_AGE_SECONDS,
   PASSWORD_RESET_MAX_AGE_SECONDS,
-  SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
+  useHostPrefixCookies,
 } from './constants'
 import { consumePasswordResetJti } from './reset-jti'
 
@@ -156,7 +157,7 @@ function readCookie(req: NextApiRequest | Request, name: string): string | null 
 }
 
 export function readSessionTokenFromRequest(req: NextApiRequest | Request): string | null {
-  return readCookie(req, SESSION_COOKIE_NAME)
+  return readCookie(req, getSessionCookieName())
 }
 
 export async function getSessionFromRequest(
@@ -185,7 +186,7 @@ export async function getSessionFromRequest(
 export async function getPending2faFromRequest(
   req: NextApiRequest
 ): Promise<SessionPayload | null> {
-  const token = readCookie(req, PENDING_2FA_COOKIE_NAME)
+  const token = readCookie(req, getPending2faCookieName())
   if (!token) return null
   return verifyPending2faToken(token)
 }
@@ -204,6 +205,9 @@ function shouldUseSecureCookies(): boolean {
 }
 
 function buildSetCookie(name: string, value: string, maxAge: number): string {
+  const hostPrefix = useHostPrefixCookies()
+  const secure = hostPrefix || shouldUseSecureCookies()
+  // __Host- cookies require Secure + Path=/ and must omit Domain.
   const parts = [
     `${name}=${encodeURIComponent(value)}`,
     'Path=/',
@@ -212,7 +216,7 @@ function buildSetCookie(name: string, value: string, maxAge: number): string {
     // Strict: session cookies must not ride along on cross-site navigations.
     'SameSite=Strict',
   ]
-  if (shouldUseSecureCookies()) parts.push('Secure')
+  if (secure) parts.push('Secure')
   return parts.join('; ')
 }
 
@@ -233,18 +237,21 @@ export async function setSessionCookie(
   passwordHash: string
 ): Promise<void> {
   const token = await createSessionToken(userId, passwordHash)
-  appendSetCookie(res, buildSetCookie(SESSION_COOKIE_NAME, token, SESSION_MAX_AGE_SECONDS))
+  appendSetCookie(res, buildSetCookie(getSessionCookieName(), token, SESSION_MAX_AGE_SECONDS))
 }
 
 export function clearSessionCookie(res: NextApiResponse): void {
-  appendSetCookie(res, buildSetCookie(SESSION_COOKIE_NAME, '', 0))
+  appendSetCookie(res, buildSetCookie(getSessionCookieName(), '', 0))
 }
 
 export async function setPending2faCookie(res: NextApiResponse, userId: number): Promise<void> {
   const token = await createPending2faToken(userId)
-  appendSetCookie(res, buildSetCookie(PENDING_2FA_COOKIE_NAME, token, PENDING_2FA_MAX_AGE_SECONDS))
+  appendSetCookie(
+    res,
+    buildSetCookie(getPending2faCookieName(), token, PENDING_2FA_MAX_AGE_SECONDS)
+  )
 }
 
 export function clearPending2faCookie(res: NextApiResponse): void {
-  appendSetCookie(res, buildSetCookie(PENDING_2FA_COOKIE_NAME, '', 0))
+  appendSetCookie(res, buildSetCookie(getPending2faCookieName(), '', 0))
 }

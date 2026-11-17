@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Check, Eye, EyeOff, X } from 'lucide-react'
 import { useSnackPresistStore, useWalletPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { isValidPassword } from '@/utils/verify'
 
@@ -47,18 +48,22 @@ const ManagePassword = () => {
   const onClickSetPassword = async () => {
     try {
       if (!password || !isValidPassword(password)) {
-        showSnack('error', 'Incorrect password input')
+        showSnack('error', 'Please enter a valid password')
         return
       }
 
       let oldPassword = ''
       let accountPassword = ''
       if (isPassword) {
-        const entered = window.prompt('Enter your current wallet password')
+        const { promptWalletPasswordIfNeeded } = await import('@/utils/wallet-password')
+        const entered = await promptWalletPasswordIfNeeded(walletId)
         if (!entered) return
         oldPassword = entered
       } else {
-        const entered = window.prompt('Enter your account password to set a wallet password')
+        const { promptAccountPassword } = await import('@/utils/wallet-password')
+        const entered = await promptAccountPassword(
+          'Enter your account password to set a wallet password'
+        )
         if (!entered) return
         accountPassword = entered
       }
@@ -70,14 +75,14 @@ const ManagePassword = () => {
         account_password: accountPassword,
       })
       if (response.result) {
-        showSnack('success', 'Successful update!')
+        showSnack('success', 'Updated successfully!')
         await init(walletId)
         setOpenSetPassword(false)
       } else {
         showSnack('error', response.message || 'Update failed!')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -98,7 +103,7 @@ const ManagePassword = () => {
         setIsPassword(false)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }

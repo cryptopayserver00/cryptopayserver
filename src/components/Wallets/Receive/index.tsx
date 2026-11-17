@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { QRCodeSVG } from 'qrcode.react'
 import { Copy } from 'lucide-react'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useSnackPresistStore } from '@/lib/store'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
@@ -44,7 +45,7 @@ const WalletsReceive = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -59,7 +60,7 @@ const WalletsReceive = () => {
 
   const copyAddress = async () => {
     await navigator.clipboard.writeText(address)
-    setSnackMessage('Successfully copy')
+    setSnackMessage('Copied successfully')
     setSnackSeverity('success')
     setSnackOpen(true)
   }

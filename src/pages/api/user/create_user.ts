@@ -17,7 +17,10 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
       return
     }
 
-    if (process.env.DISABLE_PUBLIC_REGISTRATION === 'true') {
+    if (
+      process.env.DISABLE_PUBLIC_REGISTRATION === 'true' ||
+      process.env.NEXT_PUBLIC_DISABLE_PUBLIC_REGISTRATION === 'true'
+    ) {
       return res.status(403).json({
         message: 'Public registration is disabled',
         result: false,

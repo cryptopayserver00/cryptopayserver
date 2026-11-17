@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useSnackPresistStore } from '@/lib/store/snack'
 import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { RandomWords, AddAndShuffleArray, GetUniqueRandomIndices } from '@/utils/strings'
 import { useShallow } from 'zustand/react/shallow'
@@ -51,7 +52,10 @@ const PhraseBackupConfirm = () => {
     try {
       let password = accountPassword
       if (!password) {
-        const entered = window.prompt('Enter your account password to confirm backup')
+        const { promptAccountPassword } = await import('@/utils/wallet-password')
+        const entered = await promptAccountPassword(
+          'Enter your account password to confirm backup'
+        )
         if (!entered) return
         password = entered
       }
@@ -70,7 +74,7 @@ const PhraseBackupConfirm = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -89,13 +93,18 @@ const PhraseBackupConfirm = () => {
           return
         }
 
-        const enteredAccountPassword = window.prompt('Enter your account password to continue')
+        const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
+          '@/utils/wallet-password'
+        )
+        const enteredAccountPassword = await promptAccountPassword(
+          'Enter your account password to continue'
+        )
         if (!enteredAccountPassword) return
         setAccountPassword(enteredAccountPassword)
 
         let walletPassword = ''
         if (meta.data?.hasPassword) {
-          const entered = window.prompt('Enter your wallet password to continue')
+          const entered = await promptWalletPasswordIfNeeded(walletId)
           if (!entered) return
           walletPassword = entered
         }
@@ -130,7 +139,7 @@ const PhraseBackupConfirm = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

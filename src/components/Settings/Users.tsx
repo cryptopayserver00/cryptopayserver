@@ -19,6 +19,16 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Dialog,
   DialogContent,
   DialogFooter,
@@ -27,6 +37,7 @@ import {
 } from '@/components/ui/dialog'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail } from '@/utils/verify'
 import { useShallow } from 'zustand/react/shallow'
@@ -67,7 +78,7 @@ export const Users = () => {
 
       if (!email || email === '' || !IsValidEmail(email)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect email input')
+        setSnackMessage('Please enter a valid email')
         setSnackOpen(true)
         return
       }
@@ -90,7 +101,7 @@ export const Users = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -119,7 +130,7 @@ export const Users = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -200,6 +211,7 @@ interface TableType {
 function StoreUserTable(props: TableType) {
   const [rows, setRows] = useState<RowType[]>([])
   const [openDialog, setOpenDialog] = useState<boolean>(false)
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
 
   const [id, setId] = useState<number>(0)
   const [email, setEmail] = useState<string>('')
@@ -246,7 +258,7 @@ function StoreUserTable(props: TableType) {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -281,7 +293,7 @@ function StoreUserTable(props: TableType) {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -299,12 +311,13 @@ function StoreUserTable(props: TableType) {
         await init(userId, storeId)
 
         setSnackSeverity('success')
-        setSnackMessage('remvoe Success.')
+        setSnackMessage('Removed successfully!')
         setSnackOpen(true)
+        setPendingDeleteId(null)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -356,9 +369,7 @@ function StoreUserTable(props: TableType) {
                         variant="ghost"
                         size="sm"
                         className="text-destructive hover:text-destructive"
-                        onClick={() => {
-                          onClickRemove(row.rid)
-                        }}
+                        onClick={() => setPendingDeleteId(row.rid)}
                       >
                         Remove
                       </Button>
@@ -376,6 +387,34 @@ function StoreUserTable(props: TableType) {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteId(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove store user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This user will lose access to the store until invited again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault()
+                if (pendingDeleteId !== null) onClickRemove(pendingDeleteId)
+              }}
+            >
+              Remove user
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={openDialog} onOpenChange={(open) => !open && handleDialogClose()}>
         <DialogContent className="sm:max-w-[425px]">

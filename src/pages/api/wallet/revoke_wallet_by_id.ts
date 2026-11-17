@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Wallet not found', result: false, data: null })
     }
 
-    if (!(await requireWalletPasswordIfSet(res, wallet, req.body.wallet_password))) {
+    if (!(await requireWalletPasswordIfSet(req, res, wallet, req.body.wallet_password))) {
       return
     }
 

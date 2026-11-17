@@ -8,10 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useSnackPresistStore } from '@/lib/store/snack'
 import { useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { isValidPassword, IsValidEmail } from '@/utils/verify'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SiteLogo } from '../Logo/SiteLogo'
 import { useShallow } from 'zustand/react/shallow'
+
+const registrationDisabled =
+  process.env.NEXT_PUBLIC_DISABLE_PUBLIC_REGISTRATION === 'true'
 
 const Register = () => {
   const router = useRouter()
@@ -37,9 +42,15 @@ const Register = () => {
 
   const onRegister = async () => {
     try {
+      if (registrationDisabled) {
+        setSnackSeverity('error')
+        setSnackMessage('Public registration is disabled')
+        setSnackOpen(true)
+        return
+      }
       if (!email || email === '' || !IsValidEmail(email)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect email input')
+        setSnackMessage('Please enter a valid email')
         setSnackOpen(true)
         return
       }
@@ -52,7 +63,7 @@ const Register = () => {
         password !== confirmPassword
       ) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect password input')
+        setSnackMessage('Please enter a valid password')
         setSnackOpen(true)
         return
       }
@@ -65,7 +76,7 @@ const Register = () => {
       })
       if (create_user_resp.result) {
         setSnackSeverity('success')
-        setSnackMessage('Successful creation!')
+        setSnackMessage('Created successfully!')
         setSnackOpen(true)
         setTimeout(() => {
           window.location.href = '/login'
@@ -79,7 +90,7 @@ const Register = () => {
     } catch (e) {
       setIsLoading(false)
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -123,51 +134,67 @@ const Register = () => {
             <CardTitle className="text-xl font-bold">Create account</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
+            {registrationDisabled ? (
+              <>
+                <Alert>
+                  <AlertDescription>
+                    Public registration is disabled on this instance. Ask an administrator for an
+                    invite or account.
+                  </AlertDescription>
+                </Alert>
+                <Button variant="outline" size="lg" className="w-full" asChild>
+                  <Link href="/login">Log in</Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
 
-            <div className="space-y-3 pt-2">
-              <Button size="lg" className="w-full" onClick={onRegister} disabled={isLoading}>
-                {isLoading ? 'Creating account...' : 'Create account'}
-              </Button>
+                <div className="space-y-3 pt-2">
+                  <Button size="lg" className="w-full" onClick={onRegister} disabled={isLoading}>
+                    {isLoading ? 'Creating account...' : 'Create account'}
+                  </Button>
 
-              <Button variant="outline" size="lg" className="w-full" asChild>
-                <Link href="/login">Log in</Link>
-              </Button>
-            </div>
+                  <Button variant="outline" size="lg" className="w-full" asChild>
+                    <Link href="/login">Log in</Link>
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,11 +1,7 @@
 export class Http {
   static baseApiPath = '/api'
 
-  // test
-  static test_db_conn = this.baseApiPath + '/test/test_db_conn'
-
   // user
-  static find_user_by_email = this.baseApiPath + '/user/find_user_by_email'
   static find_user_by_userid = this.baseApiPath + '/user/find_user_by_userid'
   static update_user_by_userid = this.baseApiPath + '/user/update_user_by_userid'
   static update_user_password_by_userid = this.baseApiPath + '/user/update_user_password_by_userid'
@@ -41,6 +37,8 @@ export class Http {
   static update_store_by_id = this.baseApiPath + '/store/update_store_by_id'
   static archive_store_by_id = this.baseApiPath + '/store/archive_store_by_id'
   static delete_store_by_id = this.baseApiPath + '/store/delete_store_by_id'
+  static find_store_stat = this.baseApiPath + '/store/find_store_stat'
+  /** @deprecated Use find_store_stat */
   static fint_store_stat = this.baseApiPath + '/store/fint_store_stat'
 
   // address book of store
@@ -128,6 +126,8 @@ export class Http {
   // ethereum
   static find_nonce = this.baseApiPath + '/ethereum/find_nonce'
   static find_gas_limit = this.baseApiPath + '/ethereum/find_gas_limit'
+  static find_max_priority_fee = this.baseApiPath + '/ethereum/find_max_priority_fee'
+  /** @deprecated Use find_max_priority_fee */
   static find_max_priorty_fee = this.baseApiPath + '/ethereum/find_max_priorty_fee'
 
   // tron
@@ -200,6 +200,7 @@ export class Http {
   static find_gas_fee = this.baseApiPath + '/tool/find_gas_fee'
   static parse_qrcode_text = this.baseApiPath + '/tool/parse_qrcode_text'
   static upload_file = this.baseApiPath + '/tool/upload_file'
+  static download_file = this.baseApiPath + '/tool/download_file'
 
   // schedule
   static schedule_blockscan = this.baseApiPath + '/schedule/schedule_blockscan'

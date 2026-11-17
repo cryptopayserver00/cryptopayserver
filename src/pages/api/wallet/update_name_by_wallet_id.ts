@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireOwnedWallet } from '@/lib/auth'
+import { rateLimit, requireOwnedWallet } from '@/lib/auth'
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -13,6 +13,10 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
 
     const owned = await requireOwnedWallet(req, res, req.body.wallet_id)
     if (!owned) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-update_wallet_name', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const name = req.body.name
     if (!name) {

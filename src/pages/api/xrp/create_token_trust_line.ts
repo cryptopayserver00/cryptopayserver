@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { WEB3 } from '@/packages/web3'
 import { FindTokenByChainIdsAndSymbol } from '@/utils/web3'
+import { COINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
 import {
   assertWalletOwnedByUser,
@@ -101,17 +102,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Cannot find wallet', result: false, data: null })
     }
 
-    if (!(await requireWalletPasswordIfSet(res, wallet, req.body.wallet_password))) {
+    if (!(await requireWalletPasswordIfSet(req, res, wallet, req.body.wallet_password))) {
       return
+    }
+
+    const token = FindTokenByChainIdsAndSymbol(
+      WEB3.getChainIds(address.network === 1, chainId),
+      coin as COINS
+    )
+    if (!token) {
+      return res.status(200).json({ message: 'Invalid coin', result: false, data: null })
     }
 
     const hash = await WEB3.createTokenTrustLine(network === 1, chainId, {
       mnemonic: decryptSecret(wallet.mnemonic),
       address: fromAddress,
-      issuer: String(
-        FindTokenByChainIdsAndSymbol(WEB3.getChainIds(address.network === 1, chainId), coin)
-          .contractAddress
-      ),
+      issuer: String(token.contractAddress),
       coin: coin,
       limit: limit,
     })

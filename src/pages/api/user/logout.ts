@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
-import { assertSameOrigin, clearPending2faCookie, clearSessionCookie } from '@/lib/auth'
+import { assertSameOrigin, clearPending2faCookie, clearSessionCookie, rateLimit } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -11,6 +11,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     if (!assertSameOrigin(req, res)) return
+
+    if (!(await rateLimit(req, res, { scope: 'logout', limit: 30, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     clearSessionCookie(res)
     clearPending2faCookie(res)

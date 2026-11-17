@@ -20,6 +20,7 @@ import {
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { CURRENCY, PAYMENT_REQUEST_STATUS, REQUEST_CUSTOMER_DATA } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import PaymentRequestDataGrid from '@/components/DataList/PaymentRequestDataGrid'
 import { IsValidEmail } from '@/utils/verify'
@@ -125,7 +126,7 @@ const Requests = () => {
     try {
       if (!CURRENCY.includes(currency)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect currency')
+        setSnackMessage('Please select a valid currency')
         setSnackOpen(true)
         return
       }
@@ -149,7 +150,7 @@ const Requests = () => {
 
       if (!IsValidEmail(email)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect email input')
+        setSnackMessage('Please enter a valid email')
         setSnackOpen(true)
         return
       }
@@ -177,12 +178,12 @@ const Requests = () => {
         setOpenCreateRequest(false)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Something wrong, please try it again')
+        setSnackMessage('Something went wrong. Please try again.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

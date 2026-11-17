@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { CHAINPATHNAMES, CHAINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
-import { requireAuthUserId, assertStoreOwnedByUser, assertWalletOwnedByUser, forbidden } from '@/lib/auth'
+import { rateLimit, requireAuthUserId, assertStoreOwnedByUser, assertWalletOwnedByUser, forbidden } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -14,6 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.query.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_wallet_address_by_network', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const network = Number(req.query.network)
     if (!network) {
@@ -113,7 +117,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: '', result: true, data: addressRows })
     }
 
-    return res.status(200).json({ message: '', result: false, data: null })
+    return res.status(200).json({ message: '', result: true, data: [] })
   } catch (e) {
     console.error(e)
     return res.status(500).json({

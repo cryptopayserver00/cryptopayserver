@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSnackPresistStore } from '@/lib/store/snack'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useStorePresistStore, useWalletPresistStore } from '@/lib/store'
 import { isValidPassword } from '@/utils/verify'
@@ -48,7 +49,7 @@ const SetPassword = () => {
         password !== confirmPassword
       ) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect password input')
+        setSnackMessage('Please enter a valid password')
         setSnackOpen(true)
         return
       }
@@ -67,7 +68,7 @@ const SetPassword = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Successful update!')
+        setSnackMessage('Updated successfully!')
         setSnackOpen(true)
 
         setTimeout(() => {
@@ -84,7 +85,7 @@ const SetPassword = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -106,7 +107,9 @@ const SetPassword = () => {
             This password is used to unlock the wallet, we cannot restore this password for you.
           </p>
           <Link
-            href="#"
+            href="https://docs.cryptopayserver.online"
+            target="_blank"
+            rel="noreferrer"
             className="text-indigo-600 hover:text-indigo-800 text-sm font-medium underline"
           >
             learn more

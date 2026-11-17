@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import Head from 'next/head'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -6,6 +7,7 @@ import { AlertTriangle, HelpCircle, Lock, Store as StoreIcon } from 'lucide-reac
 
 import { useSnackPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import {
   CURRENCY_SYMBOLS,
@@ -126,10 +128,10 @@ const PaymentRequestsDetails = () => {
         setPaymentRequestRows(rows)
         setPaidAmount(paid)
       } else {
-        showSnack('error', 'Can not find the data on site!')
+        showSnack('error', 'Could not load data.')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -152,6 +154,8 @@ const PaymentRequestsDetails = () => {
           storeName: response.data.storeName,
           storeLogoUrl: response.data.storeLogoUrl,
           storeWebsite: response.data.storeWebsite,
+          storeBrandColor: response.data.storeBrandColor || '',
+          storeCustomCssUrl: response.data.storeCustomCssUrl || '',
           paymentRequestId: response.data.paymentRequestId,
           network: response.data.network,
           title: response.data.title,
@@ -160,9 +164,9 @@ const PaymentRequestsDetails = () => {
           memo: response.data.memo,
           expirationAt: response.data.expirationAt,
           paymentRequestStatus: response.data.paymentRequestStatus,
-          requesCustomerData: response.data.requesCustomerData,
+          requesCustomerData: response.data.requestCustomerData || response.data.requesCustomerData,
           showAllowCustomAmount: response.data.showAllowCustomAmount === 1,
-          email: response.data.email,
+          email: '',
         })
 
         await getPaymentHistory(
@@ -172,7 +176,7 @@ const PaymentRequestsDetails = () => {
         )
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -183,7 +187,7 @@ const PaymentRequestsDetails = () => {
 
   const onClickCoin = async (item: COIN, cryptoAmount: string, rate: number) => {
     if (!item || !cryptoAmount || !rate) {
-      showSnack('error', 'Incorrect parameters')
+      showSnack('error', 'Missing or invalid parameters')
       return
     }
 
@@ -204,7 +208,7 @@ const PaymentRequestsDetails = () => {
       })
 
       if (response.result && response.data.orderId) {
-        showSnack('success', 'Successful creation!')
+        showSnack('success', 'Created successfully!')
 
         setTimeout(() => {
           const token = response.data.accessToken
@@ -214,14 +218,28 @@ const PaymentRequestsDetails = () => {
         }, 1000)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
 
+  const brandColor =
+    paymentRequestData?.storeBrandColor &&
+    /^#[0-9A-Fa-f]{3,8}$/.test(paymentRequestData.storeBrandColor)
+      ? paymentRequestData.storeBrandColor
+      : undefined
+
   return (
     <div className="mt-4">
-      <div className="mx-auto max-w-screen-xl px-4">
+      {paymentRequestData?.storeCustomCssUrl ? (
+        <Head>
+          <link rel="stylesheet" href={paymentRequestData.storeCustomCssUrl} />
+        </Head>
+      ) : null}
+      <div
+        className="mx-auto max-w-screen-xl px-4"
+        style={brandColor ? { borderTop: `4px solid ${brandColor}`, paddingTop: '1rem' } : undefined}
+      >
         {paymentRequestData?.network === 2 && (
           <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-900">
             <AlertTriangle className="h-4 w-4 !text-amber-600" />
@@ -232,6 +250,7 @@ const PaymentRequestsDetails = () => {
               <Link
                 href="/freecoin"
                 target="_blank"
+                rel="noreferrer"
                 className="font-medium underline underline-offset-2"
               >
                 here.
@@ -288,7 +307,7 @@ const PaymentRequestsDetails = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="help"
+                aria-label="Payment help"
                 onClick={() => setOpenDrawer(true)}
               >
                 <HelpCircle className="h-5 w-5" />
@@ -397,11 +416,21 @@ const PaymentRequestsDetails = () => {
               </div>
 
               <div className="flex items-center gap-1.5 text-sm">
-                <Link href="#" className="hover:underline">
+                <Link
+                  href="https://docs.cryptopayserver.online"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:underline"
+                >
                   Terms
                 </Link>
                 <span className="text-muted-foreground">·</span>
-                <Link href="#" className="hover:underline">
+                <Link
+                  href="https://docs.cryptopayserver.online"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:underline"
+                >
                   Privacy
                 </Link>
               </div>
@@ -456,7 +485,7 @@ const PaymentRequestsDetails = () => {
                         className="w-full"
                         onClick={async () => {
                           await navigator.clipboard.writeText(window.location.href)
-                          showSnack('success', 'Successfully copy')
+                          showSnack('success', 'Copied successfully')
                         }}
                       >
                         Copy Link

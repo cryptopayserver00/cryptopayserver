@@ -12,6 +12,7 @@ import {
 import { PRICE_RESOURCE } from '@/packages/constants'
 import { useSnackPresistStore, useStorePresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -45,7 +46,7 @@ export const Rates = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -59,7 +60,7 @@ export const Rates = () => {
     try {
       if (!PRICE_RESOURCE.includes(priceSource)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect price source')
+        setSnackMessage('Please select a valid price source')
         setSnackOpen(true)
         return
       }
@@ -71,18 +72,18 @@ export const Rates = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Save successful!')
+        setSnackMessage('Saved successfully!')
         setSnackOpen(true)
 
         await init(storeId)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('The update failed, please try again later.')
+        setSnackMessage('Update failed. Please try again later.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

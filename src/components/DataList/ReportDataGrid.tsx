@@ -16,6 +16,7 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import { CURRENCY_SYMBOLS, REPORT_STATUS } from '@/packages/constants'
 import { FindChainNamesByChains } from '@/utils/web3'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { RowType } from '@/components/Payments/Reporting'
 import { useShallow } from 'zustand/react/shallow'
@@ -101,12 +102,12 @@ export default function ReportDataGrid(props: GridType) {
           setRows(rows)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -188,6 +189,7 @@ export default function ReportDataGrid(props: GridType) {
             Page {page + 1} of {totalPages}
           </span>
           <Button
+            aria-label="Previous page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -197,6 +199,7 @@ export default function ReportDataGrid(props: GridType) {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
+            aria-label="Next page"
             variant="outline"
             size="icon"
             className="h-8 w-8"

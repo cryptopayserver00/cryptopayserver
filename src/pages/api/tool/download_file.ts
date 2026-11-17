@@ -11,7 +11,8 @@ const EXT_CONTENT_TYPE: Record<string, string> = {
 }
 
 /**
- * Serve private document uploads (outside public/). Requires a session.
+ * Serve private document uploads (outside public/).
+ * Requires a session and only serves files under that user's directory.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -24,7 +25,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const session = await requireAuth(req, res)
     if (!session) return
 
-    if (!(await rateLimit(req, res, { scope: 'download-file', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+    if (
+      !(await rateLimit(req, res, {
+        scope: `download-file:${session.userId}`,
+        limit: 60,
+        windowMs: 15 * 60 * 1000,
+      }))
+    ) {
       return
     }
 
@@ -39,7 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Unsupported file type', result: false, data: null })
     }
 
-    const baseDir = path.resolve(process.cwd(), 'storage/uploads/document')
+    const baseDir = path.resolve(
+      process.cwd(),
+      'storage/uploads/document',
+      String(session.userId)
+    )
     const filePath = path.resolve(baseDir, name)
     if (!filePath.startsWith(baseDir + path.sep)) {
       return res.status(400).json({ message: 'Invalid path', result: false, data: null })

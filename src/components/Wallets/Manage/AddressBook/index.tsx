@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Trash2 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -21,6 +31,7 @@ import {
 } from '@/components/ui/select'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { FindChainIdsByChainNames, FindChainNamesByChains } from '@/utils/web3'
 import { CHAINNAMES } from '@/packages/constants/blockchain'
@@ -33,6 +44,7 @@ const ManageAddressBook = () => {
   const [open, setOpen] = useState<boolean>(false)
 
   const [selectId, setSelectId] = useState<number>(0)
+  const [pendingDeleteId, setPendingDeleteId] = useState<number>(0)
   const [name, setName] = useState<string>('')
   const [address, setAddress] = useState<string>('')
   const [chainName, setChainName] = useState<CHAINNAMES>()
@@ -61,7 +73,7 @@ const ManageAddressBook = () => {
   const onClickDelete = async (id: number) => {
     if (!id) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect selected')
+      setSnackMessage('Nothing selected')
       setSnackOpen(true)
       return
     }
@@ -72,13 +84,14 @@ const ManageAddressBook = () => {
       if (response.result) {
         await init(storeId, network)
         handleClose()
+        setPendingDeleteId(0)
         setSnackSeverity('success')
         setSnackMessage('Successful delete')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -87,19 +100,19 @@ const ManageAddressBook = () => {
   const onClickConfirm = async () => {
     if (!name) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect name')
+      setSnackMessage('Please enter a valid name')
       setSnackOpen(true)
       return
     }
     if (!address) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect address')
+      setSnackMessage('Please enter a valid address')
       setSnackOpen(true)
       return
     }
     if (!chainName) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect chainName')
+      setSnackMessage('Please select a network')
       setSnackOpen(true)
       return
     }
@@ -118,7 +131,7 @@ const ManageAddressBook = () => {
           await init(storeId, network)
           handleClose()
           setSnackSeverity('success')
-          setSnackMessage('Successful update')
+          setSnackMessage('Updated successfully')
           setSnackOpen(true)
         } else {
           setSnackSeverity('error')
@@ -139,7 +152,7 @@ const ManageAddressBook = () => {
           await init(storeId, network)
           handleClose()
           setSnackSeverity('success')
-          setSnackMessage('Successful creation!')
+          setSnackMessage('Created successfully!')
           setSnackOpen(true)
         } else {
           setSnackSeverity('error')
@@ -149,7 +162,7 @@ const ManageAddressBook = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -183,7 +196,7 @@ const ManageAddressBook = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -227,12 +240,45 @@ const ManageAddressBook = () => {
               </div>
             </div>
 
-            <Button variant="ghost" size="icon" onClick={() => onClickDelete(item.id)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Delete address book entry"
+              onClick={() => setPendingDeleteId(item.id)}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </Card>
         ))}
       </div>
+
+      <AlertDialog
+        open={pendingDeleteId > 0}
+        onOpenChange={(next) => {
+          if (!next) setPendingDeleteId(0)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete address?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the saved address from your address book. You can add it again later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault()
+                onClickDelete(pendingDeleteId)
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={open} onOpenChange={(o) => (o ? handleOpen() : handleClose())}>
         <DialogContent>

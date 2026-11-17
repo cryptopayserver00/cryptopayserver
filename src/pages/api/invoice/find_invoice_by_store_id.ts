@@ -5,7 +5,7 @@ import { FindTokenByChainIdsAndSymbol } from '@/utils/web3'
 import { WEB3 } from '@/packages/web3'
 import { COINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
-import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
+import { rateLimit, requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -23,6 +23,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       req.query.user_id
     )
     if (!access) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_invoice_by_store_id', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const storeId = access.storeId
 
     const orderId = req.query.order_id
@@ -85,12 +89,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         currency: item.currency,
         amount: item.amount,
         crypto: item.crypto,
-        cryptoAmount: item.crypto_amount.toFixed(
-          FindTokenByChainIdsAndSymbol(
+        cryptoAmount: (() => {
+          const token = FindTokenByChainIdsAndSymbol(
             WEB3.getChainIds(item.network === 1, item.chain_id),
             item.crypto as COINS
-          ).decimals
-        ),
+          )
+          if (!token || item.crypto_amount == null) return null
+          return Number(item.crypto_amount).toFixed(token.decimals)
+        })(),
         rate: item.rate,
         lightningInvoice: item.lightning_invoice,
         lightningUrl: item.lightning_url,

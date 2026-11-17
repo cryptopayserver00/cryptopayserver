@@ -3,7 +3,7 @@ import { CHAINS } from '@/packages/constants/blockchain'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { NOTIFICATION, NOTIFICATIONS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
-import { requireAuthUserId } from '@/lib/auth'
+import { rateLimit, requireAuthUserId } from '@/lib/auth'
 import { sanitizePublicWebsiteUrl } from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -16,6 +16,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.body.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: `create_store:${userId}`, limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const name = req.body.name
     if (!name) {

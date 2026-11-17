@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { DEFAULT_USER_ROLE_PERMISSIONS, USER_ROLE } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
-import { requireAuthUserId, assertStoreOwnedByUser, assertWalletOwnedByUser, forbidden } from '@/lib/auth'
+import { rateLimit, requireAuthUserId, assertStoreOwnedByUser, assertWalletOwnedByUser, forbidden } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -19,6 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.query.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_role', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     if (!(await assertStoreOwnedByUser(storeId, userId))) {
       return forbidden(res)
     }
@@ -70,7 +74,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         return res.status(200).json({ message: 'Cannot create many', result: false, data: null })
       }
 
-      return res.status(200).json({ message: '', result: true, data: null })
+      const seeded = await prisma.roles.findMany({
+        where: {
+          user_id: userId,
+          store_id: storeId,
+          status: 1,
+        },
+      })
+
+      return res.status(200).json({
+        message: '',
+        result: true,
+        data: seeded.map((item) => ({
+          id: item.id,
+          userId: item.user_id,
+          storeId: item.store_id,
+          status: item.status,
+          createdAt: item.created_at,
+          updatedAt: item.updated_at,
+          role: item.role,
+          permissions: item.permissions,
+        })),
+      })
     }
 
     return res.status(200).json({

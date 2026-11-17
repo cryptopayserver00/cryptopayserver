@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireAuthUserId, assertStoreOwnedByUser, forbidden } from '@/lib/auth'
+import { rateLimit, requireAuthUserId, assertStoreOwnedByUser, forbidden } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -18,6 +18,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.query.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_shopify_setting', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     if (!(await assertStoreOwnedByUser(storeId, userId))) {
       return forbidden(res)
     }

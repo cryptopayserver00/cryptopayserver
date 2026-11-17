@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
@@ -100,12 +101,12 @@ function NotificationsTab() {
         setRows(rows)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load notifications.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -124,14 +125,14 @@ function NotificationsTab() {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('update Successful!')
+        setSnackMessage('Updated successfully!')
         setSnackOpen(true)
 
         await init(storeId, network)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

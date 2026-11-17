@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { CHAINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
-import { requireStorePermission, STORE_PERMISSION, storeAccessHasPermission } from '@/lib/auth'
+import { rateLimit, requireStorePermission, STORE_PERMISSION, storeAccessHasPermission } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -20,6 +20,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       req.query.user_id
     )
     if (!access) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_payout_setting', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const { userId, storeId } = access
 
     const network = Number(req.query.network)
@@ -61,7 +65,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         return res.status(200).json({ message: 'Cannot create', result: false, data: null })
       }
 
-      return res.status(200).json({ message: '', result: true, data: null })
+      const seeded = await prisma.payout_settings.findMany({
+        where: {
+          store_id: storeId,
+          user_id: userId,
+          status: 1,
+        },
+      })
+
+      return res.status(200).json({
+        message: '',
+        result: true,
+        data: seeded.map((item) => ({
+          id: item.id,
+          storeId: item.store_id,
+          userId: item.user_id,
+          network: item.network,
+          chainId: item.chain_id,
+          status: item.status,
+          createdAt: item.created_at,
+          updatedAt: item.updated_at,
+          showApprovePayoutProcess: item.show_approve_payout_process,
+          interval: item.interval,
+          feeBlockTarget: item.fee_block_target,
+          threshold: item.threshold,
+        })),
+      })
     }
 
     return res.status(200).json({

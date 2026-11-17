@@ -65,8 +65,8 @@ export class OP {
     try {
       await provider._detectNetwork()
     } catch (err) {
-      console.log(err)
-      return Promise.reject()
+      console.error(err)
+      return Promise.reject(err)
     }
 
     this.providerCache.set(isMainnet, provider)

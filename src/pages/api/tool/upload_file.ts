@@ -23,6 +23,7 @@ const ALLOWED_EXTENSIONS = new Set([
   '.pdf',
   '.txt',
   '.csv',
+  '.css', // store custom branding CSS (public uploads/image/{userId})
 ])
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -39,10 +40,17 @@ function matchesMagic(buf: Buffer, ext: string): boolean {
     )
   }
   if (ext === '.pdf') return buf.length >= 5 && buf.slice(0, 5).toString('ascii') === '%PDF-'
-  if (ext === '.txt' || ext === '.csv') {
+  if (ext === '.txt' || ext === '.csv' || ext === '.css') {
     // Reject obvious HTML/script polyglots in text uploads.
     const head = buf.slice(0, 512).toString('utf8').toLowerCase()
-    if (head.includes('<script') || head.includes('<html') || head.includes('<?php')) return false
+    if (
+      head.includes('<script') ||
+      head.includes('<html') ||
+      head.includes('<?php') ||
+      head.includes('javascript:')
+    ) {
+      return false
+    }
     return true
   }
   return false
@@ -59,7 +67,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const session = await requireAuth(req, res)
     if (!session) return
 
-    if (!(await rateLimit(req, res, { scope: 'upload', limit: 30, windowMs: 15 * 60 * 1000 }))) {
+    if (
+      !(await rateLimit(req, res, {
+        scope: `upload:${session.userId}`,
+        limit: 30,
+        windowMs: 15 * 60 * 1000,
+      }))
+    ) {
       return
     }
 
@@ -83,9 +97,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         return res.status(200).json({ message: 'Invalid file type', result: false, data: null })
     }
 
+    // Scope images/documents under the uploader's userId (ownership checks on use).
     const uploadDir = publicStatic
-      ? path.join(process.cwd(), `public/uploads/${filePath}`)
-      : path.join(process.cwd(), `storage/uploads/${filePath}`)
+      ? path.join(process.cwd(), `public/uploads/${filePath}`, String(session.userId))
+      : path.join(process.cwd(), `storage/uploads/${filePath}`, String(session.userId))
 
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true })
@@ -121,7 +136,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         return res.status(200).json({ message: 'File type not allowed', result: false, data: null })
       }
 
-      if (fileType === FILE_TYPE.Image && !['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext)) {
+      if (
+        fileType === FILE_TYPE.Image &&
+        !['.png', '.jpg', '.jpeg', '.gif', '.webp', '.css'].includes(ext)
+      ) {
         try {
           fs.unlinkSync(item.filepath)
         } catch {
@@ -138,10 +156,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         return res.status(200).json({ message: 'Document type not allowed', result: false, data: null })
       }
 
-      const head = Buffer.alloc(16)
+      const sniffLen = ['.txt', '.csv', '.css'].includes(ext) ? 512 : 16
+      const head = Buffer.alloc(sniffLen)
       const fd = fs.openSync(item.filepath, 'r')
       try {
-        fs.readSync(fd, head, 0, 16, 0)
+        fs.readSync(fd, head, 0, sniffLen, 0)
       } finally {
         fs.closeSync(fd)
       }
@@ -159,9 +178,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       fs.renameSync(item.filepath, dest)
 
       if (publicStatic) {
-        urls.push(`/uploads/${filePath}/${safeName}`)
+        urls.push(`/uploads/${filePath}/${session.userId}/${safeName}`)
       } else {
-        // Auth-gated download — not under public/
+        // Auth + owner-gated download — not under public/
         urls.push(`/api/tool/download_file?name=${encodeURIComponent(safeName)}`)
       }
     }

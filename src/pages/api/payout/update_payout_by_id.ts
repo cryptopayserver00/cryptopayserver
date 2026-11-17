@@ -142,6 +142,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         expectedAmount = Number(owned.crypto_amount)
       }
 
+      if (expectedAmount == null || !Number.isFinite(expectedAmount) || expectedAmount <= 0) {
+        return res.status(200).json({
+          message: 'Crypto amount required to complete payout',
+          result: false,
+          data: null,
+        })
+      }
+
       const verified = await verifyPayoutOnChain({
         chainId: owned.chain_id,
         network: owned.network,

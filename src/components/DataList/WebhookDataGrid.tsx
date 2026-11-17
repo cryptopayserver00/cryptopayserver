@@ -8,9 +8,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -43,6 +54,7 @@ export default function WebhookDataGrid(props: GridType) {
   const [page, setPage] = useState(0)
   const [testingId, setTestingId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<RowType | null>(null)
 
   const { userId } = useUserPresistStore(
     useShallow((state) => ({
@@ -109,7 +121,7 @@ export default function WebhookDataGrid(props: GridType) {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Delete successful!')
+        setSnackMessage('Deleted successfully!')
         setSnackOpen(true)
         await init(storeId, userId)
       } else {
@@ -119,7 +131,7 @@ export default function WebhookDataGrid(props: GridType) {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -150,12 +162,12 @@ export default function WebhookDataGrid(props: GridType) {
         setRows(rows)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -224,7 +236,7 @@ export default function WebhookDataGrid(props: GridType) {
                         size="sm"
                         className="h-8 gap-1.5 text-destructive hover:text-destructive"
                         disabled={deletingId === row.webhookId}
-                        onClick={() => onClickDelete(row)}
+                        onClick={() => setPendingDelete(row)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         {deletingId === row.webhookId ? 'Deleting...' : 'Delete'}
@@ -250,6 +262,7 @@ export default function WebhookDataGrid(props: GridType) {
             Page {page + 1} of {totalPages}
           </span>
           <Button
+            aria-label="Previous page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -259,6 +272,7 @@ export default function WebhookDataGrid(props: GridType) {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
+            aria-label="Next page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -269,6 +283,39 @@ export default function WebhookDataGrid(props: GridType) {
           </Button>
         </div>
       )}
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && deletingId === null) setPendingDelete(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete webhook?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the webhook endpoint
+              {pendingDelete?.payloadUrl ? ` (${pendingDelete.payloadUrl})` : ''}. Delivery will stop
+              immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingId !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deletingId !== null}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault()
+                if (pendingDelete) {
+                  onClickDelete(pendingDelete).finally(() => setPendingDelete(null))
+                }
+              }}
+            >
+              {deletingId !== null ? 'Deleting...' : 'Delete webhook'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

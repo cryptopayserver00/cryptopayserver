@@ -21,6 +21,7 @@ import {
 } from '@/lib/store'
 import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { GetBlockchainAddressUrl } from '@/utils/chain/bch'
 import BitcoinCashSVG from '@/assets/chain/bitcoincash.svg'
@@ -95,12 +96,12 @@ const BitcoinCash = () => {
         setWallet(ws)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -127,12 +128,12 @@ const BitcoinCash = () => {
         )
       } else {
         setSnackSeverity('error')
-        setSnackMessage('The network error occurred. Please try again later.')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -149,13 +150,13 @@ const BitcoinCash = () => {
       })
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Successful update!')
+        setSnackMessage('Updated successfully!')
         setSnackOpen(true)
         await init(userId, storeId, walletId, network)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -202,7 +203,7 @@ const BitcoinCash = () => {
             Private Key
           </Button>
           <Button onClick={onClickRescanAddress}>Rescan address</Button>
-          <Button variant="ghost" size="icon" onClick={() => setIsSettings(!isSettings)}>
+          <Button variant="ghost" size="icon" aria-label="Wallet settings" aria-pressed={isSettings} onClick={() => setIsSettings(!isSettings)}>
             <Settings className="h-5 w-5" />
           </Button>
         </div>
@@ -235,7 +236,7 @@ const BitcoinCash = () => {
 
             <div className="mt-4 space-y-2">
               <Label>
-                Payment invalid if transactions fails to confirm … after invoice expiration
+                Payment invalid if the transaction fails to confirm … after invoice expiration
               </Label>
               <div className="relative w-[220px]">
                 <Input
@@ -262,8 +263,8 @@ const BitcoinCash = () => {
                 <SelectContent>
                   <SelectItem value="0">Is unconfirmed</SelectItem>
                   <SelectItem value="1">Has at least 1 confirmation</SelectItem>
-                  <SelectItem value="2">Has at least 2 confirmation</SelectItem>
-                  <SelectItem value="3">Has at least 6 confirmation</SelectItem>
+                  <SelectItem value="2">Has at least 2 confirmations</SelectItem>
+                  <SelectItem value="3">Has at least 6 confirmations</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -287,7 +288,7 @@ const BitcoinCash = () => {
                     <button
                       onClick={async () => {
                         await navigator.clipboard.writeText(item.address)
-                        setSnackMessage('Successfully copy')
+                        setSnackMessage('Copied successfully')
                         setSnackSeverity('success')
                         setSnackOpen(true)
                       }}

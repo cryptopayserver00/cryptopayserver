@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useSnackPresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { isValidPassword } from '@/utils/verify'
 import { useShallow } from 'zustand/react/shallow'
@@ -61,7 +62,7 @@ const Password = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Update successful!')
+        setSnackMessage('Updated successfully!')
         setSnackOpen(true)
       } else {
         setSnackSeverity('error')
@@ -70,7 +71,7 @@ const Password = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {

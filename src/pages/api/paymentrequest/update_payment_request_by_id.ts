@@ -3,6 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { PAYMENT_REQUEST_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
 import {
+  rateLimit,
   forbidden,
   getStoreAccess,
   requireAuth,
@@ -27,6 +28,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const session = await requireAuth(req, res)
     if (!session) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-update_payment_request_by_id', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const paymentRequestId = Number(req.body.id)
     if (!paymentRequestId) {

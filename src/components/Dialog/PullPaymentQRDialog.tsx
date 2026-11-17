@@ -28,7 +28,7 @@ export default function PullPaymentQRDialog(props: DialogType) {
     try {
       await navigator.clipboard.writeText(props.websiteUrl)
       setCopied(true)
-      setSnackMessage('Successfully copy')
+      setSnackMessage('Copied successfully')
       setSnackSeverity('success')
       setSnackOpen(true)
       setTimeout(() => setCopied(false), 2000)

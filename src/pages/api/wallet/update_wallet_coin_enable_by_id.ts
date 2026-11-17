@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
+import { rateLimit, requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 
 export default async function handle(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -19,6 +19,11 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
       req.body.user_id
     )
     if (!access) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-update_wallet_coin_enable', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
+
     const userId = access.userId
     const storeId = access.storeId
 

@@ -12,7 +12,11 @@ import {
   storeAccessHasPermission,
 } from '@/lib/auth'
 import { readAccessToken, verifyPublicResource } from '@/lib/security/public-token'
-import { sanitizePublicWebsiteUrl } from '@/lib/security/safe-url'
+import {
+  sanitizePublicWebsiteUrl,
+  sanitizeStoreCustomCssUrl,
+  sanitizeStoreLogoUrl,
+} from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -63,6 +67,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       invoice.crypto as COINS
     )
 
+    if (!token || invoice.crypto_amount == null) {
+      return res.status(200).json({ message: 'Unsupported crypto', result: false, data: null })
+    }
+
     const store = await prisma.stores.findFirst({
       where: {
         id: invoice.store_id,
@@ -74,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid store', result: false, data: null })
     }
 
-    const cryptoAmount = invoice.crypto_amount.toFixed(token.decimals)
+    const cryptoAmount = Number(invoice.crypto_amount).toFixed(token.decimals)
 
     const qrCodeText = WEB3.generateQRCodeText(
       invoice.network === 1,
@@ -124,8 +132,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         qrCodeText: qrCodeText,
         storeName: store.name,
         storeBrandColor: store.brand_color,
-        storeLogoUrl: store.logo_url,
+        storeLogoUrl: sanitizeStoreLogoUrl(store.logo_url),
         storeWebsite: sanitizePublicWebsiteUrl(store.website),
+        storeCustomCssUrl: sanitizeStoreCustomCssUrl(store.custom_css_url),
       },
     })
   } catch (e) {

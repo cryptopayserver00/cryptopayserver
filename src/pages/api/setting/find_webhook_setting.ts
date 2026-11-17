@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
+import { rateLimit, requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -19,6 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       req.query.user_id
     )
     if (!access) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_webhook_setting', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const { userId, storeId } = access
 
     const webhook_settings = await prisma.webhook_settings.findMany({

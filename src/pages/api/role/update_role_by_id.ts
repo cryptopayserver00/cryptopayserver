@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { assertStoreOwnedByUser, forbidden, requireAuth } from '@/lib/auth'
+import { rateLimit, assertStoreOwnedByUser, forbidden, requireAuth } from '@/lib/auth'
 import { ROLEPERMISSIONS, USER_ROLE } from '@/packages/constants'
 
 const ALLOWED_PERMISSION_IDS = new Set(ROLEPERMISSIONS.map((p) => p.id))
@@ -26,6 +26,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const session = await requireAuth(req, res)
     if (!session) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-update_role_by_id', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const id = Number(req.body.id)
     if (!id) {

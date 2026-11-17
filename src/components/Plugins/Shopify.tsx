@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -55,7 +56,7 @@ export const Shopify = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -72,7 +73,7 @@ export const Shopify = () => {
       let accountPassword = ''
       if (needsStepUp) {
         const { promptAccountPassword } = await import('@/utils/wallet-password')
-        const entered = promptAccountPassword('Enter your account password to save Shopify credentials')
+        const entered = await promptAccountPassword('Enter your account password to save Shopify credentials')
         if (entered === null) return
         accountPassword = entered
       }
@@ -107,7 +108,7 @@ export const Shopify = () => {
 
         if (response.result) {
           setSnackSeverity('success')
-          setSnackMessage('Successful update!')
+          setSnackMessage('Updated successfully!')
           setSnackOpen(true)
         } else {
           setSnackSeverity('error')
@@ -117,7 +118,7 @@ export const Shopify = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

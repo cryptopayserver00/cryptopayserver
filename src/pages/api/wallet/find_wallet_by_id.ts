@@ -73,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     // Password must be in POST body — never query string (logs / Referer).
-    if (!(await requireWalletPasswordIfSet(res, wallet, req.body.wallet_password))) {
+    if (!(await requireWalletPasswordIfSet(req, res, wallet, req.body.wallet_password))) {
       return
     }
 

@@ -113,7 +113,7 @@ const Dashboard = () => {
           <AlertDescription>
             This is a test network, and the currency has no real value. If you need free coins, you
             can get them&nbsp;
-            <Link href={'/freecoin'} target="_blank">
+            <Link href={'/freecoin'} target="_blank" rel="noreferrer">
               here.
             </Link>
           </AlertDescription>

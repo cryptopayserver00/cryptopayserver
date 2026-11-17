@@ -178,3 +178,33 @@ export function sanitizePublicWebsiteUrl(raw: unknown): string {
   if (url.username || url.password) return ''
   return url.toString()
 }
+
+/**
+ * Only same-origin store branding CSS uploaded under /uploads/image/{userId}/….css.
+ */
+export function sanitizeStoreCustomCssUrl(raw: unknown): string {
+  const value = String(raw || '').trim()
+  if (!value) return ''
+  if (value.includes('..') || value.includes('\\') || value.includes('\0') || value.includes('?') || value.includes('#')) {
+    return ''
+  }
+  if (!/^\/uploads\/image\/\d+\/[A-Za-z0-9._-]+\.css$/i.test(value)) {
+    return ''
+  }
+  return value
+}
+
+/**
+ * Same-origin store logo under /uploads/image/{userId}/… (png/jpg/gif/webp).
+ */
+export function sanitizeStoreLogoUrl(raw: unknown): string {
+  const value = String(raw || '').trim()
+  if (!value) return ''
+  if (value.includes('..') || value.includes('\\') || value.includes('\0') || value.includes('?') || value.includes('#')) {
+    return ''
+  }
+  if (!/^\/uploads\/image\/\d+\/[A-Za-z0-9._-]+\.(png|jpe?g|gif|webp)$/i.test(value)) {
+    return ''
+  }
+  return value
+}

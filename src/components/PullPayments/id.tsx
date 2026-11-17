@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
 import { HelpCircle, Lock, QrCode, Store, AlertTriangle, Info } from 'lucide-react'
@@ -19,6 +20,7 @@ import {
 
 import { useSnackPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import {
   CURRENCY_SYMBOLS,
@@ -74,8 +76,8 @@ const PullPaymentsDetails = () => {
       if (response.result) {
         let paid = 0
         const rows: PayoutRowType[] = (response.data ?? []).map((item: any) => {
-          if (item.payoutStatus === PAYOUT_STATUS.Completed) {
-            paid += parseFloat(item.amount)
+          if (item.payoutStatus !== PAYOUT_STATUS.Cancelled) {
+            paid += parseFloat(item.amount) || 0
           }
 
           return {
@@ -95,12 +97,12 @@ const PullPaymentsDetails = () => {
         setAlreadyClaim(paid)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -129,6 +131,8 @@ const PullPaymentsDetails = () => {
           storeName: response.data.storeName,
           storeLogoUrl: response.data.storeLogoUrl,
           storeWebsite: response.data.storeWebsite,
+          storeBrandColor: response.data.storeBrandColor || '',
+          storeCustomCssUrl: response.data.storeCustomCssUrl || '',
           amount: response.data.amount,
           currency: response.data.currency,
           description: response.data.description,
@@ -147,7 +151,7 @@ const PullPaymentsDetails = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -164,12 +168,12 @@ const PullPaymentsDetails = () => {
   const onClickCoin = async (item: COIN, address: string, amount: number) => {
     if (!item || !address || !amount) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect parameters')
+      setSnackMessage('Missing or invalid parameters')
       setSnackOpen(true)
       return
     }
 
-    const availableClaim = Number(pullPaymentData?.amount) + alreadyClaim
+    const availableClaim = Number(pullPaymentData?.amount) - alreadyClaim
     if (amount > availableClaim) {
       setSnackSeverity('error')
       setSnackMessage(
@@ -190,7 +194,7 @@ const PullPaymentsDetails = () => {
 
       if (!response.result) {
         setSnackSeverity('error')
-        setSnackMessage('The input address is invalid, please try it again!')
+        setSnackMessage('The address is invalid. Please try again.')
         setSnackOpen(true)
         return
       }
@@ -211,7 +215,7 @@ const PullPaymentsDetails = () => {
 
       if (create_payout_resp.result) {
         setSnackSeverity('success')
-        setSnackMessage('Successful creation!')
+        setSnackMessage('Created successfully!')
         setSnackOpen(true)
 
         await init(id)
@@ -220,7 +224,7 @@ const PullPaymentsDetails = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -230,8 +234,21 @@ const PullPaymentsDetails = () => {
     return <div className="py-20 text-center">Loading pull payment...</div>
   }
 
+  const brandColor =
+    pullPaymentData.storeBrandColor && /^#[0-9A-Fa-f]{3,8}$/.test(pullPaymentData.storeBrandColor)
+      ? pullPaymentData.storeBrandColor
+      : undefined
+
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8 space-y-6">
+    <div
+      className="container mx-auto max-w-7xl px-4 py-8 space-y-6"
+      style={brandColor ? { borderTop: `4px solid ${brandColor}` } : undefined}
+    >
+      {pullPaymentData.storeCustomCssUrl ? (
+        <Head>
+          <link rel="stylesheet" href={pullPaymentData.storeCustomCssUrl} />
+        </Head>
+      ) : null}
       {pullPaymentData?.network === 2 && (
         <Alert
           variant="destructive"
@@ -245,6 +262,7 @@ const PullPaymentsDetails = () => {
             <Link
               href="/freecoin"
               target="_blank"
+              rel="noreferrer"
               className="font-semibold underline hover:opacity-80"
             >
               here.
@@ -301,6 +319,7 @@ const PullPaymentsDetails = () => {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Payment help"
               onClick={() => setOpenDrawer(true)}
               className="text-muted-foreground hover:text-foreground"
             >
@@ -389,6 +408,7 @@ const PullPaymentsDetails = () => {
                                 row.tx
                               )}
                               target="_blank"
+                              rel="noreferrer"
                               className="text-xs text-primary hover:underline font-mono"
                             >
                               {OmitMiddleString(row.tx)}
@@ -423,11 +443,21 @@ const PullPaymentsDetails = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Link href="#" className="hover:underline hover:text-foreground">
+              <Link
+                href="https://docs.cryptopayserver.online"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:underline hover:text-foreground"
+              >
                 Terms
               </Link>
               <span>·</span>
-              <Link href="#" className="hover:underline hover:text-foreground">
+              <Link
+                href="https://docs.cryptopayserver.online"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:underline hover:text-foreground"
+              >
                 Privacy
               </Link>
             </div>
@@ -491,7 +521,7 @@ const PullPaymentsDetails = () => {
                     variant="outline"
                     onClick={async () => {
                       await navigator.clipboard.writeText(websiteUrl)
-                      setSnackMessage('Successfully copy')
+                      setSnackMessage('Copied successfully')
                       setSnackSeverity('success')
                       setSnackOpen(true)
                     }}
@@ -516,7 +546,7 @@ const PullPaymentsDetails = () => {
               <PullPaymentSelectChainAndCryptoCard
                 storeId={Number(pullPaymentData?.storeId)}
                 network={Number(pullPaymentData?.network)}
-                amount={Number(pullPaymentData?.amount)}
+                amount={Math.max(0, Number(pullPaymentData?.amount) - alreadyClaim)}
                 currency={String(pullPaymentData?.currency)}
                 onClickCoin={onClickCoin}
               />

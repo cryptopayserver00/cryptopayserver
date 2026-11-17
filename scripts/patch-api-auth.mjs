@@ -11,7 +11,6 @@ const skip = new Set([
   'logout.ts',
   'create_user.ts',
   'send_reset_email.ts',
-  'find_user_by_email.ts',
   // public checkout / cron (middleware-gated separately)
   'create_invoice_from_external.ts',
   'create_payout.ts',

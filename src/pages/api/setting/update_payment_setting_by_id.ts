@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
 import {
+  rateLimit,
   forbidden,
   getStoreAccess,
   requireAuth,
@@ -19,6 +20,10 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
 
     const session = await requireAuth(req, res)
     if (!session) return
+
+    if (!(await rateLimit(req, res, { scope: `update_payment_setting_by_id:${session.userId}`, limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const id = Number(req.body.id)
     if (!id) {
@@ -39,10 +44,15 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.payment_expire) updateData.payment_expire = Number(req.body.payment_expire)
-    if (req.body.confirm_block) updateData.confirm_block = Number(req.body.confirm_block)
-    if (req.body.show_recommended_fee)
+    if (req.body.payment_expire !== undefined && req.body.payment_expire !== null && req.body.payment_expire !== '') {
+      updateData.payment_expire = Number(req.body.payment_expire)
+    }
+    if (req.body.confirm_block !== undefined && req.body.confirm_block !== null && req.body.confirm_block !== '') {
+      updateData.confirm_block = Number(req.body.confirm_block)
+    }
+    if (req.body.show_recommended_fee !== undefined && req.body.show_recommended_fee !== null && req.body.show_recommended_fee !== '') {
       updateData.show_recommended_fee = Number(req.body.show_recommended_fee)
+    }
     if (req.body.current_used_address_id) {
       const addressId = Number(req.body.current_used_address_id)
       if (!addressId) {

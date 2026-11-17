@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { EMAIL } from '@/utils/email'
 import { prisma } from '@/lib/prisma'
-import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
+import { rateLimit, requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 import { decryptAndUpgrade } from '@/lib/crypto/secrets'
 import { assertSafeHostname, isAllowedSmtpPort } from '@/lib/security/safe-url'
 
@@ -23,6 +23,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       req.body.user_id
     )
     if (!access) return
+
+    if (!(await rateLimit(req, res, { scope: `test_email_setting:${access.userId}`, limit: 10, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const { userId, storeId } = access
 
     const email = req.body.email

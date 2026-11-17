@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Archive, ExternalLink } from 'lucide-react'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Table,
   TableBody,
   TableCell,
@@ -13,6 +23,7 @@ import { Button } from '@/components/ui/button'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { CURRENCY_SYMBOLS, PAYMENT_REQUEST_STATUS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -41,6 +52,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
   const [rows, setRows] = useState<RowType[]>([])
   const [page, setPage] = useState(0)
   const [archivingId, setArchivingId] = useState<number | null>(null)
+  const [pendingArchive, setPendingArchive] = useState<RowType | null>(null)
 
   const { network } = useUserPresistStore(
     useShallow((state) => ({
@@ -76,7 +88,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Update successful!')
+        setSnackMessage('Updated successfully!')
         setSnackOpen(true)
         await init(storeId, network, props.paymentRequestStatus, props.paymentRequestId)
       } else {
@@ -86,7 +98,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -130,12 +142,12 @@ export default function PaymentRequestDataGrid(props: GridType) {
         setRows(rows)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -213,7 +225,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
                           disabled={archivingId === row.itemId}
                           onClick={(e: any) => {
                             e.stopPropagation()
-                            onClickArchive(row)
+                            setPendingArchive(row)
                           }}
                         >
                           <Archive className="h-3.5 w-3.5" />
@@ -241,6 +253,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
             Page {page + 1} of {totalPages}
           </span>
           <Button
+            aria-label="Previous page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -250,6 +263,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
+            aria-label="Next page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -260,6 +274,36 @@ export default function PaymentRequestDataGrid(props: GridType) {
           </Button>
         </div>
       )}
+
+      <AlertDialog
+        open={pendingArchive !== null}
+        onOpenChange={(open) => {
+          if (!open && archivingId === null) setPendingArchive(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive payment request?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Archived payment requests stop accepting new payments. You can still view history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archivingId !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={archivingId !== null}
+              onClick={(e) => {
+                e.preventDefault()
+                if (pendingArchive) {
+                  onClickArchive(pendingArchive).finally(() => setPendingArchive(null))
+                }
+              }}
+            >
+              {archivingId !== null ? 'Archiving...' : 'Archive'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

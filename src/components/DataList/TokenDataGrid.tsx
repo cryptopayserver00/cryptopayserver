@@ -15,6 +15,7 @@ import { useSnackPresistStore } from '@/lib/store'
 import { COINGECKO_IDS, CURRENCY, CURRENCY_SYMBOLS } from '@/packages/constants'
 import { COINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
 import { FormatNumberToEnglish } from '@/utils/strings'
@@ -95,7 +96,7 @@ export default function TokenDataGrid(props: GridType) {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage(t('The network error occurred. Please try again later.'))
+      setSnackMessage(t(getApiErrorMessage(e)))
       setSnackOpen(true)
       console.error(e)
     }
@@ -160,7 +161,7 @@ export default function TokenDataGrid(props: GridType) {
                             : 'text-red-600 dark:text-red-400'
                         )}
                       >
-                        {`${parseFloat(row.twentyFourHChange.toString()).toFixed(2)} %`}
+                        {`${Number(row.twentyFourHChange ?? 0).toFixed(2)} %`}
                       </span>
                     </TableCell>
                     <TableCell>{row.marketCapStr}</TableCell>
@@ -185,6 +186,7 @@ export default function TokenDataGrid(props: GridType) {
             Page {page + 1} of {totalPages}
           </span>
           <Button
+            aria-label="Previous page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -194,6 +196,7 @@ export default function TokenDataGrid(props: GridType) {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
+            aria-label="Next page"
             variant="outline"
             size="icon"
             className="h-8 w-8"

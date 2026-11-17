@@ -104,15 +104,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (!wallet) {
       return forbidden(res)
     }
-    if (!(await requireWalletPasswordIfSet(res, wallet, req.body.wallet_password))) {
+    if (!(await requireWalletPasswordIfSet(req, res, wallet, req.body.wallet_password))) {
       return
     }
 
+    const token = FindTokenByChainIdsAndSymbol(
+      WEB3.getChainIds(address.network === 1, address.chain_id),
+      coin as COINS
+    )
+    if (!token) {
+      return res.status(200).json({ message: 'Invalid coin', result: false, data: null })
+    }
+
     const gas = await WEB3.estimateGasFee(address.network === 1, {
-      coin: FindTokenByChainIdsAndSymbol(
-        WEB3.getChainIds(address.network === 1, address.chain_id),
-        coin as COINS
-      ),
+      coin: token,
       value: String(value),
       privateKey: decryptSecret(address.private_key),
       from: address.address,

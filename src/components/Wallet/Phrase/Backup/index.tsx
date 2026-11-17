@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useSnackPresistStore } from '@/lib/store/snack'
 import { useStorePresistStore, useWalletPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -55,12 +56,17 @@ const PhraseBackup = () => {
           return
         }
 
-        const accountPassword = window.prompt('Enter your account password to view the mnemonic')
+        const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
+          '@/utils/wallet-password'
+        )
+        const accountPassword = await promptAccountPassword(
+          'Enter your account password to view the mnemonic'
+        )
         if (!accountPassword) return
 
         let walletPassword = ''
         if (meta.data?.hasPassword) {
-          const entered = window.prompt('Enter your wallet password to view the mnemonic')
+          const entered = await promptWalletPasswordIfNeeded(walletId)
           if (!entered) return
           walletPassword = entered
         }
@@ -82,7 +88,7 @@ const PhraseBackup = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

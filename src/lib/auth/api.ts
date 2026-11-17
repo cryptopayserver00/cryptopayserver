@@ -1,8 +1,9 @@
-import { timingSafeEqual } from 'crypto'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '@/lib/prisma'
-import { CRON_HEADER_NAME } from './constants'
 import { assertSameOrigin } from './csrf'
+import { requireCronSecret } from './cron'
+
+export { requireCronSecret }
 import {
   getStoreAccess,
   STORE_PERMISSION,
@@ -215,29 +216,3 @@ export async function requireOwnedWallet(
   return { userId, walletId }
 }
 
-export function requireCronSecret(
-  req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
-): boolean {
-  const expected = process.env.CRON_SECRET
-  if (!expected || expected.length < 16) {
-    console.error('CRON_SECRET is not configured')
-    unauthorized(res, 'Cron not configured')
-    return false
-  }
-
-  const header = req.headers[CRON_HEADER_NAME]
-  const value = Array.isArray(header) ? header[0] : header
-  if (!value || typeof value !== 'string') {
-    unauthorized(res, 'Invalid cron secret')
-    return false
-  }
-
-  const a = Buffer.from(value)
-  const b = Buffer.from(expected)
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    unauthorized(res, 'Invalid cron secret')
-    return false
-  }
-  return true
-}

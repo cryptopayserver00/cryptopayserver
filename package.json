@@ -15,9 +15,15 @@
     "lint": "eslint . --max-warnings 2000",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:watch": "vitest",
+    "preflight": "node --env-file=.env scripts/validate-env.mjs && vitest run",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "secrets:reencrypt": "node --env-file=.env scripts/reencrypt-secrets.mjs",
+    "secrets:reencrypt:apply": "node --env-file=.env scripts/reencrypt-secrets.mjs --apply",
+    "secrets:audit-api-keys": "node --env-file=.env scripts/audit-api-keys.mjs",
+    "validate:env": "node --env-file=.env scripts/validate-env.mjs"
   },
   "dependencies": {
     "@icons-pack/react-simple-icons": "^13.13.0",

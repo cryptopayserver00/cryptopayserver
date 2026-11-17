@@ -46,6 +46,7 @@ const HomeFooter = () => {
                 key={label}
                 href={href}
                 target="_blank"
+                rel="noreferrer"
                 className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline"
               >
                 <IconComponent className="h-4 w-4" />

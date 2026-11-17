@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/table'
 import { useSnackPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -49,12 +50,12 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
           setRows(rows)
         } else {
           setSnackSeverity('error')
-          setSnackMessage('Can not find the data on site!')
+          setSnackMessage('Could not load data.')
           setSnackOpen(true)
         }
       } catch (e) {
         setSnackSeverity('error')
-        setSnackMessage('The network error occurred. Please try again later.')
+        setSnackMessage(getApiErrorMessage(e))
         setSnackOpen(true)
         console.error(e)
       }

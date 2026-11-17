@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import {
   useSnackPresistStore,
@@ -136,7 +137,7 @@ const UtxoSendPage = ({
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -159,7 +160,7 @@ const UtxoSendPage = ({
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -209,7 +210,7 @@ const UtxoSendPage = ({
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -230,7 +231,7 @@ const UtxoSendPage = ({
       return response.result
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
       return false
@@ -262,7 +263,7 @@ const UtxoSendPage = ({
     }
     if (!checkFeeRate()) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect fee rate')
+      setSnackMessage('Please enter a valid fee rate')
       setSnackOpen(true)
       return
     }
@@ -295,7 +296,7 @@ const UtxoSendPage = ({
       const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
         '@/utils/wallet-password'
       )
-      const accountPassword = promptAccountPassword('Enter your account password to send')
+      const accountPassword = await promptAccountPassword('Enter your account password to send')
       if (accountPassword === null) return
       const walletPassword = await promptWalletPasswordIfNeeded(walletId)
       if (walletPassword === null) return
@@ -326,21 +327,21 @@ const UtxoSendPage = ({
 
           if (!update_payout_resp.result) {
             setSnackSeverity('error')
-            setSnackMessage('Can not update the status of payout!')
+            setSnackMessage('Could not update payout status.')
             setSnackOpen(true)
             return
           }
         }
 
         setSnackSeverity('success')
-        setSnackMessage('Successful creation!')
+        setSnackMessage('Created successfully!')
         setSnackOpen(true)
         setBlockExplorerLink(getBlockchainTxUrl(network === 'mainnet', response.data.hash))
         setPage(3)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -541,6 +542,7 @@ const UtxoSendPage = ({
             <Link
               href={blockExplorerLink}
               target="_blank"
+              rel="noreferrer"
               className="mt-2 inline-flex items-center justify-center gap-1.5 text-primary hover:underline"
             >
               <Eye className="h-4 w-4" /> View on Block Explorer

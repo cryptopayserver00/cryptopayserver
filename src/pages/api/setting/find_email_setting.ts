@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
+import { rateLimit, requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -15,10 +15,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       req,
       res,
       req.query.store_id,
-      STORE_PERMISSION.ModifyStores,
+      STORE_PERMISSION.ViewStores,
       req.query.user_id
     )
     if (!access) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_email_setting', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const { userId, storeId } = access
 
     const email_setting = await prisma.email_settings.findFirst({
@@ -49,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         updatedAt: email_setting.updated_at,
         smtpServer: email_setting.smtp_server,
         port: email_setting.port,
-        sender_email: email_setting.sender_email,
+        senderEmail: email_setting.sender_email,
         login: email_setting.login,
         password: '',
         hasPassword: Boolean(email_setting.password),

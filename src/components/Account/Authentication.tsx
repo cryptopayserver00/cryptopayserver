@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator'
 import { useSnackPresistStore, useUserPresistStore } from '@/lib/store'
 import { GenerateAuthenticatorSecret, VerifyAuthenticator } from '@/utils/totp'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -60,7 +61,7 @@ const Authentication = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -72,10 +73,20 @@ const Authentication = () => {
 
   const onClickResetApp = async () => {
     try {
-      const accountPassword = window.prompt('Enter your account password to reset 2FA')
-      if (!accountPassword) return
-      const totpCode = window.prompt('Enter your current authenticator code')
-      if (!totpCode) return
+      const { requestSecretPrompt } = await import('@/lib/store/secret-prompt')
+      const secrets = await requestSecretPrompt({
+        title: 'Reset two-factor authentication',
+        description: 'Confirm with your account password and current authenticator code.',
+        fields: [
+          { id: 'password', label: 'Account password', type: 'password' },
+          { id: 'totp', label: 'Authenticator code', type: 'text', autoComplete: 'one-time-code' },
+        ],
+        confirmLabel: 'Reset 2FA',
+      })
+      if (!secrets) return
+      const accountPassword = secrets.password
+      const totpCode = secrets.totp
+      if (!accountPassword || !totpCode) return
 
       setIsResetting(true)
       const response: any = await axios.put(Http.update_user_by_userid, {
@@ -98,7 +109,7 @@ const Authentication = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -111,7 +122,25 @@ const Authentication = () => {
 
     if (VerifyAuthenticator(code, text)) {
       try {
-        const accountPassword = window.prompt('Enter your account password to enable 2FA')
+        const { requestSecretPrompt } = await import('@/lib/store/secret-prompt')
+        const secrets = await requestSecretPrompt({
+          title: isSetup ? 'Replace authenticator' : 'Enable two-factor authentication',
+          description: 'Enter your account password to save this authenticator.',
+          fields: isSetup
+            ? [
+                { id: 'password', label: 'Account password', type: 'password' },
+                {
+                  id: 'totp',
+                  label: 'Current authenticator code',
+                  type: 'text',
+                  autoComplete: 'one-time-code',
+                },
+              ]
+            : [{ id: 'password', label: 'Account password', type: 'password' }],
+          confirmLabel: 'Save',
+        })
+        if (!secrets) return
+        const accountPassword = secrets.password
         if (!accountPassword) return
 
         setIsVerifying(true)
@@ -123,7 +152,7 @@ const Authentication = () => {
         }
         // Replacing an existing authenticator requires the old TOTP as well.
         if (isSetup) {
-          const totpCode = window.prompt('Enter your current authenticator code')
+          const totpCode = secrets.totp
           if (!totpCode) {
             setIsVerifying(false)
             return
@@ -135,7 +164,7 @@ const Authentication = () => {
 
         if (response.result) {
           setSnackSeverity('success')
-          setSnackMessage('Save successful!')
+          setSnackMessage('Saved successfully!')
           setSnackOpen(true)
           await init(userId)
         } else {
@@ -145,7 +174,7 @@ const Authentication = () => {
         }
       } catch (e) {
         setSnackSeverity('error')
-        setSnackMessage('The network error occurred. Please try again later.')
+        setSnackMessage(getApiErrorMessage(e))
         setSnackOpen(true)
         console.error(e)
       } finally {
@@ -167,7 +196,7 @@ const Authentication = () => {
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
-      setSnackMessage('Successfully copied')
+      setSnackMessage('Copied successfully')
       setSnackSeverity('success')
       setSnackOpen(true)
       setTimeout(() => setCopied(false), 2000)
@@ -309,6 +338,7 @@ const Authentication = () => {
                     <Link
                       href="https://play.google.com/store/apps/details?id=com.authy.authy"
                       target="_blank"
+                      rel="noreferrer"
                       className="text-primary underline-offset-4 hover:underline"
                     >
                       Android
@@ -317,6 +347,7 @@ const Authentication = () => {
                     <Link
                       href="https://apps.apple.com/us/app/authy/id494168017"
                       target="_blank"
+                      rel="noreferrer"
                       className="text-primary underline-offset-4 hover:underline"
                     >
                       iOS
@@ -327,6 +358,7 @@ const Authentication = () => {
                     <Link
                       href="https://play.google.com/store/apps/details?id=com.azure.authenticator"
                       target="_blank"
+                      rel="noreferrer"
                       className="text-primary underline-offset-4 hover:underline"
                     >
                       Android
@@ -335,6 +367,7 @@ const Authentication = () => {
                     <Link
                       href="https://apps.apple.com/us/app/microsoft-authenticator/id983156458"
                       target="_blank"
+                      rel="noreferrer"
                       className="text-primary underline-offset-4 hover:underline"
                     >
                       iOS
@@ -345,6 +378,7 @@ const Authentication = () => {
                     <Link
                       href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en"
                       target="_blank"
+                      rel="noreferrer"
                       className="text-primary underline-offset-4 hover:underline"
                     >
                       Android
@@ -353,6 +387,7 @@ const Authentication = () => {
                     <Link
                       href="https://apps.apple.com/us/app/google-authenticator/id388497605"
                       target="_blank"
+                      rel="noreferrer"
                       className="text-primary underline-offset-4 hover:underline"
                     >
                       iOS

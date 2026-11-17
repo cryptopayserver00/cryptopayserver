@@ -178,11 +178,13 @@ Copy [`.env.example`](./.env.example) to `.env` (local) or `.env.production` (Do
 | `DATABASE_URL` | Prisma MySQL URL |
 | `APP_BASE_URL` | Public base URL (password-reset links; never derived from `Host`) |
 | `DISABLE_PUBLIC_REGISTRATION` | Set `true` to close public signup |
+| `NEXT_PUBLIC_DISABLE_PUBLIC_REGISTRATION` | Optional UI mirror to hide Register links when signup is closed |
 | `CORS_ORIGIN` | Optional comma-separated allowed origins |
 | `TRUST_PROXY` | `true` only behind a trusted reverse proxy |
-| `REDIS_URL` | Optional Redis for multi-instance rate limiting (empty = in-memory) |
+| `REDIS_URL` | Optional Redis for multi-instance rate limiting (empty = in-memory). If set but unreachable, `/api/health` stays 200 with `status: degraded`. Compose: `docker compose --profile redis up` |
 | `FORCE_SECURE_COOKIES` | Force `Secure` cookies outside production (also auto when `APP_BASE_URL` is https) |
-| `ALLOW_LEGACY_PLAINTEXT_API_KEYS` | Temporary migration: accept plaintext API keys in DB and re-hash on use |
+| `USE_HOST_PREFIX_COOKIES` | Optional `__Host-` session cookie names (HTTPS apex only; requires re-login) |
+| `ALLOW_LEGACY_PLAINTEXT_API_KEYS` | Non-prod migration only: accept plaintext API keys and re-hash on use (ignored in production) |
 | `ENABLE_SCHEDULE_WORKER` / `SCHEDULE_BASE_URL` | Worker on/off and job base URL |
 | `SMTP_*` | Optional system SMTP for password reset |
 | `BLOCKSCAN_BASE_URL` | Blockchain scan / faucet API |
@@ -198,6 +200,9 @@ Never commit real `.env` / `.env.production` files (they are gitignored). Keep `
 - Put TLS and rate limiting on a reverse proxy (Caddy / nginx) in production
 - Set strong `SESSION_SECRET`, `ENCRYPTION_KEY`, and `CRON_SECRET` before going live
 - Prefer disabling public registration after the first admin account exists
+- After upgrading, run `yarn secrets:reencrypt` (dry-run) then `yarn secrets:reencrypt:apply` to encrypt leftover plaintext secrets / hash legacy API keys
+- Run `yarn secrets:audit-api-keys` before production to ensure no plaintext API keys remain
+- Run `yarn validate:env` (and again with `NODE_ENV=production`) before going live — see [SECURITY.md](./SECURITY.md)
 
 ## Contributing
 

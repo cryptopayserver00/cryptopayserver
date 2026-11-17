@@ -94,8 +94,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         html
       )
     } else {
-      // Dev / unconfigured SMTP: log that a reset was issued — never log the raw token URL.
-      console.info('[password-reset] email queued for', user.email, '(SMTP not configured)')
+      // Dev / unconfigured SMTP: never log email or reset URL (PII / secret).
+      console.info('[password-reset] SMTP not configured; reset issued')
     }
 
     return res.status(200).json(success)

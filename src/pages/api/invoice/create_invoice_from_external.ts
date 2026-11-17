@@ -98,7 +98,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
     }
     const allowCustom = paymentRequest.show_allow_custom_amount === 1
-    if (!allowCustom && amount !== paymentRequest.amount) {
+    const expectedAmount = Number(paymentRequest.amount)
+    if (
+      !allowCustom &&
+      (!Number.isFinite(expectedAmount) ||
+        Math.abs(amount - expectedAmount) > Math.max(1e-8, Math.abs(expectedAmount) * 1e-9))
+    ) {
       return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
     }
 

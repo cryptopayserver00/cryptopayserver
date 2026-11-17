@@ -28,9 +28,21 @@ axios.interceptors.response.use(
     return Promise.reject(response)
   },
   (error) => {
-    if (error.response && error.response.status === 401) {
+    const status = error.response?.status
+    if (status === 401) {
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
         window.location.href = '/login'
+      }
+    }
+    // Normalize rate-limit / CSRF failures so callers can show a stable message.
+    if (status === 429 || status === 403) {
+      const data = error.response?.data
+      if (data && typeof data === 'object' && !('result' in data)) {
+        error.response.data = {
+          message: data.message || (status === 429 ? 'Too many requests' : 'Forbidden'),
+          result: false,
+          data: null,
+        }
       }
     }
     return Promise.reject(error)

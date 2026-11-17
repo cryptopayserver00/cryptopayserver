@@ -57,7 +57,7 @@ const ManagePrivateKey = () => {
       const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
         '@/utils/wallet-password'
       )
-      const accountPassword = promptAccountPassword('Enter your account password to export keys')
+      const accountPassword = await promptAccountPassword('Enter your account password to export keys')
       if (accountPassword === null) return
       const walletPassword = await promptWalletPasswordIfNeeded(walletId)
       if (walletPassword === null) return
@@ -81,7 +81,7 @@ const ManagePrivateKey = () => {
 
         setRows(rows)
       } else {
-        showSnack('error', response.message || 'Can not find the data on site!')
+        showSnack('error', response.message || 'Could not load data.')
       }
 
       setCurrentItem(item)
@@ -145,6 +145,7 @@ const ManagePrivateKey = () => {
                         item.address
                       )}
                       target="_blank"
+                      rel="noreferrer"
                       className="break-all text-sm text-primary hover:underline"
                     >
                       {item.address}
@@ -199,7 +200,7 @@ const ManagePrivateKey = () => {
                         className="bg-green-600 hover:bg-green-700"
                         onClick={async () => {
                           await navigator.clipboard.writeText(item.privateKey)
-                          showSnack('success', 'Successfully copy')
+                          showSnack('success', 'Copied successfully')
                         }}
                       >
                         <Copy className="mr-1.5 h-3.5 w-3.5" />

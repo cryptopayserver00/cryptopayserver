@@ -14,6 +14,7 @@ import {
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { LANGUAGES } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -64,7 +65,7 @@ export const Checkout = () => {
 
       if (response.result) {
         setId(response.data.id)
-        setShowPaymentConfetti(response.data.show_paymentConfetti === 1)
+        setShowPaymentConfetti(response.data.showPaymentConfetti === 1)
         setShowSound(response.data.showSound === 1)
         setShowPayInWalletButton(response.data.showPayInWalletButton === 1)
         setCustomHtmlTitle(response.data.customHtmlTitle || '')
@@ -72,7 +73,7 @@ export const Checkout = () => {
         setShowDetectLanguage(response.data.showDetectLanguage === 1)
         setSupportUrl(response.data.supportUrl || '')
         setShowPaymentMethod(response.data.showPaymentMethod === 1)
-        setShowRedirectUrl(response.data.show_redirectUrl === 1)
+        setShowRedirectUrl(response.data.showRedirectUrl === 1)
         setShowPublicReceiptPage(response.data.showPublicReceiptPage === 1)
         setShowPaymentList(response.data.showPaymentList === 1)
         setShowQrcodeReceipt(response.data.showQrcodeReceipt === 1)
@@ -80,7 +81,7 @@ export const Checkout = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -111,18 +112,18 @@ export const Checkout = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Save successful!')
+        setSnackMessage('Saved successfully!')
         setSnackOpen(true)
 
         await init(storeId, userId)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('The update failed, please try again later.')
+        setSnackMessage('Update failed. Please try again later.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

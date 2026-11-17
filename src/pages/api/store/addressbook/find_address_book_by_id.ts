@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '@/pages/api'
 import { prisma } from '@/lib/prisma'
 import {
+  rateLimit,
   forbidden,
   getStoreAccess,
   requireAuthUserId,
@@ -19,6 +20,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.query.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_address_book_by_id', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const id = Number(req.query.id)
     if (!id) {

@@ -19,12 +19,15 @@ export const AccessToken = () => {
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <h3 className="text-xl font-semibold tracking-tight text-foreground">Access Tokens</h3>
-          <Button size="lg">Create Token</Button>
+          <Button size="lg" asChild>
+            <Link href="/account?tab=apikeys">Manage in Account</Link>
+          </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Authorize a public key to access Bitpay compatible Invoice API.
+          Store API keys (X-API-Key) are managed under Account → API Keys. BitPay-compatible access
+          tokens are not available in this beta build yet.
         </p>
         <p className="text-sm text-muted-foreground font-medium">No access tokens yet.</p>
       </div>
@@ -32,11 +35,11 @@ export const AccessToken = () => {
       <div className="space-y-4">
         <h3 className="text-xl font-semibold tracking-tight text-foreground">Legacy API Keys</h3>
         <p className="text-sm text-muted-foreground">
-          Alternatively, you can use the invoice API by including the following HTTP Header in your
-          requests:
+          Legacy Basic-auth invoice keys are deprecated. Use hashed store API keys from Account →
+          API Keys instead:
         </p>
         <p className="text-sm font-bold font-mono bg-muted p-2.5 rounded-md inline-block">
-          Authorization: Basic *API Key*
+          X-API-Key: *API Key*
         </p>
 
         <div className="space-y-2 max-w-xl pt-2">
@@ -45,10 +48,10 @@ export const AccessToken = () => {
             <Input
               id="legacy-api-key"
               disabled
-              placeholder="Generate key to view..."
+              placeholder="Use Account → API Keys"
               className="font-mono"
             />
-            <Button size="lg" className="shrink-0">
+            <Button size="lg" className="shrink-0" disabled>
               Generate
             </Button>
           </div>

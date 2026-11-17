@@ -3,7 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { WEB3 } from '@/packages/web3'
 import { BLOCKCHAINNAMES } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
-import { requireOwnedStore } from '@/lib/auth'
+import { rateLimit, requireOwnedStore } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -15,6 +15,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const owned = await requireOwnedStore(req, res, req.query.store_id, req.query.user_id)
     if (!owned) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_asset_balance', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
+
     const storeId = owned.storeId
 
     const chainId = Number(req.query.chain_id)

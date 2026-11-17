@@ -4,6 +4,16 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Copy, ExternalLink, Archive, CreditCard } from 'lucide-react'
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -11,6 +21,7 @@ import { Badge } from '@/components/ui/badge'
 import { useSnackPresistStore, useStorePresistStore } from '@/lib/store'
 import { CURRENCY_SYMBOLS, ORDER_STATUS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { InvoiceEventDataTab } from '../../DataList/InvoiceEventDataTab'
 import {
@@ -28,6 +39,8 @@ const PaymentInvoiceDetails = () => {
   const router = useRouter()
   const { id } = router.query
   const [order, setOrder] = useState<OrderType>()
+  const [confirmArchive, setConfirmArchive] = useState(false)
+  const [archiving, setArchiving] = useState(false)
 
   const { storeName } = useStorePresistStore(
     useShallow((state) => ({
@@ -53,12 +66,12 @@ const PaymentInvoiceDetails = () => {
         setOrder(response.data)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the invoice!')
+        setSnackMessage('Could not find the invoice.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -74,6 +87,7 @@ const PaymentInvoiceDetails = () => {
 
   const onClickArchive = async () => {
     try {
+      setArchiving(true)
       const response: any = await axios.put(Http.update_invoice_order_status_by_order_id, {
         order_id: order.orderId,
         order_status: ORDER_STATUS.Invalid,
@@ -81,27 +95,30 @@ const PaymentInvoiceDetails = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Successful update!')
+        setSnackMessage('Updated successfully!')
         setSnackOpen(true)
+        setConfirmArchive(false)
 
         window.location.reload()
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Something wrong, please try it again')
+        setSnackMessage('Something went wrong. Please try again.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
+    } finally {
+      setArchiving(false)
     }
   }
 
   const copyToClipboard = async (text: string) => {
     if (!text) return
     await navigator.clipboard.writeText(text)
-    setSnackMessage('Successfully copied to clipboard')
+    setSnackMessage('Copied successfully')
     setSnackSeverity('success')
     setSnackOpen(true)
   }
@@ -157,7 +174,7 @@ const PaymentInvoiceDetails = () => {
             <Button
               variant="outline"
               className="text-destructive border-destructive/30 hover:bg-destructive/10"
-              onClick={onClickArchive}
+              onClick={() => setConfirmArchive(true)}
             >
               <Archive className="w-4 h-4 mr-2" />
               Archive
@@ -165,6 +182,36 @@ const PaymentInvoiceDetails = () => {
           )}
         </div>
       </div>
+
+      <AlertDialog
+        open={confirmArchive}
+        onOpenChange={(open) => {
+          if (!archiving) setConfirmArchive(open)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive invoice?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This marks the invoice as invalid and stops checkout. This cannot be undone from the
+              UI.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archiving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={archiving}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault()
+                onClickArchive()
+              }}
+            >
+              {archiving ? 'Archiving...' : 'Archive invoice'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -354,6 +401,7 @@ const PaymentInvoiceDetails = () => {
                       value={
                         <Link
                           target="_blank"
+                          rel="noreferrer"
                           href={GetBlockchainTxUrlByChainIds(
                             order.network === 1,
                             order.chainId,
@@ -373,6 +421,7 @@ const PaymentInvoiceDetails = () => {
                       value={
                         <Link
                           target="_blank"
+                          rel="noreferrer"
                           href={GetBlockchainAddressUrlByChainIds(
                             order.network === 1,
                             order.chainId,
@@ -392,6 +441,7 @@ const PaymentInvoiceDetails = () => {
                       value={
                         <Link
                           target="_blank"
+                          rel="noreferrer"
                           href={GetBlockchainAddressUrlByChainIds(
                             order.network === 1,
                             order.chainId,

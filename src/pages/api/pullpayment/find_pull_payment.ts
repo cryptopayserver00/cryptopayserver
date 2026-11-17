@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { PAYOUT_SOURCE_TYPE, PAYOUT_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
-import { requireOwnedStore } from '@/lib/auth'
+import { rateLimit, requireOwnedStore } from '@/lib/auth'
 import { signPublicResource } from '@/lib/security/public-token'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -15,6 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const owned = await requireOwnedStore(req, res, req.query.store_id, req.query.user_id)
     if (!owned) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_pull_payment', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const storeId = owned.storeId
 
     const network = Number(req.query.network)

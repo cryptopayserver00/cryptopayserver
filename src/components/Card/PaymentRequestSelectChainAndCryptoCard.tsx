@@ -12,6 +12,7 @@ import { COINGECKO_IDS } from '@/packages/constants'
 import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from '@/packages/constants/blockchain'
 import { BigDiv } from '@/utils/number'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import CreateInvoiceDialog from '@/components/Dialog/CreateInvoiceDialog'
 import { useShallow } from 'zustand/react/shallow'
@@ -80,7 +81,7 @@ export default function PaymentRequestSelectChainAndCryptoCard(props: SelectType
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -110,14 +111,20 @@ export default function PaymentRequestSelectChainAndCryptoCard(props: SelectType
       })
 
       if (response.result) {
-        const rate = response.data[ids][currency.toLowerCase()]
+        const rate = response.data?.[ids]?.[currency.toLowerCase()]
+        if (!rate || !Number.isFinite(Number(rate))) {
+          setSnackSeverity('error')
+          setSnackMessage('Could not fetch exchange rate')
+          setSnackOpen(true)
+          return
+        }
         setRate(rate)
         const totalPrice = parseFloat(BigDiv(amount.toString(), rate)).toFixed(selectName.decimals)
         setCryptoAmount(totalPrice)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

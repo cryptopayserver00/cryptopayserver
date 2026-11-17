@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
 import {
+  rateLimit,
   forbidden,
   getStoreAccess,
   requireAuth,
@@ -19,6 +20,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const session = await requireAuth(req, res)
     if (!session) return
+
+    if (!(await rateLimit(req, res, { scope: `update_payout_setting_by_id:${session.userId}`, limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const id = Number(req.body.id)
     if (!id) {
@@ -39,11 +44,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     let updateData: { [key: string]: any } = {}
 
-    if (req.body.show_approve_payout_process)
+    if (
+      req.body.show_approve_payout_process !== undefined &&
+      req.body.show_approve_payout_process !== null &&
+      req.body.show_approve_payout_process !== ''
+    ) {
       updateData.show_approve_payout_process = Number(req.body.show_approve_payout_process)
-    if (req.body.interval) updateData.interval = Number(req.body.interval)
-    if (req.body.fee_block_target) updateData.fee_block_target = Number(req.body.fee_block_target)
-    if (req.body.threshold) updateData.threshold = Number(req.body.threshold)
+    }
+    if (req.body.interval !== undefined && req.body.interval !== null && req.body.interval !== '') {
+      updateData.interval = Number(req.body.interval)
+    }
+    if (
+      req.body.fee_block_target !== undefined &&
+      req.body.fee_block_target !== null &&
+      req.body.fee_block_target !== ''
+    ) {
+      updateData.fee_block_target = Number(req.body.fee_block_target)
+    }
+    if (req.body.threshold !== undefined && req.body.threshold !== null && req.body.threshold !== '') {
+      updateData.threshold = Number(req.body.threshold)
+    }
 
     await prisma.payout_settings.update({
       data: updateData,

@@ -5,6 +5,7 @@ import { LNDHUB } from '@/packages/lightning/core/lndhub'
 import { LIGHTNING } from '@/packages/lightning'
 import { prisma } from '@/lib/prisma'
 import {
+  rateLimit,
   assertStoreOwnedByUser,
   forbidden,
   requireAuthUserId,
@@ -24,6 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.query.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_lightning_network', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const storeId = Number(req.query.store_id)
     if (!storeId) {
@@ -51,16 +56,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (find_lightning_network.length > 0) {
       for (const item of find_lightning_network) {
-        const find_lightning_network_setting =
+        let find_lightning_network_setting =
           await prisma.wallet_lightning_network_settings.findFirst({
             where: {
               lnd_id: item.id,
             },
           })
         if (!find_lightning_network_setting) {
-          return res
-            .status(200)
-            .json({ message: 'Invalid find lightning network setting', result: false, data: null })
+          find_lightning_network_setting = await prisma.wallet_lightning_network_settings.create({
+            data: {
+              lnd_id: item.id,
+              user_id: item.user_id,
+              store_id: item.store_id,
+              show_amount_satoshis: 2,
+              show_hop_hint: 2,
+              show_unify_url_and_qrcode: 2,
+              show_lnurl: 1,
+              show_lnurl_classic_mode: 1,
+              show_allow_payee_pass_comment: 1,
+              status: 1,
+            },
+          })
         }
 
         const creds = unwrapLightningCredentials(item)

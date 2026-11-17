@@ -7,7 +7,6 @@ export class RPC {
   });
 
   static async callRPC(chainIds: CHAINIDS, method: string, params: any): Promise<any> {
-    console.log('callRPC', chainIds, method, params);
 
     const data = JSON.stringify({
       jsonrpc: '2.0',

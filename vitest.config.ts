@@ -3,16 +3,9 @@ import path from 'path'
 
 export default defineConfig({
   test: {
-    include: [
-      'tests/rate-limit.test.ts',
-      'tests/webhook-sign.test.ts',
-      'tests/api-key-crypto.test.ts',
-      'tests/password-strength.test.ts',
-      'tests/password-version.test.ts',
-      'tests/safe-url.test.ts',
-      'tests/public-token.test.ts',
-      'tests/reset-jti.test.ts',
-    ],
+    // Active security / unit tests. Legacy scratch files live under tests/legacy/.
+    include: ['tests/**/*.test.ts'],
+    exclude: ['tests/legacy/**', 'node_modules/**'],
     environment: 'node',
   },
   resolve: {

@@ -70,7 +70,12 @@ export default function HelpDrawer(props: DrawerType) {
             <p className="text-sm font-medium">More Questions?</p>
             <p className="text-sm text-muted-foreground">
               You can reach out to us{' '}
-              <Link href="#" className="text-primary underline-offset-4 hover:underline">
+              <Link
+                href="https://docs.cryptopayserver.online"
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary underline-offset-4 hover:underline"
+              >
                 here
               </Link>{' '}
               for more information

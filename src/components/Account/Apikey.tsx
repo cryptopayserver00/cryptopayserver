@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Key, Plus, ArrowLeft, Trash2, Copy, Check } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,6 +29,7 @@ import { Separator } from '@/components/ui/separator'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { APIKEYPERMISSIONS, APIKEYPERMISSION } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -52,7 +63,7 @@ const ApiKey = () => {
   )
 
   if (!isStore) {
-    return <div className="py-20 text-center">Not found store, please cerate one...</div>
+    return <div className="py-20 text-center">No store found. Please create one first.</div>
   }
 
   const onClickGenerateAPIKEY = async () => {
@@ -71,7 +82,7 @@ const ApiKey = () => {
       }
 
       const { promptAccountPassword } = await import('@/utils/wallet-password')
-      const accountPassword = promptAccountPassword('Enter your account password to create API key')
+      const accountPassword = await promptAccountPassword('Enter your account password to create API key')
       if (accountPassword === null) return
 
       setIsGenerating(true)
@@ -100,7 +111,7 @@ const ApiKey = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -177,7 +188,9 @@ const ApiKey = () => {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 The{' '}
                 <Link
-                  href="#"
+                  href="https://docs.cryptopayserver.online"
+                  target="_blank"
+                  rel="noreferrer"
                   className="font-medium text-primary underline-offset-4 hover:underline"
                 >
                   Greenfield API
@@ -185,7 +198,9 @@ const ApiKey = () => {
                 offers programmatic access to your instance. You can manage your CryptoPay Server
                 (e.g. stores, invoices, users) as well as automate workflows and integrations (see{' '}
                 <Link
-                  href="#"
+                  href="https://docs.cryptopayserver.online"
+                  target="_blank"
+                  rel="noreferrer"
                   className="font-medium text-primary underline-offset-4 hover:underline"
                 >
                   use case examples
@@ -193,7 +208,9 @@ const ApiKey = () => {
                 ). For that you need the API keys, which can be generated here. Find more
                 information in the{' '}
                 <Link
-                  href="#"
+                  href="https://docs.cryptopayserver.online"
+                  target="_blank"
+                  rel="noreferrer"
                   className="font-medium text-primary underline-offset-4 hover:underline"
                 >
                   API authentication docs
@@ -316,6 +333,7 @@ function AccountApiKeyTable() {
   const [rows, setRows] = useState<RowType[]>([])
   const [copiedId, setCopiedId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
 
   const { userId } = useUserPresistStore(
     useShallow((state) => ({
@@ -352,7 +370,7 @@ function AccountApiKeyTable() {
             ? item.permissions
                 .split(',')
                 .filter(Boolean) // 过滤空字符串
-                .map((i: string) => APIKEYPERMISSIONS[parseInt(i, 10) + 1]?.tag)
+                .map((i: string) => APIKEYPERMISSIONS.find((p) => p.id === parseInt(i, 10))?.tag)
                 .filter(Boolean) // 过滤无效权限
             : []
 
@@ -366,12 +384,12 @@ function AccountApiKeyTable() {
         setRows(rows)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -390,13 +408,13 @@ function AccountApiKeyTable() {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Delete successful!')
+        setSnackMessage('Deleted successfully!')
         setSnackOpen(true)
         await init(userId, storeId)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -450,6 +468,7 @@ function AccountApiKeyTable() {
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 shrink-0"
+                        aria-label="Copy API key"
                         onClick={() => copyToClipboard(row.key, row.id)}
                       >
                         {copiedId === row.id ? (
@@ -475,7 +494,7 @@ function AccountApiKeyTable() {
                       size="sm"
                       className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
                       disabled={deletingId === row.id}
-                      onClick={() => onClickDelete(row.id)}
+                      onClick={() => setPendingDeleteId(row.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       {deletingId === row.id ? 'Deleting...' : 'Delete'}
@@ -497,6 +516,37 @@ function AccountApiKeyTable() {
           </TableBody>
         </Table>
       </CardContent>
+
+      <AlertDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => {
+          if (!open && deletingId === null) setPendingDeleteId(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke API key?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Clients using this key will lose access immediately. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingId !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deletingId !== null}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault()
+                if (pendingDeleteId !== null) {
+                  onClickDelete(pendingDeleteId).finally(() => setPendingDeleteId(null))
+                }
+              }}
+            >
+              {deletingId !== null ? 'Deleting...' : 'Revoke key'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   )
 }

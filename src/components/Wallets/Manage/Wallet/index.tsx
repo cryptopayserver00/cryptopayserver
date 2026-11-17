@@ -8,6 +8,7 @@ import {
   useWalletPresistStore,
 } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { BLOCKCHAINNAMES, CHAINNAMES, CHAINS, COINS } from '@/packages/constants/blockchain'
 import {
@@ -92,7 +93,7 @@ const ManageWallet = () => {
         setIsBackup(response.data.isBackup === 1)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -100,7 +101,7 @@ const ManageWallet = () => {
   const onClickRename = async () => {
     try {
       if (!newWalletName || newWalletName === '') {
-        showSnack('error', 'Incorrect name input')
+        showSnack('error', 'Please enter a valid name')
         return
       }
 
@@ -111,10 +112,10 @@ const ManageWallet = () => {
       if (response.result) {
         await getWalletInfo(walletId)
         handleClose()
-        showSnack('success', 'Successful update!')
+        showSnack('success', 'Updated successfully!')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -131,12 +132,12 @@ const ManageWallet = () => {
 
       if (response.result) {
         await getWalletManage(walletId, storeId, network)
-        showSnack('success', 'Update successful!')
+        showSnack('success', 'Updated successfully!')
       } else {
         showSnack('error', 'Update failed!')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -181,11 +182,10 @@ const ManageWallet = () => {
             }
 
             const findBalance = respBalances?.find((item: any) => item.chainId === coin.chainId)
-            console.log(111, findBalance, respBalances)
-            blockchainCoin.address = findBalance.address ? findBalance?.address : ''
-            blockchainCoin.enabled = respCoins?.find(
+            blockchainCoin.address = findBalance?.address ? findBalance.address : ''
+            blockchainCoin.enabled = !!respCoins?.find(
               (item: any) => item.chainId === coin.chainId && item.name === coin.name
-            ).enabled
+            )?.enabled
 
             if (respScan.result) {
               blockchainCoin.scan = true
@@ -208,7 +208,7 @@ const ManageWallet = () => {
         setBlockchains(blockchains)
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -241,7 +241,7 @@ const ManageWallet = () => {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Wallet className="h-7 w-7 text-muted-foreground" />
-                <span className="font-semibold">{walletName ? walletName : 'UNKOWN NAME'}</span>
+                <span className="font-semibold">{walletName ? walletName : 'Unknown name'}</span>
                 <Badge
                   className={cn(
                     'border-transparent',
@@ -262,7 +262,7 @@ const ManageWallet = () => {
                     window.location.href = '/wallet/phrase/intro'
                   }}
                 >
-                  Go back up
+                  Go back
                 </Button>
               </div>
             </div>
@@ -271,7 +271,7 @@ const ManageWallet = () => {
               <div className="flex items-center justify-between pb-4">
                 <div className="flex items-center gap-1">
                   <h3 className="text-lg font-semibold">Coin Manage</h3>
-                  <Button variant="ghost" size="icon" onClick={() => setOpenExplain(!openExplain)}>
+                  <Button variant="ghost" size="icon" aria-label="About coin management" aria-expanded={openExplain} onClick={() => setOpenExplain(!openExplain)}>
                     <Info className="h-5 w-5 text-muted-foreground" />
                   </Button>
                 </div>

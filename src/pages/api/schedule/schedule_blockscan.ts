@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!requireCronSecret(req, res)) return
 
-    console.log('Schedule Blockscan')
+    console.info('Schedule Blockscan')
     const now = new Date()
 
     const invoices = await prisma.invoices.findMany({

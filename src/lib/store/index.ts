@@ -1,4 +1,5 @@
 export * from './snack'
+export * from './secret-prompt'
 export * from './store'
 export * from './user'
 export * from './wallet'

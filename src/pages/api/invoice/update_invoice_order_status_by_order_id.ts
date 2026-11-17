@@ -3,6 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { ORDER_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
 import {
+  rateLimit,
   forbidden,
   getStoreAccess,
   requireAuth,
@@ -20,6 +21,10 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
 
     const session = await requireAuth(req, res)
     if (!session) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-update_invoice_order_status_by_order_', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const orderId = Number(req.body.order_id)
     if (!orderId) {

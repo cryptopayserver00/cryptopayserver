@@ -7,12 +7,22 @@ type RedisClient = {
 }
 
 let redisClient: RedisClient | null | undefined
+let warnedNoRedisInProduction = false
 
 /** Shared optional Redis client when REDIS_URL is set. */
 export async function getRedisClient(): Promise<RedisClient | null> {
   if (redisClient !== undefined) return redisClient
   const url = (process.env.REDIS_URL || '').trim()
   if (!url) {
+    if (
+      !warnedNoRedisInProduction &&
+      process.env.NODE_ENV === 'production'
+    ) {
+      warnedNoRedisInProduction = true
+      console.warn(
+        '[redis] REDIS_URL unset — rate limits use in-memory buckets (not shared across instances)'
+      )
+    }
     redisClient = null
     return null
   }

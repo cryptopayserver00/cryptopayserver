@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
+import { rateLimit, requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -19,6 +19,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       req.query.user_id
     )
     if (!access) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_checkout_setting_by_id', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const { userId, storeId } = access
 
     let checkout_setting = await prisma.checkout_settings.findFirst({
@@ -30,29 +34,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
 
     if (!checkout_setting) {
-      if (!storeAccessCanModify(access)) {
-        return res.status(200).json({ message: 'Checkout setting not found', result: false, data: null })
+      if (storeAccessCanModify(access)) {
+        checkout_setting = await prisma.checkout_settings.create({
+          data: {
+            user_id: userId,
+            store_id: storeId,
+            show_payment_confetti: 2,
+            show_sound: 2,
+            show_pay_in_wallet_button: 1,
+            show_detect_language: 1,
+            language: 'English',
+            custom_html_title: '',
+            support_url: '',
+            show_payment_method: 2,
+            show_redirect_url: 2,
+            show_public_receipt_page: 1,
+            show_payment_list: 1,
+            show_qrcode_receipt: 1,
+            show_header: 1,
+            status: 1,
+          },
+        })
+      } else {
+        return res.status(200).json({
+          message: '',
+          result: true,
+          data: {
+            id: 0,
+            storeId,
+            userId,
+            status: 1,
+            createdAt: null,
+            updatedAt: null,
+            showPaymentConfetti: 2,
+            showSound: 2,
+            showPayInWalletButton: 1,
+            showDetectLanguage: 1,
+            language: 'English',
+            customHtmlTitle: '',
+            supportUrl: '',
+            showPaymentMethod: 2,
+            showRedirectUrl: 2,
+            showPublicReceiptPage: 1,
+            showPaymentList: 1,
+            showQrcodeReceipt: 1,
+            showHeader: 1,
+          },
+        })
       }
-      checkout_setting = await prisma.checkout_settings.create({
-        data: {
-          user_id: userId,
-          store_id: storeId,
-          show_payment_confetti: 2,
-          show_sound: 2,
-          show_pay_in_wallet_button: 1,
-          show_detect_language: 1,
-          language: 'English',
-          custom_html_title: '',
-          support_url: '',
-          show_payment_method: 2,
-          show_redirect_url: 2,
-          show_public_receipt_page: 1,
-          show_payment_list: 1,
-          show_qrcode_receipt: 1,
-          show_header: 1,
-          status: 1,
-        },
-      })
     }
 
     return res.status(200).json({

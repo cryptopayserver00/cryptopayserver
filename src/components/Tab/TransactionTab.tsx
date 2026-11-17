@@ -39,6 +39,7 @@ export default function TransactionsTab({ rows }: { rows: EthereumTransactionDet
                       row.hash
                     )}
                     target="_blank"
+                    rel="noreferrer"
                     className="text-blue-600 hover:underline"
                   >
                     {row.hash}
@@ -49,7 +50,12 @@ export default function TransactionsTab({ rows }: { rows: EthereumTransactionDet
                 <td className="px-6 py-4 whitespace-nowrap">{row.type}</td>
                 {/* <td className="px-6 py-4">{row.contractAddress}</td> */}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {new Date(row.blockTimestamp).toLocaleString()}
+                  {(() => {
+                    const ts = Number(row.blockTimestamp)
+                    if (!Number.isFinite(ts) || ts <= 0) return '—'
+                    const ms = ts < 1e12 ? ts * 1000 : ts
+                    return new Date(ms).toLocaleString()
+                  })()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">
                   {row.status}

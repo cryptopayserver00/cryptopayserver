@@ -10,6 +10,7 @@ import { useSnackPresistStore } from '@/lib/store/snack'
 import { useUserPresistStore } from '@/lib/store/user'
 import { NOTIFICATION, NOTIFICATIONS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -40,7 +41,7 @@ const Notification = () => {
   )
 
   if (!isStore) {
-    return <div className="py-20 text-center">Not found store, please cerate one...</div>
+    return <div className="py-20 text-center">No store found. Please create one first.</div>
   }
 
   const getNotifications = async (userId: number, storeId: number) => {
@@ -68,12 +69,12 @@ const Notification = () => {
       } else {
         setNotifications([])
         setSnackSeverity('error')
-        setSnackMessage('Something wrong, please try it again')
+        setSnackMessage('Could not load notification settings. Please try again.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -85,6 +86,12 @@ const Notification = () => {
 
   async function handleChangeNotification(itemId: number) {
     try {
+      if (!id) {
+        setSnackSeverity('error')
+        setSnackMessage('Notification settings are read-only for your role')
+        setSnackOpen(true)
+        return
+      }
       setIsUpdating(true)
       let ids: number[] = []
 
@@ -106,17 +113,17 @@ const Notification = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Successful update!')
+        setSnackMessage('Updated successfully!')
         setSnackOpen(true)
         await getNotifications(userId, storeId)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Something wrong, please try it again')
+        setSnackMessage('Could not load notification settings. Please try again.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -156,7 +163,7 @@ const Notification = () => {
                   <Switch
                     id={`notif-${item.id}`}
                     checked={item.status}
-                    disabled={isUpdating}
+                    disabled={isUpdating || !id}
                     onCheckedChange={() => handleChangeNotification(item.id)}
                   />
                 </div>

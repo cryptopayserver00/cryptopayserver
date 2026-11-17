@@ -14,6 +14,7 @@ import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from 
 import { CURRENCY_SYMBOLS } from '@/packages/constants'
 import { CHAINNAMES } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -85,7 +86,8 @@ export default function InvoiceDataGrid(props: GridType) {
           orderId: item.orderId,
           sourceType: item.sourceType,
           fiatAmount: CURRENCY_SYMBOLS[item.currency] + item.amount,
-          cryptoAmount: `${item.cryptoAmount} ${item.crypto}`,
+          cryptoAmount:
+            item.cryptoAmount != null ? `${item.cryptoAmount} ${item.crypto}` : '—',
           chain: FindChainNamesByChains(item.chainId),
           createdDate: new Date(item.createdAt).toLocaleString(),
           expirationDate: new Date(item.expirationAt).toLocaleString(),
@@ -94,12 +96,12 @@ export default function InvoiceDataGrid(props: GridType) {
         setRows(rows)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -185,6 +187,7 @@ export default function InvoiceDataGrid(props: GridType) {
             Page {page + 1} of {totalPages}
           </span>
           <Button
+            aria-label="Previous page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -194,6 +197,7 @@ export default function InvoiceDataGrid(props: GridType) {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
+            aria-label="Next page"
             variant="outline"
             size="icon"
             className="h-8 w-8"

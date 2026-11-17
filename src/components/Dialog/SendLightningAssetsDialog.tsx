@@ -72,10 +72,10 @@ export default function SendLightningAssetsDialog(props: DialogType) {
   }, [invoice])
 
   const paymentHash =
-    decodeInfo?.tags.find((item) => item.tagName === 'payment_hash')?.data.toString() || 'None'
+    decodeInfo?.tags?.find((item) => item.tagName === 'payment_hash')?.data?.toString() || 'None'
 
   const description =
-    decodeInfo?.tags.find((item) => item.tagName === 'description')?.data.toString() || 'None'
+    decodeInfo?.tags?.find((item) => item.tagName === 'description')?.data?.toString() || 'None'
 
   return (
     <Dialog open={props.openDialog} onOpenChange={(v) => !v && handleDialogClose()}>
@@ -118,7 +118,11 @@ export default function SendLightningAssetsDialog(props: DialogType) {
                 />
                 <DetailRow
                   label="Amount"
-                  value={`${SatoshisToBtc(Number(decodeInfo.satoshis)).toFixed(8)} BTC`}
+                  value={
+                    decodeInfo.satoshis != null
+                      ? `${SatoshisToBtc(Number(decodeInfo.satoshis)).toFixed(8)} BTC`
+                      : '—'
+                  }
                 />
                 <DetailRow
                   label="Date"

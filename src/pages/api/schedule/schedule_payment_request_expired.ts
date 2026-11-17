@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!requireCronSecret(req, res)) return
 
-    console.log('Schedule Payment Request Expired')
+    console.info('Schedule Payment Request Expired')
 
     const now = new Date()
     await prisma.payment_requests.updateMany({

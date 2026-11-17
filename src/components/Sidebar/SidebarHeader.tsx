@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { Bell, ChevronDown, Plus, Store } from 'lucide-react'
 import { useStorePresistStore } from '@/lib/store/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useUserPresistStore } from '@/lib/store/user'
 import { useSnackPresistStore } from '@/lib/store/snack'
@@ -83,12 +84,12 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
         )
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -108,12 +109,12 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
         setNotificationCount(response.data?.length || 0)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -150,7 +151,7 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

@@ -8,11 +8,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { CURRENCY_SYMBOLS, PAYOUT_STATUS } from '@/packages/constants'
 import { CHAINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { OmitMiddleString } from '@/utils/strings'
 import { FindChainNamesByChains } from '@/utils/web3'
@@ -25,6 +36,7 @@ interface RowType {
   address: string
   createdDate: string
   crypto: string
+  cryptoAmount: number | null
   refunded: string
   sourceType: string
   externalPaymentId: number
@@ -63,17 +75,25 @@ export default function PayoutDataGrid(props: GridType) {
   const [rows, setRows] = useState<RowType[]>([])
   const [page, setPage] = useState(0)
   const [loadingId, setLoadingId] = useState<number | null>(null)
+  const [pendingCancel, setPendingCancel] = useState<RowType | null>(null)
+  const [pendingMarkPaid, setPendingMarkPaid] = useState<RowType | null>(null)
+  const [pendingApprove, setPendingApprove] = useState<RowType | null>(null)
+  const [pendingReject, setPendingReject] = useState<RowType | null>(null)
 
   const updateStatus = async (
     payoutId: number,
     payout_status: string,
-    successMsg = 'Update successful!'
+    successMsg = 'Updated successfully!',
+    extras?: { account_password?: string; tx?: string; crypto_amount?: number }
   ) => {
     try {
       setLoadingId(payoutId)
       const response: any = await axios.put(Http.update_payout_by_id, {
         id: payoutId,
         payout_status,
+        ...(extras?.account_password ? { account_password: extras.account_password } : {}),
+        ...(extras?.tx ? { tx: extras.tx } : {}),
+        ...(extras?.crypto_amount != null ? { crypto_amount: extras.crypto_amount } : {}),
       })
       if (response.result) {
         setSnackSeverity('success')
@@ -82,12 +102,12 @@ export default function PayoutDataGrid(props: GridType) {
         await init(network, storeId, props.status)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Update failed!')
+        setSnackMessage(response.message || 'Update failed!')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -95,13 +115,13 @@ export default function PayoutDataGrid(props: GridType) {
     }
   }
 
-  const onClickApprove = (row: RowType) => updateStatus(row.payoutId, PAYOUT_STATUS.AwaitingPayment)
+  const onClickApprove = (row: RowType) => setPendingApprove(row)
 
-  const onClickReject = (row: RowType) => updateStatus(row.payoutId, PAYOUT_STATUS.AwaitingApproval)
+  const onClickReject = (row: RowType) => setPendingReject(row)
 
-  const onClickCancel = (row: RowType) => updateStatus(row.payoutId, PAYOUT_STATUS.Cancelled)
+  const onClickCancel = (row: RowType) => setPendingCancel(row)
 
-  const onClickMarkPaid = (row: RowType) => updateStatus(row.payoutId, PAYOUT_STATUS.Completed)
+  const onClickMarkPaid = (row: RowType) => setPendingMarkPaid(row)
 
   const onClickSend = (row: RowType) => {
     switch (row.chainId) {
@@ -137,7 +157,9 @@ export default function PayoutDataGrid(props: GridType) {
         window.location.href = `/wallets/ton/send?payoutId=${row.payoutId}`
         return
       default:
-        console.error('No support right now!')
+        setSnackSeverity('error')
+        setSnackMessage('Sending payouts is not supported for this chain yet.')
+        setSnackOpen(true)
     }
   }
 
@@ -164,6 +186,10 @@ export default function PayoutDataGrid(props: GridType) {
           createdDate: new Date(item.createdAt).toLocaleString(),
           refunded: CURRENCY_SYMBOLS[item.currency] + item.amount,
           crypto: item.crypto,
+          cryptoAmount:
+            item.cryptoAmount != null && Number.isFinite(Number(item.cryptoAmount))
+              ? Number(item.cryptoAmount)
+              : null,
           sourceType: item.sourceType,
           externalPaymentId: item.externalPaymentId,
           chainName: FindChainNamesByChains(item.chainId),
@@ -173,12 +199,12 @@ export default function PayoutDataGrid(props: GridType) {
         setRows(rows)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -235,7 +261,7 @@ export default function PayoutDataGrid(props: GridType) {
               onClick={() => onClickReject(row)}
             >
               <Ban className="h-3.5 w-3.5" />
-              Reject
+              Return for approval
             </Button>
             <Button
               variant="ghost"
@@ -364,6 +390,7 @@ export default function PayoutDataGrid(props: GridType) {
             Page {page + 1} of {totalPages}
           </span>
           <Button
+            aria-label="Previous page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -373,6 +400,7 @@ export default function PayoutDataGrid(props: GridType) {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
+            aria-label="Next page"
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -383,6 +411,169 @@ export default function PayoutDataGrid(props: GridType) {
           </Button>
         </div>
       )}
+
+      <AlertDialog
+        open={pendingCancel !== null}
+        onOpenChange={(open) => {
+          if (!open && loadingId === null) setPendingCancel(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel payout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This marks the payout as cancelled. You can create a new payout later if needed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loadingId !== null}>Keep payout</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={loadingId !== null}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault()
+                if (pendingCancel) {
+                  updateStatus(pendingCancel.payoutId, PAYOUT_STATUS.Cancelled, 'Payout cancelled').finally(
+                    () => setPendingCancel(null)
+                  )
+                }
+              }}
+            >
+              {loadingId !== null ? 'Cancelling...' : 'Cancel payout'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={pendingApprove !== null}
+        onOpenChange={(open) => {
+          if (!open && loadingId === null) setPendingApprove(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve payout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This moves the payout to awaiting payment so it can be sent on-chain.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loadingId !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={loadingId !== null}
+              onClick={(e) => {
+                e.preventDefault()
+                if (pendingApprove) {
+                  updateStatus(
+                    pendingApprove.payoutId,
+                    PAYOUT_STATUS.AwaitingPayment,
+                    'Payout approved'
+                  ).finally(() => setPendingApprove(null))
+                }
+              }}
+            >
+              {loadingId !== null ? 'Approving...' : 'Approve'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={pendingReject !== null}
+        onOpenChange={(open) => {
+          if (!open && loadingId === null) setPendingReject(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Return payout for approval?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This sends the payout back to awaiting approval. No on-chain payment will be made.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loadingId !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={loadingId !== null}
+              onClick={(e) => {
+                e.preventDefault()
+                if (pendingReject) {
+                  updateStatus(
+                    pendingReject.payoutId,
+                    PAYOUT_STATUS.AwaitingApproval,
+                    'Returned for approval'
+                  ).finally(() => setPendingReject(null))
+                }
+              }}
+            >
+              {loadingId !== null ? 'Updating...' : 'Return for approval'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={pendingMarkPaid !== null}
+        onOpenChange={(open) => {
+          if (!open && loadingId === null) setPendingMarkPaid(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark payout as paid?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Only do this if the on-chain payment already succeeded. A transaction hash, crypto
+              amount, and your account password are required.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loadingId !== null}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={loadingId !== null}
+              onClick={(e) => {
+                e.preventDefault()
+                if (!pendingMarkPaid) return
+                const row = pendingMarkPaid
+                void (async () => {
+                  if (!row.transaction) {
+                    setSnackSeverity('error')
+                    setSnackMessage('Transaction hash required to mark as paid')
+                    setSnackOpen(true)
+                    setPendingMarkPaid(null)
+                    return
+                  }
+                  if (row.cryptoAmount == null) {
+                    setSnackSeverity('error')
+                    setSnackMessage(
+                      'Crypto amount missing. Complete via Send first, or ensure the payout has a crypto amount.'
+                    )
+                    setSnackOpen(true)
+                    setPendingMarkPaid(null)
+                    return
+                  }
+                  const { promptAccountPassword } = await import('@/utils/wallet-password')
+                  const accountPassword = await promptAccountPassword(
+                    'Enter your account password to mark payout as paid'
+                  )
+                  if (accountPassword === null) {
+                    setPendingMarkPaid(null)
+                    return
+                  }
+                  await updateStatus(row.payoutId, PAYOUT_STATUS.Completed, 'Marked as paid', {
+                    account_password: accountPassword,
+                    tx: row.transaction,
+                    crypto_amount: row.cryptoAmount,
+                  })
+                  setPendingMarkPaid(null)
+                })()
+              }}
+            >
+              {loadingId !== null ? 'Updating...' : 'Mark as paid'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { BLOCKCHAINNAMES, CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/co
 import { WEB3 } from '@/packages/web3'
 import { BLOCKSCAN, BlockScanWalletType } from '@/packages/web3/block_scan'
 import { prisma } from '@/lib/prisma'
-import { assertStoreOwnedByUser, forbidden, requireOwnedWallet } from '@/lib/auth'
+import { rateLimit, assertStoreOwnedByUser, forbidden, requireOwnedWallet } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -21,6 +21,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const ownedWallet = await requireOwnedWallet(req, res, req.query.wallet_id)
     if (!ownedWallet) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_wallet_manage_by_network', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const walletId = ownedWallet.walletId
     const userId = ownedWallet.userId
 

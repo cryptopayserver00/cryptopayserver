@@ -11,6 +11,7 @@ import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from '@/packages/constants/blockcha
 import CreateFundsDialog from '@/components/Dialog/CreateFundsDialog'
 import { useSnackPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -76,7 +77,7 @@ export default function PullPaymentSelectChainAndCryptoCard(props: SelectType) {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -136,6 +137,7 @@ export default function PullPaymentSelectChainAndCryptoCard(props: SelectType) {
 
       <CreateFundsDialog
         currency={props.currency}
+        maxAmount={props.amount}
         selectCoinItem={selectCoinItem as COIN}
         openDialog={open}
         setOpenDialog={setOpen}

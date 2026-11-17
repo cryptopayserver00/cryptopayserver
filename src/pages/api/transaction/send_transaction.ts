@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const coin = req.body.coin
     const nonce = req.body.nonce
     const maxFee = req.body.max_fee
-    const maxPriortyFee = req.body.max_priorty_fee
+    const maxPriortyFee = req.body.max_priority_fee ?? req.body.max_priorty_fee
     const gasLimit = req.body.gas_limit
     const memo = req.body.memo
 
@@ -120,7 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return
     }
 
-    if (!(await requireWalletPasswordIfSet(res, wallet, req.body.wallet_password))) {
+    if (!(await requireWalletPasswordIfSet(req, res, wallet, req.body.wallet_password))) {
       return
     }
 
@@ -141,8 +141,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const privateKey = privateKeyUpgrade.plaintext
     const mnemonic = mnemonicUpgrade.plaintext
 
+    const token = FindTokenByChainIdsAndSymbol(WEB3.getChainIds(address.network === 1, chainId), coin)
+    if (!token) {
+      return res.status(200).json({ message: 'Invalid coin', result: false, data: null })
+    }
+
     const hash = await WEB3.sendTransaction(address.network === 1, {
-      coin: FindTokenByChainIdsAndSymbol(WEB3.getChainIds(address.network === 1, chainId), coin),
+      coin: token,
       value: value,
       privateKey: privateKey,
       mnemonic: mnemonic,

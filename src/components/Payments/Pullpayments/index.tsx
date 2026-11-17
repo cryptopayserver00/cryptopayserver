@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { CURRENCY, PULL_PAYMENT_STATUS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import PullPaymentDataGrid from '@/components/DataList/PullPaymentDataGrid'
@@ -96,7 +97,7 @@ const Pullpayments = () => {
     try {
       if (!CURRENCY.includes(currency)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect currency')
+        setSnackMessage('Please select a valid currency')
         setSnackOpen(true)
         return
       }
@@ -129,12 +130,12 @@ const Pullpayments = () => {
         setOpenCreatePullPayment(false)
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Something wrong, please try it again')
+        setSnackMessage('Something went wrong. Please try again.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { CHAINNAMES, CHAINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { OmitMiddleString } from '@/utils/strings'
 import {
@@ -88,13 +89,13 @@ export default function TransactionDataGrid(props: GridType) {
     address?: string
   ) => {
     try {
-      if (!chain || !storeId || !network || !address) {
+      if (!storeId || !network || !address) {
         return
       }
 
       const response: any = await axios.get(Http.find_transaction, {
         params: {
-          chain_id: chain,
+          ...(chain ? { chain_id: chain } : {}),
           store_id: storeId,
           network: network === 'mainnet' ? 1 : 2,
           address: address,
@@ -105,19 +106,28 @@ export default function TransactionDataGrid(props: GridType) {
 
       if (response.result) {
         if (response.data.transactions.length > 0) {
-          const rt: RowType[] = response.data.transactions.map((item: any, index: number) => ({
-            id: index + 1,
-            chainId: item.chainId,
-            chainName: FindChainNamesByChains(item.chainId),
-            hash: item.hash,
-            address: item.address,
-            fromAddress: item.fromAddress,
-            toAddress: item.toAddress,
-            token: item.token,
-            transactionType: item.transactType,
-            amount: item.amount,
-            blockTimestamp: new Date(item.blockTimestamp).toLocaleString(),
-          }))
+          const rt: RowType[] = response.data.transactions.map((item: any, index: number) => {
+            const chainId = item.chainId ?? item.chain_id
+            const blockTimestamp = item.blockTimestamp ?? item.block_timestamp
+            return {
+              id: index + 1,
+              chainId,
+              chainName: FindChainNamesByChains(chainId),
+              hash: item.hash,
+              address: item.address,
+              fromAddress: item.fromAddress ?? item.from_address,
+              toAddress: item.toAddress ?? item.to_address,
+              token: item.token,
+              transactionType: item.transactType ?? item.transact_type,
+              amount: item.amount,
+              blockTimestamp: (() => {
+                const ts = Number(blockTimestamp)
+                if (!Number.isFinite(ts) || ts <= 0) return '—'
+                const ms = ts < 1e12 ? ts * 1000 : ts
+                return new Date(ms).toLocaleString()
+              })(),
+            }
+          })
           setRows(rt)
           setPage(Number(response.data.page))
           setRowCount(Number(response.data.total))
@@ -128,16 +138,18 @@ export default function TransactionDataGrid(props: GridType) {
         }
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the data on site!')
+        setSnackMessage('Could not load data.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
   }
+
+  const resolvedStoreId = Number(props.storeId ?? storeId)
 
   const fetchPage = async (newPage: number) => {
     setPage(newPage)
@@ -145,7 +157,7 @@ export default function TransactionDataGrid(props: GridType) {
       newPage,
       pageSize,
       Number(props.chain),
-      Number(props.storeId),
+      resolvedStoreId,
       props.network,
       props.address
     )
@@ -153,15 +165,15 @@ export default function TransactionDataGrid(props: GridType) {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      init(page, pageSize, Number(props.chain), Number(props.storeId), props.network, props.address)
+      init(page, pageSize, Number(props.chain), resolvedStoreId, props.network, props.address)
     }, 10 * 1000)
 
     return () => clearInterval(timer)
-  }, [props.chain, props.storeId, props.network, props.address, page])
+  }, [props.chain, resolvedStoreId, props.network, props.address, page])
 
   useEffect(() => {
-    init(page, pageSize, Number(props.chain), Number(props.storeId), props.network, props.address)
-  }, [props.chain, props.storeId, props.network, props.address])
+    init(page, pageSize, Number(props.chain), resolvedStoreId, props.network, props.address)
+  }, [props.chain, resolvedStoreId, props.network, props.address])
 
   const totalPages = Math.max(1, Math.ceil(rowCount / pageSize))
 
@@ -285,6 +297,7 @@ function ExplorerLink({ href, children }: { href: string; children: React.ReactN
     <Link
       href={href}
       target="_blank"
+      rel="noreferrer"
       className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline font-mono text-xs"
       onClick={(e) => e.stopPropagation()}
     >

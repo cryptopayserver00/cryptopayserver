@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
-import { requireAuthUserId, assertStoreOwnedByUser, forbidden } from '@/lib/auth'
+import { rateLimit, requireAuthUserId, assertStoreOwnedByUser, forbidden } from '@/lib/auth'
 import { USER_ROLE } from '@/packages/constants'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -14,6 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const userId = await requireAuthUserId(req, res, req.body.user_id)
     if (!userId) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-create_user_role', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
 
     const storeId = Number(req.body.store_id)
     if (!storeId) {

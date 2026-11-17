@@ -3,9 +3,9 @@ import { jwtVerify } from 'jose'
 import {
   API_KEY_API_PATHS,
   CRON_HEADER_NAME,
+  getSessionCookieName,
   PUBLIC_API_PATHS,
   SCHEDULE_API_PREFIX,
-  SESSION_COOKIE_NAME,
 } from '@/lib/auth/constants'
 
 function getSessionSecret(): Uint8Array | null {
@@ -15,7 +15,7 @@ function getSessionSecret(): Uint8Array | null {
 }
 
 async function hasValidSession(req: NextRequest): Promise<boolean> {
-  const token = req.cookies.get(SESSION_COOKIE_NAME)?.value
+  const token = req.cookies.get(getSessionCookieName())?.value
   if (!token) return false
 
   const secret = getSessionSecret()
@@ -99,6 +99,18 @@ function withPageSecurityHeaders(req: NextRequest): NextResponse {
   return res
 }
 
+function withApiNoStore(res: NextResponse): NextResponse {
+  res.headers.set('Cache-Control', 'no-store')
+  return res
+}
+
+function apiJson(
+  body: { message: string; result: boolean; data: null },
+  status: number
+): NextResponse {
+  return withApiNoStore(NextResponse.json(body, { status }))
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
@@ -116,37 +128,31 @@ export async function middleware(req: NextRequest) {
 
   // Liveness probe — no auth
   if (pathname === '/api/health') {
-    return NextResponse.next()
+    return withApiNoStore(NextResponse.next())
   }
 
   // Internal cron jobs authenticate via shared secret, not session cookie
   if (pathname.startsWith(SCHEDULE_API_PREFIX)) {
     if (!hasValidCronSecret(req)) {
-      return NextResponse.json(
-        { message: 'Unauthorized', result: false, data: null },
-        { status: 401 }
-      )
+      return apiJson({ message: 'Unauthorized', result: false, data: null }, 401)
     }
-    return NextResponse.next()
+    return withApiNoStore(NextResponse.next())
   }
 
   if (PUBLIC_API_PATHS.has(pathname)) {
-    return NextResponse.next()
+    return withApiNoStore(NextResponse.next())
   }
 
   // Only allow API-key clients past the edge gate on explicitly allowlisted routes.
   if (hasApiKeyHeader(req) && API_KEY_API_PATHS.has(pathname)) {
-    return NextResponse.next()
+    return withApiNoStore(NextResponse.next())
   }
 
   if (!(await hasValidSession(req))) {
-    return NextResponse.json(
-      { message: 'Unauthorized', result: false, data: null },
-      { status: 401 }
-    )
+    return apiJson({ message: 'Unauthorized', result: false, data: null }, 401)
   }
 
-  return NextResponse.next()
+  return withApiNoStore(NextResponse.next())
 }
 
 export const config = {

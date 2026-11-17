@@ -11,6 +11,7 @@ import {
   useWalletPresistStore,
 } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINS, COINS } from '@/packages/constants/blockchain'
 import { FindChainNamesByChains } from '@/utils/web3'
@@ -93,7 +94,7 @@ const AssetsToken = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -112,7 +113,63 @@ const AssetsToken = () => {
   }, [router.isReady, walletId, storeId, network, chain, coin])
 
   const activeCoin = assetWallet?.coins.find((item) => item.coin === useCoin)
-  const change = Number(activeCoin?.twentyFourHChange)
+  const change = Number(activeCoin?.twentyFourHChange ?? 0)
+
+  const getSendPath = (id: number): string | null => {
+    switch (id) {
+      case CHAINS.BITCOIN:
+        return '/wallets/bitcoin/send'
+      case CHAINS.LITECOIN:
+        return '/wallets/litecoin/send'
+      case CHAINS.XRP:
+        return '/wallets/xrp/send'
+      case CHAINS.BITCOINCASH:
+        return '/wallets/bitcoincash/send'
+      case CHAINS.ETHEREUM:
+      case CHAINS.BSC:
+      case CHAINS.ARBITRUM:
+      case CHAINS.ARBITRUMNOVA:
+      case CHAINS.AVALANCHE:
+      case CHAINS.POLYGON:
+      case CHAINS.BASE:
+      case CHAINS.OPTIMISM:
+        return `/wallets/send?chainId=${id}`
+      case CHAINS.TRON:
+        return '/wallets/tron/send'
+      case CHAINS.SOLANA:
+        return '/wallets/solana/send'
+      case CHAINS.TON:
+        return '/wallets/ton/send'
+      default:
+        return null
+    }
+  }
+
+  const onClickSend = () => {
+    if (!chainId) return
+    const path = getSendPath(chainId)
+    if (!path) {
+      setSnackSeverity('error')
+      setSnackMessage('Send is not available for this chain yet')
+      setSnackOpen(true)
+      return
+    }
+    window.location.href = path
+  }
+
+  const onClickReceive = () => {
+    if (!chainId) return
+    window.location.href = `/wallets/receive?chainId=${chainId}`
+  }
+
+  const handleCopyAddress = async (e?: { stopPropagation: () => void }) => {
+    e?.stopPropagation()
+    if (!assetWallet?.address) return
+    await navigator.clipboard.writeText(String(assetWallet.address))
+    setSnackMessage('Copied successfully')
+    setSnackSeverity('success')
+    setSnackOpen(true)
+  }
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
@@ -135,17 +192,17 @@ const AssetsToken = () => {
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Button onClick={async () => {}}>
+          <Button onClick={onClickSend}>
             <ArrowUp className="mr-2 h-4 w-4" /> Send
           </Button>
-          <Button onClick={async () => {}}>
+          <Button onClick={onClickReceive}>
             <ArrowDown className="mr-2 h-4 w-4" /> Receive
           </Button>
-          <Button onClick={async () => {}}>
+          <Button variant="secondary" disabled title="Swap is not available in this beta">
             <Repeat className="mr-2 h-4 w-4" /> Swap
           </Button>
-          <Button onClick={async () => {}}>
-            <Flower2 className="mr-2 h-4 w-4" /> Stack
+          <Button variant="secondary" disabled title="Stake is not available in this beta">
+            <Flower2 className="mr-2 h-4 w-4" /> Stake
           </Button>
         </div>
 
@@ -183,7 +240,7 @@ const AssetsToken = () => {
               <p
                 className={cn('mt-1 font-bold', change >= 0 ? 'text-emerald-500' : 'text-red-500')}
               >
-                {parseFloat(String(activeCoin?.twentyFourHChange)).toFixed(2)}%
+                {parseFloat(String(activeCoin?.twentyFourHChange ?? 0)).toFixed(2)}%
               </p>
             </div>
             <div>
@@ -208,7 +265,7 @@ const AssetsToken = () => {
             <h3 className="text-lg font-bold">Holdings</h3>
             <span className="font-bold">
               {assetWallet?.currencySymbol}
-              {assetWallet?.totalBalance.toFixed(2)}
+              {Number(assetWallet?.totalBalance ?? 0).toFixed(2)}
             </span>
           </div>
 
@@ -233,9 +290,7 @@ const AssetsToken = () => {
                     </span>
                     <span
                       role="button"
-                      onClick={async (e) => {
-                        e.stopPropagation()
-                      }}
+                      onClick={handleCopyAddress}
                       className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                     >
                       <Copy className="h-4 w-4" />
@@ -247,14 +302,15 @@ const AssetsToken = () => {
                       {parseFloat(
                         String(
                           assetWallet?.coins.find((findItem) => findItem.coin === item.name)
-                            ?.balance
+                            ?.balance ?? 0
                         )
                       ).toFixed(2)}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {assetWallet?.coins
-                        .find((fintItem) => fintItem.coin === item.name)
-                        ?.number.toFixed(item.displayDecimals)}{' '}
+                      {(
+                        assetWallet?.coins.find((fintItem) => fintItem.coin === item.name)
+                          ?.number ?? 0
+                      ).toFixed(item.displayDecimals)}{' '}
                       {item.name}
                     </p>
                   </div>

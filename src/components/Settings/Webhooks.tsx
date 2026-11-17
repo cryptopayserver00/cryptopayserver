@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import WebhookDataGrid from '@/components/DataList/WebhookDataGrid'
 import { useShallow } from 'zustand/react/shallow'
@@ -65,7 +66,7 @@ export const Webhooks = () => {
 
         if (response.result) {
           setSnackSeverity('success')
-          setSnackMessage('Update successful!')
+          setSnackMessage('Updated successfully!')
           setSnackOpen(true)
 
           setIsWebhook(false)
@@ -87,7 +88,7 @@ export const Webhooks = () => {
 
         if (response.result) {
           setSnackSeverity('success')
-          setSnackMessage('Save successful!')
+          setSnackMessage('Saved successfully!')
           setSnackOpen(true)
 
           setIsWebhook(false)
@@ -99,7 +100,7 @@ export const Webhooks = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {

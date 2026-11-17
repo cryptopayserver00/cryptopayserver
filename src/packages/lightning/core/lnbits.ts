@@ -18,7 +18,6 @@ export class LNBITS {
 
       //   const preimage = null; // LNBits never returns a preimage
       //   return { id: null, preimage };
-      console.log('payInvoice', response);
       return true;
     } catch (e) {
       console.error(e);

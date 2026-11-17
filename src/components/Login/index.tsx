@@ -12,6 +12,7 @@ import {
   useWalletPresistStore,
 } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail, isValidPassword } from '@/utils/verify'
 import { SiteLogo } from '../Logo/SiteLogo'
@@ -102,18 +103,18 @@ const Login = () => {
         window.location.href = '/stores/create'
       }
     } else {
-      showSnack('error', 'Can not find the store on site!')
+      showSnack('error', 'Could not find the store.')
     }
   }
 
   const onLogin = async () => {
     if (!email || email === '' || !IsValidEmail(email)) {
-      showSnack('error', 'Incorrect email input')
+      showSnack('error', 'Please enter a valid email')
       return
     }
 
     if (!password || !isValidPassword(password)) {
-      showSnack('error', 'Incorrect password input')
+      showSnack('error', 'Please enter a valid password')
       return
     }
 
@@ -137,7 +138,7 @@ const Login = () => {
         showSnack('error', 'Incorrect username or password!')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     } finally {
       setLoading(false)
@@ -162,7 +163,7 @@ const Login = () => {
         showSnack('error', response.message || 'Invalid authenticator code')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     } finally {
       setLoading(false)
@@ -289,7 +290,8 @@ const Login = () => {
                 </>
               )}
 
-              {!requires2fa && (
+              {!requires2fa &&
+                process.env.NEXT_PUBLIC_DISABLE_PUBLIC_REGISTRATION !== 'true' && (
                 <Button
                   className="mt-2 w-full"
                   size="lg"

@@ -6,10 +6,14 @@ export interface BlockScanWalletType {
 }
 
 export class BLOCKSCAN {
+  /** Empty when unset — callers treat missing config as a soft failure (no silent SaaS fallback). */
   static get baseUrl(): string {
-    const raw =
-      process.env.BLOCKSCAN_BASE_URL || 'https://api.cryptopayserver.online/api'
+    const raw = String(process.env.BLOCKSCAN_BASE_URL || '').trim()
     return raw.replace(/\/$/, '')
+  }
+
+  static get isConfigured(): boolean {
+    return Boolean(this.baseUrl)
   }
 
   static axiosInstance = axios.create({
@@ -18,6 +22,9 @@ export class BLOCKSCAN {
 
   static async bulkStoreUserWallet(bulk_storage: BlockScanWalletType[]): Promise<[boolean, any]> {
     try {
+      if (!this.isConfigured) {
+        return [false, null]
+      }
       const url = this.baseUrl + '/bulkStoreUserWallet'
 
       if (!bulk_storage || bulk_storage.length <= 0) {
@@ -58,6 +65,9 @@ export class BLOCKSCAN {
     amount: string
   ): Promise<string> {
     try {
+      if (!this.isConfigured) {
+        return ''
+      }
       const url = this.baseUrl + '/coinFree'
       const response: any = await this.axiosInstance.get(url, {
         headers: {
@@ -83,6 +93,9 @@ export class BLOCKSCAN {
   }
 
   static getBlockchainAddressTransactionUrl(chainids: string, address: string): string {
+    if (!this.isConfigured) {
+      return ''
+    }
     const url = this.baseUrl + '/getTransactionsByChainAndAddress'
     const page = 0
     const pageSize = 10
@@ -96,6 +109,9 @@ export class BLOCKSCAN {
     pageSize?: number
   ): Promise<any> {
     try {
+      if (!this.isConfigured) {
+        return null
+      }
       let findData: { [key: string]: any } = {}
 
       if (chainids) findData.chainids = chainids

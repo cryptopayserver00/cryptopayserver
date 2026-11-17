@@ -21,7 +21,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "require('http').get('http://127.0.0.1:3000/api/health',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
+          "require('http').request({host:'127.0.0.1',port:3000,path:'/api/health',method:'HEAD'},(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1)).end()",
         ]
       interval: 30s
       timeout: 5s
@@ -30,6 +30,16 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - shared-network
+
+  # Optional: docker compose --profile redis up
+  # If REDIS_URL is set in .env.production, Redis must be reachable or /api/health returns 503.
+  redis:
+    image: redis:7-alpine
+    restart: always
+    profiles: [redis]
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
     networks:
       - shared-network
 
@@ -44,7 +54,10 @@ services:
       - ENABLE_SCHEDULE_WORKER=true
     command: node scripts/schedule-worker.mjs
     depends_on:
-      - app
+      app:
+        condition: service_healthy
+      db:
+        condition: service_healthy
     networks:
       - shared-network
 

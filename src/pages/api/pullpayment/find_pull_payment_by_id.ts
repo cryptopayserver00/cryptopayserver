@@ -3,7 +3,11 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/auth'
 import { readAccessToken, verifyPublicResource } from '@/lib/security/public-token'
-import { sanitizePublicWebsiteUrl } from '@/lib/security/safe-url'
+import {
+  sanitizePublicWebsiteUrl,
+  sanitizeStoreCustomCssUrl,
+  sanitizeStoreLogoUrl,
+} from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -70,8 +74,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         expirationAt: pull_payments.expiration_at,
         storeName: store.name,
         storeBrandColor: store.brand_color,
-        storeLogoUrl: store.logo_url,
+        storeLogoUrl: sanitizeStoreLogoUrl(store.logo_url),
         storeWebsite: sanitizePublicWebsiteUrl(store.website),
+        storeCustomCssUrl: sanitizeStoreCustomCssUrl(store.custom_css_url),
       },
     })
   } catch (e) {

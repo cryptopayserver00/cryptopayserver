@@ -7,7 +7,7 @@ import { SiteLogo } from '@/components/Logo/SiteLogo'
 const Custom500 = () => {
   return (
     <>
-      <MetaTags title="Something wrong" />
+      <MetaTags title="Server error" />
       <div className="mx-auto max-w-screen-lg px-4">
         <div className="mt-32">
           <SiteLogo />

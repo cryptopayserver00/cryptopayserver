@@ -38,6 +38,7 @@ import {
   useWalletPresistStore,
 } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import {
   BLOCKCHAIN,
@@ -107,7 +108,7 @@ export default function MyAssets() {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -125,10 +126,57 @@ export default function MyAssets() {
     setSelectCoin(targetBlockchain?.coins[0]?.name)
   }, [chainName, walletId, storeId, network])
 
+  const getSendPath = (chainId: number): string | null => {
+    switch (chainId) {
+      case CHAINS.BITCOIN:
+        return '/wallets/bitcoin/send'
+      case CHAINS.LITECOIN:
+        return '/wallets/litecoin/send'
+      case CHAINS.XRP:
+        return '/wallets/xrp/send'
+      case CHAINS.BITCOINCASH:
+        return '/wallets/bitcoincash/send'
+      case CHAINS.ETHEREUM:
+      case CHAINS.BSC:
+      case CHAINS.ARBITRUM:
+      case CHAINS.ARBITRUMNOVA:
+      case CHAINS.AVALANCHE:
+      case CHAINS.POLYGON:
+      case CHAINS.BASE:
+      case CHAINS.OPTIMISM:
+        return `/wallets/send?chainId=${chainId}`
+      case CHAINS.TRON:
+        return '/wallets/tron/send'
+      case CHAINS.SOLANA:
+        return '/wallets/solana/send'
+      case CHAINS.TON:
+        return '/wallets/ton/send'
+      default:
+        return null
+    }
+  }
+
+  const onClickSend = () => {
+    const chainId = FindChainIdsByChainNames(chainName)
+    const path = getSendPath(chainId)
+    if (!path) {
+      setSnackSeverity('error')
+      setSnackMessage('Send is not available for this chain yet')
+      setSnackOpen(true)
+      return
+    }
+    window.location.href = path
+  }
+
+  const onClickReceive = () => {
+    const chainId = FindChainIdsByChainNames(chainName)
+    window.location.href = `/wallets/receive?chainId=${chainId}`
+  }
+
   const handleCopyAddress = async () => {
     if (!assetWallet?.address) return
     await navigator.clipboard.writeText(String(assetWallet.address))
-    setSnackMessage('Successfully copied')
+    setSnackMessage('Copied successfully')
     setSnackSeverity('success')
     setSnackOpen(true)
   }
@@ -172,7 +220,7 @@ export default function MyAssets() {
                         alt={val}
                         width={20}
                         height={20}
-                        className="rounded-full className='h-5 w-5'"
+                        className="rounded-full h-5 w-5"
                       />
                       <span className="font-medium">{val}</span>
                     </div>
@@ -226,7 +274,7 @@ export default function MyAssets() {
                           width={36}
                           height={36}
                           alt={coin.name}
-                          className="rounded-full className='h-9 w-9'"
+                          className="rounded-full h-9 w-9"
                         />
                       )}
                       <div>
@@ -409,14 +457,24 @@ export default function MyAssets() {
                 <div className="flex items-center gap-1">
                   {blockchain?.websiteUrl && (
                     <Button variant="ghost" size="icon" asChild>
-                      <a href={blockchain.websiteUrl} target="_blank" rel="noreferrer">
+                      <a
+                        href={blockchain.websiteUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Open network website"
+                      >
                         <Globe className="h-4 w-4" />
                       </a>
                     </Button>
                   )}
                   {blockchain?.explorerUrl && (
                     <Button variant="ghost" size="icon" asChild>
-                      <a href={blockchain.explorerUrl} target="_blank" rel="noreferrer">
+                      <a
+                        href={blockchain.explorerUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Open block explorer"
+                      >
                         <Compass className="h-4 w-4" />
                       </a>
                     </Button>
@@ -431,6 +489,7 @@ export default function MyAssets() {
                         )}
                         target="_blank"
                         rel="noreferrer"
+                        aria-label="View contract on explorer"
                       >
                         <ExternalLink className="h-4 w-4" />
                       </a>
@@ -439,6 +498,7 @@ export default function MyAssets() {
                   <Button variant="ghost" size="icon" asChild>
                     <a
                       href={`/wallets/assets/token?chain=${assetWallet?.chainId}&coin=${selectCoin}`}
+                      aria-label="View token details"
                     >
                       <Eye className="h-4 w-4" />
                     </a>
@@ -455,7 +515,7 @@ export default function MyAssets() {
                   {parseFloat(String(selectedCoinData?.balance || 0)).toFixed(2)}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {selectedCoinData?.number.toFixed(selectedCoinMeta?.displayDecimals || 4)}{' '}
+                  {(selectedCoinData?.number ?? 0).toFixed(selectedCoinMeta?.displayDecimals || 4)}{' '}
                   {selectCoin}
                 </p>
               </Card>
@@ -463,42 +523,54 @@ export default function MyAssets() {
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
                 <Button
                   className="flex flex-col items-center justify-center h-20 gap-1 rounded-xl"
-                  onClick={() => {}}
+                  onClick={onClickSend}
                 >
                   <ArrowUpRight className="h-5 w-5" />
                   <span className="text-xs">Send</span>
                 </Button>
                 <Button
                   className="flex flex-col items-center justify-center h-20 gap-1 rounded-xl"
-                  onClick={() => {}}
+                  onClick={onClickReceive}
                 >
                   <ArrowDownLeft className="h-5 w-5" />
                   <span className="text-xs">Receive</span>
                 </Button>
                 <Button
                   className="flex flex-col items-center justify-center h-20 gap-1 rounded-xl"
-                  onClick={() => {}}
+                  variant="secondary"
+                  disabled
+                  title="Swap is not available in this beta"
+                  aria-label="Swap (not available)"
                 >
                   <ArrowUpDown className="h-5 w-5" />
                   <span className="text-xs">Swap</span>
                 </Button>
                 <Button
                   className="flex flex-col items-center justify-center h-20 gap-1 rounded-xl"
-                  onClick={() => {}}
+                  variant="secondary"
+                  disabled
+                  title="Stake is not available in this beta"
+                  aria-label="Stake (not available)"
                 >
                   <Sprout className="h-5 w-5" />
                   <span className="text-xs">Stake</span>
                 </Button>
                 <Button
                   className="flex flex-col items-center justify-center h-20 gap-1 rounded-xl"
-                  onClick={() => {}}
+                  variant="secondary"
+                  disabled
+                  title="Buy is not available in this beta"
+                  aria-label="Buy (not available)"
                 >
                   <Plus className="h-5 w-5" />
                   <span className="text-xs">Buy</span>
                 </Button>
                 <Button
                   className="flex flex-col items-center justify-center h-20 gap-1 rounded-xl"
-                  onClick={() => {}}
+                  variant="secondary"
+                  disabled
+                  title="Sell is not available in this beta"
+                  aria-label="Sell (not available)"
                 >
                   <Minus className="h-5 w-5" />
                   <span className="text-xs">Sell</span>

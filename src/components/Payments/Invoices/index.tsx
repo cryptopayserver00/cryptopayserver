@@ -27,6 +27,7 @@ import InvoiceDataGrid from '../../DataList/InvoiceDataGrid'
 import { COINGECKO_IDS, CURRENCY, ORDER_TIME, ORDER_STATUS } from '@/packages/constants'
 import { IsValidEmail, IsValidHTTPUrl, IsValidJSON } from '@/utils/verify'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { CHAINNAMES, COIN, COINS } from '@/packages/constants/blockchain'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
@@ -93,14 +94,20 @@ const PaymentInvoices = () => {
         },
       })
       if (response.result) {
-        const rate = response.data[ids][currency.toLowerCase()]
+        const rate = response.data?.[ids]?.[currency.toLowerCase()]
+        if (!rate || !Number.isFinite(Number(rate))) {
+          setSnackSeverity('error')
+          setSnackMessage('Could not fetch exchange rate')
+          setSnackOpen(true)
+          return
+        }
         setRate(rate)
         const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(8)
         setCryptoAmount(totalPrice)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -126,56 +133,56 @@ const PaymentInvoices = () => {
   const onClickCreateInvoice = async () => {
     if (!checkAmount(amount as number)) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect amount')
+      setSnackMessage('Please enter a valid amount')
       setSnackOpen(true)
       return
     }
 
     if (!CURRENCY.includes(currency)) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect currency')
+      setSnackMessage('Please select a valid currency')
       setSnackOpen(true)
       return
     }
 
     if (!chainName) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect chainName')
+      setSnackMessage('Please select a network')
       setSnackOpen(true)
       return
     }
 
     if (!crypto) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect crypto')
+      setSnackMessage('Please select a cryptocurrency')
       setSnackOpen(true)
       return
     }
 
     if (!IsValidEmail(buyerEmail)) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect email')
+      setSnackMessage('Please enter a valid email')
       setSnackOpen(true)
       return
     }
 
     if (metadata !== '' && !IsValidJSON(metadata)) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect metadata')
+      setSnackMessage('Metadata must be valid JSON')
       setSnackOpen(true)
       return
     }
 
     if (notificationEmail !== '' && !IsValidEmail(notificationEmail)) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect email')
+      setSnackMessage('Please enter a valid email')
       setSnackOpen(true)
       return
     }
 
     if (notificationUrl !== '' && !IsValidHTTPUrl(notificationUrl)) {
       setSnackSeverity('error')
-      setSnackMessage('Incorrect notificationUrl')
+      setSnackMessage('Please enter a valid notification URL')
       setSnackOpen(true)
       return
     }
@@ -215,7 +222,7 @@ const PaymentInvoices = () => {
 
       if (response.result && response.data.orderId) {
         setSnackSeverity('success')
-        setSnackMessage('Successful creation!')
+        setSnackMessage('Created successfully!')
         setSnackOpen(true)
         setTimeout(() => {
           window.location.href = '/payments/invoices/' + response.data.orderId
@@ -223,7 +230,7 @@ const PaymentInvoices = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

@@ -3,7 +3,7 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { WEB3 } from '@/packages/web3'
 import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
-import { requireOwnedWallet } from '@/lib/auth'
+import { rateLimit, requireOwnedWallet } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -15,6 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const ownedWallet = await requireOwnedWallet(req, res, req.query.wallet_id)
     if (!ownedWallet) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_wallet_address_by_chain_and_netw', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const walletId = ownedWallet.walletId
     const userId = ownedWallet.userId
 
@@ -57,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           note: item.note,
           balance: await WEB3.getAssetBalance(network === 1, chainId, item.address),
           status: (await WEB3.checkAccountStatus(network === 1, chainId, item.address)) ? 1 : 2,
-          tx_url: WEB3.getBlockchainAddressTransactionUrl(network === 1, chainId, item.address),
+          txUrl: WEB3.getBlockchainAddressTransactionUrl(network === 1, chainId, item.address),
           transactions: await WEB3.getTransactions(network === 1, chainId, item.address),
           resource: await WEB3.getAccountResource(network === 1, chainId, item.address),
           trust_line: await WEB3.getTokenTrustLine(network === 1, chainId, item.address),
@@ -69,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: '', result: true, data: newRows })
     }
 
-    return res.status(200).json({ message: '', result: false, data: null })
+    return res.status(200).json({ message: '', result: true, data: [] })
   } catch (e) {
     console.error(e)
     return res.status(500).json({

@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import Head from 'next/head'
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -7,6 +8,7 @@ import { AlertTriangle, Copy, HelpCircle, Lock, Store as StoreIcon } from 'lucid
 
 import { useSnackPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { OmitMiddleString } from '@/utils/strings'
 import { CURRENCY_SYMBOLS, ORDER_STATUS, WALLET } from '@/packages/constants'
@@ -88,12 +90,12 @@ const InvoiceDetails = () => {
         }
       } else {
         setSnackSeverity('error')
-        setSnackMessage('Can not find the invoice!')
+        setSnackMessage('Could not find the invoice.')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -156,7 +158,7 @@ const InvoiceDetails = () => {
 
   const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text)
-    setSnackMessage('Successfully copy')
+    setSnackMessage('Copied successfully')
     setSnackSeverity('success')
     setSnackOpen(true)
   }
@@ -165,9 +167,22 @@ const InvoiceDetails = () => {
     return <div className="py-20 text-center">Loading invoice...</div>
   }
 
+  const brandColor =
+    order.storeBrandColor && /^#[0-9A-Fa-f]{3,8}$/.test(order.storeBrandColor)
+      ? order.storeBrandColor
+      : undefined
+
   return (
     <div className="mt-4">
-      <div className="mx-auto max-w-screen-xl px-4">
+      {order.storeCustomCssUrl ? (
+        <Head>
+          <link rel="stylesheet" href={order.storeCustomCssUrl} />
+        </Head>
+      ) : null}
+      <div
+        className="mx-auto max-w-screen-xl px-4"
+        style={brandColor ? { borderTop: `4px solid ${brandColor}`, paddingTop: '1rem' } : undefined}
+      >
         {order?.network === 2 && (
           <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-900">
             <AlertTriangle className="h-4 w-4 !text-amber-600" />
@@ -178,6 +193,7 @@ const InvoiceDetails = () => {
               <Link
                 href="/freecoin"
                 target="_blank"
+                rel="noreferrer"
                 className="font-medium underline underline-offset-2"
               >
                 here.
@@ -249,7 +265,7 @@ const InvoiceDetails = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="help"
+                  aria-label="Payment help"
                   onClick={() => setOpenDrawer(true)}
                 >
                   <HelpCircle className="h-5 w-5" />
@@ -328,6 +344,7 @@ const InvoiceDetails = () => {
                     value={
                       <Link
                         target="_blank"
+                        rel="noreferrer"
                         href={GetBlockchainTxUrlByChainIds(
                           order?.network === 1,
                           order?.chainId,
@@ -344,6 +361,7 @@ const InvoiceDetails = () => {
                     value={
                       <Link
                         target="_blank"
+                        rel="noreferrer"
                         href={GetBlockchainAddressUrlByChainIds(
                           order?.network === 1,
                           order?.chainId,
@@ -360,6 +378,7 @@ const InvoiceDetails = () => {
                     value={
                       <Link
                         target="_blank"
+                        rel="noreferrer"
                         href={GetBlockchainAddressUrlByChainIds(
                           order?.network === 1,
                           order?.chainId,
@@ -383,11 +402,21 @@ const InvoiceDetails = () => {
               </div>
 
               <div className="flex items-center gap-1.5 text-sm">
-                <Link href="#" className="hover:underline">
+                <Link
+                  href="https://docs.cryptopayserver.online"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:underline"
+                >
                   Terms
                 </Link>
                 <span className="text-muted-foreground">·</span>
-                <Link href="#" className="hover:underline">
+                <Link
+                  href="https://docs.cryptopayserver.online"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:underline"
+                >
                   Privacy
                 </Link>
               </div>

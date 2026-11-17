@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { COIN } from '@/packages/constants/blockchain'
 import { GetBlockchainTxUrlByChainIds } from '@/utils/web3'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useSnackPresistStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
@@ -31,7 +32,7 @@ const FreeCoin = () => {
 
   const onClickCoin = async (item: COIN, address: string, amount: number) => {
     if (!item || !address || !amount) {
-      showSnack('error', 'Incorrect parameters')
+      showSnack('error', 'Missing or invalid parameters')
       return
     }
 
@@ -45,7 +46,7 @@ const FreeCoin = () => {
       })
 
       if (!checkout_resp.result) {
-        showSnack('error', 'The input address is invalid, please try it again!')
+        showSnack('error', 'The address is invalid. Please try again.')
         return
       }
 
@@ -61,10 +62,10 @@ const FreeCoin = () => {
         setBlockExplorerLink(GetBlockchainTxUrlByChainIds(false, item.chainId, response.data.hash))
         setPage(2)
       } else {
-        showSnack('error', 'Can not get it, please try it again')
+        showSnack('error', 'Could not claim test coins. Try again.')
       }
     } catch (e) {
-      showSnack('error', 'The network error occurred. Please try again later.')
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
     }
   }
@@ -89,11 +90,12 @@ const FreeCoin = () => {
               <CheckCircle2 className="h-20 w-20 text-green-500" strokeWidth={1.5} />
 
               <p className="mt-4 text-xl font-bold">Payment Sent</p>
-              <p className="mt-2 text-muted-foreground">Request sending successfully</p>
+              <p className="mt-2 text-muted-foreground">Request sent successfully</p>
 
               <Link
                 href={blockExplorerLink}
                 target="_blank"
+                rel="noreferrer"
                 className="mt-3 flex items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Eye className="h-4 w-4" />

@@ -14,6 +14,7 @@ import {
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { CHAINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { useShallow } from 'zustand/react/shallow'
@@ -50,7 +51,7 @@ const Payout = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Update successful!')
+        setSnackMessage('Updated successfully!')
         setSnackOpen(true)
 
         setIsConfigure(false)
@@ -61,7 +62,7 @@ const Payout = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     } finally {
@@ -289,7 +290,7 @@ function StorePayoutTable(props: TableType) {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }

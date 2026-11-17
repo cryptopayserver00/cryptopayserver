@@ -47,6 +47,9 @@ model api_key_settings {
   status      Int
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+
+  @@index([api_key, status])
+  @@index([store_id, status])
 }
 
 model checkout_settings {
@@ -104,6 +107,8 @@ model email_settings {
   status       Int
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
+
+  @@index([store_id, status])
 }
 
 model invoice_events {
@@ -114,6 +119,9 @@ model invoice_events {
   status     Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index([order_id, status])
+  @@index([invoice_id, status])
 }
 
 model invoices {
@@ -371,6 +379,9 @@ model wallet_coin_enables {
   status     Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index([store_id, network, status])
+  @@index([user_id, store_id, chain_id, network, status])
 }
 
 model webhook_settings {
@@ -385,6 +396,9 @@ model webhook_settings {
   status               Int
   created_at           DateTime @default(now())
   updated_at           DateTime @updatedAt
+
+  @@index([store_id, status])
+  @@index([store_id, enabled, status])
 }
 
 model roles {
@@ -396,6 +410,8 @@ model roles {
   status      Int
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+
+  @@index([store_id, status])
 }
 
 model user_roles {
@@ -407,6 +423,9 @@ model user_roles {
   status      Int
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+
+  @@index([store_id, status])
+  @@index([email, status])
 }
 
 model wallet_lightning_networks {
@@ -424,6 +443,9 @@ model wallet_lightning_networks {
   status         Int
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
+
+  @@index([store_id, status])
+  @@index([store_id, enabled, status])
 }
 
 model wallet_lightning_network_settings {

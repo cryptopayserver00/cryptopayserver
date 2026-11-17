@@ -1,5 +1,6 @@
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { requestSecretPrompt } from '@/lib/store/secret-prompt'
 
 /**
  * Require a wallet password for sensitive actions.
@@ -18,8 +19,20 @@ export async function promptWalletPasswordIfNeeded(walletId: number): Promise<st
     throw new Error('Set a wallet password before this action')
   }
 
-  const password = window.prompt('Enter your wallet password to continue')
-  if (password === null) return null
+  const result = await requestSecretPrompt({
+    title: 'Wallet password required',
+    description: 'Enter your wallet password to continue.',
+    fields: [
+      {
+        id: 'password',
+        label: 'Wallet password',
+        type: 'password',
+        autoComplete: 'current-password',
+      },
+    ],
+  })
+  if (!result) return null
+  const password = String(result.password || '')
   if (!password) {
     throw new Error('Wallet password required')
   }
@@ -30,9 +43,23 @@ export async function promptWalletPasswordIfNeeded(walletId: number): Promise<st
  * Require the account login password (step-up) for send / export / reveal.
  * Returns null when the user cancels.
  */
-export function promptAccountPassword(message = 'Enter your account password to continue'): string | null {
-  const password = window.prompt(message)
-  if (password === null) return null
+export async function promptAccountPassword(
+  message = 'Enter your account password to continue'
+): Promise<string | null> {
+  const result = await requestSecretPrompt({
+    title: 'Account password required',
+    description: message,
+    fields: [
+      {
+        id: 'password',
+        label: 'Account password',
+        type: 'password',
+        autoComplete: 'current-password',
+      },
+    ],
+  })
+  if (!result) return null
+  const password = String(result.password || '')
   if (!password) {
     throw new Error('Account password required')
   }

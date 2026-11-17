@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export const Paybutton = () => {
   return (
@@ -6,6 +7,13 @@ export const Paybutton = () => {
       <div className="pb-4 border-b">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Pay Button</h1>
       </div>
+
+      <Alert>
+        <AlertDescription>
+          Pay Button embed generation is planned for a later release. Use invoices or payment
+          requests for checkout links in this beta.
+        </AlertDescription>
+      </Alert>
 
       <Card>
         <CardContent className="pt-6">

@@ -15,16 +15,19 @@ import { FindChainNamesByChains } from '@/utils/web3'
 
 interface DialogType {
   currency: string
+  maxAmount?: number
   selectCoinItem: COIN
   openDialog: boolean
   setOpenDialog: (value: boolean) => void
-  onClickCoin: (item: COIN, cryptoAmount: string, rate: number) => Promise<void>
+  onClickCoin: (item: COIN, address: string, amount: number) => Promise<void>
 }
 
 export default function CreateFundsDialog(props: DialogType) {
   const [address, setAddress] = useState('')
   const [amount, setAmount] = useState<number>(0)
   const [isClaiming, setIsClaiming] = useState(false)
+  const maxAmount =
+    props.maxAmount != null && Number.isFinite(props.maxAmount) ? Number(props.maxAmount) : undefined
 
   const handleClose = () => {
     setAddress('')
@@ -67,6 +70,8 @@ export default function CreateFundsDialog(props: DialogType) {
               <Input
                 id="claim-amount"
                 type="number"
+                min={0}
+                max={maxAmount}
                 value={amount || ''}
                 onChange={(e) => setAmount(Number(e.target.value))}
                 placeholder="Enter your amount"
@@ -76,6 +81,11 @@ export default function CreateFundsDialog(props: DialogType) {
                 {props.currency}
               </span>
             </div>
+            {maxAmount != null && (
+              <p className="text-xs text-muted-foreground">
+                Available to claim: {maxAmount} {props.currency}
+              </p>
+            )}
           </div>
         </div>
 
@@ -84,11 +94,18 @@ export default function CreateFundsDialog(props: DialogType) {
             Close
           </Button>
           <Button
-            disabled={isClaiming || !address}
+            disabled={
+              isClaiming ||
+              !address ||
+              !amount ||
+              amount <= 0 ||
+              (maxAmount != null && amount > maxAmount + 1e-12)
+            }
             onClick={async () => {
               try {
+                if (maxAmount != null && amount > maxAmount + 1e-12) return
                 setIsClaiming(true)
-                await props.onClickCoin(props.selectCoinItem as COIN, address, amount as any)
+                await props.onClickCoin(props.selectCoinItem as COIN, address, amount)
                 handleClose()
               } finally {
                 setIsClaiming(false)

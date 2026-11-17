@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import {
   useSnackPresistStore,
@@ -59,7 +60,7 @@ const GenerateWallet = () => {
       }
 
       const { promptAccountPassword } = await import('@/utils/wallet-password')
-      const accountPassword = promptAccountPassword('Enter your account password to create wallet')
+      const accountPassword = await promptAccountPassword('Enter your account password to create wallet')
       if (accountPassword === null) return
 
       const create_wallet_resp: any = await axios.post(Http.create_wallet, {
@@ -73,7 +74,7 @@ const GenerateWallet = () => {
         setIsWallet(true)
 
         setSnackSeverity('success')
-        setSnackMessage('Successful creation!')
+        setSnackMessage('Created successfully!')
         setSnackOpen(true)
 
         await walletToBlockScan(create_wallet_resp.data.walletId)
@@ -84,7 +85,7 @@ const GenerateWallet = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -163,7 +164,12 @@ const GenerateWallet = () => {
 
           <p className="mt-10 text-center text-sm text-gray-600">
             Continuing implies agreeing to CryptoPayServer{' '}
-            <Link href="#" className="text-primary underline hover:opacity-80">
+            <Link
+              href="https://docs.cryptopayserver.online"
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary underline hover:opacity-80"
+            >
               user agreement
             </Link>
             .

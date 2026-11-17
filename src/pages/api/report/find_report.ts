@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { REPORT_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
-import { requireOwnedStore } from '@/lib/auth'
+import { rateLimit, requireOwnedStore } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -14,6 +14,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const owned = await requireOwnedStore(req, res, req.query.store_id, req.query.user_id)
     if (!owned) return
+
+    if (!(await rateLimit(req, res, { scope: 'rl-find_report', limit: 120, windowMs: 15 * 60 * 1000 }))) {
+      return
+    }
     const storeId = owned.storeId
 
     const network = Number(req.query.network)
@@ -21,21 +25,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid network', result: false, data: null })
     }
 
-    const startDate = req.query.start_date
-    const endDate = req.query.end_date
+    const startDateRaw = req.query.start_date
+    const endDateRaw = req.query.end_date
     const status = req.query.status
 
-    // let findData: { [key: string]: any } = {}
-
-    // if (req.query.start_date) findData.start_date = req.body.start_date
+    const startMs = Number(startDateRaw)
+    const endMs = Number(endDateRaw)
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
+      return res.status(200).json({
+        message: 'Invalid start_date or end_date',
+        result: false,
+        data: null,
+      })
+    }
+    const startDate = new Date(startMs)
+    const endDate = new Date(endMs)
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || startDate > endDate) {
+      return res.status(200).json({
+        message: 'Invalid date range',
+        result: false,
+        data: null,
+      })
+    }
 
     const reports = await prisma.invoices.findMany({
       where: {
         source_type:
           String(status) && String(status) !== REPORT_STATUS.All ? String(status) : undefined,
         created_at: {
-          gte: new Date(Number(startDate)),
-          lte: new Date(Number(endDate)),
+          gte: startDate,
+          lte: endDate,
         },
         store_id: storeId,
         network: network,

@@ -5,6 +5,7 @@ import { useStorePresistStore } from '@/lib/store/store'
 import { useUserPresistStore } from '@/lib/store/user'
 import { CURRENCY, PRICE_RESOURCE } from '@/packages/constants'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { SiteLogo } from '../Logo/SiteLogo'
 import { useShallow } from 'zustand/react/shallow'
@@ -49,21 +50,21 @@ const CreateStore = () => {
     try {
       if (!name || name === '') {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect name input')
+        setSnackMessage('Please enter a valid name')
         setSnackOpen(true)
         return
       }
 
       if (!CURRENCY.includes(currency)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect currency select')
+        setSnackMessage('Please select a valid currency')
         setSnackOpen(true)
         return
       }
 
       if (!PRICE_RESOURCE.includes(priceSource)) {
         setSnackSeverity('error')
-        setSnackMessage('Incorrect price source select')
+        setSnackMessage('Please select a valid price source')
         setSnackOpen(true)
         return
       }
@@ -86,7 +87,7 @@ const CreateStore = () => {
         resetWallet()
 
         setSnackSeverity('success')
-        setSnackMessage('Successful creation!')
+        setSnackMessage('Created successfully!')
         setSnackOpen(true)
 
         setTimeout(() => {
@@ -95,7 +96,7 @@ const CreateStore = () => {
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -129,7 +130,7 @@ const CreateStore = () => {
               <label className="block text-sm font-medium text-gray-700">Default currency</label>
               <div className="mt-1">
                 <select
-                  aria-label="Without label"
+                  aria-label="Default currency"
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
                   className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
@@ -151,7 +152,7 @@ const CreateStore = () => {
               </label>
               <div className="mt-1">
                 <select
-                  aria-label="Without label"
+                  aria-label="Preferred Price Source"
                   value={priceSource}
                   onChange={(e) => setPriceSource(e.target.value)}
                   className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"

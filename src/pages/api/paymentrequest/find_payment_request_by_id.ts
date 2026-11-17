@@ -3,7 +3,11 @@ import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/auth'
 import { readAccessToken, verifyPublicResource } from '@/lib/security/public-token'
-import { sanitizePublicWebsiteUrl } from '@/lib/security/safe-url'
+import {
+  sanitizePublicWebsiteUrl,
+  sanitizeStoreCustomCssUrl,
+  sanitizeStoreLogoUrl,
+} from '@/lib/security/safe-url'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -13,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    if (!(await rateLimit(req, res, { scope: 'pub-find-payment-request-by-', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+    if (!(await rateLimit(req, res, { scope: 'pub-find-payment-request-by-id', limit: 60, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
@@ -71,10 +75,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         memo: payment_request.memo,
         paymentRequestStatus: payment_request.payment_request_status,
         expirationAt: payment_request.expiration_at,
-        store_name: store.name,
-        store_brand_color: store.brand_color,
-        store_logo_url: store.logo_url,
-        store_website: sanitizePublicWebsiteUrl(store.website),
+        storeName: store.name,
+        storeBrandColor: store.brand_color,
+        storeLogoUrl: sanitizeStoreLogoUrl(store.logo_url),
+        storeWebsite: sanitizePublicWebsiteUrl(store.website),
+        storeCustomCssUrl: sanitizeStoreCustomCssUrl(store.custom_css_url),
       },
     })
   } catch (e) {

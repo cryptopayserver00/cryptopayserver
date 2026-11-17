@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { CHAINNAMES } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { FindChainIdsByChainNames } from '@/utils/web3'
 import { useShallow } from 'zustand/react/shallow'
@@ -55,7 +56,7 @@ const ImportPrivateKey = () => {
       }
 
       const { promptAccountPassword } = await import('@/utils/wallet-password')
-      const accountPassword = promptAccountPassword(
+      const accountPassword = await promptAccountPassword(
         'Enter your account password to import private key'
       )
       if (accountPassword === null) return
@@ -71,12 +72,12 @@ const ImportPrivateKey = () => {
 
       if (response.result) {
         setSnackSeverity('success')
-        setSnackMessage('Successful creation!')
+        setSnackMessage('Created successfully!')
         setSnackOpen(true)
       }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('The network error occurred. Please try again later.')
+      setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
     }
@@ -93,7 +94,7 @@ const ImportPrivateKey = () => {
       <div className="w-full">
         <label className="sr-only">Select Network</label>
         <select
-          aria-label="Without label"
+          aria-label="Select Network"
           value={chainName}
           onChange={(e) => setChainName(e.target.value as CHAINNAMES)}
           className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"

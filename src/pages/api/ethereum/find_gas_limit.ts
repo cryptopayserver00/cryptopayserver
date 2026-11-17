@@ -65,6 +65,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       coin as COINS
     )
 
+    if (!token) {
+      return res.status(200).json({ message: 'Invalid coin', result: false, data: null })
+    }
+
     const gas = await WEB3.getGasLimit(
       network === 1,
       chainId,
