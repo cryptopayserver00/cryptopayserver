@@ -1,3 +1,7 @@
+/**
+ * Server-only webhook delivery. Do not import from React client components —
+ * Node builtins (dns/net/crypto) will break the browser bundle.
+ */
 import axios from 'axios'
 import { createHmac } from 'crypto'
 import { decryptSecret } from '@/lib/crypto/secrets'

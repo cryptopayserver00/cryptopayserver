@@ -64,6 +64,7 @@ export class Http {
   static update_webhook_setting_by_id = this.baseApiPath + '/setting/update_webhook_setting_by_id'
   static create_webhook_setting = this.baseApiPath + '/setting/create_webhook_setting'
   static delete_webhook_setting_by_id = this.baseApiPath + '/setting/delete_webhook_setting_by_id'
+  static test_webhook_setting = this.baseApiPath + '/setting/test_webhook_setting'
 
   // payout setting of store
   static find_payout_setting = this.baseApiPath + '/setting/find_payout_setting'

@@ -105,4 +105,24 @@ describe('assertSameOrigin', () => {
     ).toBe(false)
     expect(out.statusCode).toBe(403)
   })
+
+  it('allows localhost when APP_BASE_URL is 127.0.0.1 in non-production', () => {
+    process.env.APP_BASE_URL = 'http://127.0.0.1:8888'
+    process.env.NODE_ENV = 'development'
+    const { res } = mockRes()
+    expect(
+      assertSameOrigin(mockReq({ headers: { origin: 'http://localhost:8888' } }), res)
+    ).toBe(true)
+  })
+
+  it('accepts bare host:port in CORS_ORIGIN', () => {
+    delete process.env.APP_BASE_URL
+    delete process.env.NEXT_PUBLIC_APP_URL
+    process.env.CORS_ORIGIN = '127.0.0.1:8888'
+    process.env.NODE_ENV = 'development'
+    const { res } = mockRes()
+    expect(
+      assertSameOrigin(mockReq({ headers: { origin: 'http://127.0.0.1:8888' } }), res)
+    ).toBe(true)
+  })
 })

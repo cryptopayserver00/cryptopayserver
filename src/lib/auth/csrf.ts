@@ -1,6 +1,46 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import type { ResponseData } from '@/pages/api'
 
+function parseOrigin(raw: string): string | null {
+  const value = String(raw || '').trim()
+  if (!value) return null
+  const candidates = [value]
+  // Accept host:port / bare host in CORS_ORIGIN (common misconfig without scheme).
+  if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)) {
+    candidates.push(`http://${value}`, `https://${value}`)
+  }
+  for (const candidate of candidates) {
+    try {
+      return new URL(candidate).origin
+    } catch {
+      // try next
+    }
+  }
+  return null
+}
+
+function withLocalhostAliases(origins: Set<string>): Set<string> {
+  // Browsers treat localhost and 127.0.0.1 as different Origins.
+  // In non-production, allow both when either is configured (same port).
+  if (isProduction()) return origins
+  const out = new Set(origins)
+  for (const origin of origins) {
+    try {
+      const url = new URL(origin)
+      if (url.hostname === '127.0.0.1') {
+        url.hostname = 'localhost'
+        out.add(url.origin)
+      } else if (url.hostname === 'localhost') {
+        url.hostname = '127.0.0.1'
+        out.add(url.origin)
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return out
+}
+
 function allowedOrigins(): Set<string> {
   const set = new Set<string>()
   for (const raw of [
@@ -8,15 +48,10 @@ function allowedOrigins(): Set<string> {
     process.env.NEXT_PUBLIC_APP_URL,
     ...(process.env.CORS_ORIGIN || '').split(','),
   ]) {
-    const value = String(raw || '').trim()
-    if (!value) continue
-    try {
-      set.add(new URL(value).origin)
-    } catch {
-      // ignore invalid
-    }
+    const origin = parseOrigin(String(raw || ''))
+    if (origin) set.add(origin)
   }
-  return set
+  return withLocalhostAliases(set)
 }
 
 function isProduction(): boolean {

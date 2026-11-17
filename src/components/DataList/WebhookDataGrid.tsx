@@ -79,22 +79,24 @@ export default function WebhookDataGrid(props: GridType) {
   const onClickTest = async (row: RowType) => {
     try {
       setTestingId(row.webhookId)
-      // Send a signed ping so merchants can verify HMAC headers end-to-end
-      const { WEBHOOK } = await import('@/utils/webhook')
-      await WEBHOOK.sendWebhook(
-        row.payloadUrl,
-        { ping: true, webhookId: row.webhookId },
-        {
-          secret: row.secret,
-          event: 'webhook.test',
-        }
-      )
-      setSnackSeverity('success')
-      setSnackMessage('Testing successful!')
-      setSnackOpen(true)
+      // Server-side signed ping — keeps dns/crypto Node modules and webhook secrets off the browser.
+      const response: any = await axios.post(Http.test_webhook_setting, {
+        id: row.webhookId,
+        store_id: storeId,
+        user_id: userId,
+      })
+      if (response.result) {
+        setSnackSeverity('success')
+        setSnackMessage('Testing successful!')
+        setSnackOpen(true)
+      } else {
+        setSnackSeverity('error')
+        setSnackMessage(response.message || 'Testing failed!')
+        setSnackOpen(true)
+      }
     } catch (e) {
       setSnackSeverity('error')
-      setSnackMessage('Testing failed!')
+      setSnackMessage(getApiErrorMessage(e) || 'Testing failed!')
       setSnackOpen(true)
       console.error(e)
     } finally {
