@@ -16,12 +16,14 @@ import { CHAINS, LIGHTNINGNAME } from '@/packages/constants/blockchain'
 import { LNDHUB } from '@/packages/lightning/core/lndhub'
 import { LIGHTNING } from '@/packages/lightning'
 import { prisma } from '@/lib/prisma'
-import { requireCronSecret } from '@/lib/auth'
+import { requireCronSecret, withCronLock } from '@/lib/auth'
 import {
   encryptLightningCredentials,
   unwrapLightningCredentials,
 } from '@/lib/crypto/lightning'
 import { assertSafeHttpUrl } from '@/lib/security/safe-url'
+
+const BLOCKSCAN_BATCH_SIZE = 50
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -33,50 +35,88 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!requireCronSecret(req, res)) return
 
+    const locked = await withCronLock('schedule_blockscan', 55_000, async () => {
     console.info('Schedule Blockscan')
-    const now = new Date()
+    if (!BLOCKSCAN.isConfigured) {
+      console.warn(
+        '[schedule_blockscan] BLOCKSCAN_BASE_URL unset — on-chain settlement soft-skipped this tick (Lightning invoices still checked)'
+      )
+    }
 
     const invoices = await prisma.invoices.findMany({
       where: {
         order_status: ORDER_STATUS.Processing,
         status: 1,
       },
+      orderBy: { created_at: 'asc' },
+      take: BLOCKSCAN_BATCH_SIZE,
     })
 
+    const storeIds = Array.from(new Set(invoices.map((i) => i.store_id)))
+    const activeStores = storeIds.length
+      ? await prisma.stores.findMany({
+          where: { id: { in: storeIds }, status: 1 },
+          select: { id: true },
+        })
+      : []
+    const activeStoreIds = new Set(activeStores.map((s) => s.id))
+
+    const paymentSettings = storeIds.length
+      ? await prisma.payment_settings.findMany({
+          where: { store_id: { in: storeIds }, status: 1 },
+          select: { store_id: true, chain_id: true, network: true, confirm_block: true },
+        })
+      : []
+    const confirmByKey = new Map<string, number>()
+    for (const ps of paymentSettings) {
+      confirmByKey.set(
+        `${ps.store_id}:${ps.chain_id}:${ps.network}`,
+        Math.max(0, Number(ps.confirm_block || 0))
+      )
+    }
+
+    const lnStoreIds = Array.from(
+      new Set(
+        invoices
+          .filter(
+            (i) =>
+              i.chain_id === CHAINS.BITCOIN &&
+              i.lightning_invoice &&
+              String(i.lightning_invoice).length > 0
+          )
+          .map((i) => i.store_id)
+      )
+    )
+    const lightningNetworks = lnStoreIds.length
+      ? await prisma.wallet_lightning_networks.findMany({
+          where: { store_id: { in: lnStoreIds }, status: 1 },
+        })
+      : []
+    const lnByStore = new Map<number, typeof lightningNetworks>()
+    for (const ln of lightningNetworks) {
+      const list = lnByStore.get(ln.store_id) || []
+      list.push(ln)
+      lnByStore.set(ln.store_id, list)
+    }
+
     for (const item of invoices) {
-      const activeStore = await prisma.stores.findFirst({
-        where: { id: item.store_id, status: 1 },
-        select: { id: true },
-      })
-      if (!activeStore) {
+      if (!activeStoreIds.has(item.store_id)) {
         continue
       }
 
-      const paymentSetting = await prisma.payment_settings.findFirst({
-        where: {
-          store_id: item.store_id,
-          chain_id: item.chain_id,
-          network: item.network,
-          status: 1,
-        },
-        select: { confirm_block: true },
-      })
-      const requiredConfirmations = Math.max(0, Number(paymentSetting?.confirm_block || 0))
+      const requiredConfirmations =
+        confirmByKey.get(`${item.store_id}:${item.chain_id}:${item.network}`) ?? 0
 
       let lightningInvoiceStatus = false
-
-      if (
+      const hasLightning =
         item.chain_id === CHAINS.BITCOIN &&
-        item.lightning_invoice &&
-        item.lightning_invoice !== ''
-      ) {
-        const find_lightning_networks = await prisma.wallet_lightning_networks.findMany({
-          where: {
-            user_id: Number(item.user_id),
-            store_id: item.store_id,
-            status: 1,
-          },
-        })
+        Boolean(item.lightning_invoice && item.lightning_invoice !== '')
+
+      if (hasLightning) {
+        const lightningInvoice = String(item.lightning_invoice || '')
+        const find_lightning_networks = (lnByStore.get(item.store_id) || []).filter(
+          (n) => Number(n.user_id) === Number(item.user_id)
+        )
 
         if (find_lightning_networks && find_lightning_networks.length > 0) {
           for (const lightItem of find_lightning_networks) {
@@ -103,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 lightningInvoiceStatus = await LIGHTNING.getInvoiceStatus(
                   LIGHTNINGNAME.CLIGHTNING,
                   lightItem.server,
-                  item.lightning_invoice,
+                  lightningInvoice,
                   '',
                   '',
                   '',
@@ -118,7 +158,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 lightningInvoiceStatus = await LIGHTNING.getInvoiceStatus(
                   LIGHTNINGNAME.LND,
                   lightItem.server,
-                  item.lightning_invoice,
+                  lightningInvoice,
                   '',
                   lnCreds.macaroon,
                   lnCreds.certthumbprint
@@ -161,7 +201,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 lightningInvoiceStatus = await LIGHTNING.getInvoiceStatus(
                   LIGHTNINGNAME.LNDHUB,
                   lightItem.server,
-                  item.lightning_invoice,
+                  lightningInvoice,
                   access_token
                 )
                 if (lightningInvoiceStatus) {
@@ -182,12 +222,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         }
       }
 
-      const txs = await BLOCKSCAN.getTransactionsByChainAndAddress(
-        WEB3.getChainIds(item.network === 1, item.chain_id).toString(),
-        item.destination_address
-      )
+      if (!hasLightning && !BLOCKSCAN.isConfigured) {
+        continue
+      }
 
-      if (!txs) {
+      const txs = BLOCKSCAN.isConfigured
+        ? await BLOCKSCAN.getTransactionsByChainAndAddress(
+            WEB3.getChainIds(item.network === 1, item.chain_id).toString(),
+            item.destination_address
+          )
+        : null
+
+      if (!txs && !hasLightning) {
         continue
       }
 
@@ -197,7 +243,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         toAddress = '',
         blockTimestamp = 0
 
-      if (txs.transactions && txs.transactions.length > 0) {
+      if (txs?.transactions && txs.transactions.length > 0) {
         for (const txItem of txs.transactions) {
           if (
             String(txItem.address).toLowerCase() ===
@@ -334,6 +380,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               try {
                 await WEBHOOK.sendWebhook(invoice.notification_url, notifyBody, {
                   event: 'invoice.settled',
+                  storeId: invoice.store_id,
+                  persist: true,
                 })
               } catch (e) {
                 console.error('invoice notification_url webhook failed', e)
@@ -490,7 +538,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       }
     }
 
-    return res.status(200).json({ message: '', result: true, data: null })
+    return { scanned: invoices.length, blockscanConfigured: BLOCKSCAN.isConfigured }
+    })
+
+    if (!locked.acquired) {
+      return res.status(200).json({ message: 'skipped: lock held', result: true, data: null })
+    }
+
+    return res.status(200).json({ message: '', result: true, data: locked.result })
   } catch (e) {
     console.error(e)
     return res.status(500).json({

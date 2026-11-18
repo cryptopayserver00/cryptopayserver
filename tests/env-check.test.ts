@@ -71,4 +71,19 @@ describe('checkSecurityEnv', () => {
       issues.some((i) => i.message.includes('SESSION_SECRET and CRON_SECRET'))
     ).toBe(true)
   })
+
+  it('errors when REQUIRE_REDIS=true and REDIS_URL missing in production', () => {
+    const issues = checkSecurityEnv({
+      NODE_ENV: 'production',
+      SESSION_SECRET: 'a'.repeat(32) + '-session',
+      ENCRYPTION_KEY: 'b'.repeat(32) + '-encrypt',
+      CRON_SECRET: 'c'.repeat(16) + '-cron',
+      DATABASE_URL: 'mysql://u:p@localhost:3306/db',
+      APP_BASE_URL: 'https://pay.example.com',
+      REQUIRE_REDIS: 'true',
+      BLOCKSCAN_BASE_URL: 'https://blockscan.example/api',
+    } as NodeJS.ProcessEnv)
+
+    expect(issues.some((i) => i.level === 'error' && i.message.includes('REDIS_URL'))).toBe(true)
+  })
 })

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '@/lib/prisma'
 import { getRedisClient } from '@/lib/redis'
 import { rateLimit } from '@/lib/auth/rate-limit'
+import { BLOCKSCAN } from '@/packages/web3/block_scan'
 
 type CheckStatus = 'up' | 'down' | 'skipped'
 
@@ -11,6 +12,7 @@ type HealthResponse = {
   checks: {
     database: CheckStatus
     redis: CheckStatus
+    blockscan: CheckStatus
   }
 }
 
@@ -24,7 +26,7 @@ export default async function handler(
     return res.status(405).json({
       ok: false,
       status: 'degraded',
-      checks: { database: 'skipped', redis: 'skipped' },
+      checks: { database: 'skipped', redis: 'skipped', blockscan: 'skipped' },
     })
   }
 
@@ -67,6 +69,9 @@ export default async function handler(
     }
   }
 
+  // Informational: unset Blockscan does not fail liveness (local/dev often omit it).
+  const blockscan: CheckStatus = BLOCKSCAN.isConfigured ? 'up' : 'skipped'
+
   // Liveness follows database only — Redis outage degrades status but must not
   // fail Compose/K8s healthchecks when REDIS_URL is misconfigured.
   const alive = database === 'up'
@@ -74,7 +79,7 @@ export default async function handler(
   const body: HealthResponse = {
     ok: fullyHealthy,
     status: fullyHealthy ? 'ok' : 'degraded',
-    checks: { database, redis },
+    checks: { database, redis, blockscan },
   }
 
   if (req.method === 'HEAD') {

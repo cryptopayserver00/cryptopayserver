@@ -55,8 +55,9 @@ Since Cryptopayserver is self-hosted software:
 | `APP_BASE_URL` | Public https origin (CSRF allowlist + password-reset links) |
 
 Optional but recommended for multi-instance deploys: `REDIS_URL`, `TRUST_PROXY=true` (only behind a trusted proxy).
+Set `REQUIRE_REDIS=true` so production boot/`yarn validate:env` **errors** if `REDIS_URL` is missing (shared rate limits + cron locks).
 
-Optional: `BLOCKSCAN_BASE_URL` for faucet / address-scan / tx-history helpers (unset = those helpers no-op; no silent SaaS fallback).
+Optional: `BLOCKSCAN_BASE_URL` for on-chain invoice settlement / faucet / address-scan / tx-history (unset = those helpers soft-skip; `/api/health` reports `checks.blockscan=skipped`; no silent SaaS fallback).
 
 Optional hardening: `USE_HOST_PREFIX_COOKIES=true` renames session cookies to `__Host-cps_session` / `__Host-cps_pending_2fa` (HTTPS only; users must re-login).
 
@@ -83,12 +84,13 @@ yarn secrets:audit-api-keys     # fail if plaintext API keys remain
 
 - Session cookies: `cps_session` / `cps_pending_2fa` (or `__Host-` variants), `HttpOnly`, `SameSite=Strict`, conditional `Secure`
 - CSRF: same-origin checks on mutating browser/session routes
-- Edge middleware: session / cron / API-key path gates; CSP script nonces (`style-src` still allows `'unsafe-inline'` for Tailwind/Radix); API `Cache-Control: no-store`
+- Edge middleware: session / cron / API-key path gates; CSP script nonces; `style-src 'self'` + `style-src-attr 'unsafe-inline'` (React `style={}` only); API `Cache-Control: no-store`
+- Schedule jobs: Redis/memory cron locks; webhook deliveries persisted with scheduled retries (`webhook_deliveries`)
 - Public checkout share links: HMAC tokens (`exp.sig`, 90-day TTL); signed with `SESSION_SECRET` (fallback `ENCRYPTION_KEY`)
 - Store RBAC + step-up account / wallet password for high-risk actions
 - Webhook / outbound URL SSRF checks; hashed store API keys
 - Per-IP (and Redis when configured) rate limits on auth and mutating APIs
-- `/api/health`: DB (+ Redis when configured) liveness; no secrets in response
+- `/api/health`: DB (+ Redis / Blockscan when configured) liveness; no secrets in response
 
 ### Database migrations
 

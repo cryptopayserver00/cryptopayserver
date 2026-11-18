@@ -102,19 +102,33 @@ export function checkSecurityEnv(
     })
   }
 
-  if (production && !(env.REDIS_URL || '').trim()) {
-    issues.push({
-      level: 'warn',
-      message:
-        'REDIS_URL unset — rate limiting is per-process only (set Redis for multi-instance)',
-    })
+  const requireRedis =
+    env.REQUIRE_REDIS === 'true' ||
+    env.REQUIRE_REDIS === '1' ||
+    env.REQUIRE_REDIS_IN_PRODUCTION === 'true' ||
+    env.REQUIRE_REDIS_IN_PRODUCTION === '1'
+
+  if (!(env.REDIS_URL || '').trim()) {
+    if (production && requireRedis) {
+      issues.push({
+        level: 'error',
+        message:
+          'REDIS_URL is required when REQUIRE_REDIS=true (multi-instance rate limits + cron locks)',
+      })
+    } else if (production) {
+      issues.push({
+        level: 'warn',
+        message:
+          'REDIS_URL unset — rate limits/cron locks are per-process only (set Redis + REQUIRE_REDIS=true for multi-instance)',
+      })
+    }
   }
 
   if (!(env.BLOCKSCAN_BASE_URL || '').trim()) {
     issues.push({
-      level: 'warn',
+      level: production ? 'warn' : 'warn',
       message:
-        'BLOCKSCAN_BASE_URL unset — faucet / address-scan / tx history helpers will no-op until configured',
+        'BLOCKSCAN_BASE_URL unset — on-chain invoice settlement / faucet / tx history will soft-fail until configured (see /api/health checks.blockscan)',
     })
   }
 

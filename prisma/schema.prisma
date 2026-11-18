@@ -401,6 +401,28 @@ model webhook_settings {
   @@index([store_id, enabled, status])
 }
 
+model webhook_deliveries {
+  id                 Int       @id @default(autoincrement())
+  store_id           Int
+  webhook_setting_id Int?
+  event              String
+  payload_url        String    @db.Text
+  payload            String    @db.LongText
+  secret             String    @default("") @db.Text
+  delivery_status    String
+  attempts           Int       @default(0)
+  last_error         String?   @db.Text
+  next_retry_at      DateTime?
+  delivered_at       DateTime?
+  status             Int       @default(1)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  @@index([delivery_status, next_retry_at, status])
+  @@index([store_id, delivery_status, status])
+  @@index([webhook_setting_id, status])
+}
+
 model roles {
   id          Int      @id @default(autoincrement())
   user_id     Int

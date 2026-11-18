@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { PAYMENT_REQUEST_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
-import { requireCronSecret } from '@/lib/auth'
+import { requireCronSecret, withCronLock } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -14,21 +14,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!requireCronSecret(req, res)) return
 
-    console.info('Schedule Payment Request Expired')
-
-    const now = new Date()
-    await prisma.payment_requests.updateMany({
-      data: {
-        payment_request_status: PAYMENT_REQUEST_STATUS.Expired,
-      },
-      where: {
-        payment_request_status: PAYMENT_REQUEST_STATUS.Pending,
-        status: 1,
-        expiration_at: { lte: now },
-      },
+    const locked = await withCronLock('schedule_payment_request_expired', 55_000, async () => {
+      console.info('Schedule Payment Request Expired')
+      const now = new Date()
+      const result = await prisma.payment_requests.updateMany({
+        data: {
+          payment_request_status: PAYMENT_REQUEST_STATUS.Expired,
+        },
+        where: {
+          payment_request_status: PAYMENT_REQUEST_STATUS.Pending,
+          status: 1,
+          expiration_at: { lte: now },
+        },
+      })
+      return { expired: result.count }
     })
 
-    return res.status(200).json({ message: '', result: true, data: null })
+    if (!locked.acquired) {
+      return res.status(200).json({ message: 'skipped: lock held', result: true, data: null })
+    }
+
+    return res.status(200).json({ message: '', result: true, data: locked.result })
   } catch (e) {
     console.error(e)
     return res.status(500).json({

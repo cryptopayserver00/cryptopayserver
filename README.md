@@ -181,7 +181,8 @@ Copy [`.env.example`](./.env.example) to `.env` (local) or `.env.production` (Do
 | `NEXT_PUBLIC_DISABLE_PUBLIC_REGISTRATION` | Optional UI mirror to hide Register links when signup is closed |
 | `CORS_ORIGIN` | Optional comma-separated allowed origins |
 | `TRUST_PROXY` | `true` only behind a trusted reverse proxy |
-| `REDIS_URL` | Optional Redis for multi-instance rate limiting (empty = in-memory). If set but unreachable, `/api/health` stays 200 with `status: degraded`. Compose: `docker compose --profile redis up` |
+| `REDIS_URL` | Optional Redis for multi-instance rate limiting + cron locks (empty = in-memory). If set but unreachable, `/api/health` stays 200 with `status: degraded`. Compose: `docker compose --profile redis up` |
+| `REQUIRE_REDIS` | Set `true` in multi-instance production so boot/`yarn validate:env` fails without `REDIS_URL` |
 | `FORCE_SECURE_COOKIES` | Force `Secure` cookies outside production (also auto when `APP_BASE_URL` is https) |
 | `USE_HOST_PREFIX_COOKIES` | Optional `__Host-` session cookie names (HTTPS apex only; requires re-login) |
 | `ALLOW_LEGACY_PLAINTEXT_API_KEYS` | Non-prod migration only: accept plaintext API keys and re-hash on use (ignored in production) |

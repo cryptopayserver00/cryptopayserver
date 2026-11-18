@@ -66,6 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       {
         secret: webhook.secret,
         event: 'webhook.test',
+        persist: false,
       }
     )
 

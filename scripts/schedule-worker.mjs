@@ -115,6 +115,7 @@ function every(ms, fn) {
 console.info(`[schedule-worker] targeting ${baseUrl}`)
 
 every(10_000, () => trigger('schedule_blockscan'))
+every(30_000, () => trigger('schedule_webhook_retry'))
 every(60_000, () => trigger('schedule_invoice_expired'))
 every(60_000, () => trigger('schedule_pull_payment_expired'))
 every(60_000, () => trigger('schedule_payment_request_expired'))

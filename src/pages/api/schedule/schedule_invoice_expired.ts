@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { ORDER_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
-import { requireCronSecret } from '@/lib/auth'
+import { requireCronSecret, withCronLock } from '@/lib/auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -14,59 +14,61 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     if (!requireCronSecret(req, res)) return
 
-    console.info('Schedule Invoice Expired')
+    const locked = await withCronLock('schedule_invoice_expired', 55_000, async () => {
+      console.info('Schedule Invoice Expired')
 
-    const now = new Date()
-    const invoices = await prisma.invoices.findMany({
-      where: {
-        order_status: ORDER_STATUS.Processing,
-        status: 1,
-        expiration_at: { lte: now },
-      },
+      const now = new Date()
+      const invoices = await prisma.invoices.findMany({
+        where: {
+          order_status: ORDER_STATUS.Processing,
+          status: 1,
+          expiration_at: { lte: now },
+        },
+      })
+
+      for (const invoice of invoices) {
+        await prisma.invoices.update({
+          data: {
+            order_status: ORDER_STATUS.Expired,
+          },
+          where: {
+            id: invoice.id,
+            status: 1,
+          },
+        })
+
+        await prisma.invoice_events.createMany({
+          data: [
+            {
+              invoice_id: invoice.id,
+              order_id: invoice.order_id,
+              message: `Invoice status is Expired`,
+              status: 1,
+            },
+            {
+              invoice_id: invoice.id,
+              order_id: invoice.order_id,
+              message: `Invoice ${invoice.order_id} new event: invoice_expired`,
+              status: 1,
+            },
+            {
+              invoice_id: invoice.id,
+              order_id: invoice.order_id,
+              message: `Invoice ${invoice.order_id} is not monitored anymore.`,
+              status: 1,
+            },
+          ],
+        })
+      }
+
+      return { expired: invoices.length }
     })
 
-    for (const invoice of invoices) {
-      await prisma.invoices.update({
-        data: {
-          order_status: ORDER_STATUS.Expired,
-        },
-        where: {
-          id: invoice.id,
-          status: 1,
-        },
-      })
-
-      const result = await prisma.invoice_events.createMany({
-        data: [
-          {
-            invoice_id: invoice.id,
-            order_id: invoice.order_id,
-            message: `Invoice status is Expired`,
-            status: 1,
-          },
-          {
-            invoice_id: invoice.id,
-            order_id: invoice.order_id,
-            message: `Invoice ${invoice.order_id} new event: invoice_expired`,
-            status: 1,
-          },
-          {
-            invoice_id: invoice.id,
-            order_id: invoice.order_id,
-            message: `Invoice ${invoice.order_id} is not monitored anymore.`,
-            status: 1,
-          },
-        ],
-      })
-
-      if (result.count === 0) {
-        return res
-          .status(200)
-          .json({ message: 'Cannot create many invoice event', result: false, data: null })
-      }
+    if (!locked.acquired) {
+      return res.status(200).json({ message: 'skipped: lock held', result: true, data: null })
     }
 
-    return res.status(200).json({ message: '', result: true, data: null })
+    return res.status(200).json({ message: '', result: true, data: locked.result })
   } catch (e) {
     console.error(e)
     return res.status(500).json({

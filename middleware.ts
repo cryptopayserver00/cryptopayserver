@@ -74,8 +74,9 @@ function buildCsp(nonce: string): string {
     "default-src 'self'",
     // Nonce + strict-dynamic: Next.js scripts carry the nonce; follow-on loads allowed.
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
-    // Styles still need unsafe-inline for Tailwind / CSS-in-JS until hashed.
-    "style-src 'self' 'unsafe-inline'",
+    // Linked / same-origin stylesheets only; React style={} uses style-src-attr.
+    "style-src 'self'",
+    "style-src-attr 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
     "connect-src 'self' https: wss:",

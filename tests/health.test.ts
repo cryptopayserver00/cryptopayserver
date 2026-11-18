@@ -56,7 +56,7 @@ function mockRes() {
       return body as {
         ok?: boolean
         status?: string
-        checks?: { database?: string; redis?: string }
+        checks?: { database?: string; redis?: string; blockscan?: string }
       } | null
     },
     get ended() {
@@ -88,6 +88,9 @@ describe('health', () => {
     expect(out.body?.ok).toBe(true)
     expect(out.body?.checks?.database).toBe('up')
     expect(out.body?.checks?.redis).toBe('skipped')
+    expect(out.body?.checks?.blockscan === 'up' || out.body?.checks?.blockscan === 'skipped').toBe(
+      true
+    )
   })
 
   it('returns 503 when database is down', async () => {
