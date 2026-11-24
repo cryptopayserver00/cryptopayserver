@@ -130,6 +130,12 @@ export function checkSecurityEnv(
       message:
         'BLOCKSCAN_BASE_URL unset — on-chain invoice settlement / faucet / tx history will soft-fail until configured (see /api/health checks.blockscan)',
     })
+  } else if (!(env.BLOCKSCAN_API_TOKEN || env.NODE_API_TOKEN || '').trim()) {
+    issues.push({
+      level: production ? 'error' : 'warn',
+      message:
+        'BLOCKSCAN_API_TOKEN unset — node HTTP APIs require X-API-Token matching node security.api-token',
+    })
   }
 
   const regDisabled = env.DISABLE_PUBLIC_REGISTRATION === 'true'

@@ -37,6 +37,7 @@ describe('checkSecurityEnv', () => {
       APP_BASE_URL: 'https://pay.example.com',
       REDIS_URL: 'redis://127.0.0.1:6379/0',
       BLOCKSCAN_BASE_URL: 'https://blockscan.example/api',
+      BLOCKSCAN_API_TOKEN: 'node-api-token-change-me',
     } as NodeJS.ProcessEnv)
 
     expect(issues.filter((i) => i.level === 'error')).toEqual([])
@@ -65,6 +66,7 @@ describe('checkSecurityEnv', () => {
       APP_BASE_URL: 'https://pay.example.com',
       REDIS_URL: 'redis://127.0.0.1:6379/0',
       BLOCKSCAN_BASE_URL: 'https://blockscan.example/api',
+      BLOCKSCAN_API_TOKEN: 'node-api-token-change-me',
     } as NodeJS.ProcessEnv)
 
     expect(
@@ -82,8 +84,26 @@ describe('checkSecurityEnv', () => {
       APP_BASE_URL: 'https://pay.example.com',
       REQUIRE_REDIS: 'true',
       BLOCKSCAN_BASE_URL: 'https://blockscan.example/api',
+      BLOCKSCAN_API_TOKEN: 'node-api-token-change-me',
     } as NodeJS.ProcessEnv)
 
     expect(issues.some((i) => i.level === 'error' && i.message.includes('REDIS_URL'))).toBe(true)
+  })
+
+  it('errors when BLOCKSCAN_BASE_URL set without API token in production', () => {
+    const issues = checkSecurityEnv({
+      NODE_ENV: 'production',
+      SESSION_SECRET: 'a'.repeat(32) + '-session',
+      ENCRYPTION_KEY: 'b'.repeat(32) + '-encrypt',
+      CRON_SECRET: 'c'.repeat(16) + '-cron',
+      DATABASE_URL: 'mysql://u:p@localhost:3306/db',
+      APP_BASE_URL: 'https://pay.example.com',
+      REDIS_URL: 'redis://127.0.0.1:6379/0',
+      BLOCKSCAN_BASE_URL: 'https://blockscan.example/api',
+    } as NodeJS.ProcessEnv)
+
+    expect(
+      issues.some((i) => i.level === 'error' && i.message.includes('BLOCKSCAN_API_TOKEN'))
+    ).toBe(true)
   })
 })

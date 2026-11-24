@@ -385,7 +385,7 @@ export class ETH {
       const url = `${BLOCKSCAN.baseUrl}/node/eth/getTransactions?chain_id=${this.getChainIds(
         isMainnet
       )}&address=${address}&asset=${symbol}`
-      const response = await this.axiosInstance.get(url)
+      const response = await BLOCKSCAN.axiosInstance.get(url)
 
       if (response.data.code === 10200 && response.data.data) {
         let txs = response.data.data

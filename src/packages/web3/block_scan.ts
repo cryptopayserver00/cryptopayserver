@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { type AxiosInstance } from 'axios'
 
 export interface BlockScanWalletType {
   address: string
@@ -12,13 +12,35 @@ export class BLOCKSCAN {
     return raw.replace(/\/$/, '')
   }
 
+  /** Must match node `security.api-token` (sent as X-API-Token). */
+  static get apiToken(): string {
+    return String(process.env.BLOCKSCAN_API_TOKEN || process.env.NODE_API_TOKEN || '').trim()
+  }
+
   static get isConfigured(): boolean {
     return Boolean(this.baseUrl)
   }
 
-  static axiosInstance = axios.create({
-    timeout: 50000,
-  })
+  static authHeaders(): Record<string, string> {
+    const headers: Record<string, string> = { accept: 'application/json' }
+    if (this.apiToken) headers['X-API-Token'] = this.apiToken
+    return headers
+  }
+
+  static axiosInstance: AxiosInstance = (() => {
+    const instance = axios.create({ timeout: 50000 })
+    instance.interceptors.request.use((config) => {
+      const token = BLOCKSCAN.apiToken
+      if (token) {
+        config.headers.set('X-API-Token', token)
+      }
+      if (!config.headers.get('accept')) {
+        config.headers.set('accept', 'application/json')
+      }
+      return config
+    })
+    return instance
+  })()
 
   static async bulkStoreUserWallet(bulk_storage: BlockScanWalletType[]): Promise<[boolean, any]> {
     try {
@@ -31,17 +53,9 @@ export class BLOCKSCAN {
         return [false, null]
       }
 
-      const response = await this.axiosInstance.post(
-        url,
-        {
-          bulk_storage: bulk_storage,
-        },
-        {
-          headers: {
-            accept: 'application/json',
-          },
-        }
-      )
+      const response = await this.axiosInstance.post(url, {
+        bulk_storage: bulk_storage,
+      })
 
       if (response && response.data) {
         if (response.data.code === 10200) {
@@ -70,9 +84,6 @@ export class BLOCKSCAN {
       }
       const url = this.baseUrl + '/coinFree'
       const response: any = await this.axiosInstance.get(url, {
-        headers: {
-          accept: 'application/json',
-        },
         params: {
           chain_id: chainId,
           address: address,
@@ -130,9 +141,6 @@ export class BLOCKSCAN {
 
       const url = this.baseUrl + '/getTransactionsByChainAndAddress'
       const response: any = await this.axiosInstance.get(url, {
-        headers: {
-          accept: 'application/json',
-        },
         params: findData,
       })
       if (response && response.data && response.data.code === 10200) {
