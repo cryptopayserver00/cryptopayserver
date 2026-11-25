@@ -21,9 +21,14 @@ import { StoreType } from '@/utils/types'
 
 interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode
+  collapsed?: boolean
 }
 
-export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ...rest }) => {
+export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
+  className = '',
+  collapsed = false,
+  ...rest
+}) => {
   const router = useRouter()
 
   const [stores, setStores] = useState<StoreType[]>([])
@@ -164,23 +169,25 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ className = '', ..
 
   return (
     <div className={`px-4 w-full ${className}`} {...rest}>
-      <div className="flex items-center justify-between">
-        <SiteLogo href="/dashboard" />
+      <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
+        <SiteLogo href="/dashboard" collapsed={collapsed} />
 
-        <button
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors relative flex items-center justify-center text-gray-600 focus:outline-none"
-          onClick={() => router.push('/notifications')}
-        >
-          <Bell size={18} />
-          {notificationCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-              {notificationCount}
-            </span>
-          )}
-        </button>
+        {!collapsed && (
+          <button
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors relative flex items-center justify-center text-gray-600 focus:outline-none"
+            onClick={() => router.push('/notifications')}
+          >
+            <Bell size={18} />
+            {notificationCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                {notificationCount}
+              </span>
+            )}
+          </button>
+        )}
       </div>
 
-      {stores.length > 0 && (
+      {stores.length > 0 && !collapsed && (
         <div className="mt-5">
           <DropdownMenu>
             <DropdownMenuTrigger className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors focus:outline-none">

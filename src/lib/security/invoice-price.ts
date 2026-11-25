@@ -9,8 +9,8 @@ export type InvoicePriceResult =
   | { ok: false; message: string }
 
 /**
- * Recompute fiat→crypto using CoinGecko and reject client-supplied rate /
- * crypto_amount that drift beyond tolerance (prevents underpayment settlement).
+ * Recompute fiat→crypto via node cryptoPrice cache and reject client-supplied
+ * rate / crypto_amount that drift beyond tolerance (prevents underpayment).
  */
 export async function resolveAndValidateInvoicePrice(params: {
   crypto: string

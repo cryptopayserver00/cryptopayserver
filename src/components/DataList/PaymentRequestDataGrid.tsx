@@ -176,7 +176,7 @@ export default function PaymentRequestDataGrid(props: GridType) {
 
   return (
     <div className="w-full space-y-4">
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

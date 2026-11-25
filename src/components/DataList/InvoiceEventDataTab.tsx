@@ -67,7 +67,7 @@ export function InvoiceEventDataTab(params: { orderId: number }) {
   }, [orderId])
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>

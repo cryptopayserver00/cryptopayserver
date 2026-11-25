@@ -28,7 +28,8 @@ export class BLOCKSCAN {
   }
 
   static axiosInstance: AxiosInstance = (() => {
-    const instance = axios.create({ timeout: 50000 })
+    // proxy:false — 本机 node(127.0.0.1) 不要走系统 http_proxy，否则易 502
+    const instance = axios.create({ timeout: 50000, proxy: false })
     instance.interceptors.request.use((config) => {
       const token = BLOCKSCAN.apiToken
       if (token) {

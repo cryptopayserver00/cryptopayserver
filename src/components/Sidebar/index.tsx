@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import Image from 'next/image'
@@ -21,6 +21,9 @@ import {
   CircleDot,
   Users,
   ChevronDown,
+  PanelLeftClose,
+  PanelLeftOpen,
+  X,
 } from 'lucide-react'
 
 import BitcoinSVG from '@/assets/chain/bitcoin.svg'
@@ -40,10 +43,13 @@ import TonSVG from '@/assets/chain/ton.svg'
 import TronSVG from '@/assets/chain/tron.svg'
 import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store'
 import { useShallow } from 'zustand/react/shallow'
+import { cn } from '@/lib/utils'
 
 type HomeSidebarProps = {
   collapsed: boolean
   onCollapsedChange: (collapsed: boolean) => void
+  mobileOpen?: boolean
+  onMobileOpenChange?: (open: boolean) => void
 }
 
 type NavItemProps = {
@@ -52,16 +58,20 @@ type NavItemProps = {
   label: string
   active: boolean
   collapsed: boolean
+  onNavigate?: () => void
 }
 
-const NavItem: React.FC<NavItemProps> = ({ href, icon, label, active, collapsed }) => (
+const NavItem: React.FC<NavItemProps> = ({ href, icon, label, active, collapsed, onNavigate }) => (
   <Link
     href={href}
-    className={`flex items-center gap-3 px-3 py-2 text-xs transition-colors rounded-md ${
+    onClick={onNavigate}
+    className={cn(
+      'flex items-center gap-3 px-3 py-2 text-xs transition-colors rounded-md',
       active
         ? 'bg-blue-50 text-[#0098e5] font-semibold'
-        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-    } ${collapsed ? 'justify-center px-2' : ''}`}
+        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+      collapsed && 'justify-center px-2'
+    )}
     title={collapsed ? label : undefined}
   >
     <span className="shrink-0">{icon}</span>
@@ -69,15 +79,19 @@ const NavItem: React.FC<NavItemProps> = ({ href, icon, label, active, collapsed 
   </Link>
 )
 
-const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
+const HomeSidebar = ({
+  collapsed,
+  onCollapsedChange,
+  mobileOpen = false,
+  onMobileOpenChange,
+}: HomeSidebarProps) => {
   const router = useRouter()
 
   const [paymentsOpen, setPaymentsOpen] = useState(router.pathname.includes('/payments'))
   const [pluginsOpen, setPluginsOpen] = useState(router.pathname.includes('/plugins'))
 
-  const { sidebarCollapsed, network } = useUserPresistStore(
+  const { network } = useUserPresistStore(
     useShallow((state) => ({
-      sidebarCollapsed: state.sidebarCollapsed,
       network: state.network,
     }))
   )
@@ -94,14 +108,29 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
     }))
   )
 
-  return (
-    <aside
-      className={`fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-30 transition-all duration-300 ${
-        collapsed ? 'w-[80px]' : 'w-[250px]'
-      }`}
-    >
+  useEffect(() => {
+    const close = () => onMobileOpenChange?.(false)
+    router.events.on('routeChangeStart', close)
+    return () => router.events.off('routeChangeStart', close)
+  }, [router.events, onMobileOpenChange])
+
+  useEffect(() => {
+    if (!mobileOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [mobileOpen])
+
+  const closeMobile = () => onMobileOpenChange?.(false)
+
+  const renderNav = (opts: { iconOnly: boolean; showCollapse: boolean }) => {
+    const iconOnly = opts.iconOnly
+
+    return (
       <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden py-6">
-        <SidebarHeader className="mb-4" />
+        <SidebarHeader className="mb-4" collapsed={iconOnly} />
 
         <nav className="flex-1 px-3 space-y-1">
           <NavItem
@@ -109,7 +138,8 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
             icon={<LayoutDashboard size={18} />}
             label="Dashboard"
             active={router.pathname === '/dashboard'}
-            collapsed={collapsed}
+            collapsed={iconOnly}
+            onNavigate={closeMobile}
           />
 
           {isStore && isWallet && (
@@ -119,19 +149,24 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 icon={<Settings size={18} />}
                 label="Store Settings"
                 active={router.pathname === '/settings'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/account"
                 icon={<Settings size={18} />}
                 label="Account Settings"
                 active={router.pathname === '/account'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
 
               <div className="pt-6 pb-2 px-3">
                 <p
-                  className={`text-[10px] font-semibold text-gray-400 uppercase tracking-wider ${collapsed ? 'hidden' : 'block'}`}
+                  className={cn(
+                    'text-[10px] font-semibold text-gray-400 uppercase tracking-wider',
+                    iconOnly ? 'hidden' : 'block'
+                  )}
                 >
                   WALLETS
                 </p>
@@ -142,14 +177,16 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 icon={<DollarSign size={18} />}
                 label="My Assets"
                 active={router.pathname === '/wallets/assets'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/manage"
                 icon={<Shield size={18} />}
                 label="Wallet Management"
                 active={router.pathname === '/wallets/manage'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/bitcoin"
@@ -158,7 +195,8 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 }
                 label="Bitcoin"
                 active={router.pathname === '/wallets/bitcoin'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/bitcoin/lightning"
@@ -167,7 +205,8 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 }
                 label="Lightning"
                 active={router.pathname === '/wallets/bitcoin/lightning'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/litecoin"
@@ -176,14 +215,16 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 }
                 label="Litecoin"
                 active={router.pathname === '/wallets/litecoin'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/xrp"
                 icon={<Image src={XrpSVG} alt="icon" width={18} height={18} className="w-5 h-5" />}
                 label="Xrp"
                 active={router.pathname === '/wallets/xrp'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/bitcoincash"
@@ -198,7 +239,8 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 }
                 label="Bitcoin Cash"
                 active={router.pathname === '/wallets/bitcoincash'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/ethereum"
@@ -207,14 +249,16 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 }
                 label="Ethereum"
                 active={router.pathname === '/wallets/ethereum'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/tron"
                 icon={<Image src={TronSVG} alt="icon" width={18} height={18} className="h-5 w-5" />}
                 label="Tron"
                 active={router.pathname === '/wallets/tron'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/solana"
@@ -223,14 +267,16 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 }
                 label="Solana"
                 active={router.pathname === '/wallets/solana'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/bsc"
                 icon={<Image src={BscSVG} alt="icon" width={18} height={18} className="h-5 w-5" />}
                 label="Binance Smart Chain"
                 active={router.pathname === '/wallets/bsc'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/arbitrum"
@@ -239,7 +285,8 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 }
                 label="Arbitrum"
                 active={router.pathname === '/wallets/arbitrum'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               {network === 'mainnet' && (
                 <NavItem
@@ -255,7 +302,8 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                   }
                   label="Arbitrum Nova"
                   active={router.pathname === '/wallets/arbitrumnova'}
-                  collapsed={collapsed}
+                  collapsed={iconOnly}
+                  onNavigate={closeMobile}
                 />
               )}
               <NavItem
@@ -265,7 +313,8 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 }
                 label="Avalanche"
                 active={router.pathname === '/wallets/avalanche'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/polygon"
@@ -274,14 +323,16 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 }
                 label="Polygon"
                 active={router.pathname === '/wallets/polygon'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/base"
                 icon={<Image src={BaseSVG} alt="icon" width={18} height={18} className="h-5 w-5" />}
                 label="Base"
                 active={router.pathname === '/wallets/base'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/optimism"
@@ -290,19 +341,24 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
                 }
                 label="Optimism"
                 active={router.pathname === '/wallets/optimism'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
               <NavItem
                 href="/wallets/ton"
                 icon={<Image src={TonSVG} alt="icon" width={18} height={18} className="h-5 w-5" />}
                 label="Ton"
                 active={router.pathname === '/wallets/ton'}
-                collapsed={collapsed}
+                collapsed={iconOnly}
+                onNavigate={closeMobile}
               />
 
               <div className="pt-6 pb-2 px-3">
                 <p
-                  className={`text-[10px] font-semibold text-gray-400 uppercase tracking-wider ${collapsed ? 'hidden' : 'block'}`}
+                  className={cn(
+                    'text-[10px] font-semibold text-gray-400 uppercase tracking-wider',
+                    iconOnly ? 'hidden' : 'block'
+                  )}
                 >
                   PAYMENTS
                 </p>
@@ -310,66 +366,78 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
 
               <div>
                 <button
+                  type="button"
                   onClick={() => setPaymentsOpen(!paymentsOpen)}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-xs transition-colors rounded-md text-gray-700 hover:bg-gray-100 ${
-                    router.pathname.includes('/payments') ? 'text-[#0098e5] font-semibold' : ''
-                  } ${collapsed ? 'justify-center' : ''}`}
+                  className={cn(
+                    'w-full flex items-center justify-between px-3 py-2 text-xs transition-colors rounded-md text-gray-700 hover:bg-gray-100',
+                    router.pathname.includes('/payments') && 'text-[#0098e5] font-semibold',
+                    iconOnly && 'justify-center'
+                  )}
                 >
                   <div className="flex items-center gap-3">
                     <CreditCard size={18} />
-                    {!collapsed && <span>PAYMENTS</span>}
+                    {!iconOnly && <span>PAYMENTS</span>}
                   </div>
-                  {!collapsed && (
+                  {!iconOnly && (
                     <ChevronDown
                       size={14}
-                      className={`transition-transform duration-200 ${paymentsOpen ? 'rotate-180' : ''}`}
+                      className={cn(
+                        'transition-transform duration-200',
+                        paymentsOpen && 'rotate-180'
+                      )}
                     />
                   )}
                 </button>
 
-                {(paymentsOpen || collapsed) && (
-                  <div className={`space-y-1 mt-1 ${collapsed ? '' : 'pl-4'}`}>
+                {(paymentsOpen || iconOnly) && (
+                  <div className={cn('space-y-1 mt-1', !iconOnly && 'pl-4')}>
                     <NavItem
                       href="/payments/transactions"
                       icon={<FileText size={18} />}
                       label="Transactions"
                       active={router.pathname === '/payments/transactions'}
-                      collapsed={collapsed}
+                      collapsed={iconOnly}
+                      onNavigate={closeMobile}
                     />
                     <NavItem
                       href="/payments/invoices"
                       icon={<FileText size={18} />}
                       label="Invoices"
                       active={router.pathname === '/payments/invoices'}
-                      collapsed={collapsed}
+                      collapsed={iconOnly}
+                      onNavigate={closeMobile}
                     />
                     <NavItem
                       href="/payments/reporting"
                       icon={<BarChart2 size={18} />}
                       label="Reporting"
                       active={router.pathname === '/payments/reporting'}
-                      collapsed={collapsed}
+                      collapsed={iconOnly}
+                      onNavigate={closeMobile}
                     />
                     <NavItem
                       href="/payments/requests"
                       icon={<ArrowDownLeft size={18} />}
                       label="Requests"
                       active={router.pathname === '/payments/requests'}
-                      collapsed={collapsed}
+                      collapsed={iconOnly}
+                      onNavigate={closeMobile}
                     />
                     <NavItem
                       href="/payments/pullpayments"
                       icon={<ArrowUpRight size={18} />}
                       label="Pull Payments"
                       active={router.pathname === '/payments/pullpayments'}
-                      collapsed={collapsed}
+                      collapsed={iconOnly}
+                      onNavigate={closeMobile}
                     />
                     <NavItem
                       href="/payments/payouts"
                       icon={<Receipt size={18} />}
                       label="Payouts"
                       active={router.pathname === '/payments/payouts'}
-                      collapsed={collapsed}
+                      collapsed={iconOnly}
+                      onNavigate={closeMobile}
                     />
                   </div>
                 )}
@@ -377,7 +445,10 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
 
               <div className="pt-6 pb-2 px-3">
                 <p
-                  className={`text-[10px] font-semibold text-gray-400 uppercase tracking-wider ${collapsed ? 'hidden' : 'block'}`}
+                  className={cn(
+                    'text-[10px] font-semibold text-gray-400 uppercase tracking-wider',
+                    iconOnly ? 'hidden' : 'block'
+                  )}
                 >
                   PLUGINS
                 </p>
@@ -385,52 +456,62 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
 
               <div>
                 <button
+                  type="button"
                   onClick={() => setPluginsOpen(!pluginsOpen)}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-xs transition-colors rounded-md text-gray-700 hover:bg-gray-100 ${
-                    router.pathname.includes('/plugins') ? 'text-[#0098e5] font-semibold' : ''
-                  } ${collapsed ? 'justify-center' : ''}`}
+                  className={cn(
+                    'w-full flex items-center justify-between px-3 py-2 text-xs transition-colors rounded-md text-gray-700 hover:bg-gray-100',
+                    router.pathname.includes('/plugins') && 'text-[#0098e5] font-semibold',
+                    iconOnly && 'justify-center'
+                  )}
                 >
                   <div className="flex items-center gap-3">
                     <Blocks size={18} />
-                    {!collapsed && <span>PLUGINS</span>}
+                    {!iconOnly && <span>PLUGINS</span>}
                   </div>
-                  {!collapsed && (
+                  {!iconOnly && (
                     <ChevronDown
                       size={14}
-                      className={`transition-transform duration-200 ${pluginsOpen ? 'rotate-180' : ''}`}
+                      className={cn(
+                        'transition-transform duration-200',
+                        pluginsOpen && 'rotate-180'
+                      )}
                     />
                   )}
                 </button>
 
-                {(pluginsOpen || collapsed) && (
-                  <div className={`space-y-1 mt-1 ${collapsed ? '' : 'pl-4'}`}>
+                {(pluginsOpen || iconOnly) && (
+                  <div className={cn('space-y-1 mt-1', !iconOnly && 'pl-4')}>
                     <NavItem
                       href="/plugins/shopify"
                       icon={<ShoppingBag size={18} />}
                       label="Shopify"
                       active={router.pathname === '/plugins/shopify'}
-                      collapsed={collapsed}
+                      collapsed={iconOnly}
+                      onNavigate={closeMobile}
                     />
                     <NavItem
                       href="/plugins/pointofsale"
                       icon={<StoreIcon size={18} />}
                       label="Point of Sale"
                       active={router.pathname === '/plugins/pointofsale'}
-                      collapsed={collapsed}
+                      collapsed={iconOnly}
+                      onNavigate={closeMobile}
                     />
                     <NavItem
                       href="/plugins/paybutton"
                       icon={<CircleDot size={18} />}
                       label="Pay Button"
                       active={router.pathname === '/plugins/paybutton'}
-                      collapsed={collapsed}
+                      collapsed={iconOnly}
+                      onNavigate={closeMobile}
                     />
                     <NavItem
                       href="/plugins/crowdfund"
                       icon={<Users size={18} />}
                       label="Crowdfund"
                       active={router.pathname === '/plugins/crowdfund'}
-                      collapsed={collapsed}
+                      collapsed={iconOnly}
+                      onNavigate={closeMobile}
                     />
                   </div>
                 )}
@@ -439,9 +520,74 @@ const HomeSidebar = ({ collapsed }: HomeSidebarProps) => {
           )}
         </nav>
 
-        <SidebarFooter collapsed={collapsed} />
+        {opts.showCollapse && (
+          <div className={cn('px-3 pb-2', iconOnly && 'flex justify-center')}>
+            <button
+              type="button"
+              onClick={() => onCollapsedChange(!collapsed)}
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-xs text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
+              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {iconOnly ? (
+                <PanelLeftOpen className="h-4 w-4 mx-auto" />
+              ) : (
+                <>
+                  <PanelLeftClose className="h-4 w-4" />
+                  <span>Collapse</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+        <SidebarFooter collapsed={iconOnly} />
       </div>
-    </aside>
+    )
+  }
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          'hidden lg:block fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-40 transition-all duration-300',
+          collapsed ? 'w-[80px]' : 'w-[250px]'
+        )}
+      >
+        {renderNav({ iconOnly: collapsed, showCollapse: true })}
+      </aside>
+
+      {/* Mobile drawer backdrop */}
+      <div
+        className={cn(
+          'fixed inset-0 z-40 bg-black/40 transition-opacity lg:hidden',
+          mobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        )}
+        onClick={closeMobile}
+        aria-hidden={!mobileOpen}
+      />
+
+      {/* Mobile drawer */}
+      <aside
+        className={cn(
+          'fixed top-0 left-0 z-50 h-full w-[min(100%,16rem)] bg-white border-r border-gray-200 shadow-xl transition-transform duration-200 lg:hidden',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+        aria-hidden={!mobileOpen}
+      >
+        <div className="absolute top-3 right-3 z-10">
+          <button
+            type="button"
+            aria-label="Close menu"
+            className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+            onClick={closeMobile}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        {renderNav({ iconOnly: false, showCollapse: false })}
+      </aside>
+    </>
   )
 }
 

@@ -1,47 +1,44 @@
-import axios from 'axios'
+import { BLOCKSCAN } from './block_scan'
 
+/**
+ * 统一经 node `/api/cryptoPrice` 取价（CoinGecko 由 node 定时拉取并缓存）。
+ * 返回形态与 CoinGecko simple/price 一致：`{ [id]: { [currency]: number, ... } }`。
+ */
 export class CRYPTOPRICE {
-  static apiKey = process.env.COINGECKO_AUTH
-  static coinGeckoUrl = 'https://api.coingecko.com/api/v3'
-
-  static axiosInstance = axios.create({
-    timeout: 50000,
-  })
-
   static async getCryptoPriceByCoinGecko(ids: string, currency: string): Promise<any> {
+    if (!BLOCKSCAN.isConfigured) {
+      throw new Error('BLOCKSCAN_BASE_URL is not configured')
+    }
+    if (!BLOCKSCAN.apiToken) {
+      throw new Error('BLOCKSCAN_API_TOKEN is not configured')
+    }
+
+    const vs = String(currency || 'usd').toLowerCase()
+    const idList = String(ids || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    // CoinGecko / node 对重复 id 不敏感，但去重可缩小 query
+    const uniqueIds = Array.from(new Set(idList)).join(',')
+
     try {
-      const include_market_cap = 'true'
-      const include_24hr_vol = 'true'
-      const include_24hr_change = 'true'
-      const include_last_updated_at = 'true'
-      const precision = 8
+      const url = `${BLOCKSCAN.baseUrl}/cryptoPrice`
+      const response = await BLOCKSCAN.axiosInstance.get(url, {
+        params: {
+          ids: uniqueIds,
+          currency: vs,
+          format: 'gecko',
+        },
+        // 避免本机 http_proxy 把 127.0.0.1 打到代理导致 502
+        proxy: false,
+      })
 
-      const url =
-        this.coinGeckoUrl +
-        '/simple/price?ids=' +
-        ids +
-        '&vs_currencies=' +
-        currency +
-        '&include_market_cap=' +
-        include_market_cap +
-        '&include_24hr_vol=' +
-        include_24hr_vol +
-        '&include_24hr_change=' +
-        include_24hr_change +
-        '&include_last_updated_at=' +
-        include_last_updated_at +
-        '&precision=' +
-        precision +
-        '&x_cg_demo_api_key=' +
-        this.apiKey
-
-      const response = await this.axiosInstance.get(url)
-
-      if (response && response.data) {
-        return response.data
+      if (response?.data?.code === 10200 && response.data.data) {
+        return response.data.data
       }
 
-      throw new Error('can not get the crypto price')
+      const message = response?.data?.message || 'can not get the crypto price from node'
+      throw new Error(message)
     } catch (e) {
       console.error(e)
       throw new Error('can not get the crypto price')

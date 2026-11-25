@@ -373,7 +373,7 @@ function StoreRoles(props: TableType) {
   }, [userId, storeId])
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>

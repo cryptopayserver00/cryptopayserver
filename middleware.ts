@@ -97,6 +97,8 @@ function withPageSecurityHeaders(req: NextRequest): NextResponse {
   })
   res.headers.set('Content-Security-Policy', buildCsp(nonce))
   res.headers.set('x-nonce', nonce)
+  // Nonce must match this response's HTML; never let a CDN reuse a stale body/header pair.
+  res.headers.set('Cache-Control', 'private, no-store')
   return res
 }
 

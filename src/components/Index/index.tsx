@@ -21,7 +21,8 @@ const snackIcons = {
 
 const Index = () => {
   const router = useRouter()
-  const { t, i18n } = useTranslation('')
+  const { i18n } = useTranslation('')
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   const { isLogin, lang, setLang, sidebarCollapsed, setSidebarCollapsed } = useUserPresistStore(
     useShallow((state) => ({
@@ -58,7 +59,7 @@ const Index = () => {
     }
 
     setCurrentRoute(route)
-  }, [router.pathname, lang, isLogin])
+  }, [router.pathname, lang, isLogin, setLang, i18n])
 
   const handleSidebarCollapsedChange = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed)
@@ -66,13 +67,13 @@ const Index = () => {
 
   useEffect(() => {
     setSnackOpen(false)
-  }, [])
+  }, [setSnackOpen])
 
   useEffect(() => {
     if (!snackOpen) return
     const timer = setTimeout(() => setSnackOpen(false), 3000)
     return () => clearTimeout(timer)
-  }, [snackOpen])
+  }, [snackOpen, setSnackOpen])
 
   const SnackIcon = snackSeverity ? snackIcons[snackSeverity]?.icon : Info
   const snackIconClass = snackSeverity ? snackIcons[snackSeverity]?.className : ''
@@ -86,29 +87,36 @@ const Index = () => {
           <HomeSidebar
             collapsed={sidebarCollapsed}
             onCollapsedChange={handleSidebarCollapsedChange}
+            mobileOpen={mobileNavOpen}
+            onMobileOpenChange={setMobileNavOpen}
           />
 
           <div
             className={cn(
-              'flex flex-col flex-1 min-h-screen transition-all duration-200',
-              sidebarCollapsed ? 'ml-[72px]' : 'ml-60'
+              'flex flex-col flex-1 min-w-0 min-h-screen transition-all duration-200',
+              // Desktop only: offset for fixed sidebar. Mobile uses full width + drawer.
+              sidebarCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[250px]'
             )}
           >
-            {currentRoute?.enableHomeHeader && <HomeHeader />}
-            <main className="flex-1 p-6">{currentRoute?.component || null}</main>
+            {currentRoute?.enableHomeHeader && (
+              <HomeHeader showMenuButton onMenuClick={() => setMobileNavOpen(true)} />
+            )}
+            <main className="flex-1 w-full min-w-0 px-3 py-4 sm:px-4 sm:py-5 lg:p-6">
+              {currentRoute?.component || null}
+            </main>
             {currentRoute?.enableHomeFooter && <HomeFooter />}
           </div>
         </div>
       ) : (
         <div className="flex flex-col min-h-screen">
-          <main className="flex-1">{currentRoute?.component || null}</main>
+          <main className="flex-1 w-full min-w-0">{currentRoute?.component || null}</main>
           {currentRoute?.enableHomeFooter && <HomeFooter />}
         </div>
       )}
 
       <div
         className={cn(
-          'fixed top-6 right-6 z-[999] flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg bg-white border transition-all duration-300',
+          'fixed top-4 right-3 sm:top-6 sm:right-6 z-[999] max-w-[calc(100vw-1.5rem)] flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg bg-white border transition-all duration-300',
           snackOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
         )}
       >
