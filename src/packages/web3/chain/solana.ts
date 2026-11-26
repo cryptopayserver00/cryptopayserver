@@ -53,12 +53,43 @@ export class SOLANA {
     return isMainnet ? INNERCHAINNAMES.SOLANA : INNERCHAINNAMES.SOLANA_DEVNET
   }
 
+  /** Typical base fee (~5000 lamports) when RPC is unavailable. */
+  static readonly DEFAULT_FEE_SOL = 0.000005
+
+  private static preferredRpcByNetwork: Partial<Record<'mainnet' | 'devnet', string>> = {}
+
   static async getConnection(isMainnet: boolean): Promise<Connection> {
-    const connection = new Connection(
-      RPC.getRpcByChainIds(this.getChainIds(isMainnet)),
-      'confirmed'
-    )
-    return connection
+    const networkKey = isMainnet ? 'mainnet' : 'devnet'
+    const urls = RPC.getRpcsByChainIds(this.getChainIds(isMainnet))
+    const preferred = this.preferredRpcByNetwork[networkKey]
+    const ordered = preferred
+      ? [preferred, ...urls.filter((u) => u !== preferred)]
+      : urls
+
+    let lastError: unknown
+
+    for (const url of ordered) {
+      try {
+        const connection = new Connection(url, {
+          commitment: 'confirmed',
+          confirmTransactionInitialTimeout: 60_000,
+        })
+        // Probe — fail fast on 429 / dead endpoints before callers do heavier work
+        await connection.getSlot('processed')
+        this.preferredRpcByNetwork[networkKey] = url
+        return connection
+      } catch (e) {
+        lastError = e
+        if (this.preferredRpcByNetwork[networkKey] === url) {
+          delete this.preferredRpcByNetwork[networkKey]
+        }
+        console.warn(`[SOLANA] RPC unavailable (${url}), trying next`, e)
+      }
+    }
+
+    throw lastError instanceof Error
+      ? lastError
+      : new Error('can not connect to any solana rpc')
   }
 
   static createAccountBySeed(isMainnet: boolean, seed: Buffer): ChainAccountType {
@@ -614,10 +645,12 @@ export class SOLANA {
         return Number(ethers.formatUnits(response.value, 9))
       }
 
-      throw new Error('can not get the fee per signature of solana')
+      console.warn('[SOLANA] getFeeForMessage empty, using default fee')
+      return this.DEFAULT_FEE_SOL
     } catch (e) {
-      console.error(e)
-      throw new Error('can not get the fee per signature of solana')
+      // Soft-fail: Alchemy/public RPC quota or outage should not 500 the wallet page
+      console.warn('[SOLANA] getFeePerSignature failed, using default fee', e)
+      return this.DEFAULT_FEE_SOL
     }
   }
 

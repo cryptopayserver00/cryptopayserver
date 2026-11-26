@@ -41,16 +41,25 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
     }))
   )
 
-  const { storeId, setStoreId, setStoreName, setStoreCurrency, setStorePriceSource } =
-    useStorePresistStore(
-      useShallow((state) => ({
-        storeId: state.storeId,
-        setStoreId: state.setStoreId,
-        setStoreName: state.setStoreName,
-        setStoreCurrency: state.setStoreCurrency,
-        setStorePriceSource: state.setStorePriceSource,
-      }))
-    )
+  const {
+    storeId,
+    setStoreId,
+    setStoreName,
+    setStoreCurrency,
+    setStorePriceSource,
+    setIsStore,
+    resetStore,
+  } = useStorePresistStore(
+    useShallow((state) => ({
+      storeId: state.storeId,
+      setStoreId: state.setStoreId,
+      setStoreName: state.setStoreName,
+      setStoreCurrency: state.setStoreCurrency,
+      setStorePriceSource: state.setStorePriceSource,
+      setIsStore: state.setIsStore,
+      resetStore: state.resetStore,
+    }))
+  )
 
   const { resetWallet, setWalletId, setIsWallet } = useWalletPresistStore(
     useShallow((state) => ({
@@ -79,14 +88,42 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
       })
 
       if (response?.result) {
-        setStores(
-          response.data.map((item: any) => ({
-            id: item.id,
-            name: item.name,
-            currency: item.currency,
-            priceSource: item.priceSource,
-          }))
-        )
+        const list: StoreType[] = (response.data ?? []).map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          currency: item.currency,
+          priceSource: item.priceSource,
+        }))
+        setStores(list)
+
+        if (list.length === 0) {
+          setNotificationCount(0)
+          resetStore()
+          resetWallet()
+          return
+        }
+
+        // New / stale sessions may have storeId=0 while stores exist — pick the first.
+        const selected = list.find((item) => item.id === storeId) || list[0]
+        if (!selected) return
+        if (selected.id !== storeId) {
+          setStoreId(selected.id)
+          setStoreName(selected.name)
+          setStoreCurrency(selected.currency)
+          setStorePriceSource(selected.priceSource)
+          setIsStore(true)
+          resetWallet()
+
+          const wallet_resp: any = await axios.get(Http.find_wallet, {
+            params: { store_id: selected.id },
+          })
+          if (wallet_resp.result) {
+            setWalletId(wallet_resp.data.id)
+            setIsWallet(true)
+          }
+        } else {
+          setIsStore(true)
+        }
       } else {
         setSnackSeverity('error')
         setSnackMessage('Could not load data.')
@@ -102,6 +139,11 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
 
   const getNotification = async (currentStoreId: number, currentNetwork: string) => {
     try {
+      if (!currentStoreId) {
+        setNotificationCount(0)
+        return
+      }
+
       const response: any = await axios.get(Http.find_notification, {
         params: {
           store_id: currentStoreId,
@@ -164,18 +206,22 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
 
   useEffect(() => {
     getStore(userId)
+  }, [userId])
+
+  useEffect(() => {
     getNotification(storeId, network)
-  }, [userId, storeId, network])
+  }, [storeId, network])
 
   return (
     <div className={`px-4 w-full ${className}`} {...rest}>
       <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
         <SiteLogo href="/dashboard" collapsed={collapsed} />
 
-        {!collapsed && (
+        {!collapsed && stores.length > 0 && (
           <button
             className="p-2 rounded-full hover:bg-gray-100 transition-colors relative flex items-center justify-center text-gray-600 focus:outline-none"
             onClick={() => router.push('/notifications')}
+            aria-label="Notifications"
           >
             <Bell size={18} />
             {notificationCount > 0 && (

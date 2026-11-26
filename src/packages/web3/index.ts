@@ -379,14 +379,13 @@ export class WEB3 {
     }
   }
 
+  /** @deprecated Prefer public explorer helpers — BlockScan API URLs must not be browser-facing. */
   static getBlockchainAddressTransactionUrl(
-    isMainnet: boolean,
-    chain: CHAINS,
-    address: string
+    _isMainnet: boolean,
+    _chain: CHAINS,
+    _address: string
   ): string {
-    const realChainId = this.getChainIds(isMainnet, chain)
-
-    return BLOCKSCAN.getBlockchainAddressTransactionUrl(realChainId.toString(), address)
+    return ''
   }
 
   static async getAssetBalance(
@@ -459,25 +458,26 @@ export class WEB3 {
     contractAddress: string,
     from: string,
     to: string,
-    value: string
+    value: string,
+    decimals = 18
   ): Promise<number> {
     switch (chain) {
       case CHAINS.ETHEREUM:
-        return await ETH.getGasLimit(isMainnet, contractAddress, from, to, value)
+        return await ETH.getGasLimit(isMainnet, contractAddress, from, to, value, decimals)
       case CHAINS.BSC:
-        return await BSC.getGasLimit(isMainnet, contractAddress, from, to, value)
+        return await BSC.getGasLimit(isMainnet, contractAddress, from, to, value, decimals)
       case CHAINS.ARBITRUM:
-        return await ARB.getGasLimit(isMainnet, contractAddress, from, to, value)
+        return await ARB.getGasLimit(isMainnet, contractAddress, from, to, value, decimals)
       case CHAINS.ARBITRUMNOVA:
-        return await ARBNOVA.getGasLimit(contractAddress, from, to, value)
+        return await ARBNOVA.getGasLimit(contractAddress, from, to, value, decimals)
       case CHAINS.OPTIMISM:
-        return await OP.getGasLimit(isMainnet, contractAddress, from, to, value)
+        return await OP.getGasLimit(isMainnet, contractAddress, from, to, value, decimals)
       case CHAINS.BASE:
-        return await BASE.getGasLimit(isMainnet, contractAddress, from, to, value)
+        return await BASE.getGasLimit(isMainnet, contractAddress, from, to, value, decimals)
       case CHAINS.POLYGON:
-        return await POL.getGasLimit(isMainnet, contractAddress, from, to, value)
+        return await POL.getGasLimit(isMainnet, contractAddress, from, to, value, decimals)
       case CHAINS.AVALANCHE:
-        return await AVAX.getGasLimit(isMainnet, contractAddress, from, to, value)
+        return await AVAX.getGasLimit(isMainnet, contractAddress, from, to, value, decimals)
       default:
         return 0
     }

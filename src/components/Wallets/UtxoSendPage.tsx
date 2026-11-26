@@ -20,14 +20,28 @@ import {
 import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import { OmitMiddleString } from '@/utils/strings'
 import { COINGECKO_IDS, PAYOUT_STATUS } from '@/packages/constants'
-import { BigDiv, BigSub } from '@/utils/number'
+import { BigDiv, BigSub, FormatCryptoAmount } from '@/utils/number'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
 import { AddressBookRowType, CoinBalanceType, UtxoFeeType } from '@/utils/types'
 
-const fee_byte_length = 140
+/** Conservative P2WPKH 2-in/2-out vsize; real fee is computed on the server. */
+const fee_byte_length = 220
+
+const DEFAULT_UTXO_FEES: UtxoFeeType = {
+  fastest: 20,
+  halfHour: 15,
+  hour: 10,
+  economy: 5,
+  minimum: 1,
+}
+
+function toPositiveFee(value: unknown, fallback = 0): number {
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? n : fallback
+}
 
 type Props = {
   chainId: CHAINS
@@ -101,24 +115,16 @@ const UtxoSendPage = ({
 
   const handleChangeFees = (value: string) => {
     if (!value) return
-    switch (value) {
-      case 'fastest':
-        setFeeRate(Number(feeObj?.fastest))
-        break
-      case 'halfHour':
-        setFeeRate(Number(feeObj?.halfHour))
-        break
-      case 'hour':
-        setFeeRate(Number(feeObj?.hour))
-        break
-      case 'economy':
-        setFeeRate(Number(feeObj?.economy))
-        break
-      case 'minimum':
-        setFeeRate(Number(feeObj?.minimum))
-        break
+    const key = value as keyof UtxoFeeType
+    const next = toPositiveFee(feeObj?.[key], DEFAULT_UTXO_FEES[key])
+    if (!next) {
+      setSnackSeverity('error')
+      setSnackMessage('Fee rate unavailable. Enter a fee rate manually.')
+      setSnackOpen(true)
+      return
     }
-    setAlignment(value as typeof alignment)
+    setFeeRate(next)
+    setAlignment(key)
   }
 
   const getBalance = async (storeId: number, network: string) => {
@@ -148,19 +154,25 @@ const UtxoSendPage = ({
       const response: any = await axios.get(Http.find_fee_rate, {
         params: { chain_id: chainId, network: network === 'mainnet' ? 1 : 2 },
       })
-      if (response.result) {
-        setFeeObj({
-          fastest: response.data.fastest,
-          halfHour: response.data.halfHour,
-          hour: response.data.hour,
-          economy: response.data.economy,
-          minimum: response.data.minimum,
-        })
-        setFeeRate(response.data.fastest)
+      if (response.result && response.data) {
+        const next: UtxoFeeType = {
+          fastest: toPositiveFee(response.data.fastest, DEFAULT_UTXO_FEES.fastest),
+          halfHour: toPositiveFee(response.data.halfHour, DEFAULT_UTXO_FEES.halfHour),
+          hour: toPositiveFee(response.data.hour, DEFAULT_UTXO_FEES.hour),
+          economy: toPositiveFee(response.data.economy, DEFAULT_UTXO_FEES.economy),
+          minimum: toPositiveFee(response.data.minimum, DEFAULT_UTXO_FEES.minimum),
+        }
+        setFeeObj(next)
+        setFeeRate(next.fastest)
+        return
       }
+      setFeeObj(DEFAULT_UTXO_FEES)
+      setFeeRate(DEFAULT_UTXO_FEES.fastest)
     } catch (e) {
+      setFeeObj(DEFAULT_UTXO_FEES)
+      setFeeRate(DEFAULT_UTXO_FEES.fastest)
       setSnackSeverity('error')
-      setSnackMessage(getApiErrorMessage(e))
+      setSnackMessage(getApiErrorMessage(e) || 'Fee rate unavailable; using defaults')
       setSnackOpen(true)
       console.error(e)
     }
@@ -193,16 +205,42 @@ const UtxoSendPage = ({
 
       if (response.result) {
         setDestinationAddress(response.data.address)
+        if (response.data.crypto) {
+          setCoin(response.data.crypto as COINS)
+        }
+
+        const storedCryptoAmount = Number(response.data.cryptoAmount ?? response.data.crypto_amount)
+        if (Number.isFinite(storedCryptoAmount) && storedCryptoAmount > 0) {
+          setAmount(FormatCryptoAmount(storedCryptoAmount, 8))
+          setIsDisableDestinationAddress(true)
+          setIsDisableAmount(true)
+          return
+        }
 
         const ids = COINGECKO_IDS[response.data.crypto as COINS]
         const rate_response: any = await axios.get(Http.find_crypto_price, {
           params: { ids, currency: response.data.currency },
         })
         if (rate_response.result) {
-          const rate = rate_response.data[ids][response.data.currency.toLowerCase()]
-          const totalPrice = parseFloat(
-            BigDiv(Number(response.data.amount).toString(), rate)
-          ).toFixed(8)
+          const rate = Number(
+            rate_response.data?.[ids]?.[String(response.data.currency).toLowerCase()]
+          )
+          if (!Number.isFinite(rate) || rate <= 0) {
+            setSnackSeverity('error')
+            setSnackMessage('Could not resolve payout amount from market rate')
+            setSnackOpen(true)
+            return
+          }
+          const totalPrice = FormatCryptoAmount(
+            BigDiv(String(response.data.amount ?? 0), String(rate)),
+            8
+          )
+          if (!totalPrice || totalPrice === '0') {
+            setSnackSeverity('error')
+            setSnackMessage('Invalid payout amount')
+            setSnackOpen(true)
+            return
+          }
           setAmount(totalPrice)
           setIsDisableDestinationAddress(true)
           setIsDisableAmount(true)
@@ -348,8 +386,10 @@ const UtxoSendPage = ({
   }
 
   useEffect(() => {
-    if (feeRate && feeRate > 0) {
+    if (Number.isFinite(feeRate) && feeRate > 0) {
       setNetworkFee((fee_byte_length * feeRate) / 100000000)
+    } else {
+      setNetworkFee(0)
     }
   }, [feeRate])
 
@@ -466,10 +506,22 @@ const UtxoSendPage = ({
               <Input
                 type="number"
                 className="w-[220px]"
-                value={feeRate}
-                onChange={(e) => setFeeRate(Number(e.target.value))}
+                min={0}
+                step="any"
+                value={Number.isFinite(feeRate) && feeRate > 0 ? feeRate : ''}
+                onChange={(e) => {
+                  const raw = e.target.value
+                  if (raw === '') {
+                    setFeeRate(0)
+                    return
+                  }
+                  const next = Number(raw)
+                  setFeeRate(Number.isFinite(next) ? next : 0)
+                }}
               />
-              <p className="text-sm text-muted-foreground">Network fee: {networkFee}</p>
+              <p className="text-sm text-muted-foreground">
+                Network fee: {Number.isFinite(networkFee) ? networkFee : 0}
+              </p>
             </div>
 
             <div className="space-y-2">

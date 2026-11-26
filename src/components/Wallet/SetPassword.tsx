@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useSnackPresistStore } from '@/lib/store/snack'
+import { useStorePresistStore, useWalletPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
-import { useStorePresistStore, useWalletPresistStore } from '@/lib/store'
 import { isValidPassword } from '@/utils/verify'
 import { useShallow } from 'zustand/react/shallow'
+import { WalletSetupLayout } from './WalletSetupLayout'
+
+const CREATE_STEPS = ['Choose', 'Create', 'Secure', 'Backup']
 
 const SetPassword = () => {
   const router = useRouter()
@@ -17,10 +26,12 @@ const SetPassword = () => {
   const [accountPassword, setAccountPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  const { walletId } = useWalletPresistStore(
+  const { walletId, isWallet } = useWalletPresistStore(
     useShallow((state) => ({
       walletId: state.walletId,
+      isWallet: state.isWallet,
     }))
   )
 
@@ -38,6 +49,12 @@ const SetPassword = () => {
     }))
   )
 
+  const showSnack = (severity: 'success' | 'error', message: string) => {
+    setSnackSeverity(severity)
+    setSnackMessage(message)
+    setSnackOpen(true)
+  }
+
   const onClickConfirm = async () => {
     try {
       if (
@@ -48,46 +65,41 @@ const SetPassword = () => {
         !isValidPassword(confirmPassword) ||
         password !== confirmPassword
       ) {
-        setSnackSeverity('error')
-        setSnackMessage('Please enter a valid password')
-        setSnackOpen(true)
+        showSnack('error', 'Please enter a valid password')
         return
       }
 
+      if (!walletId) {
+        showSnack('error', 'Wallet not found. Please create a wallet first.')
+        return
+      }
+
+      setSaving(true)
       const response: any = await axios.put(Http.update_pwd_by_wallet_id, {
         wallet_id: walletId,
-        password: password,
+        password,
         account_password: accountPassword,
       })
+
       if (!response.result) {
-        setSnackSeverity('error')
-        setSnackMessage(response.message || 'Update failed!')
-        setSnackOpen(true)
+        showSnack('error', response.message || 'Update failed!')
         return
       }
 
-      if (response.result) {
-        setSnackSeverity('success')
-        setSnackMessage('Updated successfully!')
-        setSnackOpen(true)
+      showSnack('success', 'Wallet password saved')
 
-        setTimeout(() => {
-          if (response.data.isBackup === 1) {
-            router.push('/dashboard')
-          } else if (response.data.isBackup === 2) {
-            router.push('/wallet/phrase/intro')
-          } else {
-            setSnackMessage('Input is wrong')
-            setSnackSeverity('error')
-            setSnackOpen(true)
-          }
-        }, 2000)
+      if (response.data.isBackup === 1) {
+        router.push('/dashboard')
+      } else if (response.data.isBackup === 2) {
+        router.push('/wallet/phrase/intro')
+      } else {
+        showSnack('error', 'Unexpected wallet backup state')
       }
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage(getApiErrorMessage(e))
-      setSnackOpen(true)
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -95,137 +107,113 @@ const SetPassword = () => {
     if (!isStore) {
       router.push('/stores/create')
     }
-  }, [isStore])
+  }, [isStore, router])
+
+  // From dashboard warning the wallet already exists — don't send users back to create/choose.
+  const existingWallet = Boolean(isWallet && walletId)
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-xl mx-auto space-y-6 pt-10">
-        <h1 className="text-3xl font-bold text-gray-900">Setup wallet password</h1>
+    <WalletSetupLayout
+      title="Set a wallet password"
+      description="This password unlocks wallet keys on your server. We cannot recover it for you."
+      steps={existingWallet ? undefined : CREATE_STEPS}
+      currentStep={existingWallet ? undefined : 3}
+      backHref="/dashboard"
+      backLabel="Back to dashboard"
+    >
+      <div className="space-y-5">
+        <Alert>
+          <ShieldCheck className="h-4 w-4" />
+          <AlertDescription>
+            Use a strong unique password. You’ll need your account password to confirm this change.{' '}
+            <Link
+              href="https://docs.cryptopayserver.online"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium underline underline-offset-2"
+            >
+              Learn more
+            </Link>
+          </AlertDescription>
+        </Alert>
 
-        <div className="text-gray-600 space-y-1">
-          <p>
-            This password is used to unlock the wallet, we cannot restore this password for you.
-          </p>
-          <Link
-            href="https://docs.cryptopayserver.online"
-            target="_blank"
-            rel="noreferrer"
-            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium underline"
-          >
-            learn more
-          </Link>
+        <div className="space-y-2">
+          <Label htmlFor="account-password">Account password</Label>
+          <Input
+            id="account-password"
+            type="password"
+            value={accountPassword}
+            onChange={(e) => setAccountPassword(e.target.value)}
+            autoComplete="current-password"
+            placeholder="Your CryptoPayServer login password"
+          />
         </div>
 
-        <div className="space-y-4 pt-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Account password</label>
-            <input
-              type="password"
-              value={accountPassword}
-              onChange={(e) => setAccountPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              autoComplete="current-password"
+        <div className="space-y-2">
+          <Label htmlFor="wallet-password">New wallet password</Label>
+          <div className="relative">
+            <Input
+              id="wallet-password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pr-10"
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-7 0-10-7-10-7a19.16 19.16 0 012.355-3.693M6.205 6.205A9.957 9.957 0 0112 5c7 0 10 7 10 7a19.14 19.14 0 01-2.35 3.68M3 3l18 18"
-                    />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showConfirmPassword ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13.875 18.825A10.05 10.05 0 0112 19c-7 0-10-7-10-7a19.16 19.16 0 012.355-3.693M6.205 6.205A9.957 9.957 0 0112 5c7 0 10 7 10 7a19.14 19.14 0 01-2.35 3.68M3 3l18 18"
-                    />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
         </div>
 
-        <div className="pt-6">
-          <button
-            type="button"
-            onClick={onClickConfirm}
-            className="px-6 py-3 rounded-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all duration-200 shadow-sm"
+        <div className="space-y-2">
+          <Label htmlFor="confirm-wallet-password">Confirm wallet password</Label>
+          <div className="relative">
+            <Input
+              id="confirm-wallet-password"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="pr-10"
+              autoComplete="new-password"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onClickConfirm()
+              }}
+            />
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+            >
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3 pt-2">
+          <Button onClick={onClickConfirm} disabled={saving} className="min-w-36 gap-2">
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            {saving ? 'Saving...' : 'Continue'}
+          </Button>
+          <Button
+            variant="ghost"
+            disabled={saving}
+            onClick={() => router.push('/dashboard')}
           >
-            Confirm
-          </button>
+            Skip for now
+          </Button>
         </div>
       </div>
-    </div>
+    </WalletSetupLayout>
   )
 }
 

@@ -1,7 +1,29 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { CheckCircle2, ShieldAlert } from 'lucide-react'
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { useStorePresistStore } from '@/lib/store'
 import { useShallow } from 'zustand/react/shallow'
+import { WalletSetupLayout } from '../WalletSetupLayout'
+
+const CREATE_STEPS = ['Choose', 'Create', 'Secure', 'Backup']
+
+const tips = [
+  {
+    title: 'Only recovery path',
+    body: 'The mnemonic phrase is the only way to recover wallet assets if this server is lost.',
+  },
+  {
+    title: 'Never share it',
+    body: 'Anyone with the phrase can move funds. Support will never ask for it.',
+  },
+  {
+    title: 'Write it offline',
+    body: 'Handwrite the words and store them somewhere safe — avoid screenshots and cloud notes.',
+  },
+]
 
 const PhraseIntro = () => {
   const router = useRouter()
@@ -12,70 +34,56 @@ const PhraseIntro = () => {
     }))
   )
 
-  const onClickBackup = () => {
-    router.push('/wallet/phrase/backup')
-  }
-
-  const onClickBackupLater = () => {
-    router.push('/dashboard')
-  }
-
   useEffect(() => {
     if (!isStore) {
       router.push('/stores/create')
     }
-  }, [isStore])
-
-  const tips = [
-    'The mnemonic phrase is the only way to recover wallet assets.',
-    'Do not share your mnemonic phrase with anyone.',
-    'Handwrite the mnemonic phrase and store it in a secure place.',
-  ]
+  }, [isStore, router])
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto space-y-8 pt-10">
-        <h1 className="text-3xl font-bold text-gray-900 leading-tight">
-          Before recording the mnemonic phrase, please remember the following security tips.
-        </h1>
+    <WalletSetupLayout
+      title="Back up your mnemonic phrase"
+      description="Before you continue, take a minute to understand how to keep this phrase safe."
+      steps={CREATE_STEPS}
+      currentStep={4}
+      backHref="/wallet/setPassword"
+      backLabel="Back"
+    >
+      <div className="space-y-5">
+        <Alert>
+          <ShieldAlert className="h-4 w-4" />
+          <AlertTitle>Security first</AlertTitle>
+          <AlertDescription>
+            You are about to reveal recovery words for this store wallet. Make sure nobody can see
+            your screen.
+          </AlertDescription>
+        </Alert>
 
-        <div className="space-y-4 pt-4">
-          {tips.map((tip, idx) => (
-            <div key={idx} className="flex items-center space-x-3 text-gray-700">
-              <svg
-                className="w-5 h-5 text-green-500 shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="text-base font-medium">{tip}</span>
-            </div>
+        <ul className="space-y-3">
+          {tips.map((tip) => (
+            <li
+              key={tip.title}
+              className="flex gap-3 rounded-xl border bg-card p-4"
+            >
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">{tip.title}</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">{tip.body}</p>
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
 
-        <div className="flex flex-wrap items-center gap-4 pt-10">
-          <button
-            type="button"
-            onClick={onClickBackup}
-            className="px-6 py-3 rounded-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 shadow-sm active:scale-95"
-          >
-            Back up the mnemonic phrase.
-          </button>
-          <button
-            type="button"
-            onClick={onClickBackupLater}
-            className="px-6 py-3 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition-all duration-200 shadow-sm active:scale-95"
-          >
-            Backup later.
-          </button>
+        <div className="flex flex-wrap gap-3 pt-2">
+          <Button onClick={() => router.push('/wallet/phrase/backup')}>
+            Back up mnemonic phrase
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/dashboard')}>
+            Backup later
+          </Button>
         </div>
       </div>
-    </div>
+    </WalletSetupLayout>
   )
 }
 

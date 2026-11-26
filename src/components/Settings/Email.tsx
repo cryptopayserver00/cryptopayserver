@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/table'
 
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
-import { EMAIL_RULE_TIGGER_DATA, EMAIL_RULE_TIGGER_DATAS } from '@/packages/constants'
+import { EMAIL_RULE_TIGGER_DATAS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
@@ -53,7 +53,7 @@ const Emails = () => {
   const [testEmail, setTestEmail] = useState<string>('')
 
   const [ruleId, setRuleId] = useState<number>(0)
-  const [trigger, setTrigger] = useState<EMAIL_RULE_TIGGER_DATA>()
+  const [trigger, setTrigger] = useState<number>(0)
   const [recipients, setRecipients] = useState<string>('')
   const [subject, setSubject] = useState<string>('')
   const [body, setBody] = useState<string>('')
@@ -82,7 +82,7 @@ const Emails = () => {
 
   const clearData = () => {
     setRuleId(0)
-    setTrigger(undefined)
+    setTrigger(0)
     setRecipients('')
     setShowSendToBuyer(false)
     setSubject('')
@@ -500,8 +500,8 @@ const Emails = () => {
           <div className="space-y-2">
             <Label>Trigger*</Label>
             <Select
-              value={trigger ? String(trigger) : undefined}
-              onValueChange={(val: any) => setTrigger(val)}
+              value={trigger > 0 ? String(trigger) : ''}
+              onValueChange={(val) => setTrigger(Number(val))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select event trigger" />
@@ -572,7 +572,6 @@ export default Emails
 interface RowType {
   id: number
   rid: number
-  trigger: EMAIL_RULE_TIGGER_DATA
   triggerid: number
   to: string
   subject: string
@@ -582,7 +581,7 @@ interface RowType {
 
 interface TableType {
   setRuleId: (value: number) => void
-  setTrigger: (value: EMAIL_RULE_TIGGER_DATA) => void
+  setTrigger: (value: number) => void
   setRecipients: (value: string) => void
   setSubject: (value: string) => void
   setBody: (value: string) => void
@@ -627,8 +626,7 @@ function EmailRuleTable(props: TableType) {
         const rows: RowType[] = (response.data ?? []).map((item: any, index: number) => ({
           id: index + 1,
           rid: item.id,
-          trigger: item.trigger,
-          triggerid: item.trigger,
+          triggerid: Number(item.trigger),
           to: item.recipients,
           subject: item.subject,
           body: item.body,
@@ -717,7 +715,7 @@ function EmailRuleTable(props: TableType) {
                       size="sm"
                       onClick={() => {
                         props.setRuleId(row.rid)
-                        props.setTrigger(row.trigger as EMAIL_RULE_TIGGER_DATA)
+                        props.setTrigger(row.triggerid)
                         props.setRecipients(row.to)
                         props.setSubject(row.subject)
                         props.setBody(row.body)

@@ -1,27 +1,34 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
-import { HelpCircle, Lock, QrCode, Store, AlertTriangle, Info } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  CheckCircle2,
+  Copy,
+  ExternalLink,
+  HelpCircle,
+  Loader2,
+  Lock,
+  QrCode,
+  Store,
+  XCircle,
+} from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 
 import { useSnackPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
+import { BigAdd, BigCmp, BigDiv, BigMul, BigSub, FormatCryptoAmount } from '@/utils/number'
 import {
   CURRENCY_SYMBOLS,
   PAYOUT_SOURCE_TYPE,
@@ -35,23 +42,67 @@ import PullPaymentSelectChainAndCryptoCard from '@/components/Card/PullPaymentSe
 import PullPaymentQRDialog from '@/components/Dialog/PullPaymentQRDialog'
 import HelpDrawer from '@/components/Drawer/HelpDrawer'
 import ReportPaymentDialog from '@/components/Dialog/ReportPaymentDialog'
+import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
 import { PayoutRowType, PullPaymentType } from '@/utils/types'
+
+const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div className="flex items-start justify-between gap-4 py-2">
+    <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
+    <span className="text-right text-sm break-all">{value}</span>
+  </div>
+)
+
+function statusTone(status?: string) {
+  switch (status) {
+    case PULL_PAYMENT_STATUS.Active:
+      return 'bg-emerald-500/10 text-emerald-700 border-emerald-200'
+    case PULL_PAYMENT_STATUS.Settled:
+      return 'bg-sky-500/10 text-sky-800 border-sky-200'
+    case PULL_PAYMENT_STATUS.Expired:
+      return 'bg-amber-500/10 text-amber-800 border-amber-200'
+    case PULL_PAYMENT_STATUS.Archived:
+      return 'bg-muted text-foreground border-border'
+    case PULL_PAYMENT_STATUS.Future:
+      return 'bg-violet-500/10 text-violet-700 border-violet-200'
+    default:
+      return 'bg-muted text-foreground border-border'
+  }
+}
+
+function payoutStatusTone(status: string) {
+  switch (status) {
+    case PAYOUT_STATUS.Completed:
+      return 'bg-emerald-500/10 text-emerald-700 border-emerald-200'
+    case PAYOUT_STATUS.Cancelled:
+      return 'bg-destructive/10 text-destructive border-destructive/20'
+    case PAYOUT_STATUS.AwaitingApproval:
+    case PAYOUT_STATUS.AwaitingPayment:
+    case PAYOUT_STATUS.InProgress:
+      return 'bg-sky-500/10 text-sky-800 border-sky-200'
+    default:
+      return 'bg-muted text-foreground border-border'
+  }
+}
 
 const PullPaymentsDetails = () => {
   const router = useRouter()
   const { id, t: accessTokenQuery } = router.query
   const accessToken = String(accessTokenQuery || '')
 
-  const [page, setPage] = useState<number>(1)
-  const [websiteUrl, setWebsiteUrl] = useState<string>('')
+  const [page, setPage] = useState(1)
+  const [websiteUrl, setWebsiteUrl] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [claiming, setClaiming] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const [pullPaymentData, setPullPaymentData] = useState<PullPaymentType>()
   const [payoutRows, setPayoutRows] = useState<PayoutRowType[]>([])
-  const [alreadyClaim, setAlreadyClaim] = useState<number>(0)
-  const [showQR, setShowQR] = useState<boolean>(false)
-  const [openDrawer, setOpenDrawer] = useState<boolean>(false)
-  const [openDialog, setOpenDialog] = useState<boolean>(false)
+  const [alreadyClaim, setAlreadyClaim] = useState('0')
+  const [showQR, setShowQR] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [openDialog, setOpenDialog] = useState(false)
 
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
     useShallow((state) => ({
@@ -60,6 +111,27 @@ const PullPaymentsDetails = () => {
       setSnackOpen: state.setSnackOpen,
     }))
   )
+
+  const showSnack = (severity: 'success' | 'error', message: string) => {
+    setSnackSeverity(severity)
+    setSnackMessage(message)
+    setSnackOpen(true)
+  }
+
+  const fiatSymbol = CURRENCY_SYMBOLS[String(pullPaymentData?.currency)] || ''
+  const claimLimit = String(pullPaymentData?.amount ?? 0)
+  const availableClaim = useMemo(() => {
+    if (BigCmp(claimLimit, alreadyClaim) <= 0) return '0'
+    return FormatCryptoAmount(BigSub(claimLimit, alreadyClaim), 8)
+  }, [claimLimit, alreadyClaim])
+
+  const progressPct = useMemo(() => {
+    if (BigCmp(claimLimit, '0') <= 0) return 0
+    const pct = Number(FormatCryptoAmount(BigMul(BigDiv(alreadyClaim, claimLimit), '100'), 1))
+    return Math.min(100, Math.max(0, pct))
+  }, [alreadyClaim, claimLimit])
+
+  const canClaim = pullPaymentData?.pullPaymentStatus === PULL_PAYMENT_STATUS.Active
 
   const getClaimsHistory = async (storeId: number, network: number, pullPaymentId: number) => {
     try {
@@ -74,12 +146,11 @@ const PullPaymentsDetails = () => {
       })
 
       if (response.result) {
-        let paid = 0
+        let paid = '0'
         const rows: PayoutRowType[] = (response.data ?? []).map((item: any) => {
           if (item.payoutStatus !== PAYOUT_STATUS.Cancelled) {
-            paid += parseFloat(item.amount) || 0
+            paid = BigAdd(paid, String(item.amount ?? 0))
           }
-
           return {
             chain: item.chainId,
             chainName: FindChainNamesByChains(item.chainId as CHAINS),
@@ -92,98 +163,93 @@ const PullPaymentsDetails = () => {
             status: item.payoutStatus,
           }
         })
-
         setPayoutRows(rows)
         setAlreadyClaim(paid)
-      } else {
-        setSnackSeverity('error')
-        setSnackMessage('Could not load data.')
-        setSnackOpen(true)
       }
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage(getApiErrorMessage(e))
-      setSnackOpen(true)
-      console.error(e)
+      console.warn('Claims history unavailable', e)
     }
   }
 
-  const init = async (id: any) => {
-    setWebsiteUrl(window.location.href)
+  const init = useCallback(
+    async (pullId: string | number) => {
+      try {
+        setLoading(true)
+        setError('')
+        if (typeof window !== 'undefined') {
+          setWebsiteUrl(window.location.href)
+        }
+        if (!pullId) return
 
-    try {
-      if (!id) return
-
-      const response: any = await axios.get(Http.find_pull_payment_by_id, {
-        params: {
-          id: id,
-          t: accessToken,
-        },
-      })
-
-      if (response.result) {
-        setPullPaymentData({
-          userId: response.data.userId,
-          storeId: response.data.storeId,
-          network: response.data.network,
-          pullPaymentId: response.data.pullPaymentId,
-          name: response.data.name,
-          storeName: response.data.storeName,
-          storeLogoUrl: response.data.storeLogoUrl,
-          storeWebsite: response.data.storeWebsite,
-          storeBrandColor: response.data.storeBrandColor || '',
-          storeCustomCssUrl: response.data.storeCustomCssUrl || '',
-          amount: response.data.amount,
-          currency: response.data.currency,
-          description: response.data.description,
-          showAutoApproveClaim: response.data.showAutoApproveClaim === 1,
-          createdAt: response.data.createdAt,
-          updatedAt: response.data.updatedAt,
-          expirationAt: response.data.expirationAt,
-          pullPaymentStatus: response.data.pullPaymentStatus,
+        const response: any = await axios.get(Http.find_pull_payment_by_id, {
+          params: {
+            id: pullId,
+            t: accessToken,
+          },
         })
 
-        await getClaimsHistory(
-          response.data.storeId,
-          response.data.network,
-          response.data.pullPaymentId
-        )
+        if (response.result && response.data) {
+          setPullPaymentData({
+            userId: response.data.userId,
+            storeId: response.data.storeId,
+            network: response.data.network,
+            pullPaymentId: response.data.pullPaymentId,
+            name: response.data.name,
+            storeName: response.data.storeName,
+            storeLogoUrl: response.data.storeLogoUrl,
+            storeWebsite: response.data.storeWebsite,
+            storeBrandColor: response.data.storeBrandColor || '',
+            storeCustomCssUrl: response.data.storeCustomCssUrl || '',
+            amount: response.data.amount,
+            currency: response.data.currency,
+            description: response.data.description,
+            showAutoApproveClaim: response.data.showAutoApproveClaim === 1,
+            createdAt: response.data.createdAt,
+            updatedAt: response.data.updatedAt,
+            expirationAt: response.data.expirationAt,
+            pullPaymentStatus: response.data.pullPaymentStatus,
+          })
+          await getClaimsHistory(
+            response.data.storeId,
+            response.data.network,
+            response.data.pullPaymentId
+          )
+        } else {
+          setError(response.message || 'Could not find the pull payment.')
+        }
+      } catch (e) {
+        setError(getApiErrorMessage(e))
+        console.error(e)
+      } finally {
+        setLoading(false)
       }
-    } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage(getApiErrorMessage(e))
-      setSnackOpen(true)
-      console.error(e)
-    }
-  }
+    },
+    [accessToken]
+  )
 
   useEffect(() => {
-    id && accessToken && init(id)
-  }, [id, accessToken])
-
-  const onClickShowQR = async () => {
-    setShowQR(true)
-  }
+    if (!id) return
+    if (!accessToken) {
+      setLoading(false)
+      setError('Invalid or missing access token')
+      return
+    }
+    init(String(id))
+  }, [id, accessToken, init])
 
   const onClickCoin = async (item: COIN, address: string, amount: number) => {
     if (!item || !address || !amount) {
-      setSnackSeverity('error')
-      setSnackMessage('Missing or invalid parameters')
-      setSnackOpen(true)
+      showSnack('error', 'Missing or invalid parameters')
       return
     }
 
-    const availableClaim = Number(pullPaymentData?.amount) - alreadyClaim
-    if (amount > availableClaim) {
-      setSnackSeverity('error')
-      setSnackMessage(
-        'Available claim is ' + CURRENCY_SYMBOLS[String(pullPaymentData?.currency)] + availableClaim
-      )
-      setSnackOpen(true)
+    if (BigCmp(String(amount), availableClaim) > 0) {
+      showSnack('error', `Available claim is ${fiatSymbol}${availableClaim}`)
       return
     }
 
     try {
+      setClaiming(true)
       const response: any = await axios.get(Http.checkout_chain_address, {
         params: {
           chain_id: item.chainId,
@@ -193,9 +259,7 @@ const PullPaymentsDetails = () => {
       })
 
       if (!response.result) {
-        setSnackSeverity('error')
-        setSnackMessage('The address is invalid. Please try again.')
-        setSnackOpen(true)
+        showSnack('error', 'The address is invalid. Please try again.')
         return
       }
 
@@ -214,350 +278,422 @@ const PullPaymentsDetails = () => {
       })
 
       if (create_payout_resp.result) {
-        setSnackSeverity('success')
-        setSnackMessage('Created successfully!')
-        setSnackOpen(true)
-
-        await init(id)
-
+        showSnack('success', 'Claim submitted')
+        await init(String(id))
         setPage(1)
+      } else {
+        showSnack('error', create_payout_resp.message || 'Could not create claim')
       }
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage(getApiErrorMessage(e))
-      setSnackOpen(true)
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
+    } finally {
+      setClaiming(false)
     }
   }
 
-  if (!pullPaymentData) {
-    return <div className="py-20 text-center">Loading pull payment...</div>
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(websiteUrl || window.location.href)
+    setCopied(true)
+    showSnack('success', 'Link copied')
+    window.setTimeout(() => setCopied(false), 1600)
   }
 
   const brandColor =
-    pullPaymentData.storeBrandColor && /^#[0-9A-Fa-f]{3,8}$/.test(pullPaymentData.storeBrandColor)
+    pullPaymentData?.storeBrandColor && /^#[0-9A-Fa-f]{3,8}$/.test(pullPaymentData.storeBrandColor)
       ? pullPaymentData.storeBrandColor
       : undefined
 
+  if (loading && !pullPaymentData) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 px-4">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Loading pull payment…</p>
+      </div>
+    )
+  }
+
+  if (error && !pullPaymentData) {
+    const isRateLimited = /too many requests/i.test(error)
+    const isAuthError = /access token|forbidden|unauthorized|invalid or missing/i.test(error)
+    return (
+      <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
+          <XCircle className="h-7 w-7 text-destructive" />
+        </div>
+        <div>
+          <h1 className="text-xl font-semibold">
+            {isRateLimited ? 'Please wait a moment' : 'Unable to open pull payment'}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+          {isAuthError ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Public links need a valid access token (`?t=`).
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button variant="outline" onClick={() => id && init(String(id))}>
+            Try again
+          </Button>
+          {isAuthError ? (
+            <Button asChild>
+              <Link href="/login">Sign in</Link>
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    )
+  }
+
+  if (!pullPaymentData) return null
+
   return (
-    <div
-      className="container mx-auto max-w-7xl px-4 py-8 space-y-6"
-      style={brandColor ? { borderTop: `4px solid ${brandColor}` } : undefined}
-    >
+    <div className="pb-16 pt-4">
       {pullPaymentData.storeCustomCssUrl ? (
         <Head>
           <link rel="stylesheet" href={pullPaymentData.storeCustomCssUrl} />
         </Head>
       ) : null}
-      {pullPaymentData?.network === 2 && (
-        <Alert
-          variant="destructive"
-          className="border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 text-amber-900 dark:text-amber-200"
-        >
-          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-          <AlertTitle className="text-amber-800 dark:text-amber-300 font-bold">Warning</AlertTitle>
-          <AlertDescription className="text-sm mt-1">
-            This is a test network, and the currency has no real value. If you need free coins, you
-            can get them{' '}
-            <Link
-              href="/freecoin"
-              target="_blank"
-              rel="noreferrer"
-              className="font-semibold underline hover:opacity-80"
-            >
-              here.
-            </Link>
-          </AlertDescription>
-        </Alert>
-      )}
 
-      {pullPaymentData && pullPaymentData?.pullPaymentStatus !== PULL_PAYMENT_STATUS.Active && (
-        <Alert className="bg-blue-50/50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
-          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          <AlertDescription className="text-blue-700 dark:text-blue-400 text-sm">
-            The pull payment has been {pullPaymentData?.pullPaymentStatus}, and you can read the
-            detail of the claims.
-          </AlertDescription>
-        </Alert>
-      )}
+      <div
+        className="mx-auto max-w-5xl px-4"
+        style={brandColor ? { borderTop: `4px solid ${brandColor}`, paddingTop: '1.25rem' } : undefined}
+      >
+        {pullPaymentData.network === 2 && (
+          <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-900">
+            <AlertTriangle className="h-4 w-4 !text-amber-600" />
+            <AlertTitle>Test network</AlertTitle>
+            <AlertDescription className="text-amber-800">
+              Coins on this network have no real value.{' '}
+              <Link href="/freecoin" className="font-medium underline underline-offset-2">
+                Get free coins
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-7 space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {pullPaymentData?.storeLogoUrl ? (
-                <Image
-                  alt="logo"
-                  src={pullPaymentData?.storeLogoUrl}
-                  width={100}
-                  height={40}
-                  className="object-contain h-10 w-25"
-                />
-              ) : (
-                <div className="p-2 rounded-md bg-muted text-muted-foreground">
-                  <Store className="h-5 w-5" />
-                </div>
-              )}
-              {pullPaymentData?.storeWebsite &&
+        {pullPaymentData.pullPaymentStatus === PULL_PAYMENT_STATUS.Settled && (
+          <Alert className="mb-4 border-emerald-200 bg-emerald-50 text-emerald-900">
+            <CheckCircle2 className="h-4 w-4 !text-emerald-600" />
+            <AlertTitle>Settled</AlertTitle>
+            <AlertDescription>This pull payment has been fully claimed.</AlertDescription>
+          </Alert>
+        )}
+
+        {pullPaymentData.pullPaymentStatus === PULL_PAYMENT_STATUS.Expired && (
+          <Alert className="mb-4 border-amber-200 bg-amber-50 text-amber-900">
+            <AlertTriangle className="h-4 w-4 !text-amber-600" />
+            <AlertTitle>Expired</AlertTitle>
+            <AlertDescription>New claims are closed for this pull payment.</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            {pullPaymentData.storeLogoUrl ? (
+              <Image
+                alt={pullPaymentData.storeName || 'Store'}
+                src={pullPaymentData.storeLogoUrl}
+                width={120}
+                height={40}
+                className="h-10 w-auto max-w-[140px] object-contain"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                <Store className="h-5 w-5 text-muted-foreground" />
+              </div>
+            )}
+            <div className="min-w-0">
+              {pullPaymentData.storeWebsite &&
               /^https?:\/\//i.test(String(pullPaymentData.storeWebsite)) ? (
                 <Link
                   href={String(pullPaymentData.storeWebsite)}
-                  className="text-sm font-medium text-primary hover:underline"
+                  className="truncate font-semibold hover:underline"
+                  target="_blank"
+                  rel="noreferrer"
                 >
-                  {pullPaymentData?.storeName}
+                  {pullPaymentData.storeName}
                 </Link>
               ) : (
-                <span className="text-sm font-medium">{pullPaymentData?.storeName}</span>
+                <p className="truncate font-semibold">{pullPaymentData.storeName}</p>
               )}
-              {pullPaymentData?.network === 2 && (
-                <Badge variant="outline" className="border-amber-500 text-amber-600 bg-amber-50">
-                  TestMode
-                </Badge>
-              )}
+              <p className="text-xs text-muted-foreground">
+                Pull payment #{pullPaymentData.pullPaymentId}
+              </p>
             </div>
+          </div>
 
+          <div className="flex flex-wrap items-center gap-2">
+            {pullPaymentData.network === 2 && (
+              <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                Test mode
+              </Badge>
+            )}
+            <Badge
+              variant="outline"
+              className={cn('font-medium', statusTone(pullPaymentData.pullPaymentStatus))}
+            >
+              {pullPaymentData.pullPaymentStatus}
+            </Badge>
             <Button
               variant="ghost"
               size="icon"
               aria-label="Payment help"
               onClick={() => setOpenDrawer(true)}
-              className="text-muted-foreground hover:text-foreground"
             >
               <HelpCircle className="h-5 w-5" />
             </Button>
           </div>
+        </div>
 
-          <Separator />
-
-          <div className="space-y-4">
-            <h2 className="text-base font-semibold text-foreground">Pull Payment Information</h2>
-
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="space-y-2 text-muted-foreground">
-                <div>Name</div>
-                <div>Pull Payment</div>
-                <div>Start Date</div>
-                <div>Last Updated</div>
-                <div>Due Date</div>
-                <div>Description</div>
-              </div>
-              <div className="space-y-2 font-medium text-foreground">
-                <div>{pullPaymentData?.name ? pullPaymentData?.name : 'None'}</div>
-                <div>
-                  {pullPaymentData?.pullPaymentId ? pullPaymentData?.pullPaymentId : 'None'}
-                </div>
-                <div>
-                  {pullPaymentData.createdAt
-                    ? new Date(pullPaymentData.createdAt).toLocaleString()
-                    : 'No due date'}
-                </div>
-                <div>
-                  {pullPaymentData.updatedAt
-                    ? new Date(pullPaymentData.updatedAt).toLocaleString()
-                    : 'No due date'}
-                </div>
-                <div>
-                  {pullPaymentData.expirationAt
-                    ? new Date(pullPaymentData.expirationAt).toLocaleString()
-                    : 'No due date'}
-                </div>
-                <div>{pullPaymentData?.description ? pullPaymentData?.description : 'None'}</div>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold">Claims</CardTitle>
+            <CardHeader className="border-b">
+              <CardTitle className="text-base">Pull payment details</CardTitle>
             </CardHeader>
-            <CardContent>
-              {payoutRows && payoutRows.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Destination</TableHead>
-                        <TableHead>Chain</TableHead>
-                        <TableHead className="text-right">Amount requested</TableHead>
-                        <TableHead className="text-right">Crypto</TableHead>
-                        <TableHead className="text-right">Crypto Amount</TableHead>
-                        <TableHead>Transaction</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {payoutRows.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-mono text-xs">{row.address}</TableCell>
-                          <TableCell>{row.chainName}</TableCell>
-                          <TableCell className="text-right font-medium">
-                            {CURRENCY_SYMBOLS[row.currency]}
-                            {row.amount}
-                          </TableCell>
-                          <TableCell className="text-right">{row.crypto}</TableCell>
-                          <TableCell className="text-right font-mono text-xs">
-                            {row.cryptoAmount}
-                          </TableCell>
-                          <TableCell>
-                            <Link
-                              href={GetBlockchainTxUrlByChainIds(
-                                pullPaymentData?.network === 1,
-                                row.chain,
-                                row.tx
-                              )}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-primary hover:underline font-mono"
-                            >
-                              {OmitMiddleString(row.tx)}
-                            </Link>
-                          </TableCell>
-                          <TableCell>
+            <CardContent className="pt-5">
+              <div className="rounded-xl border bg-muted/30 px-4 py-5">
+                <p className="text-sm text-muted-foreground">Claim limit</p>
+                <p className="mt-1 text-3xl font-bold tracking-tight">
+                  {fiatSymbol}
+                  {FormatCryptoAmount(pullPaymentData.amount, 2)}{' '}
+                  <span className="text-xl font-semibold">{pullPaymentData.currency}</span>
+                </p>
+                <p className="mt-1 text-sm font-medium">{pullPaymentData.name || 'Pull payment'}</p>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                    <span>
+                      Claimed {fiatSymbol}
+                      {FormatCryptoAmount(alreadyClaim, 2)}
+                    </span>
+                    <span>
+                      Available {fiatSymbol}
+                      {availableClaim}
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-emerald-500 transition-all"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                </div>
+
+                <DetailRow
+                  label="Created"
+                  value={
+                    pullPaymentData.createdAt
+                      ? new Date(pullPaymentData.createdAt).toLocaleString()
+                      : '—'
+                  }
+                />
+                <DetailRow
+                  label="Due date"
+                  value={
+                    pullPaymentData.expirationAt
+                      ? new Date(pullPaymentData.expirationAt).toLocaleString()
+                      : 'No due date'
+                  }
+                />
+                {pullPaymentData.description ? (
+                  <DetailRow label="Description" value={pullPaymentData.description} />
+                ) : null}
+              </div>
+
+              <Separator className="my-5" />
+
+              <div>
+                <p className="mb-3 text-sm font-medium">Claims</p>
+                {payoutRows.length > 0 ? (
+                  <ul className="divide-y rounded-xl border">
+                    {payoutRows.map((row, index) => (
+                      <li key={`${row.address}-${index}`} className="space-y-2 px-3 py-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-mono text-xs text-muted-foreground">
+                              {OmitMiddleString(row.address, 10)}
+                            </p>
+                            <p className="mt-0.5 text-sm font-medium">
+                              {row.chainName} · {FormatCryptoAmount(row.cryptoAmount, 8)} {row.crypto}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">
+                              {CURRENCY_SYMBOLS[row.currency]}
+                              {FormatCryptoAmount(row.amount, 2)}
+                            </span>
                             <Badge
-                              variant="secondary"
-                              className="bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300"
+                              variant="outline"
+                              className={cn('font-normal', payoutStatusTone(row.status))}
                             >
                               {row.status}
                             </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          </div>
+                        </div>
+                        {row.tx ? (
+                          <Link
+                            href={GetBlockchainTxUrlByChainIds(
+                              pullPaymentData.network === 1,
+                              row.chain,
+                              row.tx
+                            )}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                          >
+                            {OmitMiddleString(row.tx, 8)}
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+                    No claims yet
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+                <div className="inline-flex items-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5" />
+                  Secured by <span className="font-medium text-foreground">CryptoPayServer</span>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground py-2">
-                  No payments have been made yet.
-                </p>
-              )}
+                <div className="inline-flex items-center gap-2">
+                  <Link
+                    href="https://docs.cryptopayserver.online"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:underline"
+                  >
+                    Terms
+                  </Link>
+                  <span>·</span>
+                  <Link
+                    href="https://docs.cryptopayserver.online"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:underline"
+                  >
+                    Privacy
+                  </Link>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <div className="flex items-center justify-between text-xs text-muted-foreground pt-6">
-            <div className="flex items-center gap-1.5">
-              <Lock className="h-4 w-4" />
-              <span>Secured by</span>
-              <span className="font-bold text-foreground">CryptoPayServer</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Link
-                href="https://docs.cryptopayserver.online"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:underline hover:text-foreground"
-              >
-                Terms
-              </Link>
-              <span>·</span>
-              <Link
-                href="https://docs.cryptopayserver.online"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:underline hover:text-foreground"
-              >
-                Privacy
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="lg:col-span-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-foreground">Payment Method</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setOpenDialog(true)}
-              className="text-amber-600 border-amber-300 hover:bg-amber-50 gap-1.5"
-            >
-              <AlertTriangle className="h-4 w-4" />
-              Report
-            </Button>
-          </div>
-
-          {page === 1 && (
-            <Card>
-              <CardContent className="space-y-6 pt-6">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-2 text-muted-foreground">
-                    <div>Available claim</div>
-                    <div>Already claimed</div>
-                    <div>Claim limit</div>
-                  </div>
-                  <div className="space-y-2 font-bold">
-                    <div className="text-emerald-600 dark:text-emerald-400">
-                      {CURRENCY_SYMBOLS[String(pullPaymentData?.currency)]}
-                      {(Number(pullPaymentData?.amount) - alreadyClaim).toFixed(2)}
+          <Card>
+            <CardHeader className="border-b">
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-base">
+                  {page === 1 ? 'Claim funds' : 'Choose destination'}
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => setOpenDialog(true)}
+                >
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Report
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-5">
+              {page === 1 && (
+                <>
+                  <div className="grid grid-cols-3 gap-2 rounded-xl border bg-muted/30 p-3 text-center">
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">Available</p>
+                      <p className="mt-1 text-sm font-semibold text-emerald-600">
+                        {fiatSymbol}
+                        {availableClaim}
+                      </p>
                     </div>
                     <div>
-                      {CURRENCY_SYMBOLS[String(pullPaymentData?.currency)]}
-                      {alreadyClaim}
+                      <p className="text-[11px] text-muted-foreground">Claimed</p>
+                      <p className="mt-1 text-sm font-semibold">
+                        {fiatSymbol}
+                        {FormatCryptoAmount(alreadyClaim, 2)}
+                      </p>
                     </div>
-                    <div className="text-destructive">
-                      {CURRENCY_SYMBOLS[String(pullPaymentData?.currency)]}
-                      {pullPaymentData?.amount}
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">Limit</p>
+                      <p className="mt-1 text-sm font-semibold">
+                        {fiatSymbol}
+                        {FormatCryptoAmount(pullPaymentData.amount, 2)}
+                      </p>
                     </div>
                   </div>
-                </div>
 
-                {pullPaymentData &&
-                  pullPaymentData?.pullPaymentStatus === PULL_PAYMENT_STATUS.Active && (
-                    <div>
-                      <Button
-                        size="lg"
-                        onClick={() => setPage(2)}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-                      >
-                        Claim Funds
-                      </Button>
-                    </div>
+                  {canClaim && BigCmp(availableClaim, '0') > 0 ? (
+                    <Button size="lg" className="w-full" onClick={() => setPage(2)}>
+                      Claim funds
+                    </Button>
+                  ) : (
+                    <p className="rounded-lg border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
+                      {canClaim ? 'Nothing left to claim.' : 'Claims are closed for this status.'}
+                    </p>
                   )}
 
-                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" className="gap-1.5" onClick={copyLink}>
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copied ? 'Copied' : 'Copy link'}
+                    </Button>
+                    <Button variant="outline" className="gap-1.5" onClick={() => setShowQR(true)}>
+                      <QrCode className="h-4 w-4" />
+                      Show QR
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {page === 2 && (
+                <div className="space-y-4">
                   <Button
-                    variant="outline"
-                    onClick={async () => {
-                      await navigator.clipboard.writeText(websiteUrl)
-                      setSnackMessage('Copied successfully')
-                      setSnackSeverity('success')
-                      setSnackOpen(true)
-                    }}
+                    variant="ghost"
+                    size="sm"
+                    className="-ml-2 gap-1.5"
+                    onClick={() => setPage(1)}
+                    disabled={claiming}
                   >
-                    Copy Link
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
                   </Button>
-                  <Button onClick={onClickShowQR} className="gap-1.5">
-                    <QrCode className="h-4 w-4" />
-                    Show QR
-                  </Button>
+                  {claiming ? (
+                    <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Submitting claim…
+                    </div>
+                  ) : (
+                    <PullPaymentSelectChainAndCryptoCard
+                      storeId={Number(pullPaymentData.storeId)}
+                      network={Number(pullPaymentData.network)}
+                      amount={Number(availableClaim)}
+                      currency={String(pullPaymentData.currency)}
+                      onClickCoin={onClickCoin}
+                    />
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {page === 2 && (
-            <div className="space-y-4">
-              <Button variant="outline" size="lg" onClick={() => setPage(1)}>
-                Back
-              </Button>
-
-              <PullPaymentSelectChainAndCryptoCard
-                storeId={Number(pullPaymentData?.storeId)}
-                network={Number(pullPaymentData?.network)}
-                amount={Math.max(0, Number(pullPaymentData?.amount) - alreadyClaim)}
-                currency={String(pullPaymentData?.currency)}
-                onClickCoin={onClickCoin}
-              />
-            </div>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      <HelpDrawer openDrawer={openDrawer} setOpenDrawer={setOpenDrawer} />
-      <ReportPaymentDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
-      <PullPaymentQRDialog openDialog={showQR} setOpenDialog={setShowQR} websiteUrl={websiteUrl} />
+        <HelpDrawer openDrawer={openDrawer} setOpenDrawer={setOpenDrawer} />
+        <ReportPaymentDialog openDialog={openDialog} setOpenDialog={setOpenDialog} />
+        <PullPaymentQRDialog
+          openDialog={showQR}
+          setOpenDialog={setShowQR}
+          websiteUrl={websiteUrl || (typeof window !== 'undefined' ? window.location.href : '')}
+        />
+      </div>
     </div>
   )
 }

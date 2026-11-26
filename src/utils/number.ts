@@ -53,15 +53,73 @@ export function GenerateOrderIDByTime(): number {
 }
 
 export function WeiToGwei(wei: number): number {
-  return wei / 1_000_000_000;
+  return Number(WeiToGweiStr(wei))
 }
 
-export function GweiToWei(wei: number): number {
-  return parseInt((wei * 1_000_000_000).toString());
+export function WeiToGweiStr(wei: string | number): string {
+  try {
+    return BigDiv(String(wei ?? 0), '1000000000')
+  } catch {
+    return '0'
+  }
+}
+
+export function GweiToWei(gwei: number): number {
+  try {
+    return Number(new Big(String(gwei ?? 0)).times('1000000000').round(0, Big.roundDown).toString())
+  } catch {
+    return 0
+  }
 }
 
 export function GweiToEther(gwei: number): number {
-  return gwei / 1_000_000_000;
+  return Number(GweiToEtherStr(gwei))
+}
+
+export function GweiToEtherStr(gwei: string | number): string {
+  try {
+    return BigDiv(String(gwei ?? 0), '1000000000')
+  } catch {
+    return '0'
+  }
+}
+
+/** -1 if a < b, 0 if equal, 1 if a > b */
+export function BigCmp(a: string | number, b: string | number): number {
+  try {
+    return new Big(String(a || 0)).cmp(new Big(String(b || 0)))
+  } catch {
+    return 0
+  }
+}
+
+export function FormatCryptoAmount(value: string | number | null | undefined, maxDecimals = 8): string {
+  try {
+    if (value === null || value === undefined || value === '') return '0'
+    const rounded = new Big(String(value)).round(maxDecimals, Big.roundDown)
+    const fixed = rounded.toFixed(maxDecimals)
+    return fixed.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0+$/, '').replace(/\.$/, '') || '0'
+  } catch {
+    return '0'
+  }
+}
+
+/** Keep only a valid decimal amount string, capped by maxDecimals. */
+export function SanitizeAmountInput(raw: string, maxDecimals = 18): string {
+  if (!raw) return ''
+  let v = String(raw).replace(/[^\d.]/g, '')
+  if (maxDecimals <= 0) {
+    return v.replace(/\./g, '')
+  }
+  const firstDot = v.indexOf('.')
+  if (firstDot !== -1) {
+    v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '')
+  }
+  const [intPart, decPart] = v.split('.')
+  if (decPart !== undefined) {
+    return `${intPart || '0'}.${decPart.slice(0, maxDecimals)}`
+  }
+  return intPart
 }
 
 export function BtcToSatoshis(btc: number): number {

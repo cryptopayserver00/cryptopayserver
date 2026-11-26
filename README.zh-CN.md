@@ -2,9 +2,9 @@
 
 [<img src="./docs/images/cryptopayserver.png" width="400" alt="Cryptopayserver logo">](https://cryptopayserver.online/)
 
-# Cryptopayserver
+# CryptoPayServer
 
-**开源加密货币支付服务器**
+**面向商户的自托管多链支付网关**
 
 [官网](https://cryptopayserver.online) · [在线演示](https://cryptopayserver.online/login) · [常见问题](https://cryptopayserver.online/#faq) · [文档](https://docs.cryptopayserver.online) · [Telegram](https://t.me/cryptopayserver) · [English](./README.md)
 
@@ -14,20 +14,20 @@
 
 </div>
 
-**Cryptopayserver** 是一款免费、开源、可自托管的加密货币支付服务器。
-支持跨多条区块链和多种资产收款——密钥由你掌控，数据由你保管。没有追踪、没有广告、没有中间商抽成。
+**CryptoPayServer** 是一款免费、开源、可自托管的加密货币支付网关。
+在你自己的基础设施上运行发票、付款请求、Pull Payments、出款、报表与多链钱包——密钥归你，数据归你，没有托管抽成。
 
 <div align="center">
-  <img src="./docs/images/default.jpg" width="600" alt="Cryptopayserver dashboard preview">
+  <img src="./docs/images/default.jpg" width="600" alt="CryptoPayServer dashboard preview">
 </div>
 
-## 为什么选择 Cryptopayserver？
+## 为什么选择 CryptoPayServer？
 
-- 一个后台覆盖多链收款
-- 自托管钱包（助记词 / 私钥），密钥留在你自己的基础设施上
+- 一个后台覆盖 UTXO、EVM、Solana、TRON、TON、XRP 等结算
+- 自托管钱包（助记词 / 私钥），密钥不离开你的环境
 - 面向商户：发票、付款请求、拉取付款、出款、Webhook
 - 隐私优先——无遥测、无内置第三方统计
-- MIT 开源，便于二次开发与扩展
+- MIT 开源，便于二次开发，或嵌入自有店面
 
 ## 功能特性
 
@@ -43,8 +43,8 @@
 
 ### 支付能力
 
-- **发票（Invoices）** — 通过界面或 API 创建结账发票，跟踪状态，二维码付款
-- **付款请求（Payment Requests）** — 可复用的请求式收款链接
+- **发票（Invoices）** — 固定汇率结账，二维码、过期与状态跟踪（界面或 API）
+- **付款请求（Payment Requests）** — 可分享、可复用的收款页，支持部分结算
 - **拉取付款（Pull Payments）** — 用于退款、分销、奖励等可领取出款
 - **出款（Payouts）** — 从店铺钱包出款，支持出款相关配置
 - **报表（Reports）** — 店铺销售与支付报表
@@ -217,14 +217,14 @@ CI 会在 `main` / `master` 与 PR 上执行：安装依赖 → Prisma generate 
 
 ## 赞助
 
-喜欢 Cryptopayserver？欢迎 [在 GitHub 上赞助](https://github.com/sponsors/cryptopayserver00)，帮助项目持续成长。
+喜欢 CryptoPayServer？欢迎 [在 GitHub 上赞助](https://github.com/sponsors/cryptopayserver00)，帮助项目持续成长。
 
 ## 隐私政策
 
-Cryptopayserver 是自托管软件，数据保存在你自己的基础设施上，无遥测、无内置追踪。详情见 [隐私政策](https://cryptopayserver.online/privacy)。
+CryptoPayServer 是自托管软件，数据保存在你自己的基础设施上，无遥测、无内置追踪。详情见 [隐私政策](https://cryptopayserver.online/privacy)。
 
 ## 许可证
 
-© 2025–2026 [Cryptopayserver](https://cryptopayserver.online)
+© 2025–2026 [CryptoPayServer](https://cryptopayserver.online)
 
 基于 [MIT 许可证](./LICENSE) 开源。

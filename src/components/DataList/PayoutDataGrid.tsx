@@ -169,6 +169,11 @@ export default function PayoutDataGrid(props: GridType) {
     status: (typeof PAYOUT_STATUS)[keyof typeof PAYOUT_STATUS]
   ) => {
     try {
+      if (!currentStoreId) {
+        setRows([])
+        return
+      }
+
       const response: any = await axios.get(Http.find_payout, {
         params: {
           store_id: currentStoreId,

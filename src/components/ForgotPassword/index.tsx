@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 
+import { AuthShell } from '@/components/Auth/AuthShell'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useSnackPresistStore, useUserPresistStore } from '@/lib/store'
+import { useSnackPresistStore } from '@/lib/store'
+import { useRedirectIfAuthenticated } from '@/hooks/useRedirectIfAuthenticated'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail, isValidPassword } from '@/utils/verify'
-import { SiteLogo } from '../Logo/SiteLogo'
 import { useShallow } from 'zustand/react/shallow'
 
 const ForgotPassword = () => {
@@ -22,11 +23,7 @@ const ForgotPassword = () => {
   const [token, setToken] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
-  const { isLogin } = useUserPresistStore(
-    useShallow((state) => ({
-      isLogin: state.isLogin,
-    }))
-  )
+  useRedirectIfAuthenticated()
 
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
     useShallow((state) => ({
@@ -122,107 +119,93 @@ const ForgotPassword = () => {
     }
   }
 
-  useEffect(() => {
-    if (isLogin) {
-      window.location.href = '/dashboard'
-    }
-  }, [isLogin])
-
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="mx-auto max-w-screen-sm px-4">
-        <div className="flex flex-col items-center pt-16 sm:pt-24">
-          <SiteLogo />
+    <AuthShell
+      title={token ? 'Set a new password' : 'Reset password'}
+      subtitle={
+        token
+          ? 'Choose a strong password for your CryptoPayServer account.'
+          : 'We will email a reset link if an account exists for that address. SMTP must be configured on this instance.'
+      }
+    >
+      {!token ? (
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onSendResetEmail()
+              }}
+              placeholder="you@example.com"
+              className="h-11 border-slate-200 bg-white"
+            />
+          </div>
 
-          <h1 className="mt-8 text-center text-2xl font-bold tracking-tight">
-            Welcome to your CryptoPay Server
-          </h1>
+          <Button
+            className="h-11 w-full bg-teal-800 text-white hover:bg-teal-700"
+            size="lg"
+            onClick={onSendResetEmail}
+            disabled={loading}
+          >
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Send reset email
+          </Button>
 
-          <Card className="mt-8 w-full max-w-[450px] border-none shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-2xl">
-                {token ? 'Set new password' : 'Forgot Password'}
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent>
-              {!token ? (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') onSendResetEmail()
-                      }}
-                      placeholder="you@example.com"
-                    />
-                  </div>
-
-                  <Button
-                    className="mt-6 w-full"
-                    size="lg"
-                    onClick={onSendResetEmail}
-                    disabled={loading}
-                  >
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Send reset email
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">New password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                  <div className="mt-4 space-y-2">
-                    <Label htmlFor="confirm">Confirm password</Label>
-                    <Input
-                      id="confirm"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') onSetNewPassword()
-                      }}
-                    />
-                  </div>
-
-                  <Button
-                    className="mt-6 w-full"
-                    size="lg"
-                    onClick={onSetNewPassword}
-                    disabled={loading}
-                  >
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Update password
-                  </Button>
-                </>
-              )}
-
-              <Button
-                className="mt-2 w-full"
-                size="lg"
-                variant="ghost"
-                onClick={() => {
-                  window.location.href = '/login'
-                }}
-              >
-                Return to Login
-              </Button>
-            </CardContent>
-          </Card>
+          <p className="text-center text-sm text-slate-500">
+            Remembered it?{' '}
+            <Link href="/login" className="font-medium text-teal-800 hover:text-teal-700">
+              Back to sign in
+            </Link>
+          </p>
         </div>
-      </div>
-    </div>
+      ) : (
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="password">New password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-11 border-slate-200 bg-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirm">Confirm password</Label>
+            <Input
+              id="confirm"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onSetNewPassword()
+              }}
+              className="h-11 border-slate-200 bg-white"
+            />
+          </div>
+
+          <Button
+            className="h-11 w-full bg-teal-800 text-white hover:bg-teal-700"
+            size="lg"
+            onClick={onSetNewPassword}
+            disabled={loading}
+          >
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Update password
+          </Button>
+
+          <p className="text-center text-sm text-slate-500">
+            <Link href="/login" className="font-medium text-teal-800 hover:text-teal-700">
+              Back to sign in
+            </Link>
+          </p>
+        </div>
+      )}
+    </AuthShell>
   )
 }
 

@@ -30,6 +30,13 @@ import { GetBlockchainTxUrl } from '@/utils/chain/avax'
 import { BigMul } from '@/utils/number'
 import Big from 'big.js'
 import { ERC20Abi } from '../abi/erc20'
+import {
+  bufferEvmGas,
+  encodeErc20Transfer,
+  estimateEvmGas,
+  EVM_TOKEN_GAS_FLOOR,
+  resolveEvmGasLimit,
+} from './evm_gas'
 
 export class AVAX {
   static chain = CHAINS.AVALANCHE
@@ -331,31 +338,15 @@ export class AVAX {
 
   static async estimateGas(isMainnet: boolean, txParams: TransactionRequest): Promise<number> {
     try {
-      const response = await RPC.callRPC(
-        this.getChainIds(isMainnet),
-        TRANSACTIONFUNCS.EstimateGas,
-        [
-          {
-            from: txParams.from,
-            to: txParams.to,
-            value: txParams.value,
-          },
-        ]
-      )
-
-      if (!response || response === null) {
-        throw new Error('can not estimate gas of avax')
-      }
-
-      const gasLimit = new Big(parseInt(response.result, 16))
-      if (gasLimit && gasLimit.gt(0)) {
-        return gasLimit.toNumber()
-      }
-
-      throw new Error('can not estimate gas of avax')
+      return await estimateEvmGas(this.getChainIds(isMainnet), {
+        from: txParams.from as string | undefined,
+        to: txParams.to as string | undefined,
+        value: txParams.value != null ? String(txParams.value) : undefined,
+        data: txParams.data ? String(txParams.data) : undefined,
+      })
     } catch (e) {
       console.error(e)
-      throw new Error('can not estimate gas of avax')
+      throw new Error('can not estimate gas')
     }
   }
 
@@ -420,19 +411,17 @@ export class AVAX {
     contractAddress: string,
     from: string,
     to: string,
-    value: string
+    value: string,
+    decimals = 18
   ): Promise<number> {
-    if (contractAddress && contractAddress !== '') {
-      return 96000
-    }
-
-    const txParams: TransactionRequest = {
-      from: from,
-      to: to,
-      value: ethers.toQuantity(1),
-    }
-
-    return await this.estimateGas(isMainnet, txParams)
+    return await resolveEvmGasLimit({
+      chainIds: this.getChainIds(isMainnet),
+      from,
+      to,
+      value,
+      contractAddress,
+      decimals,
+    })
   }
 
   static async createTransaction(
@@ -451,26 +440,32 @@ export class AVAX {
     request: CreateEthereumTransaction
   ): Promise<CreateEthereumTransaction> {
     const decimals = await this.getTokenDecimals(isMainnet, request.contractAddress as string)
+    const recipient = request.to
     const value = ethers.parseUnits(request.value, decimals).toString()
-    const iface = new ethers.Interface(ERC20Abi)
-    const data = iface.encodeFunctionData('transfer', [request.to, value])
+    const data = encodeErc20Transfer(recipient, BigInt(value))
     request.data = data
     request.to = request.contractAddress as string
-
     if (!request.maxFeePerGas) {
       const price = await this.getGasPrice(isMainnet)
       request.maxFeePerGas = price.normal
     }
 
-    if (!request.gasLimit) {
-      const limit = await this.getGasLimit(
-        isMainnet,
-        request.contractAddress as string,
-        request.from,
-        request.to,
-        request.value
-      )
-      request.gasLimit = limit
+    {
+      let limit = EVM_TOKEN_GAS_FLOOR
+      try {
+        const estimated = await this.estimateGas(isMainnet, {
+          from: request.from,
+          to: request.contractAddress as string,
+          value: '0x0',
+          data,
+        })
+        limit = bufferEvmGas(estimated, EVM_TOKEN_GAS_FLOOR)
+      } catch {
+        /* keep floor */
+      }
+      if (!request.gasLimit || Number(request.gasLimit) < limit) {
+        request.gasLimit = limit
+      }
     }
 
     if (!request.maxPriorityFeePerGas) {
@@ -497,7 +492,7 @@ export class AVAX {
       request.maxFeePerGas = price.normal
     }
 
-    if (!request.gasLimit) {
+    {
       const limit = await this.getGasLimit(
         isMainnet,
         request.contractAddress as string,
@@ -505,7 +500,9 @@ export class AVAX {
         request.to,
         request.value
       )
-      request.gasLimit = limit
+      if (!request.gasLimit || Number(request.gasLimit) < limit) {
+        request.gasLimit = limit
+      }
     }
 
     if (!request.maxPriorityFeePerGas) {

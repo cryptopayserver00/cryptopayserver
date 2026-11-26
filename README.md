@@ -2,9 +2,9 @@
 
 [<img src="./docs/images/cryptopayserver.png" width="400" alt="Cryptopayserver logo">](https://cryptopayserver.online/)
 
-# Cryptopayserver
+# CryptoPayServer
 
-**Open Source Crypto Payment Server**
+**Self-hosted multi-chain payment rails for merchants**
 
 [Website](https://cryptopayserver.online) · [Live Demo](https://cryptopayserver.online/login) · [FAQ](https://cryptopayserver.online/#faq) · [Docs](https://docs.cryptopayserver.online) · [Telegram](https://t.me/cryptopayserver) · [中文](./README.zh-CN.md)
 
@@ -14,20 +14,20 @@
 
 </div>
 
-**Cryptopayserver** is a free, open-source, self-hosted cryptocurrency payment server.  
-Accept payments across multiple blockchains and assets — your keys, your data, your control. No tracking, no ads, no middleman fees.
+**CryptoPayServer** is a free, open-source, self-hosted cryptocurrency payment gateway.  
+Run invoices, payment requests, pull payments, payouts, reporting, and multi-chain wallets on infrastructure you control — your keys, your data, no custodian fees.
 
 <div align="center">
-  <img src="./docs/images/default.jpg" width="600" alt="Cryptopayserver dashboard preview">
+  <img src="./docs/images/default.jpg" width="600" alt="CryptoPayServer dashboard preview">
 </div>
 
-## Why Cryptopayserver?
+## Why CryptoPayServer?
 
-- Accept crypto payments across many chains from one dashboard
-- Self-custody wallets (mnemonic / private key) — keys stay on your infrastructure
-- Built for merchants: invoices, payment requests, pull payments, payouts, webhooks
+- One dashboard for UTXO, EVM, Solana, TRON, TON, and XRP settlements
+- Self-custody wallets (mnemonic / private key) — keys never leave your stack
+- Merchant-ready: invoices, payment requests, pull payments, payouts, webhooks
 - Privacy-first — no telemetry, no third-party analytics baked in
-- Open source (MIT) and easy to fork or extend
+- MIT licensed and built to fork, extend, or embed behind your own storefront
 
 ## Features
 
@@ -43,8 +43,8 @@ Mainnet and testnet can be switched in the app. Chain coverage continues to grow
 
 ### Payments
 
-- **Invoices** — create checkout invoices (UI or API), track status, QR payment flows
-- **Payment requests** — reusable / request-style payment links
+- **Invoices** — fixed-rate checkout with QR codes, expiry, and status tracking (UI or API)
+- **Payment requests** — reusable shareable pages, including partial settlement
 - **Pull payments** — claimable payouts for refunds, affiliates, or rewards
 - **Payouts** — send funds from store wallets with configurable payout settings
 - **Reports** — sales and payment reporting for stores
@@ -218,14 +218,14 @@ CI runs install → Prisma generate → typecheck → lint → tests → build o
 
 ## Sponsors
 
-Love Cryptopayserver? [Sponsor us on GitHub](https://github.com/sponsors/cryptopayserver00) to help the project grow.
+Love CryptoPayServer? [Sponsor us on GitHub](https://github.com/sponsors/cryptopayserver00) to help the project grow.
 
 ## Privacy
 
-Cryptopayserver is self-hosted: your data stays on your infrastructure. There is no telemetry or built-in tracking. See the [Privacy Policy](https://cryptopayserver.online/privacy).
+CryptoPayServer is self-hosted: your data stays on your infrastructure. There is no telemetry or built-in tracking. See the [Privacy Policy](https://cryptopayserver.online/privacy).
 
 ## License
 
-© 2025–2026 [Cryptopayserver](https://cryptopayserver.online)
+© 2025–2026 [CryptoPayServer](https://cryptopayserver.online)
 
 Open-source software under the [MIT License](./LICENSE).

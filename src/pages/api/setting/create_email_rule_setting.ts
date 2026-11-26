@@ -26,21 +26,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const userId = access.userId
     const storeId = access.storeId
 
-    const trigger = req.body.trigger
-    const recipients = req.body.recipients
-    const showSendToBuyer = req.body.show_send_to_buyer
-    const subject = req.body.subject
-    const body = req.body.body
+    const trigger = Number(req.body.trigger)
+    const recipients = String(req.body.recipients || '')
+    const showSendToBuyer = Number(req.body.show_send_to_buyer)
+    const subject = String(req.body.subject || '')
+    const body = String(req.body.body || '')
+
+    if (!Number.isInteger(trigger) || trigger <= 0) {
+      return res.status(200).json({ message: 'Invalid trigger', result: false, data: null })
+    }
+    if (!Number.isInteger(showSendToBuyer) || ![1, 2].includes(showSendToBuyer)) {
+      return res.status(200).json({ message: 'Invalid show_send_to_buyer', result: false, data: null })
+    }
 
     const email_rule_setting = await prisma.email_rule_settings.create({
       data: {
         user_id: userId,
         store_id: storeId,
-        trigger: trigger,
-        recipients: recipients,
+        trigger,
+        recipients,
         show_send_to_buyer: showSendToBuyer,
-        subject: subject,
-        body: body,
+        subject,
+        body,
         status: 1,
       },
     })

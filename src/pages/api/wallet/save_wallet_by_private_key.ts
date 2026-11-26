@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { WEB3 } from '@/packages/web3'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { rateLimit, requireAccountPassword, requireAuth } from '@/lib/auth'
+import { normalizePrivateKeyInput, validateImportPrivateKey } from '@/utils/verify'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -40,15 +41,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid network', result: false, data: null })
     }
 
-    const privateKey = req.body.private_key
-    if (!privateKey) {
-      return res.status(200).json({ message: 'Invalid privateKey', result: false, data: null })
+    const privateKey = normalizePrivateKeyInput(String(req.body.private_key || ''))
+    const validationError = validateImportPrivateKey(chainId, privateKey)
+    if (validationError) {
+      return res.status(200).json({ message: validationError, result: false, data: null })
     }
 
-    const result = await WEB3.createAccountByPrivateKey(network === 1, chainId, privateKey)
+    let result
+    try {
+      result = await WEB3.createAccountByPrivateKey(network === 1, chainId, privateKey)
+    } catch (e) {
+      console.error(e)
+      return res.status(200).json({
+        message: 'Invalid private key for the selected chain',
+        result: false,
+        data: null,
+      })
+    }
 
-    if (result.length === 0) {
-      return res.status(200).json({ message: 'Cannot save wallet', result: false, data: null })
+    if (!result || result.length === 0) {
+      return res.status(200).json({
+        message: 'Cannot import wallet for this chain with the provided key',
+        result: false,
+        data: null,
+      })
     }
 
     return res.status(200).json({ message: '', result: true, data: null })

@@ -1290,7 +1290,14 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://solana.com',
     isMainnet: true,
     coins: SOLANA_COINS,
-    rpc: ['https://solana-mainnet.g.alchemy.com/v2/riVZzgRKBdll863I_miqZ'],
+    // Prefer SOLANA_RPC_MAINNET env; public RPCs as fallbacks (Alchemy alone can 429).
+    rpc: [
+      ...(typeof process !== 'undefined' && process.env.SOLANA_RPC_MAINNET
+        ? [process.env.SOLANA_RPC_MAINNET]
+        : []),
+      'https://solana-rpc.publicnode.com',
+      'https://api.mainnet-beta.solana.com',
+    ],
     icon: require('@/assets/chain/solana.svg'),
   },
   {
@@ -1301,7 +1308,12 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://solana.com',
     isMainnet: false,
     coins: SOLANA_DEVNET_COINS,
-    rpc: ['https://solana-devnet.g.alchemy.com/v2/riVZzgRKBdll863I_miqZ'],
+    rpc: [
+      ...(typeof process !== 'undefined' && process.env.SOLANA_RPC_DEVNET
+        ? [process.env.SOLANA_RPC_DEVNET]
+        : []),
+      'https://api.devnet.solana.com',
+    ],
     icon: require('@/assets/chain/solana.svg'),
   },
   {
@@ -1312,19 +1324,18 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://binance.com',
     isMainnet: true,
     coins: BSC_COINS,
+    // Prefer BSC_RPC_MAINNET env; verified public endpoints as fallbacks.
     rpc: [
-      'https://bsc-dataseed1.binance.org',
-      'https://bsc-dataseed2.binance.org',
-      'https://bsc-dataseed3.binance.org',
-      'https://bsc-dataseed4.binance.org',
-      'https://bsc-dataseed1.defibit.io',
-      'https://bsc-dataseed2.defibit.io',
-      'https://bsc-dataseed3.defibit.io',
-      'https://bsc-dataseed4.defibit.io',
-      'https://bsc-dataseed1.ninicoin.io',
-      'https://bsc-dataseed2.ninicoin.io',
-      'https://bsc-dataseed3.ninicoin.io',
-      'https://bsc-dataseed4.ninicoin.io',
+      ...(typeof process !== 'undefined' && process.env.BSC_RPC_MAINNET
+        ? [process.env.BSC_RPC_MAINNET]
+        : []),
+      'https://bsc-rpc.publicnode.com',
+      'https://bsc.publicnode.com',
+      'https://bsc-dataseed.bnbchain.org',
+      'https://bsc-dataseed1.bnbchain.org',
+      'https://bsc-dataseed.binance.org',
+      'https://1rpc.io/bnb',
+      'https://bsc.meowrpc.com',
     ],
     icon: require('@/assets/chain/bsc.svg'),
   },
@@ -1337,15 +1348,12 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     isMainnet: false,
     coins: BSC_TESTNET_COINS,
     rpc: [
-      // 'https://data-seed-prebsc-1-s1.binance.org:8545',
-      // 'https://data-seed-prebsc-2-s1.binance.org:8545',
-      // 'https://data-seed-prebsc-1-s2.binance.org:8545',
-      // 'https://data-seed-prebsc-2-s2.binance.org:8545',
-      // 'https://data-seed-prebsc-1-s3.binance.org:8545',
-      // 'https://data-seed-prebsc-2-s3.binance.org:8545',
+      ...(typeof process !== 'undefined' && process.env.BSC_RPC_TESTNET
+        ? [process.env.BSC_RPC_TESTNET]
+        : []),
+      'https://bsc-testnet-rpc.publicnode.com',
       'https://bsc-testnet-dataseed.bnbchain.org',
-      'https://bsc-testnet.bnbchain.org',
-      'https://bsc-prebsc-dataseed.bnbchain.org',
+      'https://data-seed-prebsc-1-s1.bnbchain.org:8545',
     ],
     icon: require('@/assets/chain/bsc.svg'),
   },
@@ -1451,15 +1459,16 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     websiteUrl: 'https://www.base.org',
     isMainnet: true,
     coins: BASE_COINS,
+    // Prefer BASE_RPC_MAINNET env; verified public endpoints as fallbacks.
     rpc: [
-      // 'https://base.llamarpc.com',
-      'https://mainnet.base.org',
-      'https://developer-access-mainnet.base.org',
-      'https://1rpc.io/base',
-      'https://base-pokt.nodies.app',
-      // 'https://base.meowrpc.com',
+      ...(typeof process !== 'undefined' && process.env.BASE_RPC_MAINNET
+        ? [process.env.BASE_RPC_MAINNET]
+        : []),
       'https://base-rpc.publicnode.com',
-      // 'https://base.drpc.org',
+      'https://base.publicnode.com',
+      'https://mainnet.base.org',
+      'https://base.gateway.tenderly.co',
+      'https://base.meowrpc.com',
     ],
     icon: require('@/assets/chain/base.svg'),
   },
@@ -1472,6 +1481,9 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
     isMainnet: false,
     coins: BASE_SEPOLIA_COINS,
     rpc: [
+      ...(typeof process !== 'undefined' && process.env.BASE_RPC_SEPOLIA
+        ? [process.env.BASE_RPC_SEPOLIA]
+        : []),
       'https://base-sepolia-rpc.publicnode.com',
       'https://sepolia.base.org',
       'https://base-sepolia.gateway.tenderly.co',

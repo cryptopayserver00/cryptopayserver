@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import Image from 'next/image'
 import Link from 'next/link'
-import { CheckCircle2, Eye } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, ClipboardPaste, Eye, Loader2 } from 'lucide-react'
 
 import {
   useSnackPresistStore,
@@ -10,11 +10,21 @@ import {
   useUserPresistStore,
   useWalletPresistStore,
 } from '@/lib/store'
-import { CHAINS, COIN, COINS } from '@/packages/constants/blockchain'
+import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
-import { BigDiv, BigMul, GweiToEther, WeiToGwei } from '@/utils/number'
+import {
+  BigAdd,
+  BigCmp,
+  BigDiv,
+  BigMul,
+  BigSub,
+  FormatCryptoAmount,
+  GweiToEtherStr,
+  SanitizeAmountInput,
+  WeiToGweiStr,
+} from '@/utils/number'
 import { OmitMiddleString } from '@/utils/strings'
 import { COINGECKO_IDS, PAYOUT_STATUS } from '@/packages/constants'
 import { GetImgSrcByChain, GetImgSrcByCrypto } from '@/utils/qrcode'
@@ -26,6 +36,7 @@ import {
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -38,21 +49,23 @@ import {
   EvmMaxPriortyFeeType,
 } from '@/utils/types'
 
-const SuffixInput = ({ value, suffix }: { value: string | number; suffix: string }) => (
-  <div className="relative w-[200px]">
-    <Input value={value} disabled className="pr-14" />
-    <span className="absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
-      {suffix}
-    </span>
-  </div>
-)
+function DetailRow({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-2.5">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-right text-sm font-medium break-all">
+        {value}
+        {suffix ? <span className="ml-1 text-muted-foreground font-normal">{suffix}</span> : null}
+      </span>
+    </div>
+  )
+}
 
 const WalletsSend = () => {
   const router = useRouter()
   const { chainId, payoutId } = router.query
 
   const [mainCoin, setMainCoin] = useState<COINS>()
-
   const [alignment, setAlignment] = useState<'high' | 'average' | 'low'>('average')
   const [maxPriortyFeeAlignment, setMaxPriortyFeeAlignment] = useState<'fast' | 'normal' | 'slow'>(
     'normal'
@@ -66,16 +79,18 @@ const WalletsSend = () => {
   const [balance, setBalance] = useState<CoinBalanceType>({})
   const [destinationAddress, setDestinationAddress] = useState<string>('')
   const [amount, setAmount] = useState<string>('')
-  const [maxFee, setMaxFee] = useState<number>(0)
-  const [maxPriortyFee, setMaxPriortyFee] = useState<number>(0)
-  const [gasLimit, setGasLimit] = useState<number>(0)
+  const [maxFee, setMaxFee] = useState<string>('0')
+  const [maxPriortyFee, setMaxPriortyFee] = useState<string>('0')
+  const [gasLimit, setGasLimit] = useState<string>('0')
 
   const [networkFee, setNetworkFee] = useState<string>('')
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('')
-  const [nonce, setNonce] = useState<number>(0)
+  const [nonce, setNonce] = useState<string>('0')
   const [coin, setCoin] = useState<COINS>()
   const [displaySign, setDisplaySign] = useState<boolean>(false)
   const [amountRed, setAmountRed] = useState<boolean>(false)
+  const [calculating, setCalculating] = useState(false)
+  const [sending, setSending] = useState(false)
 
   const [isDisableDestinationAddress, setIsDisableDestinationAddress] = useState<boolean>(false)
   const [isDisableAmount, setIsDisableAmount] = useState<boolean>(false)
@@ -113,53 +128,85 @@ const WalletsSend = () => {
     setSnackOpen(true)
   }
 
+  const numericChainId = Number(chainId)
+  const isBsc = numericChainId === CHAINS.BSC
+  const chainName = numericChainId ? FindChainNamesByChains(numericChainId) : ''
+  const backHref = numericChainId
+    ? `/wallets/${FindChainPathNamesByChains(numericChainId)}`
+    : '/wallets'
+  const availableBalance = coin ? String(balance[String(coin)] ?? '0') : '0'
+
+  const totalSpendPreview = useMemo(() => {
+    if (!amount) return ''
+    if (coin === mainCoin && networkFee) {
+      try {
+        return FormatCryptoAmount(BigAdd(amount, networkFee), 18)
+      } catch {
+        return amount
+      }
+    }
+    return FormatCryptoAmount(amount, 18)
+  }, [amount, coin, mainCoin, networkFee])
+
   const handleChangeFees = (value: string) => {
-    if (!value) return
+    if (!value || !feeObj) return
     switch (value) {
       case 'high':
-        setMaxFee(WeiToGwei(Number(feeObj?.high)))
+        setMaxFee(WeiToGweiStr(feeObj.high))
         break
       case 'average':
-        setMaxFee(WeiToGwei(Number(feeObj?.average)))
+        setMaxFee(WeiToGweiStr(feeObj.average))
         break
       case 'low':
-        setMaxFee(WeiToGwei(Number(feeObj?.low)))
+        setMaxFee(WeiToGweiStr(feeObj.low))
         break
     }
     setAlignment(value as 'high' | 'average' | 'low')
   }
 
   const handleChangeMaxPriortyFee = (value: string) => {
-    if (!value) return
+    if (!value || !maxPriortyFeeObj) return
     switch (value) {
       case 'fast':
-        setMaxPriortyFee(WeiToGwei(Number(maxPriortyFeeObj?.fast)))
+        setMaxPriortyFee(WeiToGweiStr(maxPriortyFeeObj.fast))
         break
       case 'normal':
-        setMaxPriortyFee(WeiToGwei(Number(maxPriortyFeeObj?.normal)))
+        setMaxPriortyFee(WeiToGweiStr(maxPriortyFeeObj.normal))
         break
       case 'slow':
-        setMaxPriortyFee(WeiToGwei(Number(maxPriortyFeeObj?.slow)))
+        setMaxPriortyFee(WeiToGweiStr(maxPriortyFeeObj.slow))
         break
     }
     setMaxPriortyFeeAlignment(value as 'fast' | 'normal' | 'slow')
   }
 
-  const getBalance = async (chainId: number, storeId: number, network: string) => {
+  const updateAmountValidity = (nextAmount: string, selectedCoin?: COINS) => {
+    const token = selectedCoin || coin
+    if (!token || !nextAmount) {
+      setAmountRed(false)
+      return
+    }
+    const bal = String(balance[String(token)] ?? '0')
+    setAmountRed(BigCmp(nextAmount, bal) > 0)
+  }
+
+  const getBalance = async (id: number, storeIdValue: number, networkValue: string) => {
     try {
       const response: any = await axios.get(Http.find_asset_balance, {
         params: {
-          chain_id: chainId,
-          store_id: storeId,
-          network: network === 'mainnet' ? 1 : 2,
+          chain_id: id,
+          store_id: storeIdValue,
+          network: networkValue === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
         setFromAddress(response.data.address)
         setBalance(response.data.balance)
         setMainCoin(response.data.mainCoin.name)
-
-        await getNonce(chainId, response.data.address)
+        if (!coin && response.data.mainCoin?.name) {
+          setCoin(response.data.mainCoin.name)
+        }
+        await getNonce(id, response.data.address)
       }
     } catch (e) {
       showSnack('error', getApiErrorMessage(e))
@@ -180,7 +227,7 @@ const WalletsSend = () => {
         },
       })
       if (response.result) {
-        setGasLimit(response.data)
+        setGasLimit(String(response.data))
         return true
       }
       return false
@@ -191,12 +238,12 @@ const WalletsSend = () => {
     }
   }
 
-  const getFeeRate = async (chainId: number, network: string) => {
+  const getFeeRate = async (id: number, networkValue: string) => {
     try {
       const response: any = await axios.get(Http.find_fee_rate, {
         params: {
-          chain_id: chainId,
-          network: network === 'mainnet' ? 1 : 2,
+          chain_id: id,
+          network: networkValue === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -205,20 +252,19 @@ const WalletsSend = () => {
           average: response.data.normal,
           low: response.data.slow,
         })
-        setMaxFee(WeiToGwei(response.data.normal))
+        setMaxFee(WeiToGweiStr(response.data.normal))
       }
     } catch (e) {
-      showSnack('error', getApiErrorMessage(e))
-      console.error(e)
+      console.warn('Fee rate unavailable', e)
     }
   }
 
-  const getMaxPriortyFee = async (chainId: number, network: string) => {
+  const getMaxPriortyFee = async (id: number, networkValue: string) => {
     try {
       const response: any = await axios.get(Http.find_max_priority_fee, {
         params: {
-          chain_id: chainId,
-          network: network === 'mainnet' ? 1 : 2,
+          chain_id: id,
+          network: networkValue === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -227,20 +273,19 @@ const WalletsSend = () => {
           normal: response.data.normal,
           slow: response.data.slow,
         })
-        setMaxPriortyFee(WeiToGwei(response.data.normal))
+        setMaxPriortyFee(WeiToGweiStr(response.data.normal))
       }
     } catch (e) {
-      showSnack('error', getApiErrorMessage(e))
-      console.error(e)
+      console.warn('Max priority fee unavailable', e)
     }
   }
 
-  const getAddressBook = async (chainId: number, network: string) => {
+  const getAddressBook = async (id: number, networkValue: string) => {
     try {
       const response: any = await axios.get(Http.find_address_book, {
         params: {
-          chain_id: chainId,
-          network: network === 'mainnet' ? 1 : 2,
+          chain_id: id,
+          network: networkValue === 'mainnet' ? 1 : 2,
         },
       })
       if (response.result) {
@@ -251,7 +296,6 @@ const WalletsSend = () => {
           name: item.name,
           address: item.address,
         }))
-
         setAddressBookrows(rows)
       }
     } catch (e) {
@@ -259,32 +303,29 @@ const WalletsSend = () => {
     }
   }
 
-  const getNonce = async (chainId: number, address: string) => {
-    if (address && address != '') {
-      try {
-        const response: any = await axios.get(Http.find_nonce, {
-          params: {
-            chain_id: chainId,
-            network: network === 'mainnet' ? 1 : 2,
-            address: address,
-          },
-        })
-        if (response.result) {
-          setNonce(response.data)
-        }
-      } catch (e) {
-        showSnack('error', getApiErrorMessage(e))
-        console.error(e)
+  const getNonce = async (id: number, address: string) => {
+    if (!address) return
+    try {
+      const response: any = await axios.get(Http.find_nonce, {
+        params: {
+          chain_id: id,
+          network: network === 'mainnet' ? 1 : 2,
+          address: address,
+        },
+      })
+      if (response.result) {
+        setNonce(String(response.data ?? 0))
       }
+    } catch (e) {
+      showSnack('error', getApiErrorMessage(e))
+      console.error(e)
     }
   }
 
   const getPayoutInfo = async (id: number) => {
     try {
       const response: any = await axios.get(Http.find_payout_by_id, {
-        params: {
-          id: id,
-        },
+        params: { id },
       })
 
       if (response.result) {
@@ -299,12 +340,12 @@ const WalletsSend = () => {
         })
         if (rate_response.result) {
           const rate = rate_response.data[ids][response.data.currency.toLowerCase()]
-          const totalPrice = parseFloat(
-            BigDiv(Number(response.data.amount).toString(), rate)
-          ).toFixed(8)
+          const totalPrice = FormatCryptoAmount(
+            BigDiv(String(response.data.amount), String(rate)),
+            8
+          )
           setAmount(totalPrice)
           setCoin(response.data.crypto)
-
           setIsDisableDestinationAddress(true)
           setIsDisableAmount(true)
         }
@@ -316,14 +357,7 @@ const WalletsSend = () => {
   }
 
   const checkAddress = async (): Promise<boolean> => {
-    if (destinationAddress === fromAddress) {
-      return false
-    }
-
-    if (!destinationAddress || destinationAddress === '') {
-      return false
-    }
-
+    if (!destinationAddress || destinationAddress === fromAddress) return false
     try {
       const response: any = await axios.get(Http.checkout_chain_address, {
         params: {
@@ -332,7 +366,7 @@ const WalletsSend = () => {
           network: network === 'mainnet' ? 1 : 2,
         },
       })
-      return response.result
+      return Boolean(response.result)
     } catch (e) {
       showSnack('error', getApiErrorMessage(e))
       console.error(e)
@@ -341,57 +375,44 @@ const WalletsSend = () => {
   }
 
   const checkAmount = (): boolean => {
-    if (
-      amount &&
-      parseFloat(amount) > 0 &&
-      parseFloat(balance[String(coin)]) >= parseFloat(amount)
-    ) {
-      return true
-    }
-
-    return false
+    if (!amount || !coin) return false
+    if (BigCmp(amount, '0') <= 0) return false
+    return BigCmp(availableBalance, amount) >= 0
   }
 
-  const checkNonce = (): boolean => {
-    if (nonce >= 0) {
-      return true
-    }
-
-    return false
-  }
-
-  const checkMaxFee = (): boolean => {
-    if (maxFee && maxFee >= 0) {
-      return true
-    }
-
-    return false
-  }
-
-  const checkMaxPriortyFee = (): boolean => {
-    if (maxPriortyFee && maxPriortyFee >= 0) {
-      return true
-    }
-
-    return false
-  }
-
+  const checkNonce = (): boolean => BigCmp(nonce, '0') >= 0
+  const checkMaxFee = (): boolean => BigCmp(maxFee, '0') > 0
+  const checkMaxPriortyFee = (): boolean => BigCmp(maxPriortyFee, '0') >= 0
   const checkGasLimit = async (): Promise<boolean> => {
-    if (gasLimit && gasLimit > 0) {
-      return true
-    }
-
+    // Always re-estimate: Glamsterdam new-account sends need ~204k gas, tokens more than 96k.
     return await getGasLimit(fromAddress)
+  }
+
+  const onClickMaxAmount = () => {
+    if (!coin) return
+    if (coin === mainCoin && networkFee && BigCmp(networkFee, '0') > 0) {
+      // Leave headroom for gas (2x estimate, matching send validation)
+      const reserve = BigMul(networkFee, '2')
+      if (BigCmp(availableBalance, reserve) > 0) {
+        const maxSend = FormatCryptoAmount(BigSub(availableBalance, reserve), 18)
+        setAmount(maxSend)
+        updateAmountValidity(maxSend, coin)
+        return
+      }
+    }
+    const maxSend = FormatCryptoAmount(availableBalance, 18)
+    setAmount(maxSend)
+    updateAmountValidity(maxSend, coin)
   }
 
   const onClickSignTransaction = async () => {
     if (!(await checkAddress())) {
-      showSnack('error', 'The destination address cannot be empty or input errors')
+      showSnack('error', 'The destination address cannot be empty or is invalid')
       return
     }
 
     if (!checkAmount()) {
-      showSnack('error', 'Insufficient balance or input error')
+      showSnack('error', 'Insufficient balance or invalid amount')
       return
     }
 
@@ -405,49 +426,48 @@ const WalletsSend = () => {
       return
     }
 
-    if (Number(chainId) !== CHAINS.BSC) {
-      if (!checkMaxPriortyFee()) {
-        showSnack('error', 'Please enter a valid max priority fee')
+    if (!isBsc && !checkMaxPriortyFee()) {
+      showSnack('error', 'Please enter a valid max priority fee')
+      return
+    }
+
+    if (!displaySign) {
+      setCalculating(true)
+      try {
+        if (!(await checkGasLimit())) {
+          showSnack('error', 'Could not estimate gas limit')
+          return
+        }
+        setDisplaySign(true)
+      } finally {
+        setCalculating(false)
+      }
+      return
+    }
+
+    if (!networkFee || BigCmp(networkFee, '0') <= 0) {
+      showSnack('error', 'Network fee is not ready yet')
+      return
+    }
+
+    const gasReserve = BigMul(networkFee, '2')
+    if (coin === mainCoin) {
+      const needed = BigAdd(amount, gasReserve)
+      if (BigCmp(needed, String(balance[String(mainCoin)] ?? '0')) > 0) {
+        showSnack('error', 'Insufficient balance for amount + gas')
         return
       }
-    }
-
-    if (!(await checkGasLimit())) {
-      showSnack('error', 'Please enter a valid gas limit')
+    } else if (BigCmp(gasReserve, String(balance[String(mainCoin)] ?? '0')) > 0) {
+      showSnack('error', 'Insufficient gas fee balance')
       return
-    } else {
-      setDisplaySign(true)
     }
 
-    if (displaySign) {
-      if (coin === mainCoin) {
-        if (
-          !networkFee ||
-          !amount ||
-          parseFloat(networkFee) * 2 + parseFloat(amount) > parseFloat(balance[String(mainCoin)])
-        ) {
-          showSnack('error', 'Insufficient balance or Insufficient gas fee')
-          return
-        }
-      } else {
-        if (
-          !networkFee ||
-          !amount ||
-          parseFloat(networkFee) * 2 > parseFloat(balance[String(mainCoin)])
-        ) {
-          showSnack('error', 'Insufficient balance or Insufficient gas fee')
-          return
-        }
-      }
-
-      if (networkFee && networkFee != '') {
-        setPage(2)
-      }
-    }
+    setPage(2)
   }
 
   const onClickSignAndPay = async () => {
     try {
+      setSending(true)
       const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
         '@/utils/wallet-password'
       )
@@ -467,11 +487,11 @@ const WalletsSend = () => {
         user_id: userId,
         value: amount,
         coin: coin,
-        nonce: nonce,
-        max_fee: maxFee,
-        max_priority_fee: maxPriortyFee,
-        max_priorty_fee: maxPriortyFee,
-        gas_limit: gasLimit,
+        nonce: Number(nonce),
+        max_fee: Number(maxFee),
+        max_priority_fee: Number(maxPriortyFee),
+        max_priorty_fee: Number(maxPriortyFee),
+        gas_limit: Number(gasLimit),
       })
 
       if (response.result) {
@@ -490,39 +510,48 @@ const WalletsSend = () => {
           }
         }
 
-        showSnack('success', 'Created successfully!')
-
+        showSnack('success', 'Transaction submitted')
         setBlockExplorerLink(
-          GetBlockchainTxUrlByChainIds(network === 'mainnet', Number(chainId), response.data.hash)
+          GetBlockchainTxUrlByChainIds(network === 'mainnet', numericChainId, response.data.hash)
         )
         setPage(3)
       }
     } catch (e) {
       showSnack('error', getApiErrorMessage(e))
       console.error(e)
+    } finally {
+      setSending(false)
     }
   }
 
-  const onClickParseClipboardText = async (text: string) => {
+  const onClickParseClipboardText = async () => {
     try {
-      if (!text || text === '') {
-        showSnack('error', 'Invalid parsing')
+      const text = (await navigator.clipboard.readText()).trim()
+      if (!text) {
+        showSnack('error', 'Clipboard is empty')
         return
       }
-
-      text = text.trim()
 
       const response: any = await axios.get(Http.parse_qrcode_text, {
         params: {
           chain_id: chainId,
-          text: text,
+          text,
         },
       })
 
-      if (response.result) {
-        showSnack('success', 'Parsing success')
+      if (response.result && response.data) {
+        if (response.data.address) setDestinationAddress(response.data.address)
+        if (response.data.amount) {
+          const next = SanitizeAmountInput(String(response.data.amount))
+          setAmount(next)
+          updateAmountValidity(next)
+        }
+        if (response.data.token) setCoin(response.data.token)
+        showSnack('success', 'Parsed from clipboard')
       } else {
-        showSnack('error', 'Invalid parsing')
+        // Fallback: treat clipboard as raw address
+        setDestinationAddress(text)
+        showSnack('success', 'Address pasted')
       }
     } catch (e) {
       showSnack('error', getApiErrorMessage(e))
@@ -531,122 +560,131 @@ const WalletsSend = () => {
   }
 
   useEffect(() => {
-    if (maxFee && maxFee > 0 && gasLimit && gasLimit > 0) {
-      setNetworkFee(
-        parseFloat(BigMul(GweiToEther(maxFee).toString(), gasLimit.toString())).toFixed(8)
-      )
+    if (BigCmp(maxFee, '0') > 0 && BigCmp(gasLimit, '0') > 0) {
+      setNetworkFee(FormatCryptoAmount(BigMul(GweiToEtherStr(maxFee), gasLimit), 18))
+    } else {
+      setNetworkFee('')
     }
   }, [maxFee, gasLimit])
 
+  // Reset cached gas when inputs that affect eth_estimateGas change.
   useEffect(() => {
-    if (payoutId) {
-      getPayoutInfo(Number(payoutId))
-    }
+    setGasLimit('')
+    setDisplaySign(false)
+  }, [destinationAddress, amount, coin])
+
+  useEffect(() => {
+    if (payoutId) getPayoutInfo(Number(payoutId))
   }, [payoutId])
 
   useEffect(() => {
-    if (!chainId) {
-      return
-    }
-    getBalance(Number(chainId), storeId, network)
+    if (!chainId || !storeId) return
+    getBalance(numericChainId, storeId, network)
   }, [chainId, storeId, network])
 
   useEffect(() => {
-    if (!chainId) {
-      return
-    }
-    getFeeRate(Number(chainId), network)
+    if (!chainId) return
+    getFeeRate(numericChainId, network)
   }, [chainId, network])
 
   useEffect(() => {
-    if (!chainId) {
-      return
-    }
-    if (Number(chainId) !== CHAINS.BSC) {
-      getMaxPriortyFee(Number(chainId), network)
-    }
+    if (!chainId || isBsc) return
+    getMaxPriortyFee(numericChainId, network)
   }, [chainId, network])
 
   useEffect(() => {
-    if (!chainId) {
-      return
-    }
-    getAddressBook(Number(chainId), network)
+    if (!chainId) return
+    getAddressBook(numericChainId, network)
   }, [chainId, network])
 
   return (
-    <div className="mb-16 flex flex-col items-center">
-      <div className="flex items-center justify-center gap-2 my-8">
-        {GetImgSrcByChain(Number(chainId)) && (
-          <Image
-            src={GetImgSrcByChain(Number(chainId))}
-            alt="chain"
-            width={50}
-            height={50}
-            className="h-12 w-12"
-          />
-        )}
-        <h1 className="text-3xl font-bold tracking-tight">
-          Send coin on{' '}
-          {network === 'mainnet'
-            ? FindChainNamesByChains(Number(chainId)) + ' mainnet'
-            : FindChainNamesByChains(Number(chainId)) + ' testnet'}
-        </h1>
+    <div className="mx-auto mb-16 max-w-screen-md px-4 py-6">
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <Button variant="ghost" size="sm" className="-ml-2 gap-1.5" asChild>
+          <Link href={backHref}>
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Link>
+        </Button>
+        <Badge variant="outline" className="font-normal capitalize">
+          {network || '—'}
+        </Badge>
       </div>
 
-      <div className="mx-auto w-full max-w-screen-lg px-4">
-        {page === 1 && (
-          <div className="mx-auto max-w-2xl">
-            <Button
-              onClick={async () => {
-                const text = await navigator.clipboard.readText()
-                await onClickParseClipboardText(text)
-              }}
-            >
-              Parse clipboard text
-            </Button>
+      <div className="mb-8 flex flex-col items-center text-center">
+        {GetImgSrcByChain(numericChainId) ? (
+          <Image
+            src={GetImgSrcByChain(numericChainId)}
+            alt={chainName}
+            width={48}
+            height={48}
+            className="h-12 w-12"
+          />
+        ) : null}
+        <h1 className="mt-3 text-3xl font-bold tracking-tight">Send on {chainName}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Review amounts carefully. Fees are estimated in {mainCoin || 'native coin'}.
+        </p>
+      </div>
 
-            <div className="mt-6 space-y-2">
-              <Label>From address</Label>
-              <Input value={fromAddress} disabled />
-            </div>
-
-            <div className="mt-6 space-y-2">
-              <Label>Destination address</Label>
-              <Input
-                value={destinationAddress}
-                onChange={(e) => setDestinationAddress(e.target.value)}
-                disabled={isDisableDestinationAddress}
-              />
-            </div>
-
-            {addressBookrows && addressBookrows.length > 0 && (
-              <div className="mt-6">
-                <Label className="mb-2 block">Address books</Label>
-                <div className="flex flex-wrap gap-2">
-                  {addressBookrows.map((item, index) => (
-                    <Badge
-                      key={index}
-                      variant="outline"
-                      className="cursor-pointer px-3 py-1 font-normal hover:bg-muted"
-                      onClick={() => setDestinationAddress(item.address)}
-                    >
-                      {OmitMiddleString(item.address)}
-                    </Badge>
-                  ))}
-                </div>
+      {page === 1 && (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="border-b">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <CardTitle className="text-base">Transfer</CardTitle>
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={onClickParseClipboardText}>
+                  <ClipboardPaste className="h-3.5 w-3.5" />
+                  Paste / parse
+                </Button>
               </div>
-            )}
+            </CardHeader>
+            <CardContent className="space-y-5 pt-5">
+              <div className="space-y-2">
+                <Label>From</Label>
+                <Input value={fromAddress ? OmitMiddleString(fromAddress, 10) : 'Loading…'} disabled />
+              </div>
 
-            <div className="mt-6">
-              <Label className="mb-2 block">Coin</Label>
-              <div className="flex flex-wrap gap-2">
-                {balance &&
-                  Object.entries(balance).map(([token, tokenAmount], balanceIndex) => (
+              <div className="space-y-2">
+                <Label>Destination</Label>
+                <Input
+                  placeholder="0x…"
+                  value={destinationAddress}
+                  onChange={(e) => setDestinationAddress(e.target.value.trim())}
+                  disabled={isDisableDestinationAddress}
+                />
+              </div>
+
+              {addressBookrows.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Address book</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {addressBookrows.map((item) => (
+                      <Badge
+                        key={item.id}
+                        variant="outline"
+                        className="cursor-pointer px-3 py-1 font-normal hover:bg-muted"
+                        onClick={() => setDestinationAddress(item.address)}
+                      >
+                        {item.name || OmitMiddleString(item.address)}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>Asset</Label>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(balance).map(([token, tokenAmount]) => (
                     <button
-                      key={balanceIndex}
+                      key={token}
                       type="button"
-                      onClick={() => setCoin(token as COINS)}
+                      onClick={() => {
+                        setCoin(token as COINS)
+                        updateAmountValidity(amount, token as COINS)
+                        setDisplaySign(false)
+                      }}
                       className={cn(
                         'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors',
                         token === coin
@@ -656,209 +694,245 @@ const WalletsSend = () => {
                     >
                       <Image
                         src={GetImgSrcByCrypto(token as COINS)}
-                        alt="logo"
-                        width={20}
-                        height={20}
-                        className="h-5 w-5"
+                        alt=""
+                        width={18}
+                        height={18}
+                        className="h-4.5 w-4.5"
                       />
-                      {String(tokenAmount)} {token}
+                      {FormatCryptoAmount(String(tokenAmount), 8)} {token}
                     </button>
                   ))}
+                </div>
               </div>
-            </div>
 
-            <div className="mt-6 space-y-2">
-              <Label>Amount</Label>
-              <Input
-                type="number"
-                value={amount}
-                onChange={(e) => {
-                  setAmount(e.target.value)
-                  if (parseFloat(e.target.value) > parseFloat(balance[String(coin)])) {
-                    setAmountRed(true)
-                  } else {
-                    setAmountRed(false)
-                  }
-                }}
-                disabled={isDisableAmount}
-              />
-              {balance[String(coin)] && (
-                <p
-                  className={cn(
-                    'text-sm font-semibold',
-                    amountRed ? 'text-destructive' : 'text-muted-foreground'
-                  )}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label>Amount</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    disabled={!coin || isDisableAmount}
+                    onClick={onClickMaxAmount}
+                  >
+                    Max
+                  </Button>
+                </div>
+                <Input
+                  inputMode="decimal"
+                  placeholder="0.0"
+                  value={amount}
+                  onChange={(e) => {
+                    const next = SanitizeAmountInput(e.target.value)
+                    setAmount(next)
+                    updateAmountValidity(next)
+                    setDisplaySign(false)
+                  }}
+                  disabled={isDisableAmount}
+                  className={cn(amountRed && 'border-destructive focus-visible:ring-destructive/30')}
+                />
+                {coin && (
+                  <p
+                    className={cn(
+                      'text-sm',
+                      amountRed ? 'font-medium text-destructive' : 'text-muted-foreground'
+                    )}
+                  >
+                    Available: {FormatCryptoAmount(availableBalance, 8)} {coin}
+                    {amountRed ? ' — exceeds balance' : ''}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="text-base">Network fee</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5 pt-5">
+              <div className="space-y-2">
+                <Label>Nonce</Label>
+                <Input
+                  inputMode="numeric"
+                  value={nonce}
+                  onChange={(e) => setNonce(SanitizeAmountInput(e.target.value, 0).replace(/\./g, ''))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{isBsc ? 'Gas price' : 'Max fee'} (gwei)</Label>
+                <Input
+                  inputMode="decimal"
+                  value={maxFee}
+                  onChange={(e) => {
+                    setMaxFee(SanitizeAmountInput(e.target.value, 9))
+                    setDisplaySign(false)
+                  }}
+                />
+                <ToggleGroup
+                  type="single"
+                  value={alignment}
+                  onValueChange={handleChangeFees}
+                  className="justify-start"
                 >
-                  Your available balance is {balance[String(coin)]} {coin}
-                </p>
-              )}
-            </div>
+                  <ToggleGroupItem value="high">High</ToggleGroupItem>
+                  <ToggleGroupItem value="average">Average</ToggleGroupItem>
+                  <ToggleGroupItem value="low">Low</ToggleGroupItem>
+                </ToggleGroup>
+              </div>
 
-            <div className="mt-6 space-y-2">
-              <Label>Nonce</Label>
-              <Input
-                type="number"
-                value={nonce}
-                onChange={(e) => setNonce(Number(e.target.value))}
-              />
-            </div>
-
-            <div className="mt-6 space-y-2">
-              <Label>{Number(chainId) === CHAINS.BSC ? 'Gas price' : 'Max fee'} (gwei)</Label>
-              <Input
-                type="number"
-                className="w-48"
-                value={maxFee}
-                onChange={(e) => setMaxFee(Number(e.target.value))}
-              />
-            </div>
-
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <span className="text-sm">
-                Select the {Number(chainId) === CHAINS.BSC ? 'gas price' : 'max fee'}
-              </span>
-              <ToggleGroup type="single" value={alignment} onValueChange={handleChangeFees}>
-                <ToggleGroupItem value="high">High</ToggleGroupItem>
-                <ToggleGroupItem value="average">Average</ToggleGroupItem>
-                <ToggleGroupItem value="low">Low</ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-
-            {Number(chainId) !== CHAINS.BSC && (
-              <>
-                <div className="mt-6 space-y-2">
+              {!isBsc && (
+                <div className="space-y-2">
                   <Label>Max priority fee (gwei)</Label>
                   <Input
-                    type="number"
-                    className="w-48"
+                    inputMode="decimal"
                     value={maxPriortyFee}
-                    onChange={(e) => setMaxPriortyFee(Number(e.target.value))}
+                    onChange={(e) => {
+                      setMaxPriortyFee(SanitizeAmountInput(e.target.value, 9))
+                      setDisplaySign(false)
+                    }}
                   />
-                </div>
-
-                <div className="mt-6 flex flex-wrap items-center gap-3">
-                  <span className="text-sm">Select the max priority fee</span>
                   <ToggleGroup
                     type="single"
                     value={maxPriortyFeeAlignment}
                     onValueChange={handleChangeMaxPriortyFee}
+                    className="justify-start"
                   >
                     <ToggleGroupItem value="fast">Fast</ToggleGroupItem>
                     <ToggleGroupItem value="normal">Normal</ToggleGroupItem>
                     <ToggleGroupItem value="slow">Slow</ToggleGroupItem>
                   </ToggleGroup>
                 </div>
-              </>
-            )}
+              )}
 
-            {displaySign && (
-              <>
-                <div className="mt-6 space-y-2">
-                  <Label>Gas</Label>
-                  <Input
-                    type="number"
-                    className="w-48"
-                    value={gasLimit}
-                    onChange={(e) => setGasLimit(Number(e.target.value))}
-                  />
+              {displaySign && (
+                <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
+                  <div className="space-y-2">
+                    <Label>Gas limit</Label>
+                    <Input
+                      inputMode="numeric"
+                      value={gasLimit}
+                      onChange={(e) =>
+                        setGasLimit(SanitizeAmountInput(e.target.value, 0).replace(/\./g, ''))
+                      }
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Est. network fee:{' '}
+                    <span className="font-medium text-foreground">
+                      {FormatCryptoAmount(networkFee || '0', 12)} {mainCoin}
+                    </span>
+                    <span className="block mt-1 text-xs">
+                      {isBsc ? 'gas price' : 'max fee'} ({FormatCryptoAmount(maxFee, 6)} gwei) × gas (
+                      {gasLimit})
+                    </span>
+                  </p>
+                  {coin === mainCoin && totalSpendPreview && (
+                    <p className="text-sm">
+                      Total (amount + fee):{' '}
+                      <span className="font-semibold">
+                        {totalSpendPreview} {mainCoin}
+                      </span>
+                    </p>
+                  )}
                 </div>
-                <p className="mt-4 text-sm text-muted-foreground">
-                  Miner fee: {networkFee} {mainCoin} ={' '}
-                  {Number(chainId) === CHAINS.BSC ? 'gas price' : 'max fee'}({maxFee}) * gas(
-                  {gasLimit})
-                </p>
-              </>
-            )}
+              )}
 
-            <Button className="mt-6" onClick={onClickSignTransaction}>
-              {displaySign ? 'Sign Transaction' : 'Calculate Gas Fee'}
-            </Button>
-          </div>
-        )}
-
-        {page === 2 && (
-          <div className="mx-auto max-w-md">
-            <div className="mt-10 flex items-center justify-between gap-4">
-              <span className="text-sm text-muted-foreground">Send to</span>
-              <Input value={OmitMiddleString(destinationAddress)} disabled className="w-[220px]" />
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <span className="text-sm text-muted-foreground">Spend amount</span>
-              <SuffixInput value={amount} suffix={String(coin)} />
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <span className="text-sm text-muted-foreground">
-                {Number(chainId) === CHAINS.BSC ? 'Gas price' : 'Max fee'}
-              </span>
-              <SuffixInput value={maxFee} suffix="Gwei" />
-            </div>
-
-            {Number(chainId) !== CHAINS.BSC && (
-              <div className="mt-4 flex items-center justify-between gap-4">
-                <span className="text-sm text-muted-foreground">Max priority fee</span>
-                <SuffixInput value={maxPriortyFee} suffix="Gwei" />
-              </div>
-            )}
-
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <span className="text-sm text-muted-foreground">Gas limit</span>
-              <Input value={gasLimit} disabled className="w-[220px]" />
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <span className="text-sm text-muted-foreground">Network fee</span>
-              <SuffixInput value={networkFee} suffix={String(mainCoin)} />
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-4">
-              <span className="text-sm text-muted-foreground">Nonce</span>
-              <Input value={nonce} disabled className="w-[220px]" />
-            </div>
-
-            <div className="mt-8 flex items-center justify-end gap-2">
-              <Button variant="destructive" onClick={() => setPage(1)}>
-                Reject
+              <Button className="w-full" onClick={onClickSignTransaction} disabled={calculating}>
+                {calculating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Estimating…
+                  </>
+                ) : displaySign ? (
+                  'Review transaction'
+                ) : (
+                  'Estimate gas fee'
+                )}
               </Button>
-              <Button className="bg-green-600 hover:bg-green-700" onClick={onClickSignAndPay}>
-                Sign & Pay
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {page === 2 && (
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle className="text-base">Confirm & sign</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-2">
+            <DetailRow label="Send to" value={OmitMiddleString(destinationAddress, 10)} />
+            <DetailRow
+              label="Amount"
+              value={FormatCryptoAmount(amount, 12)}
+              suffix={String(coin)}
+            />
+            <DetailRow
+              label={isBsc ? 'Gas price' : 'Max fee'}
+              value={FormatCryptoAmount(maxFee, 6)}
+              suffix="gwei"
+            />
+            {!isBsc && (
+              <DetailRow
+                label="Max priority fee"
+                value={FormatCryptoAmount(maxPriortyFee, 6)}
+                suffix="gwei"
+              />
+            )}
+            <DetailRow label="Gas limit" value={gasLimit} />
+            <DetailRow
+              label="Network fee"
+              value={FormatCryptoAmount(networkFee || '0', 12)}
+              suffix={String(mainCoin)}
+            />
+            <DetailRow label="Nonce" value={nonce} />
+
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <Button variant="outline" onClick={() => setPage(1)} disabled={sending}>
+                Back
+              </Button>
+              <Button onClick={onClickSignAndPay} disabled={sending}>
+                {sending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending…
+                  </>
+                ) : (
+                  'Sign & pay'
+                )}
               </Button>
             </div>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+      )}
 
-        {page === 3 && (
-          <div className="mt-16 flex flex-col items-center text-center">
-            <CheckCircle2 className="h-20 w-20 text-green-500" strokeWidth={1.5} />
-
-            <p className="mt-4 text-xl font-bold">Payment Sent</p>
-            <p className="mt-2 text-muted-foreground">
-              Your transaction has been successfully sent
+      {page === 3 && (
+        <Card>
+          <CardContent className="flex flex-col items-center py-12 text-center">
+            <CheckCircle2 className="h-16 w-16 text-emerald-500" strokeWidth={1.5} />
+            <p className="mt-4 text-xl font-bold">Payment sent</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Your transaction was submitted to the network
             </p>
-
-            <Link
-              href={blockExplorerLink}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 flex items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <Eye className="h-4 w-4" />
-              <span>View on Block Explorer</span>
-            </Link>
-
-            <Button
-              size="lg"
-              className="mt-16 w-full max-w-[500px]"
-              onClick={() => {
-                window.location.href = '/wallets/' + FindChainPathNamesByChains(Number(chainId))
-              }}
-            >
-              Done
+            {blockExplorerLink ? (
+              <Link
+                href={blockExplorerLink}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center gap-1.5 text-sm text-primary underline-offset-4 hover:underline"
+              >
+                <Eye className="h-4 w-4" />
+                View on explorer
+              </Link>
+            ) : null}
+            <Button size="lg" className="mt-10 w-full max-w-sm" asChild>
+              <Link href={backHref}>Done</Link>
             </Button>
-          </div>
-        )}
-      </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

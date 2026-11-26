@@ -170,7 +170,7 @@ export default function MyAssets() {
 
   const onClickReceive = () => {
     const chainId = FindChainIdsByChainNames(chainName)
-    window.location.href = `/wallets/receive?chainId=${chainId}`
+    window.location.href = `/wallets/receive?chainId=${chainId}&storeId=${storeId}&network=${network}`
   }
 
   const handleCopyAddress = async () => {

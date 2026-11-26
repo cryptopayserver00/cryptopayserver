@@ -1,67 +1,48 @@
 import Link from 'next/link'
-import { Send, Heart, FileText, HelpCircle } from 'lucide-react'
-import { SiGithub, SiX } from '@icons-pack/react-simple-icons'
-
-const footerLinks = [
-  {
-    href: 'https://github.com/cryptopayserver00/cryptopayserver',
-    label: 'Github',
-    icon: SiGithub,
-  },
-  {
-    href: 'https://x.com/ZhongMingYang00',
-    label: 'X',
-    icon: SiX,
-  },
-  {
-    href: 'https://t.me/cryptopayserver',
-    label: 'Telegram',
-    icon: Send,
-  },
-  {
-    href: 'https://docs.cryptopayserver.online',
-    label: 'Donate',
-    icon: Heart,
-  },
-  {
-    href: 'https://docs.cryptopayserver.online',
-    label: 'API',
-    icon: FileText,
-  },
-  {
-    href: 'https://docs.cryptopayserver.online',
-    label: 'Docs',
-    icon: HelpCircle,
-  },
-]
+import { SiGithub } from '@icons-pack/react-simple-icons'
 
 const HomeFooter = () => {
   return (
-    <div className="mt-32 pb-4">
-      <div className="mx-auto max-w-screen-lg px-4">
-        <div className="flex flex-col items-center justify-between gap-4 border-t pt-6 sm:flex-row">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            {footerLinks.map(({ href, label, icon: IconComponent }) => (
-              <Link
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline"
-              >
-                <IconComponent className="h-4 w-4" />
-                <span>{label}</span>
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <span>© CryptoPayServer</span>
-            <span>v0.0.1</span>
-          </div>
+    <footer className="mt-auto border-t border-slate-900/5 bg-[#f7f8f6]/90">
+      <div className="mx-auto flex max-w-screen-xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-slate-500 sm:flex-row sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center gap-1 sm:items-start">
+          <span className="text-slate-700">
+            © {new Date().getFullYear()} CryptoPayServer
+          </span>
+          <span className="text-xs text-slate-400">MIT · self-hosted · v0.1.0</span>
         </div>
+
+        <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+          <Link
+            href="https://github.com/cryptopayserver00/cryptopayserver"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 transition-colors hover:text-slate-900"
+          >
+            <SiGithub className="h-3.5 w-3.5" /> GitHub
+          </Link>
+          <Link
+            href="https://docs.cryptopayserver.online"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-slate-900"
+          >
+            Docs
+          </Link>
+          <Link
+            href="https://t.me/cryptopayserver"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-slate-900"
+          >
+            Telegram
+          </Link>
+          <Link href="/" className="transition-colors hover:text-slate-900">
+            Home
+          </Link>
+        </nav>
       </div>
-    </div>
+    </footer>
   )
 }
 

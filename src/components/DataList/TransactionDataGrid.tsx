@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  ArrowDownLeft,
+  ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Inbox,
+  List,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
@@ -18,6 +19,7 @@ import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { OmitMiddleString } from '@/utils/strings'
+import { cn } from '@/lib/utils'
 import {
   FindChainNamesByChains,
   GetBlockchainAddressUrlByChainIds,
@@ -47,6 +49,13 @@ interface GridType {
   address?: string
 }
 
+function normalizeDirection(type?: string): 'received' | 'send' | 'other' {
+  const t = (type || '').toLowerCase()
+  if (t.includes('receiv') || t === 'in') return 'received'
+  if (t.includes('send') || t === 'out') return 'send'
+  return 'other'
+}
+
 export default function TransactionDataGrid(props: GridType) {
   const [rows, setRows] = useState<RowType[]>([])
   const [page, setPage] = useState(1)
@@ -54,6 +63,7 @@ export default function TransactionDataGrid(props: GridType) {
   const [rowCount, setRowCount] = useState(0)
   const [open, setOpen] = useState(false)
   const [selectedValue, setSelectedValue] = useState<RowType>()
+  const [loading, setLoading] = useState(false)
 
   const { network } = useUserPresistStore(
     useShallow((state) => ({
@@ -84,20 +94,21 @@ export default function TransactionDataGrid(props: GridType) {
     pageNum: number,
     size: number,
     chain: number,
-    storeId: number,
-    network: string,
+    storeIdValue: number,
+    networkValue: string,
     address?: string
   ) => {
     try {
-      if (!storeId || !network || !address) {
+      if (!storeIdValue || !networkValue || !address) {
         return
       }
 
+      setLoading(true)
       const response: any = await axios.get(Http.find_transaction, {
         params: {
           ...(chain ? { chain_id: chain } : {}),
-          store_id: storeId,
-          network: network === 'mainnet' ? 1 : 2,
+          store_id: storeIdValue,
+          network: networkValue === 'mainnet' ? 1 : 2,
           address: address,
           page: pageNum,
           page_size: size,
@@ -146,6 +157,8 @@ export default function TransactionDataGrid(props: GridType) {
       setSnackMessage(getApiErrorMessage(e))
       setSnackOpen(true)
       console.error(e)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -176,85 +189,147 @@ export default function TransactionDataGrid(props: GridType) {
   }, [props.chain, resolvedStoreId, props.network, props.address])
 
   const totalPages = Math.max(1, Math.ceil(rowCount / pageSize))
+  const canFetch = Boolean(resolvedStoreId && props.network && props.address)
 
   return (
     <div className="w-full space-y-4">
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Chain</TableHead>
-              <TableHead>Hash</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead>From</TableHead>
-              <TableHead>To</TableHead>
-              <TableHead>Token</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Block Timestamp</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.length > 0 ? (
-              rows.map((row) => (
-                <TableRow key={row.id} className="cursor-pointer" onClick={() => onClickRow(row)}>
-                  <TableCell>{row.chainName}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {OmitMiddleString(row.hash, 10)}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {OmitMiddleString(row.address, 10)}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {OmitMiddleString(row.fromAddress, 10)}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {OmitMiddleString(row.toAddress, 10)}
-                  </TableCell>
-                  <TableCell>{row.token}</TableCell>
-                  <TableCell>{row.transactionType}</TableCell>
-                  <TableCell className="font-medium">{row.amount}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                    {row.blockTimestamp}
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
-                  No transactions found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+        <div className="flex items-center justify-between border-b bg-muted/40 px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold">Transactions</p>
+            <p className="text-xs text-muted-foreground">
+              {!canFetch
+                ? 'Enter an address to load transactions'
+                : loading && rows.length === 0
+                  ? 'Loading…'
+                  : rowCount > 0
+                    ? `${rowCount} record${rowCount === 1 ? '' : 's'}`
+                    : 'No records for this address'}
+            </p>
+          </div>
+        </div>
+
+        {!canFetch || rows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+              <Inbox className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium">
+              {!canFetch ? 'Waiting for address' : 'No transactions found'}
+            </p>
+            <p className="max-w-sm text-xs text-muted-foreground">
+              {!canFetch
+                ? 'Provide a wallet address to search on-chain activity for your store.'
+                : 'Incoming and outgoing transfers will appear here once available.'}
+            </p>
+          </div>
+        ) : (
+          <ul className="divide-y">
+            {rows.map((row) => {
+              const direction = normalizeDirection(row.transactionType)
+              const explorerUrl = GetBlockchainTxUrlByChainIds(
+                props.network === 'mainnet' || network === 'mainnet',
+                row.chainId,
+                row.hash
+              )
+
+              return (
+                <li key={`${row.hash}-${row.id}`}>
+                  <button
+                    type="button"
+                    className="flex w-full flex-col gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/30 sm:flex-row sm:items-center sm:justify-between"
+                    onClick={() => onClickRow(row)}
+                  >
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div
+                        className={cn(
+                          'mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
+                          direction === 'received' && 'bg-emerald-500/10 text-emerald-600',
+                          direction === 'send' && 'bg-orange-500/10 text-orange-600',
+                          direction === 'other' && 'bg-muted text-muted-foreground'
+                        )}
+                      >
+                        {direction === 'received' ? (
+                          <ArrowDownLeft className="h-4 w-4" />
+                        ) : direction === 'send' ? (
+                          <ArrowUpRight className="h-4 w-4" />
+                        ) : (
+                          <List className="h-4 w-4" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold">
+                            {row.amount} {row.token}
+                          </p>
+                          {row.transactionType && (
+                            <Badge variant="outline" className="font-normal capitalize">
+                              {row.transactionType}
+                            </Badge>
+                          )}
+                          <Badge variant="secondary" className="font-normal">
+                            {row.chainName}
+                          </Badge>
+                        </div>
+
+                        {explorerUrl ? (
+                          <Link
+                            href={explorerUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 font-mono text-xs text-primary underline-offset-4 hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {OmitMiddleString(row.hash, 10)}
+                            <ExternalLink className="h-3 w-3 shrink-0" />
+                          </Link>
+                        ) : (
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {OmitMiddleString(row.hash, 10)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="shrink-0 text-xs text-muted-foreground sm:text-right">
+                      {row.blockTimestamp}
+                    </p>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
 
-      <div className="flex items-center justify-end gap-2">
-        <span className="text-sm text-muted-foreground">
-          Page {page} of {totalPages}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          disabled={page <= 1}
-          onClick={() => fetchPage(page - 1)}
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          disabled={page >= totalPages}
-          onClick={() => fetchPage(page + 1)}
-        >
-          Next
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
+      {canFetch && rowCount > 0 && (
+        <div className="flex items-center justify-end gap-2">
+          <span className="text-sm text-muted-foreground">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={page <= 1}
+            onClick={() => fetchPage(page - 1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={page >= totalPages}
+            onClick={() => fetchPage(page + 1)}
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <TxDialog
         row={selectedValue as RowType}

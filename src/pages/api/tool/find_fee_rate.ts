@@ -32,8 +32,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(200).json({ message: '', result: true, data: fee })
   } catch (e) {
     console.error(e)
-    return res.status(500).json({
-      message: 'Internal server error',
+    // Prefer soft failure over 500 — fee display is non-critical for page load
+    return res.status(200).json({
+      message: 'Could not fetch fee rate',
       result: false,
       data: null,
     })

@@ -1,17 +1,27 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Copy, Eye, EyeOff, Loader2, ShieldAlert } from 'lucide-react'
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { useSnackPresistStore } from '@/lib/store/snack'
 import { useStorePresistStore, useWalletPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
+import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
+import { WalletSetupLayout } from '../../WalletSetupLayout'
+
+const CREATE_STEPS = ['Choose', 'Create', 'Secure', 'Backup']
 
 const PhraseBackup = () => {
   const router = useRouter()
-  const [isDisable, setIsDisable] = useState<boolean>(true)
-  const [isView, setIsView] = useState<boolean>(false)
   const [phrase, setPhrase] = useState<string[]>([])
+  const [revealed, setRevealed] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const { walletId, isWallet } = useWalletPresistStore(
     useShallow((state) => ({
@@ -34,63 +44,74 @@ const PhraseBackup = () => {
     }))
   )
 
-  const onClickReConfirm = () => {
-    router.push('/wallet/phrase/backup/confirm')
+  const showSnack = (severity: 'success' | 'error', message: string) => {
+    setSnackSeverity(severity)
+    setSnackMessage(message)
+    setSnackOpen(true)
   }
 
-  const groupSize = 2
-  const groupedArray = Array.from({ length: Math.ceil(phrase.length / groupSize) }, (_, index) =>
-    phrase.slice(index * groupSize, index * groupSize + groupSize)
-  )
+  const revealMnemonic = async () => {
+    if (!isWallet || !walletId || loading) return
 
-  const init = async (isWallet: boolean, walletId: number) => {
     try {
-      if (isWallet) {
-        const meta: any = await axios.get(Http.find_wallet_by_id, {
-          params: { id: walletId },
-        })
-        if (!meta.result) {
-          setSnackSeverity('error')
-          setSnackMessage('Cannot find the wallet, please try again later.')
-          setSnackOpen(true)
-          return
-        }
+      setLoading(true)
 
-        const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
-          '@/utils/wallet-password'
-        )
-        const accountPassword = await promptAccountPassword(
-          'Enter your account password to view the mnemonic'
-        )
-        if (!accountPassword) return
+      const meta: any = await axios.get(Http.find_wallet_by_id, {
+        params: { id: walletId },
+      })
+      if (!meta.result) {
+        showSnack('error', 'Cannot find the wallet, please try again later.')
+        return
+      }
 
-        let walletPassword = ''
-        if (meta.data?.hasPassword) {
-          const entered = await promptWalletPasswordIfNeeded(walletId)
-          if (!entered) return
-          walletPassword = entered
-        }
+      const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
+        '@/utils/wallet-password'
+      )
+      const accountPassword = await promptAccountPassword(
+        'Enter your account password to view the mnemonic'
+      )
+      if (!accountPassword) return
 
-        const response: any = await axios.post(Http.find_wallet_by_id, {
-          id: walletId,
-          reveal: 1,
-          account_password: accountPassword,
-          wallet_password: walletPassword,
-        })
+      let walletPassword = ''
+      if (meta.data?.hasPassword) {
+        const entered = await promptWalletPasswordIfNeeded(walletId)
+        if (!entered) return
+        walletPassword = entered
+      }
 
-        if (response.result && response.data?.mnemonic) {
-          setPhrase(response.data.mnemonic.split(' '))
-        } else {
-          setSnackSeverity('error')
-          setSnackMessage(response.message || 'Cannot find the wallet, please try again later.')
-          setSnackOpen(true)
-        }
+      const response: any = await axios.post(Http.find_wallet_by_id, {
+        id: walletId,
+        reveal: 1,
+        account_password: accountPassword,
+        wallet_password: walletPassword,
+      })
+
+      if (response.result && response.data?.mnemonic) {
+        const words = String(response.data.mnemonic)
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean)
+        setPhrase(words)
+        setRevealed(true)
+      } else {
+        showSnack('error', response.message || 'Cannot find the wallet, please try again later.')
       }
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage(getApiErrorMessage(e))
-      setSnackOpen(true)
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const onCopy = async () => {
+    if (!phrase.length) return
+    try {
+      await navigator.clipboard.writeText(phrase.join(' '))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      showSnack('error', 'Unable to copy to clipboard')
     }
   }
 
@@ -99,86 +120,117 @@ const PhraseBackup = () => {
       router.push('/stores/create')
       return
     }
-    init(isWallet, walletId)
-  }, [isStore, isWallet, walletId])
+    if (!isWallet || !walletId) {
+      router.push('/dashboard')
+    }
+  }, [isStore, isWallet, walletId, router])
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto space-y-6 pt-10">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Please record the following mnemonic phrase.
-        </h1>
-        <p className="text-gray-600 leading-relaxed">
-          Connected devices may leak information. It is strongly recommended that you transcribe and
-          securely store your mnemonic phrase as a backup.
-        </p>
+    <WalletSetupLayout
+      title="Record your mnemonic phrase"
+      description="Write these words down offline and keep them safe. Anyone with this phrase can control the wallet."
+      steps={CREATE_STEPS}
+      currentStep={4}
+      backHref="/wallet/phrase/intro"
+    >
+      <div className="space-y-5">
+        <Alert>
+          <ShieldAlert className="h-4 w-4" />
+          <AlertTitle>Keep this private</AlertTitle>
+          <AlertDescription>
+            Connected devices can leak information. Prefer handwriting the phrase and never share it
+            with anyone.
+          </AlertDescription>
+        </Alert>
 
-        <div className="relative w-full max-w-lg mt-6">
-          {!isView && (
-            <div
-              onClick={() => {
-                setIsView(true)
-                setIsDisable(false)
-              }}
-              className="absolute inset-0 z-10 bg-gray-900/90 rounded-xl shadow-lg flex flex-col items-center justify-center text-white cursor-pointer transition-all duration-200 hover:bg-gray-900/95"
-            >
-              <svg
-                className="w-10 h-10 mb-3 text-gray-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.5"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-7 0-10-7-10-7a19.16 19.16 0 012.355-3.693M6.205 6.205A9.957 9.957 0 0112 5c7 0 10 7 10 7a19.14 19.14 0 01-2.35 3.68M3 3l18 18"
-                />
-              </svg>
-              <p className="text-base font-semibold">Click to view mnemonic phrase</p>
-              <p className="text-xs text-gray-300 mt-1">
-                Please make sure no one can view your screen
-              </p>
-            </div>
-          )}
-
-          <div
-            onClick={() => setIsView(false)}
-            className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm cursor-pointer"
-          >
-            <div className="space-y-3">
-              {groupedArray.map((group, groupIndex) => (
-                <div key={groupIndex} className="flex gap-4">
-                  {group.map((item, itemIndex) => (
-                    <div
-                      key={itemIndex}
-                      className="w-[220px] px-3 py-2 bg-gray-100 rounded-full text-center text-sm font-medium text-gray-700"
-                    >
-                      {`${groupIndex * groupSize + itemIndex + 1}. ${item}`}
-                    </div>
-                  ))}
+        <Card className="overflow-hidden shadow-none">
+          <CardContent className="p-0">
+            {!revealed ? (
+              <div className="flex min-h-[280px] flex-col items-center justify-center gap-4 bg-slate-950 px-6 py-12 text-center text-white">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+                  {loading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <EyeOff className="h-5 w-5 text-white/80" />
+                  )}
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
+                <div className="space-y-1">
+                  <p className="text-base font-semibold">Mnemonic phrase is hidden</p>
+                  <p className="text-sm text-white/60">
+                    Make sure nobody can see your screen, then reveal it.
+                  </p>
+                </div>
+                <Button
+                  variant="secondary"
+                  className="mt-2 gap-2"
+                  disabled={loading}
+                  onClick={revealMnemonic}
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                  {loading ? 'Unlocking...' : 'Reveal mnemonic phrase'}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4 p-5 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {phrase.length} words · tap a word only to read it
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="gap-1.5" onClick={onCopy}>
+                      <Copy className="h-3.5 w-3.5" />
+                      {copied ? 'Copied' : 'Copy'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => setRevealed(false)}
+                    >
+                      <EyeOff className="h-3.5 w-3.5" />
+                      Hide
+                    </Button>
+                  </div>
+                </div>
 
-        <div className="pt-10">
-          <button
-            type="button"
-            onClick={onClickReConfirm}
-            disabled={isDisable}
-            className={`px-6 py-3 rounded-lg font-medium text-white transition-all duration-200 ${
-              isDisable
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 shadow-md'
-            }`}
+                <ol className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {phrase.map((word, index) => (
+                    <li
+                      key={`${index}-${word}`}
+                      className={cn(
+                        'flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2.5',
+                        'text-sm font-medium'
+                      )}
+                    >
+                      <span className="w-5 shrink-0 text-xs text-muted-foreground">
+                        {index + 1}.
+                      </span>
+                      <span className="truncate font-mono tracking-wide">{word}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-wrap gap-3">
+          <Button
+            disabled={!revealed || phrase.length === 0}
+            onClick={() => router.push('/wallet/phrase/backup/confirm')}
           >
-            I have finished recording.
-          </button>
+            I have finished recording
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/dashboard')}>
+            Backup later
+          </Button>
         </div>
       </div>
-    </div>
+    </WalletSetupLayout>
   )
 }
 

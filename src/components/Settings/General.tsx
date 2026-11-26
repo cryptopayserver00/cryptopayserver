@@ -214,9 +214,6 @@ const General = () => {
         params: {
           file_type: FILE_TYPE.Image,
         },
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       })
 
       if (response.result && response.data.urls[0] !== '') {

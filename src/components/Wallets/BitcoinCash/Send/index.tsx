@@ -270,6 +270,13 @@ const BitcoinCashSend = () => {
     }
   }
 
+  // BCH wallet lib picks fee on-chain; use a conservative UI estimate so checks can proceed.
+  useEffect(() => {
+    if (!networkFee || networkFee <= 0) {
+      setNetworkFee(0.00001)
+    }
+  }, [networkFee])
+
   useEffect(() => {
     if (payoutId) {
       getPayoutInfo(payoutId)

@@ -7,10 +7,14 @@ import {
   QRCodeText,
   SendTransaction,
   TransactionDetail,
+  TRANSACTIONSTATUS,
+  TRANSACTIONTYPE,
 } from '../types'
 import { ethers } from 'ethers'
 import { FindTokenByChainIdsAndContractAddress } from '@/utils/web3'
 import { BigDiv } from '@/utils/number'
+import { BLOCKSCAN } from '../block_scan'
+import { GetBlockchainTxUrl } from '@/utils/chain/bch'
 
 export class BITCOINCASH {
   static chain = CHAINS.BITCOINCASH
@@ -207,11 +211,37 @@ export class BITCOINCASH {
 
   static async getTransactions(isMainnet: boolean, address: string): Promise<TransactionDetail[]> {
     try {
+      if (!BLOCKSCAN.isConfigured) return []
+      const url = `${BLOCKSCAN.baseUrl}/node/bch/getTransactions?chain_id=${this.getChainIds(
+        isMainnet
+      )}&address=${encodeURIComponent(address)}`
+      const response = await BLOCKSCAN.axiosInstance.get(url)
+      if (response.data.code === 10200 && Array.isArray(response.data.data)) {
+        return response.data.data.map((tx: any) => ({
+          hash: String(tx.hash || ''),
+          asset: String(tx.asset || COINS.BCH || 'BCH'),
+          fee: '0',
+          value: String(tx.amount || ''),
+          type:
+            tx.type === 'Send'
+              ? TRANSACTIONTYPE.SEND
+              : tx.type === 'Received'
+                ? TRANSACTIONTYPE.RECEIVED
+                : undefined,
+          status:
+            String(tx.status).toLowerCase() === 'success'
+              ? TRANSACTIONSTATUS.SUCCESS
+              : String(tx.status).toLowerCase() === 'pending'
+                ? TRANSACTIONSTATUS.PENDING
+                : TRANSACTIONSTATUS.FAILED,
+          blockTimestamp: Number(tx.blockTimestamp || 0),
+          url: GetBlockchainTxUrl(isMainnet, String(tx.hash || '')),
+        }))
+      }
       return []
     } catch (e) {
       console.error(e)
       return []
-      // throw new Error('can not get the transactions of bch');
     }
   }
 

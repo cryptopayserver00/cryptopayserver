@@ -107,6 +107,10 @@ const TronSend = () => {
         setFromAddress(response.data.address)
         setBalance(response.data.balance)
         setMainCoin(response.data.mainCoin.name)
+        if (!coin) {
+          setCoin(response.data.mainCoin.name)
+          setNetworkFee(2)
+        }
 
         await getAccountResource(network, response.data.address)
       }

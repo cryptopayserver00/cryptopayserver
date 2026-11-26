@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { Info, ArrowLeft, Plus } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Select,
   SelectContent,
@@ -15,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PageHeader, PageShell } from '@/components/Layout/PageHeader'
 
 import { CURRENCY, PULL_PAYMENT_STATUS } from '@/packages/constants'
 import axios from '@/utils/http/axios'
@@ -25,7 +25,6 @@ import PullPaymentDataGrid from '@/components/DataList/PullPaymentDataGrid'
 import { useShallow } from 'zustand/react/shallow'
 
 const Pullpayments = () => {
-  const [openExplain, setOpenExplain] = useState<boolean>(false)
   const [openCreatePullPayment, setOpenCreatePullPayment] = useState<boolean>(false)
 
   const [name, setName] = useState<string>('')
@@ -142,31 +141,22 @@ const Pullpayments = () => {
   }
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-6 space-y-6">
+    <PageShell>
       {openCreatePullPayment ? (
         <div className="space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Create Pull Payment
-            </h1>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setOpenCreatePullPayment(false)
-                }}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <Button
-                onClick={onClickCreate}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                Create
-              </Button>
-            </div>
-          </div>
+          <PageHeader
+            title="Create Pull Payment"
+            description="Let receivers claim funds from your wallet after approval."
+            actions={
+              <>
+                <Button variant="outline" onClick={() => setOpenCreatePullPayment(false)}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button onClick={onClickCreate}>Create</Button>
+              </>
+            }
+          />
 
           <Card>
             <CardHeader className="pb-4">
@@ -259,40 +249,20 @@ const Pullpayments = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex items-center justify-between pb-2 border-b">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Pull Payments</h1>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                onClick={() => setOpenExplain(!openExplain)}
-              >
-                <Info className="h-4 w-4" />
+          <PageHeader
+            title="Pull Payments"
+            description="Receivers claim funds from your wallet; approved claims are released as payouts."
+            actions={
+              <Button onClick={() => setOpenCreatePullPayment(true)} className="gap-1.5">
+                <Plus className="h-4 w-4" />
+                Create Pull Payment
               </Button>
-            </div>
-            <Button onClick={() => setOpenCreatePullPayment(true)} className="gap-1.5">
-              <Plus className="h-4 w-4" />
-              Create Pull Payment
-            </Button>
-          </div>
-
-          {openExplain && (
-            <Alert className="bg-blue-50/50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
-              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <AlertTitle className="text-blue-800 dark:text-blue-300">Info</AlertTitle>
-              <AlertDescription className="text-blue-700 dark:text-blue-400 text-sm mt-1 leading-relaxed">
-                Pull Payments allow receivers to claim specified funds from your wallet at their
-                convenience.
-                <br />
-                Once submitted and approved, the funds will be released.
-              </AlertDescription>
-            </Alert>
-          )}
+            }
+          />
 
           <Tabs defaultValue={tabList[0].key} className="w-full space-y-4">
             <div className="overflow-x-auto pb-1">
-              <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-full sm:w-auto">
+              <TabsList className="inline-flex h-10 w-full items-center justify-start rounded-md bg-muted p-1 text-muted-foreground sm:w-auto">
                 {tabList.map((tab) => (
                   <TabsTrigger
                     key={tab.key}
@@ -306,18 +276,14 @@ const Pullpayments = () => {
             </div>
 
             {tabList.map((tab) => (
-              <TabsContent
-                key={tab.key}
-                value={tab.key}
-                className="pt-2 focus-visible:outline-none"
-              >
+              <TabsContent key={tab.key} value={tab.key} className="focus-visible:outline-none">
                 <PullPaymentDataGrid status={tab.status} />
               </TabsContent>
             ))}
           </Tabs>
         </div>
       )}
-    </div>
+    </PageShell>
   )
 }
 

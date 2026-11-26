@@ -3,6 +3,25 @@
 @import "shadcn/tailwind.css";
 @plugin "@tailwindcss/typography";
 
+@keyframes cps-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes cps-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

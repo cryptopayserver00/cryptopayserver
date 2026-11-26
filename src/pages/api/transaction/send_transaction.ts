@@ -146,6 +146,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid coin', result: false, data: null })
     }
 
+    const parsedGasLimit = Number(gasLimit)
+    const safeGasLimit =
+      Number.isFinite(parsedGasLimit) && parsedGasLimit > 0 ? parsedGasLimit : undefined
+
     const hash = await WEB3.sendTransaction(address.network === 1, {
       coin: token,
       value: value,
@@ -156,14 +160,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       from: address.address,
       to: toAddress,
       gasPrice: maxFee ? GweiToWei(maxFee).toString() : '',
-      gasLimit: gasLimit ? gasLimit : '',
+      gasLimit: safeGasLimit,
       maxPriorityFeePerGas: maxPriortyFee ? GweiToWei(maxPriortyFee).toString() : '',
       nonce: nonce ? nonce : '',
       memo: memo ? memo : '',
     })
 
     if (!hash) {
-      return res.status(200).json({ message: 'Cannot sent tx', result: false, data: null })
+      return res.status(200).json({ message: 'Cannot send transaction', result: false, data: null })
     }
 
     await prisma.notifications.create({
@@ -188,8 +192,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
   } catch (e) {
     console.error(e)
-    return res.status(500).json({
-      message: 'Internal server error',
+    const message =
+      e instanceof Error && e.message
+        ? e.message
+        : 'Internal server error'
+    return res.status(200).json({
+      message,
       result: false,
       data: null,
     })

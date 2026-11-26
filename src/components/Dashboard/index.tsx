@@ -1,10 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { AlertTriangle, ArrowRight } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowRight,
+  FileText,
+  Gift,
+  KeyRound,
+  ShieldAlert,
+  Store,
+  Wallet,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import PaymentAnalyticsChart from './PaymentAnalyticsChart'
 import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
@@ -13,7 +21,18 @@ import { PAYOUT_STATUS } from '@/packages/constants'
 import InvoiceDataGrid from '@/components/DataList/InvoiceDataGrid'
 import PayoutDataGrid from '@/components/DataList/PayoutDataGrid'
 import TokenDataGrid from '@/components/DataList/TokenDataGrid'
+import { PageHeader, PageShell } from '@/components/Layout/PageHeader'
+import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
+
+type SetupItem = {
+  id: string
+  title: string
+  description: string
+  href: string
+  icon: typeof Store
+  tone?: 'amber' | 'sky'
+}
 
 const Dashboard = () => {
   const [enablePasswordWarn, setEnablePasswordWarn] = useState(false)
@@ -39,11 +58,17 @@ const Dashboard = () => {
     }))
   )
 
-  const init = async (walletId: number) => {
+  const init = async (currentWalletId: number) => {
     try {
+      if (!currentWalletId) {
+        setEnablePasswordWarn(false)
+        setEnableBackupWarn(false)
+        return
+      }
+
       const response: any = await axios.get(Http.find_wallet_by_id, {
         params: {
-          id: walletId,
+          id: currentWalletId,
         },
       })
 
@@ -67,161 +92,185 @@ const Dashboard = () => {
     init(walletId)
   }, [walletId])
 
+  const setupItems = useMemo(() => {
+    const items: SetupItem[] = []
+    if (!isStore) {
+      items.push({
+        id: 'store',
+        title: 'Create a store',
+        description: 'Stores collect payments and manage invoices.',
+        href: '/stores/create',
+        icon: Store,
+      })
+    }
+    if (isStore && !isWallet) {
+      items.push({
+        id: 'wallet',
+        title: 'Create a wallet',
+        description: 'You need a wallet before accepting crypto.',
+        href: '/wallet/create',
+        icon: Wallet,
+      })
+    }
+    if (enablePasswordWarn) {
+      items.push({
+        id: 'password',
+        title: 'Set a wallet password',
+        description: 'Protect spending and sensitive wallet actions.',
+        href: '/wallet/setPassword',
+        icon: KeyRound,
+      })
+    }
+    if (enableBackupWarn) {
+      items.push({
+        id: 'backup',
+        title: 'Back up your recovery phrase',
+        description: 'Write down your mnemonic so you can restore the wallet.',
+        href: '/wallet/phrase/intro',
+        icon: ShieldAlert,
+      })
+    }
+    if (isStore && isWallet && network === 'testnet') {
+      items.push({
+        id: 'freecoin',
+        title: 'Get testnet coins',
+        description: 'This network has no real value — claim faucet funds to try payments.',
+        href: '/freecoin',
+        icon: Gift,
+        tone: 'sky',
+      })
+    }
+    return items
+  }, [enableBackupWarn, enablePasswordWarn, isStore, isWallet, network])
+
   return (
-    <div className="space-y-6">
-      {!isStore && (
-        <Alert
-          variant="default"
-          className="border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Warning</AlertTitle>
-          <AlertDescription>
-            You don&apos;t have a store yet. Please click&nbsp;
-            <Link href="/stores/create" className="font-medium underline underline-offset-4">
-              here
-            </Link>
-            &nbsp;to create a new one.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {isStore && !isWallet && (
-        <Alert
-          variant="default"
-          className="border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Warning</AlertTitle>
-          <AlertDescription>
-            You don&apos;t have a wallet yet. Please click&nbsp;
-            <Link href={'/wallet/create'} className="font-medium underline underline-offset-4">
-              here
-            </Link>
-            &nbsp;to create a new one.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {isStore && isWallet && network === 'testnet' && (
-        <Alert
-          variant="default"
-          className="border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Warning</AlertTitle>
-          <AlertDescription>
-            This is a test network, and the currency has no real value. If you need free coins, you
-            can get them&nbsp;
-            <Link href={'/freecoin'} target="_blank" rel="noreferrer">
-              here.
-            </Link>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {enablePasswordWarn && (
-        <Alert
-          variant="default"
-          className="border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Warning</AlertTitle>
-          <AlertDescription>
-            You don&apos;t have to setup the wallet password. Please click{' '}
-            <Link href="/wallet/setPassword" className="font-medium underline underline-offset-4">
-              here
-            </Link>{' '}
-            to setup.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {enableBackupWarn && (
-        <Alert
-          variant="default"
-          className="border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Warning</AlertTitle>
-          <AlertDescription>
-            You don&apos;t have to backup your wallet mnemonic phrase. Please click{' '}
-            <Link href="/wallet/phrase/intro" className="font-medium underline underline-offset-4">
-              here
-            </Link>{' '}
-            to recording.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="mx-auto max-w-6xl space-y-6">
-        {storeName && (
-          <div>
-            <Badge variant="outline" className="text-sm px-3 py-1">
-              {storeName}
-            </Badge>
+    <PageShell>
+      <PageHeader
+        title={storeName || 'Dashboard'}
+        description={
+          storeName
+            ? 'Overview of balances, recent invoices, and payouts for this store.'
+            : 'Get started by creating a store and wallet.'
+        }
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {network === 'testnet' ? (
+              <Badge variant="outline" className="border-sky-300 text-sky-700 dark:text-sky-300">
+                Testnet
+              </Badge>
+            ) : (
+              <Badge variant="outline">Mainnet</Badge>
+            )}
+            {isStore && isWallet ? (
+              <Button asChild size="sm" className="gap-1.5">
+                <Link href="/payments/invoices">
+                  <FileText className="h-4 w-4" />
+                  Create invoice
+                </Link>
+              </Button>
+            ) : null}
           </div>
-        )}
+        }
+      />
 
-        {isStore && isWallet && (
-          <Card>
-            <CardContent className="pt-6">
-              <PaymentAnalyticsChart />
-            </CardContent>
-          </Card>
-        )}
+      {setupItems.length > 0 ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {setupItems.map((item) => {
+            const Icon = item.icon
+            const tone =
+              item.tone === 'sky'
+                ? 'border-sky-200 bg-sky-50/70 dark:border-sky-900 dark:bg-sky-950/30'
+                : 'border-amber-200 bg-amber-50/70 dark:border-amber-900 dark:bg-amber-950/30'
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={cn(
+                  'group flex items-start gap-3 rounded-xl border p-4 transition-colors hover:bg-background',
+                  tone
+                )}
+              >
+                <div className="mt-0.5 rounded-md bg-background/80 p-2 text-foreground shadow-sm">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{item.title}</p>
+                    {item.tone !== 'sky' ? (
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
+                </div>
+                <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            )
+          })}
+        </div>
+      ) : null}
 
+      {isStore && isWallet ? (
         <Card>
-          <CardContent className="pt-6">
-            <TokenDataGrid source="dashboard" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Payment analytics</CardTitle>
+            <CardDescription>Volume and deal activity for the selected period.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PaymentAnalyticsChart />
           </CardContent>
         </Card>
+      ) : null}
 
-        {isStore && isWallet && (
-          <>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <CardTitle className="text-lg">Recent Invoices</CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => {
-                    window.location.href = '/payments/invoices'
-                  }}
-                >
-                  View All
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <InvoiceDataGrid source="dashboard" />
-              </CardContent>
-            </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Balances</CardTitle>
+          <CardDescription>Assets available across your configured chains.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TokenDataGrid source="dashboard" />
+        </CardContent>
+      </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                <CardTitle className="text-lg">Recent Payouts</CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => {
-                    window.location.href = '/payments/payouts'
-                  }}
-                >
-                  View All
+      {isStore && isWallet ? (
+        <>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <div>
+                <CardTitle className="text-base">Recent invoices</CardTitle>
+                <CardDescription className="mt-1">Latest payment requests you issued.</CardDescription>
+              </div>
+              <Button asChild variant="outline" size="sm" className="gap-1.5">
+                <Link href="/payments/invoices">
+                  View all
                   <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <PayoutDataGrid status={PAYOUT_STATUS.AwaitingPayment} />
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </div>
-    </div>
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <InvoiceDataGrid source="dashboard" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <div>
+                <CardTitle className="text-base">Awaiting payouts</CardTitle>
+                <CardDescription className="mt-1">Payouts ready for payment.</CardDescription>
+              </div>
+              <Button asChild variant="outline" size="sm" className="gap-1.5">
+                <Link href="/payments/payouts">
+                  View all
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <PayoutDataGrid status={PAYOUT_STATUS.AwaitingPayment} />
+            </CardContent>
+          </Card>
+        </>
+      ) : null}
+    </PageShell>
   )
 }
 

@@ -70,6 +70,11 @@ export default function ReportDataGrid(props: GridType) {
     status: string
   ) => {
     try {
+      if (!storeId) {
+        setRows([])
+        return
+      }
+
       const response: any = await axios.get(Http.find_report, {
         params: {
           store_id: storeId,

@@ -45,28 +45,18 @@ export default function PullPaymentQRDialog(props: DialogType) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <QrCode className="h-5 w-5" />
-            Pull Payment QR
+            Share QR
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col items-center space-y-6 py-2">
           <div className="rounded-xl border bg-white p-4 shadow-sm">
-            <QRCodeSVG
-              value={props.websiteUrl}
-              width={220}
-              height={220}
-              // imageSettings={{
-              //   src: '',
-              //   width: 35,
-              //   height: 35,
-              //   excavate: false,
-              // }}
-            />
+            <QRCodeSVG value={props.websiteUrl} width={220} height={220} />
           </div>
 
           <div className="w-full space-y-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Pull Payment QR
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Page link
             </p>
             <div className="flex items-center gap-2">
               <code className="flex-1 truncate rounded-md bg-muted px-3 py-2 text-xs font-mono">

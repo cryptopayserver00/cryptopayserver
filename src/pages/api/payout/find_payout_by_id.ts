@@ -54,6 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         crypto: payout.crypto,
         currency: payout.currency,
         amount: payout.amount,
+        cryptoAmount: payout.crypto_amount,
       },
     })
   } catch (e) {

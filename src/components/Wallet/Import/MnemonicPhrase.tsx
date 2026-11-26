@@ -1,18 +1,34 @@
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   useSnackPresistStore,
   useStorePresistStore,
   useUserPresistStore,
   useWalletPresistStore,
 } from '@/lib/store'
-import { useEffect, useState } from 'react'
 import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
 
 const ImportMnemonicPhrase = () => {
+  const router = useRouter()
   const [bit, setBit] = useState<number>(12)
   const [numbers, setNumbers] = useState<number[]>([])
   const [phrase, setPhrase] = useState<string[]>([])
+  const [submitting, setSubmitting] = useState(false)
 
   const { userId } = useUserPresistStore(
     useShallow((state) => ({
@@ -42,43 +58,58 @@ const ImportMnemonicPhrase = () => {
     }))
   )
 
-  const handleBitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setBit(Number(e.target.value))
+  const showSnack = (severity: 'success' | 'error', message: string) => {
+    setSnackSeverity(severity)
+    setSnackMessage(message)
+    setSnackOpen(true)
   }
 
-  const handlePhraseChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const newPhrase = [...phrase]
-    newPhrase[index - 1] = e.target.value
-    setPhrase(newPhrase)
+  const handlePhraseChange = (value: string, index: number) => {
+    const next = [...phrase]
+    next[index] = value.trim()
+    setPhrase(next)
+  }
+
+  const walletToBlockScan = async (walletId: string | number) => {
+    try {
+      const response: any = await axios.post(Http.create_wallet_to_block_scan, {
+        user_id: userId,
+        wallet_id: walletId,
+      })
+      if (!response.result) {
+        showSnack('error', 'Some addresses could not join block scanning. You can retry later.')
+      }
+    } catch (e) {
+      showSnack('error', 'Some addresses could not join block scanning. You can retry later.')
+      console.error(e)
+    }
   }
 
   const handleButtonClick = async () => {
     if (!phrase || phrase.filter((element) => element).length !== bit) {
-      setSnackSeverity('error')
-      setSnackMessage('The input cannot be empty')
-      setSnackOpen(true)
+      showSnack('error', 'Please fill in every word of the mnemonic phrase')
       return
     }
 
     try {
-      const response: any = await axios.get(Http.find_wallet, {
-        params: {
-          store_id: storeId,
-        },
+      setSubmitting(true)
+
+      const existing: any = await axios.get(Http.find_wallet, {
+        params: { store_id: storeId },
       })
 
-      if (response.result) {
-        setWalletId(response.data.id)
+      if (existing.result) {
+        setWalletId(existing.data.id)
         setIsWallet(true)
-
-        setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 2000)
+        showSnack('success', 'This store already has a wallet')
+        router.push('/dashboard')
         return
       }
 
       const { promptAccountPassword } = await import('@/utils/wallet-password')
-      const accountPassword = await promptAccountPassword('Enter your account password to import wallet')
+      const accountPassword = await promptAccountPassword(
+        'Enter your account password to import wallet'
+      )
       if (accountPassword === null) return
 
       const import_wallet_resp: any = await axios.post(Http.save_wallet, {
@@ -88,117 +119,76 @@ const ImportMnemonicPhrase = () => {
         account_password: accountPassword,
       })
 
-      if (import_wallet_resp.result) {
-        setWalletId(import_wallet_resp.data.walletId)
-        setIsWallet(true)
-        setSnackSeverity('success')
-        setSnackMessage('Created successfully!')
-        setSnackOpen(true)
-
-        await walletToBlockScan(import_wallet_resp.data.walletId)
-
-        setTimeout(() => {
-          window.location.href = '/wallet/setPassword'
-        }, 2000)
-      } else {
-        setSnackSeverity('error')
-        setSnackMessage('No support the wallet')
-        setSnackOpen(true)
+      if (!import_wallet_resp.result) {
+        showSnack('error', import_wallet_resp.message || 'Unable to import this wallet')
+        return
       }
-    } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage('No support the wallet')
-      setSnackOpen(true)
-      console.error(e)
-    }
-  }
 
-  const walletToBlockScan = async (walletId: string) => {
-    try {
-      const response: any = await axios.post(Http.create_wallet_to_block_scan, {
-        user_id: userId,
-        wallet_id: walletId,
-      })
-
-      if (response.result) {
-      } else {
-        setSnackSeverity('error')
-        setSnackMessage('Some addresses cannot join the Sweeping Quest, please try again')
-        setSnackOpen(true)
-      }
+      setWalletId(import_wallet_resp.data.walletId)
+      setIsWallet(true)
+      showSnack('success', 'Wallet imported')
+      await walletToBlockScan(import_wallet_resp.data.walletId)
+      router.push('/wallet/setPassword')
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage('Some addresses cannot join the Sweeping Quest, please try again')
-      setSnackOpen(true)
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
+    } finally {
+      setSubmitting(false)
     }
   }
 
   useEffect(() => {
-    const newNumbers = Array.from({ length: bit / 2 }, (_, index) => index)
-    setNumbers(newNumbers)
+    setNumbers(Array.from({ length: bit }, (_, index) => index))
+    setPhrase(Array.from({ length: bit }, () => ''))
   }, [bit])
 
   useEffect(() => {
     if (!isStore) {
-      window.location.href = '/stores/create'
+      router.push('/stores/create')
     }
-  }, [isStore])
+  }, [isStore, router])
 
   return (
-    <div className="p-4">
-      <div className="flex items-center space-x-3 mb-6">
-        <span className="text-gray-700 font-medium">My mnemonic phrase is</span>
-        <select
-          value={bit}
-          onChange={handleBitChange}
-          className="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer shadow-sm"
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <Label htmlFor="mnemonic-length">Phrase length</Label>
+        <Select
+          value={String(bit)}
+          onValueChange={(value) => setBit(Number(value))}
         >
-          <option value={12}>12 bit</option>
-          <option value={24}>24 bit</option>
-        </select>
+          <SelectTrigger id="mnemonic-length" className="w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="12">12 words</SelectItem>
+            <SelectItem value="24">24 words</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="space-y-3">
-        {numbers &&
-          numbers.map((item) => (
-            <div key={item} className="flex items-center space-x-4">
-              <div className="relative w-[200px]">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-xs text-gray-400 font-medium pointer-events-none select-none">
-                  {item * 2 + 1}
-                </span>
-                <input
-                  type="text"
-                  className="w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                  value={phrase[item * 2] || ''}
-                  onChange={(e) => handlePhraseChange(e, item * 2 + 1)}
-                />
-              </div>
-
-              <div className="relative w-[200px]">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-xs text-gray-400 font-medium pointer-events-none select-none">
-                  {item * 2 + 2}
-                </span>
-                <input
-                  type="text"
-                  className="w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                  value={phrase[item * 2 + 1] || ''}
-                  onChange={(e) => handlePhraseChange(e, item * 2 + 2)}
-                />
-              </div>
-            </div>
-          ))}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {numbers.map((index) => (
+          <div key={index} className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-8 items-center justify-center text-xs text-muted-foreground">
+              {index + 1}
+            </span>
+            <Input
+              value={phrase[index] || ''}
+              onChange={(e) => handlePhraseChange(e.target.value, index)}
+              className="pl-8"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              disabled={submitting}
+            />
+          </div>
+        ))}
       </div>
 
-      <div className="mt-8 w-[416px]">
-        <button
-          type="button"
-          onClick={handleButtonClick}
-          className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Confirm
-        </button>
-      </div>
+      <Button onClick={handleButtonClick} disabled={submitting} className="min-w-40 gap-2">
+        {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+        {submitting ? 'Importing...' : 'Import wallet'}
+      </Button>
     </div>
   )
 }

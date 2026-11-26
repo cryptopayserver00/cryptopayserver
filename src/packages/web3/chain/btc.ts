@@ -386,23 +386,51 @@ export class BTC {
   }
 
   static async getCurrentFeeRate(isMainnet: boolean): Promise<BTCFeeRate> {
+    const defaults: BTCFeeRate = {
+      fastest: 20,
+      halfHour: 15,
+      hour: 10,
+      economy: 5,
+      minimum: 1,
+    }
+
+    const normalize = (value: unknown, fallback: number): number => {
+      const n = Number(value)
+      return Number.isFinite(n) && n > 0 ? Math.max(1, Math.ceil(n)) : fallback
+    }
+
     try {
-      const url = `${GetNodeApi(isMainnet)}/v1/fees/recommended`;
-      const response = await this.axiosInstance.get(url);
+      const url = `${GetNodeApi(isMainnet)}/v1/fees/recommended`
+      const response = await this.axiosInstance.get(url)
       if (response.data) {
         return {
-          fastest: parseInt(response.data.fastestFee),
-          halfHour: parseInt(response.data.halfHourFee),
-          hour: parseInt(response.data.hourFee),
-          economy: parseInt(response.data.economyFee),
-          minimum: parseInt(response.data.minimumFee),
-        };
+          fastest: normalize(response.data.fastestFee, defaults.fastest),
+          halfHour: normalize(response.data.halfHourFee, defaults.halfHour),
+          hour: normalize(response.data.hourFee, defaults.hour),
+          economy: normalize(response.data.economyFee, defaults.economy),
+          minimum: normalize(response.data.minimumFee, defaults.minimum),
+        }
       }
-      throw new Error('can not get the fee rate of btc');
     } catch (e) {
-      console.error(e);
-      throw new Error('can not get the fee rate of btc');
+      console.warn('mempool fee rate unavailable, trying blockstream', e)
     }
+
+    try {
+      const url = `${GetBlockstreamApi(isMainnet)}/fee-estimates`
+      const response = await this.axiosInstance.get(url)
+      const data = response.data || {}
+      return {
+        fastest: normalize(data['1'] ?? data['2'], defaults.fastest),
+        halfHour: normalize(data['3'] ?? data['6'], defaults.halfHour),
+        hour: normalize(data['6'] ?? data['12'], defaults.hour),
+        economy: normalize(data['144'] ?? data['72'], defaults.economy),
+        minimum: normalize(data['504'] ?? data['144'], defaults.minimum),
+      }
+    } catch (e) {
+      console.warn('blockstream fee rate unavailable, using defaults', e)
+    }
+
+    return defaults
   }
 
   static async broadcastTransaction(isMainnet: boolean, data: string): Promise<string> {

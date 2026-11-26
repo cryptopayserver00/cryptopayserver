@@ -17,6 +17,7 @@ import {
   sanitizeStoreCustomCssUrl,
   sanitizeStoreLogoUrl,
 } from '@/lib/security/safe-url'
+import Big from 'big.js'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -26,7 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    if (!(await rateLimit(req, res, { scope: 'pub-find-invoice-by-id', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+    // Checkout pages poll status; keep limit high enough for ~15–20s refresh over invoice lifetime.
+    if (!(await rateLimit(req, res, { scope: 'pub-find-invoice-by-id', limit: 300, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 
@@ -82,7 +84,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid store', result: false, data: null })
     }
 
-    const cryptoAmount = Number(invoice.crypto_amount).toFixed(token.decimals)
+    // Avoid Number() float loss for high-decimal tokens (e.g. 18)
+    const cryptoAmount = new Big(String(invoice.crypto_amount)).toFixed(token.decimals)
 
     const qrCodeText = WEB3.generateQRCodeText(
       invoice.network === 1,

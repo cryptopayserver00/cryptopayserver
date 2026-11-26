@@ -159,7 +159,7 @@ const AssetsToken = () => {
 
   const onClickReceive = () => {
     if (!chainId) return
-    window.location.href = `/wallets/receive?chainId=${chainId}`
+    window.location.href = `/wallets/receive?chainId=${chainId}&storeId=${storeId}&network=${network}`
   }
 
   const handleCopyAddress = async (e?: { stopPropagation: () => void }) => {

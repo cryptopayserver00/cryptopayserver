@@ -24,7 +24,7 @@ import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
-import TransactionsTab from '@/components/Tab/TransactionTab'
+import WalletTransactionsPanel from '@/components/Wallets/WalletTransactionsPanel'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
 import { useShallow } from 'zustand/react/shallow'
 import { ChainWalletType, UtxoFeeType } from '@/utils/types'
@@ -377,29 +377,24 @@ const UtxoChainWalletPage = ({
                         ))}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" asChild>
-                      <a href={item.txUrl} target="_blank" rel="noreferrer">
-                        Check transactions
-                      </a>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <a
-                        href={getBlockchainAddressUrl(network === 'mainnet', item.address)}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Check onChain
-                      </a>
-                    </Button>
-                  </div>
                 </div>
                 <div className="mt-5">
-                  {item.transactions && item.transactions.length > 0 ? (
-                    <TransactionsTab rows={item.transactions} />
-                  ) : (
-                    <p className="text-muted-foreground">There are no transactions yet.</p>
-                  )}
+                  <WalletTransactionsPanel
+                    chainId={chainId}
+                    network={network}
+                    transactions={item.transactions}
+                    actions={
+                      <Button variant="outline" asChild>
+                        <a
+                          href={getBlockchainAddressUrl(network === 'mainnet', item.address)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Check onChain
+                        </a>
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
             ))}

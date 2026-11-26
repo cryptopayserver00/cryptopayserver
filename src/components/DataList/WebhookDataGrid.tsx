@@ -143,6 +143,11 @@ export default function WebhookDataGrid(props: GridType) {
 
   const init = async (storeId: number, userId: number) => {
     try {
+      if (!storeId || !userId) {
+        setRows([])
+        return
+      }
+
       const response: any = await axios.get(Http.find_webhook_setting, {
         params: {
           store_id: storeId,

@@ -171,16 +171,25 @@ const MainAccount = () => {
         params: {
           file_type: FILE_TYPE.Image,
         },
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       })
 
       if (response.result && response.data.urls[0] !== '') {
-        setProfileUrl(response.data.urls[0])
-        showSnack('success', 'Upload success')
+        const nextUrl = response.data.urls[0] as string
+        setProfileUrl(nextUrl)
+
+        // Persist immediately — upload alone only updates local preview state.
+        const saveResp: any = await axios.put(Http.update_user_by_userid, {
+          user_id: userId,
+          username: name,
+          profile_picture_url: nextUrl,
+        })
+        if (saveResp.result) {
+          showSnack('success', 'Profile photo updated')
+        } else {
+          showSnack('error', 'Uploaded, but failed to save profile. Click Save changes.')
+        }
       } else {
-        showSnack('error', 'Upload Failed')
+        showSnack('error', response?.message || 'Upload Failed')
       }
     } catch (e) {
       showSnack('error', getApiErrorMessage(e))

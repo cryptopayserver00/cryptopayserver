@@ -113,6 +113,11 @@ export default function PaymentRequestDataGrid(props: GridType) {
     paymentRequestId?: string
   ) => {
     try {
+      if (!storeId) {
+        setRows([])
+        return
+      }
+
       const response: any = await axios.get(Http.find_payment_request, {
         params: {
           store_id: storeId,

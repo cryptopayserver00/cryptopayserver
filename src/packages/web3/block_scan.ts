@@ -78,10 +78,10 @@ export class BLOCKSCAN {
     address: string,
     coin: string,
     amount: string
-  ): Promise<string> {
+  ): Promise<{ hash: string; error?: string }> {
     try {
       if (!this.isConfigured) {
-        return ''
+        return { hash: '', error: 'BLOCKSCAN_BASE_URL is not configured' }
       }
       const url = this.baseUrl + '/coinFree'
       const response: any = await this.axiosInstance.get(url, {
@@ -93,25 +93,31 @@ export class BLOCKSCAN {
         },
       })
 
-      if (response && response.data && response.data.code === 10200) {
-        return response.data.data.hash
+      if (response?.data?.code === 10200 && response.data.data?.hash) {
+        return { hash: String(response.data.data.hash) }
       }
 
-      return ''
-    } catch (e) {
+      const message =
+        response?.data?.message ||
+        response?.data?.msg ||
+        'Faucet request failed'
+      return { hash: '', error: String(message) }
+    } catch (e: any) {
       console.error(e)
-      return ''
+      const message =
+        e?.response?.data?.message ||
+        e?.message ||
+        'Faucet request failed'
+      return { hash: '', error: String(message) }
     }
   }
 
-  static getBlockchainAddressTransactionUrl(chainids: string, address: string): string {
-    if (!this.isConfigured) {
-      return ''
-    }
-    const url = this.baseUrl + '/getTransactionsByChainAndAddress'
-    const page = 0
-    const pageSize = 10
-    return `${url}/?chainids=${chainids}&addresses=${address}&page=${page}&page_size=${pageSize}`
+  /**
+   * @deprecated Never expose node/BlockScan API URLs to browsers — they require X-API-Token.
+   * Kept as a no-op so callers cannot accidentally open an authenticated endpoint.
+   */
+  static getBlockchainAddressTransactionUrl(_chainids: string, _address: string): string {
+    return ''
   }
 
   static async getTransactionsByChainAndAddress(

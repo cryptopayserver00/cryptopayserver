@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Info, ArrowLeft, Plus, Search } from 'lucide-react'
+import { ArrowLeft, Plus, Search } from 'lucide-react'
 import dayjs from 'dayjs'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Select,
   SelectContent,
@@ -16,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { PageHeader, PageShell } from '@/components/Layout/PageHeader'
 
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { CURRENCY, PAYMENT_REQUEST_STATUS, REQUEST_CUSTOMER_DATA } from '@/packages/constants'
@@ -32,7 +32,6 @@ const formatForDateTimeInput = (date?: Date | dayjs.Dayjs) => {
 }
 
 const Requests = () => {
-  const [openExplain, setOpenExplain] = useState<boolean>(false)
   const [openCreateRequest, setOpenCreateRequest] = useState<boolean>(false)
 
   const [title, setTitle] = useState<string>('')
@@ -190,31 +189,22 @@ const Requests = () => {
   }
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-6 space-y-6">
+    <PageShell>
       {openCreateRequest ? (
         <div className="space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Create Payment Requests
-            </h1>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setOpenCreateRequest(false)
-                }}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <Button
-                onClick={onClickCreate}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                Create
-              </Button>
-            </div>
-          </div>
+          <PageHeader
+            title="Create Payment Request"
+            description="Share a persistent page so the payer can settle at their convenience."
+            actions={
+              <>
+                <Button variant="outline" onClick={() => setOpenCreateRequest(false)}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button onClick={onClickCreate}>Create</Button>
+              </>
+            }
+          />
 
           <Card>
             <CardHeader className="pb-4">
@@ -368,48 +358,23 @@ const Requests = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex items-center justify-between pb-2 border-b">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                Payment Requests
-              </h1>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                onClick={() => setOpenExplain(!openExplain)}
-              >
-                <Info className="h-4 w-4" />
+          <PageHeader
+            title="Payment Requests"
+            description="Shareable pages paid at the current rate. Partial payments stay open until expiry or full settlement."
+            actions={
+              <Button onClick={() => setOpenCreateRequest(true)} className="gap-1.5">
+                <Plus className="h-4 w-4" />
+                Create Request
               </Button>
-            </div>
-            <Button onClick={() => setOpenCreateRequest(true)} className="gap-1.5">
-              <Plus className="h-4 w-4" />
-              Create Request
-            </Button>
-          </div>
+            }
+          />
 
-          {openExplain && (
-            <Alert className="bg-blue-50/50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
-              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <AlertTitle className="text-blue-800 dark:text-blue-300">Info</AlertTitle>
-              <AlertDescription className="text-blue-700 dark:text-blue-400 text-sm mt-1 leading-relaxed">
-                Payment requests are persistent shareable pages that enable the receiver to pay at
-                their convenience.
-                <br />
-                Funds are paid to a payment request at the current exchange rate.
-                <br />
-                Requests may be paid in partial. They will remain valid until time expires or when
-                paid what is due.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col gap-3 rounded-lg border bg-card p-3 sm:flex-row">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 className="pl-9"
-                placeholder="Search payment request id ..."
+                placeholder="Search payment request id…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -435,16 +400,14 @@ const Requests = () => {
             </div>
           </div>
 
-          <div className="pt-2">
-            <PaymentRequestDataGrid
-              source="none"
-              paymentRequestId={search}
-              paymentRequestStatus={paymentRequestStatus}
-            />
-          </div>
+          <PaymentRequestDataGrid
+            source="none"
+            paymentRequestId={search}
+            paymentRequestStatus={paymentRequestStatus}
+          />
         </div>
       )}
-    </div>
+    </PageShell>
   )
 }
 

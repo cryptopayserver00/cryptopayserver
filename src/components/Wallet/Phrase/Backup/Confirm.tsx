@@ -1,12 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Loader2, ShieldCheck } from 'lucide-react'
+
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { useSnackPresistStore } from '@/lib/store/snack'
-import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store'
+import { useStorePresistStore, useWalletPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { RandomWords, AddAndShuffleArray, GetUniqueRandomIndices } from '@/utils/strings'
+import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
+import { WalletSetupLayout } from '../../WalletSetupLayout'
+
+const CREATE_STEPS = ['Choose', 'Create', 'Secure', 'Backup']
 
 type SelectMems = {
   index: number
@@ -20,12 +29,9 @@ const PhraseBackupConfirm = () => {
   const [phrase, setPhrase] = useState<string[]>([])
   const [selectWord, setSelectWord] = useState<Record<number, string>>({})
   const [accountPassword, setAccountPassword] = useState('')
-
-  const { userId } = useUserPresistStore(
-    useShallow((state) => ({
-      userId: state.userId,
-    }))
-  )
+  const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const submittedRef = useRef(false)
 
   const { isWallet, walletId } = useWalletPresistStore(
     useShallow((state) => ({
@@ -48,7 +54,17 @@ const PhraseBackupConfirm = () => {
     }))
   )
 
+  const showSnack = (severity: 'success' | 'error' | 'warning', message: string) => {
+    setSnackSeverity(severity)
+    setSnackMessage(message)
+    setSnackOpen(true)
+  }
+
   const updateWalletBackup = async () => {
+    if (submittedRef.current || submitting) return
+    submittedRef.current = true
+    setSubmitting(true)
+
     try {
       let password = accountPassword
       if (!password) {
@@ -56,92 +72,98 @@ const PhraseBackupConfirm = () => {
         const entered = await promptAccountPassword(
           'Enter your account password to confirm backup'
         )
-        if (!entered) return
+        if (!entered) {
+          submittedRef.current = false
+          return
+        }
         password = entered
+        setAccountPassword(entered)
       }
+
       const response: any = await axios.put(Http.update_backup_by_wallet_id, {
         wallet_id: walletId,
         account_password: password,
       })
-      if (response.result) {
-        setSnackSeverity('success')
-        setSnackMessage('Mnemonic phrase confirm success')
-        setSnackOpen(true)
 
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 2000)
+      if (response.result) {
+        showSnack('success', 'Mnemonic phrase confirmed')
+        router.push('/dashboard')
+        return
       }
+
+      submittedRef.current = false
+      showSnack('error', response.message || 'Unable to confirm backup')
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage(getApiErrorMessage(e))
-      setSnackOpen(true)
+      submittedRef.current = false
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const fetchWalletData = async () => {
+    if (!isWallet || !walletId || loading) return
+
     try {
-      if (isWallet) {
-        const meta: any = await axios.get(Http.find_wallet_by_id, {
-          params: { id: walletId },
-        })
-        if (!meta.result) {
-          setSnackSeverity('error')
-          setSnackMessage('Cannot find the wallet, please try again later.')
-          setSnackOpen(true)
-          return
-        }
+      setLoading(true)
+      const meta: any = await axios.get(Http.find_wallet_by_id, {
+        params: { id: walletId },
+      })
+      if (!meta.result) {
+        showSnack('error', 'Cannot find the wallet, please try again later.')
+        return
+      }
 
-        const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
-          '@/utils/wallet-password'
+      const { promptAccountPassword, promptWalletPasswordIfNeeded } = await import(
+        '@/utils/wallet-password'
+      )
+      const enteredAccountPassword = await promptAccountPassword(
+        'Enter your account password to continue'
+      )
+      if (!enteredAccountPassword) return
+      setAccountPassword(enteredAccountPassword)
+
+      let walletPassword = ''
+      if (meta.data?.hasPassword) {
+        const entered = await promptWalletPasswordIfNeeded(walletId)
+        if (!entered) return
+        walletPassword = entered
+      }
+
+      const response: any = await axios.post(Http.find_wallet_by_id, {
+        id: walletId,
+        reveal: 1,
+        account_password: enteredAccountPassword,
+        wallet_password: walletPassword,
+      })
+
+      if (response.result && response.data?.mnemonic) {
+        const phraseArray = String(response.data.mnemonic)
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean)
+        setPhrase(phraseArray)
+
+        const randomIndices = GetUniqueRandomIndices(phraseArray.length, 3).map(
+          (index) => index + 1
         )
-        const enteredAccountPassword = await promptAccountPassword(
-          'Enter your account password to continue'
-        )
-        if (!enteredAccountPassword) return
-        setAccountPassword(enteredAccountPassword)
 
-        let walletPassword = ''
-        if (meta.data?.hasPassword) {
-          const entered = await promptWalletPasswordIfNeeded(walletId)
-          if (!entered) return
-          walletPassword = entered
-        }
-
-        const response: any = await axios.post(Http.find_wallet_by_id, {
-          id: walletId,
-          reveal: 1,
-          account_password: enteredAccountPassword,
-          wallet_password: walletPassword,
+        const createMem = (index: number) => ({
+          index,
+          selectArrays: AddAndShuffleArray(RandomWords(2), phraseArray[index - 1]),
+          value: phraseArray[index - 1],
         })
 
-        if (response.result && response.data?.mnemonic) {
-          const phraseArray = response.data.mnemonic.split(' ')
-          setPhrase(phraseArray)
-
-          const randomIndices = GetUniqueRandomIndices(phraseArray.length, 3).map(
-            (index) => index + 1
-          )
-
-          const createMem = (index: number) => ({
-            index,
-            selectArrays: AddAndShuffleArray(RandomWords(2), phraseArray[index - 1]),
-            value: phraseArray[index - 1],
-          })
-
-          setSelectMems(randomIndices.map(createMem).sort((a, b) => a.index - b.index))
-        } else {
-          setSnackSeverity('error')
-          setSnackMessage(response.message || 'Cannot find the wallet, please try again later.')
-          setSnackOpen(true)
-        }
+        setSelectMems(randomIndices.map(createMem).sort((a, b) => a.index - b.index))
+      } else {
+        showSnack('error', response.message || 'Cannot find the wallet, please try again later.')
       }
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage(getApiErrorMessage(e))
-      setSnackOpen(true)
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -150,83 +172,111 @@ const PhraseBackupConfirm = () => {
       router.push('/stores/create')
       return
     }
+    if (!isWallet || !walletId) {
+      router.push('/dashboard')
+      return
+    }
     fetchWalletData()
-  }, [isStore])
+    // Intentionally once on mount for this wallet.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStore, isWallet, walletId])
 
   const handleButtonClick = (index: number, selectItem: string) => {
-    setSelectWord((prevSelectWord) => ({
-      ...prevSelectWord,
+    if (submitting) return
+    setSelectWord((prev) => ({
+      ...prev,
       [index]: selectItem,
     }))
   }
 
-  const onClickSelectWord = async (currentSelectWord: Record<number, string>) => {
-    if (Object.keys(currentSelectWord).length === 3) {
-      let matchTime = 0
+  const onConfirmSelection = async () => {
+    if (Object.keys(selectWord).length !== 3 || submitting) return
 
-      for (const word of Object.keys(currentSelectWord)) {
-        if (phrase[parseInt(word, 10) - 1] === currentSelectWord[parseInt(word, 10)]) {
-          matchTime += 1
-        }
+    let matchTime = 0
+    for (const word of Object.keys(selectWord)) {
+      const idx = parseInt(word, 10)
+      if (phrase[idx - 1] === selectWord[idx]) {
+        matchTime += 1
       }
+    }
 
-      if (matchTime === 3) {
-        await updateWalletBackup()
-      } else {
-        setSelectWord({})
-        setSnackSeverity('warning')
-        setSnackMessage('Matching errors, please try again')
-        setSnackOpen(true)
-      }
+    if (matchTime === 3) {
+      await updateWalletBackup()
+    } else {
+      setSelectWord({})
+      showSnack('warning', 'Matching errors, please try again')
     }
   }
 
-  useEffect(() => {
-    onClickSelectWord(selectWord)
-  }, [selectWord])
-
   return (
-    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto space-y-6 pt-10">
-        <h1 className="text-3xl font-bold text-gray-900">Confirm your mnemonic phrase again</h1>
-        <p className="text-gray-600">Please select your mnemonic phrase in order</p>
+    <WalletSetupLayout
+      title="Confirm your mnemonic phrase"
+      description="Select the correct word for each prompted position to prove you recorded the phrase."
+      steps={CREATE_STEPS}
+      currentStep={4}
+      backHref="/wallet/phrase/backup"
+    >
+      <div className="space-y-5">
+        <Alert>
+          <ShieldCheck className="h-4 w-4" />
+          <AlertDescription>
+            This check ensures you wrote the phrase down correctly before marking the wallet as
+            backed up.
+          </AlertDescription>
+        </Alert>
 
-        <div className="w-full max-w-lg bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <div className="space-y-6">
-            {selectMems.map((item) => (
-              <div
-                key={item.index}
-                className="pb-4 border-b border-gray-100 last:border-0 last:pb-0"
-              >
-                <div className="flex items-center space-x-2 text-sm font-semibold text-gray-700">
-                  <span>Mnemonic phrase</span>
-                  <span>#{item.index}</span>
+        {loading || selectMems.length === 0 ? (
+          <Card className="shadow-none">
+            <CardContent className="flex min-h-[220px] flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Preparing confirmation quiz...
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="shadow-none">
+            <CardContent className="space-y-6 p-5 sm:p-6">
+              {selectMems.map((item) => (
+                <div key={item.index} className="space-y-3 border-b pb-5 last:border-0 last:pb-0">
+                  <p className="text-sm font-medium">
+                    Word <span className="text-primary">#{item.index}</span>
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {item.selectArrays.map((selectItem) => {
+                      const isSelected = selectWord[item.index] === selectItem
+                      return (
+                        <button
+                          key={`${item.index}-${selectItem}`}
+                          type="button"
+                          disabled={submitting}
+                          onClick={() => handleButtonClick(item.index, selectItem)}
+                          className={cn(
+                            'min-w-[96px] rounded-lg border px-4 py-2 text-sm font-medium transition',
+                            isSelected
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border bg-background hover:bg-muted/50'
+                          )}
+                        >
+                          {selectItem}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-3 mt-3">
-                  {item.selectArrays.map((selectItem, selectIndex) => {
-                    const isSelected = selectWord[item.index] === selectItem
-                    return (
-                      <button
-                        key={selectIndex}
-                        type="button"
-                        onClick={() => handleButtonClick(item.index, selectItem)}
-                        className={`min-w-[100px] px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${
-                          isSelected
-                            ? 'bg-sky-100 text-sky-800 border-sky-300 font-bold shadow-sm'
-                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {selectItem}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        <Button
+          disabled={Object.keys(selectWord).length !== 3 || submitting || loading}
+          onClick={onConfirmSelection}
+          className="min-w-40 gap-2"
+        >
+          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {submitting ? 'Confirming...' : 'Confirm backup'}
+        </Button>
       </div>
-    </div>
+    </WalletSetupLayout>
   )
 }
 

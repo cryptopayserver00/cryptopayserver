@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(405).json({ message: 'Method not allowed', result: false, data: null })
     }
 
-    if (!(await rateLimit(req, res, { scope: 'pub-find-pull-payment-by-id', limit: 60, windowMs: 15 * 60 * 1000 }))) {
+    if (!(await rateLimit(req, res, { scope: 'pub-find-pull-payment-by-id', limit: 300, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 

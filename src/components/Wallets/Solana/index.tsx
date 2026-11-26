@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { Copy, Settings } from 'lucide-react'
 
 import {
@@ -10,13 +9,13 @@ import {
   useWalletPresistStore,
 } from '@/lib/store'
 import { CHAINS, COINS } from '@/packages/constants/blockchain'
-import { SolanaTransactionDetail } from '@/packages/web3/types'
-import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from '@/utils/chain/solana'
+import { GetBlockchainAddressUrl } from '@/utils/chain/solana'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import SolanaSVG from '@/assets/chain/solana.svg'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
+import WalletTransactionsPanel from '@/components/Wallets/WalletTransactionsPanel'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -30,14 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { useShallow } from 'zustand/react/shallow'
 import { SolanaWalletType } from '@/utils/types'
 
@@ -152,12 +143,12 @@ const Solana = () => {
           network: network === 'mainnet' ? 1 : 2,
         },
       })
-      if (response.result) {
-        setFeeRate(response.data)
+      if (response.result && response.data != null) {
+        setFeeRate(Number(response.data) || 0)
       }
     } catch (e) {
-      showSnack('error', getApiErrorMessage(e))
-      console.error(e)
+      // Non-blocking: RPC quota / outage should not toast the whole wallet page
+      console.warn('Solana fee rate unavailable', e)
     }
   }
 
@@ -336,30 +327,25 @@ const Solana = () => {
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
-                        <Button variant="outline" asChild>
-                          <a href={item.txUrl} target="_blank" rel="noreferrer">
-                            Check transactions
-                          </a>
-                        </Button>
-                        <Button variant="outline" asChild>
-                          <a
-                            href={GetBlockchainAddressUrl(network === 'mainnet', item.address)}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Check onChain
-                          </a>
-                        </Button>
-                      </div>
                     </div>
 
                     <div className="mt-6">
-                      {item.transactions && item.transactions.length > 0 ? (
-                        <TransactionsTab rows={item.transactions} />
-                      ) : (
-                        <p className="text-muted-foreground">There are no transactions yet.</p>
-                      )}
+                      <WalletTransactionsPanel
+                        chainId={CHAINS.SOLANA}
+                        network={network}
+                        transactions={item.transactions}
+                        actions={
+                          <Button variant="outline" asChild>
+                            <a
+                              href={GetBlockchainAddressUrl(network === 'mainnet', item.address)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Check onChain
+                            </a>
+                          </Button>
+                        }
+                      />
                     </div>
                   </div>
                 ))}
@@ -372,57 +358,3 @@ const Solana = () => {
 }
 
 export default Solana
-
-function TransactionsTab({ rows }: { rows: SolanaTransactionDetail[] }) {
-  const { getNetwork } = useUserPresistStore((state) => state)
-
-  return (
-    <div className="rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Hash</TableHead>
-            <TableHead>Value</TableHead>
-            <TableHead>Asset</TableHead>
-            <TableHead>Contract Address</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Block Timestamp</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows && rows.length > 0 ? (
-            rows.map((row, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  <Link
-                    href={GetBlockchainTxUrl(getNetwork() === 'mainnet', row.hash)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    {row.hash}
-                  </Link>
-                </TableCell>
-                <TableCell>{row.value}</TableCell>
-                <TableCell>{row.asset}</TableCell>
-                <TableCell>{row.contractAddress}</TableCell>
-                <TableCell>{row.type}</TableCell>
-                <TableCell>
-                  {new Date((row.blockTimestamp as number) * 1000).toLocaleString()}
-                </TableCell>
-                <TableCell>{row.status}</TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                No rows
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  )
-}

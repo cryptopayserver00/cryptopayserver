@@ -16,7 +16,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const session = await requireAuth(req, res)
     if (!session) return
 
-    if (!(await rateLimit(req, res, { scope: 'free-coin', limit: 5, windowMs: 60 * 60 * 1000 }))) {
+    // Per-user faucet quota. Failed claims still count — keep room for local testing.
+    const faucetLimit = process.env.NODE_ENV === 'development' ? 200 : 60
+    if (
+      !(await rateLimit(req, res, {
+        scope: `free-coin:${session.userId}`,
+        limit: faucetLimit,
+        windowMs: 60 * 60 * 1000,
+      }))
+    ) {
       return
     }
 
@@ -55,22 +63,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       })
     }
 
-    const hash = await BLOCKSCAN.getFreeCoin(
+    const faucet = await BLOCKSCAN.getFreeCoin(
       WEB3.getChainIds(false, chainId),
       String(address),
       String(coin),
       String(amount)
     )
 
-    if (!hash) {
-      return res.status(200).json({ message: 'Invalid hash', result: false, data: null })
+    if (!faucet.hash) {
+      return res.status(200).json({
+        message: faucet.error || 'Faucet failed',
+        result: false,
+        data: null,
+      })
     }
 
     return res.status(200).json({
       message: '',
       result: true,
       data: {
-        hash: hash,
+        hash: faucet.hash,
       },
     })
   } catch (e) {

@@ -156,7 +156,8 @@ const XrpSend = () => {
         },
       })
       if (response.result) {
-        setNetworkFee(response.data.baseFee)
+        const fee = Number(response.data.baseFee ?? response.data.base_fee ?? response.data.open_ledger_fee ?? 0)
+        setNetworkFee(Number.isFinite(fee) && fee > 0 ? fee : 0.000012)
       }
     } catch (e) {
       showSnack('error', getApiErrorMessage(e))

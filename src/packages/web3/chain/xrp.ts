@@ -8,11 +8,15 @@ import {
   QRCodeText,
   SendTransaction,
   TransactionDetail,
+  TRANSACTIONSTATUS,
+  TRANSACTIONTYPE,
 } from '../types';
 import { Client, convertHexToString, dropsToXrp, isValidAddress, Wallet, xrpToDrops } from 'xrpl';
 import { NonstandardCurrencyCode, DecodeNonstandardCurrencyCode } from '@/utils/strings';
 import { FindTokenByChainIdsAndContractAddress } from '@/utils/web3';
 import { ethers } from 'ethers';
+import { BLOCKSCAN } from '../block_scan';
+import { GetBlockchainTxUrl } from '@/utils/chain/xrp';
 
 export class XRP {
   static chain = CHAINS.XRP;
@@ -293,11 +297,35 @@ export class XRP {
 
   static async getTransactions(isMainnet: boolean, address: string): Promise<TransactionDetail[]> {
     try {
-      return [];
+      if (!BLOCKSCAN.isConfigured) return []
+      const url = `${BLOCKSCAN.baseUrl}/node/xrp/getTransactions?chain_id=${this.getChainIds(
+        isMainnet
+      )}&address=${encodeURIComponent(address)}`
+      const response = await BLOCKSCAN.axiosInstance.get(url)
+      if (response.data.code === 10200 && Array.isArray(response.data.data)) {
+        return response.data.data.map((tx: any) => ({
+          hash: String(tx.hash || ''),
+          asset: String(tx.asset || COINS.XRP || 'XRP'),
+          fee: '0',
+          value: String(tx.amount || ''),
+          type:
+            tx.type === 'Send'
+              ? TRANSACTIONTYPE.SEND
+              : tx.type === 'Received'
+                ? TRANSACTIONTYPE.RECEIVED
+                : undefined,
+          status:
+            String(tx.status).toLowerCase() === 'success'
+              ? TRANSACTIONSTATUS.SUCCESS
+              : TRANSACTIONSTATUS.FAILED,
+          blockTimestamp: Number(tx.blockTimestamp || 0),
+          url: GetBlockchainTxUrl(isMainnet, String(tx.hash || '')),
+        }))
+      }
+      return []
     } catch (e) {
-      console.error(e);
-      return [];
-      // throw new Error('can not get the transactions of xrp');
+      console.error(e)
+      return []
     }
   }
 
@@ -320,12 +348,21 @@ export class XRP {
         command: 'fee',
       });
 
+      const baseFee = dropsToXrp(response.result.drops.base_fee)
+      const medianFee = dropsToXrp(response.result.drops.median_fee)
+      const minimumFee = dropsToXrp(response.result.drops.minimum_fee)
+      const openLedgerFee = dropsToXrp(response.result.drops.open_ledger_fee)
       return {
-        base_fee: dropsToXrp(response.result.drops.base_fee),
-        median_fee: dropsToXrp(response.result.drops.median_fee),
-        minimum_fee: dropsToXrp(response.result.drops.minimum_fee),
-        open_ledger_fee: dropsToXrp(response.result.drops.open_ledger_fee),
-      };
+        // snake_case (legacy) + camelCase for Send UI
+        base_fee: baseFee,
+        median_fee: medianFee,
+        minimum_fee: minimumFee,
+        open_ledger_fee: openLedgerFee,
+        baseFee,
+        medianFee,
+        minimumFee,
+        openLedgerFee,
+      }
     } catch (e) {
       console.error(e);
       throw new Error('can not get the fee of xrp');

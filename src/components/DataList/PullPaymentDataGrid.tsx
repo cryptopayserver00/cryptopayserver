@@ -110,6 +110,11 @@ export default function PullPaymentDataGrid(props: GridType) {
     status: (typeof PULL_PAYMENT_STATUS)[keyof typeof PULL_PAYMENT_STATUS]
   ) => {
     try {
+      if (!storeId) {
+        setRows([])
+        return
+      }
+
       const response: any = await axios.get(Http.find_pull_payment, {
         params: {
           store_id: storeId,

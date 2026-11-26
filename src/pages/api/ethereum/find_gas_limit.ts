@@ -69,13 +69,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid coin', result: false, data: null })
     }
 
+    // Native coins have no contractAddress — never coerce undefined to "undefined".
+    const contractAddress = token.contractAddress?.trim() || ''
     const gas = await WEB3.getGasLimit(
       network === 1,
       chainId,
-      String(token.contractAddress),
+      contractAddress,
       String(from),
       String(to),
-      String(value)
+      String(value),
+      token.decimals ?? 18
     )
 
     return res.status(200).json({ message: '', result: true, data: gas })

@@ -14,7 +14,7 @@ export default async function handle(req: NextApiRequest, res: NextApiResponse<R
     const owned = await requireOwnedWallet(req, res, req.body.wallet_id)
     if (!owned) return
 
-    if (!(await rateLimit(req, res, { scope: 'wallet-backup', limit: 20, windowMs: 15 * 60 * 1000 }))) {
+    if (!(await rateLimit(req, res, { scope: 'wallet-backup', limit: 30, windowMs: 15 * 60 * 1000 }))) {
       return
     }
 

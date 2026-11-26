@@ -4,6 +4,7 @@ import { WEB3 } from '@/packages/web3'
 import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
 import { rateLimit, requireOwnedWallet } from '@/lib/auth'
+import { GetBlockchainAddressUrlByChainIds } from '@/utils/web3'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -61,7 +62,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           note: item.note,
           balance: await WEB3.getAssetBalance(network === 1, chainId, item.address),
           status: (await WEB3.checkAccountStatus(network === 1, chainId, item.address)) ? 1 : 2,
-          txUrl: WEB3.getBlockchainAddressTransactionUrl(network === 1, chainId, item.address),
+          // Public block-explorer address URL (never BlockScan/node API — those need X-API-Token)
+          txUrl: GetBlockchainAddressUrlByChainIds(network === 1, chainId, item.address),
           transactions: await WEB3.getTransactions(network === 1, chainId, item.address),
           resource: await WEB3.getAccountResource(network === 1, chainId, item.address),
           trust_line: await WEB3.getTokenTrustLine(network === 1, chainId, item.address),

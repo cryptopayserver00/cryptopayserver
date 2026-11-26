@@ -105,46 +105,74 @@ const PaymentAnalyticsChart = () => {
   }, [network, storeId, timeAlignment, itemAlignment])
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <RadioGroup
-          value={timeAlignment}
-          onValueChange={setTimeAlignment}
-          className="flex flex-wrap gap-4"
-        >
-          {Object.entries(STORE_STAT_TIME_TYPE).map(([key, value]) => (
-            <div key={key} className="flex items-center space-x-2">
-              <RadioGroupItem value={value} id={`time-${key}`} />
-              <Label htmlFor={`time-${key}`} className="cursor-pointer text-sm font-normal">
-                {value}
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
+    <div className="space-y-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Period
+          </p>
+          <RadioGroup
+            value={timeAlignment}
+            onValueChange={setTimeAlignment}
+            className="flex flex-wrap gap-2"
+          >
+            {Object.entries(STORE_STAT_TIME_TYPE).map(([key, value]) => (
+              <div key={key} className="flex items-center">
+                <RadioGroupItem value={value} id={`time-${key}`} className="peer sr-only" />
+                <Label
+                  htmlFor={`time-${key}`}
+                  className="cursor-pointer rounded-md border px-3 py-1.5 text-sm font-normal text-muted-foreground transition-colors peer-data-[state=checked]:border-foreground peer-data-[state=checked]:bg-foreground peer-data-[state=checked]:text-background"
+                >
+                  {value}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
 
-        <RadioGroup
-          value={itemAlignment}
-          onValueChange={setItemAlignment}
-          className="flex flex-wrap gap-4"
-        >
-          {Object.entries(STORE_STAT_ITEM_TYPE).map(([key, value]) => (
-            <div key={key} className="flex items-center space-x-2">
-              <RadioGroupItem value={value} id={`item-${key}`} />
-              <Label htmlFor={`item-${key}`} className="cursor-pointer text-sm font-normal">
-                {value}
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Metric
+          </p>
+          <RadioGroup
+            value={itemAlignment}
+            onValueChange={setItemAlignment}
+            className="flex flex-wrap gap-2"
+          >
+            {Object.entries(STORE_STAT_ITEM_TYPE).map(([key, value]) => (
+              <div key={key} className="flex items-center">
+                <RadioGroupItem value={value} id={`item-${key}`} className="peer sr-only" />
+                <Label
+                  htmlFor={`item-${key}`}
+                  className="cursor-pointer rounded-md border px-3 py-1.5 text-sm font-normal text-muted-foreground transition-colors peer-data-[state=checked]:border-foreground peer-data-[state=checked]:bg-foreground peer-data-[state=checked]:text-background"
+                >
+                  {value}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
       </div>
 
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="label" tick={{ fontSize: 12 }} className="text-muted-foreground" />
-            <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 12 }}
+              axisLine={false}
+              tickLine={false}
+              className="text-muted-foreground"
+            />
+            <YAxis
+              tick={{ fontSize: 12 }}
+              axisLine={false}
+              tickLine={false}
+              className="text-muted-foreground"
+            />
             <Tooltip
+              cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
               contentStyle={{
                 borderRadius: '8px',
                 border: '1px solid hsl(var(--border))',

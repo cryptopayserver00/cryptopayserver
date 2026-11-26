@@ -6,6 +6,7 @@ import {
   CHAINS,
   COIN,
   COINS,
+  ETHEREUM_CATEGORY_CHAINS,
 } from '@/packages/constants/blockchain'
 import {
   GetBlockchainAddressUrl as GetBTCBlockchainAddressUrl,
@@ -68,14 +69,8 @@ import {
   GetBlockchainTxUrl as GetTonBlockchainTxUrl,
 } from './chain/ton'
 import {
-  bitcoin,
-  bitcoinTestnet,
-  xrplevmTestnet,
   mainnet,
   sepolia,
-  tron,
-  solana,
-  solanaDevnet,
   bsc,
   bscTestnet,
   arbitrum,
@@ -400,16 +395,14 @@ export function GetChainIds(isMainnet: boolean, chain: CHAINS): CHAINIDS {
   }
 }
 
+/**
+ * Networks for wagmi/AppKit. Only EVM chains — BTC/XRP/Solana/Tron/etc. are not
+ * sendable via the current wagmi adapter and must not appear as connect targets.
+ */
 export function GetAllSupportAppKitNetwork(): [AppKitNetwork, ...AppKitNetwork[]] {
   return [
-    bitcoin,
-    bitcoinTestnet,
-    xrplevmTestnet,
     mainnet,
     sepolia,
-    tron,
-    solana,
-    solanaDevnet,
     bsc,
     bscTestnet,
     arbitrum,
@@ -426,32 +419,16 @@ export function GetAllSupportAppKitNetwork(): [AppKitNetwork, ...AppKitNetwork[]
   ]
 }
 
+export function IsEvmWalletConnectChain(chain: CHAINS): boolean {
+  return ETHEREUM_CATEGORY_CHAINS.includes(chain)
+}
+
 export function GetWalletConnectNetwork(chainIds: CHAINIDS): AppKitNetwork | undefined {
   switch (chainIds) {
-    case CHAINIDS.BITCOIN:
-      return bitcoin
-    case CHAINIDS.BITCOIN_TESTNET:
-      return bitcoinTestnet
-    case (CHAINIDS.LITECOIN, CHAINIDS.LITECOIN_TESTNET):
-      break
-    case CHAINIDS.XRP:
-      break
-    case CHAINIDS.XRP_TESTNET:
-      return xrplevmTestnet
-    case (CHAINIDS.BITCOINCASH, CHAINIDS.BITCOINCASH_TESTNET):
-      break
     case CHAINIDS.ETHEREUM:
       return mainnet
     case CHAINIDS.ETHEREUM_SEPOLIA:
       return sepolia
-    case CHAINIDS.TRON:
-      return tron
-    case CHAINIDS.TRON_NILE:
-      break
-    case CHAINIDS.SOLANA:
-      return solana
-    case CHAINIDS.SOLANA_DEVNET:
-      return solanaDevnet
     case CHAINIDS.BSC:
       return bsc
     case CHAINIDS.BSC_TESTNET:
@@ -478,9 +455,8 @@ export function GetWalletConnectNetwork(chainIds: CHAINIDS): AppKitNetwork | und
       return optimism
     case CHAINIDS.OPTIMISM_SEPOLIA:
       return optimismSepolia
-    case (CHAINIDS.TON, CHAINIDS.TON_TESTNET):
-      break
+    default:
+      // Non-EVM (BTC, XRP Ledger, Solana, …) — no wagmi network
+      return undefined
   }
-
-  return undefined
 }

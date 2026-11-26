@@ -29,6 +29,13 @@ import { GetBlockchainTxUrl } from '@/utils/chain/bsc'
 import { BigMul } from '@/utils/number'
 import Big from 'big.js'
 import { ERC20Abi } from '../abi/erc20'
+import {
+  bufferEvmGas,
+  encodeErc20Transfer,
+  estimateEvmGas,
+  EVM_TOKEN_GAS_FLOOR,
+  resolveEvmGasLimit,
+} from './evm_gas'
 
 export class BSC {
   static chain = CHAINS.BSC
@@ -38,6 +45,7 @@ export class BSC {
   })
 
   private static providerCache = new Map<boolean, ethers.JsonRpcProvider>()
+  private static preferredRpcByNetwork = new Map<boolean, string>()
 
   static getChainIds(isMainnet: boolean): CHAINIDS {
     return isMainnet ? CHAINIDS.BSC : CHAINIDS.BSC_TESTNET
@@ -47,29 +55,48 @@ export class BSC {
     return isMainnet ? INNERCHAINNAMES.BSC : INNERCHAINNAMES.BSC_TESTNET
   }
 
+  static clearProviderCache(isMainnet?: boolean) {
+    if (typeof isMainnet === 'boolean') {
+      this.providerCache.delete(isMainnet)
+      this.preferredRpcByNetwork.delete(isMainnet)
+      return
+    }
+    this.providerCache.clear()
+    this.preferredRpcByNetwork.clear()
+  }
+
   static async getProvider(isMainnet: boolean): Promise<ethers.JsonRpcProvider> {
     const cached = this.providerCache.get(isMainnet)
     if (cached) {
       return cached
     }
 
-    const provider = new ethers.JsonRpcProvider(
-      RPC.getRpcByChainIds(this.getChainIds(isMainnet)),
-      this.getChainIds(isMainnet),
-      {
-        staticNetwork: true,
-      }
-    )
+    const chainId = this.getChainIds(isMainnet)
+    const urls = RPC.getRpcsByChainIds(chainId)
+    const preferred = this.preferredRpcByNetwork.get(isMainnet)
+    const ordered = preferred ? [preferred, ...urls.filter((u) => u !== preferred)] : urls
 
-    try {
-      await provider._detectNetwork()
-    } catch (err) {
-      console.error(err)
-      return Promise.reject(err)
+    let lastError: unknown
+
+    for (const url of ordered) {
+      try {
+        const provider = new ethers.JsonRpcProvider(url, chainId, {
+          staticNetwork: true,
+        })
+        await provider.getBlockNumber()
+        this.preferredRpcByNetwork.set(isMainnet, url)
+        this.providerCache.set(isMainnet, provider)
+        return provider
+      } catch (err) {
+        lastError = err
+        if (this.preferredRpcByNetwork.get(isMainnet) === url) {
+          this.preferredRpcByNetwork.delete(isMainnet)
+        }
+        console.warn(`[BSC] RPC unavailable (${url}), trying next`, err)
+      }
     }
 
-    this.providerCache.set(isMainnet, provider)
-    return provider
+    throw lastError instanceof Error ? lastError : new Error('can not connect to any bsc rpc')
   }
 
   static checkQRCodeText(text: string): boolean {
@@ -201,7 +228,16 @@ export class BSC {
       return ethers.formatUnits(balance, 18)
     } catch (e) {
       console.error(e)
-      throw new Error('can not get the bnb balance of bsc')
+      // Drop cached dead provider and retry once across remaining RPCs
+      this.clearProviderCache(isMainnet)
+      try {
+        const provider = await this.getProvider(isMainnet)
+        const balance = await provider.getBalance(address)
+        return ethers.formatUnits(balance, 18)
+      } catch (retryErr) {
+        console.error(retryErr)
+        throw new Error('can not get the bnb balance of bsc')
+      }
     }
   }
 
@@ -402,31 +438,15 @@ export class BSC {
 
   static async estimateGas(isMainnet: boolean, txParams: TransactionRequest): Promise<number> {
     try {
-      const response = await RPC.callRPC(
-        this.getChainIds(isMainnet),
-        TRANSACTIONFUNCS.EstimateGas,
-        [
-          {
-            from: txParams.from,
-            to: txParams.to,
-            value: txParams.value,
-          },
-        ]
-      )
-
-      if (!response || response === null) {
-        throw new Error('can not estimate gas of bsc')
-      }
-
-      const gasLimit = new Big(parseInt(response.result, 16))
-      if (gasLimit && gasLimit.gt(0)) {
-        return gasLimit.toNumber()
-      }
-
-      throw new Error('can not estimate gas of bsc')
+      return await estimateEvmGas(this.getChainIds(isMainnet), {
+        from: txParams.from as string | undefined,
+        to: txParams.to as string | undefined,
+        value: txParams.value != null ? String(txParams.value) : undefined,
+        data: txParams.data ? String(txParams.data) : undefined,
+      })
     } catch (e) {
       console.error(e)
-      throw new Error('can not estimate gas of bsc')
+      throw new Error('can not estimate gas')
     }
   }
 
@@ -463,19 +483,17 @@ export class BSC {
     contractAddress: string,
     from: string,
     to: string,
-    value: string
+    value: string,
+    decimals = 18
   ): Promise<number> {
-    if (contractAddress && contractAddress !== '') {
-      return 96000
-    }
-
-    const txParams: TransactionRequest = {
-      from: from,
-      to: to,
-      value: ethers.toQuantity(1),
-    }
-
-    return await this.estimateGas(isMainnet, txParams)
+    return await resolveEvmGasLimit({
+      chainIds: this.getChainIds(isMainnet),
+      from,
+      to,
+      value,
+      contractAddress,
+      decimals,
+    })
   }
 
   static async createTransaction(
@@ -502,7 +520,7 @@ export class BSC {
       request.gasPrice = price.normal
     }
 
-    if (!request.gasLimit) {
+    {
       const limit = await this.getGasLimit(
         isMainnet,
         request.contractAddress as string,
@@ -510,7 +528,9 @@ export class BSC {
         request.to,
         request.value
       )
-      request.gasLimit = limit
+      if (!request.gasLimit || Number(request.gasLimit) < limit) {
+        request.gasLimit = limit
+      }
     }
 
     return request
@@ -521,26 +541,32 @@ export class BSC {
     request: CreateEthereumTransaction
   ): Promise<CreateEthereumTransaction> {
     const decimals = await this.getTokenDecimals(isMainnet, request.contractAddress as string)
+    const recipient = request.to
     const value = ethers.parseUnits(request.value, decimals).toString()
-    const iface = new ethers.Interface(ERC20Abi)
-    const data = iface.encodeFunctionData('transfer', [request.to, value])
+    const data = encodeErc20Transfer(recipient, BigInt(value))
     request.data = data
     request.to = request.contractAddress as string
-
     if (!request.gasPrice) {
       const price = await this.getGasPrice(isMainnet)
       request.gasPrice = price.normal
     }
 
-    if (!request.gasLimit) {
-      const limit = await this.getGasLimit(
-        isMainnet,
-        request.contractAddress as string,
-        request.from,
-        request.to,
-        request.value
-      )
-      request.gasLimit = limit
+    {
+      let limit = EVM_TOKEN_GAS_FLOOR
+      try {
+        const estimated = await this.estimateGas(isMainnet, {
+          from: request.from,
+          to: request.contractAddress as string,
+          value: '0x0',
+          data,
+        })
+        limit = bufferEvmGas(estimated, EVM_TOKEN_GAS_FLOOR)
+      } catch {
+        /* keep floor */
+      }
+      if (!request.gasLimit || Number(request.gasLimit) < limit) {
+        request.gasLimit = limit
+      }
     }
 
     request.value = '0'

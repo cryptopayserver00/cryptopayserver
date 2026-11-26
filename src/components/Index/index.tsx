@@ -1,11 +1,21 @@
 import MetaTags from '@/components/Common/MetaTags'
 import HomeSidebar from '@/components/Sidebar'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { useSnackPresistStore, useUserPresistStore } from '@/lib/store'
 import { routes } from './Routes'
 import { useTranslation } from 'react-i18next'
-import { CheckCircle2, XCircle, AlertCircle, Info, X } from 'lucide-react'
+import {
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Info,
+  X,
+  Loader2,
+  FlaskConical,
+  AlertTriangle,
+} from 'lucide-react'
 import HomeHeader from '../Home/HomeHeader'
 import HomeFooter from '../Home/HomeFooter'
 import { RouteType } from '@/utils/types'
@@ -24,13 +34,23 @@ const Index = () => {
   const { i18n } = useTranslation('')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
-  const { isLogin, lang, setLang, sidebarCollapsed, setSidebarCollapsed } = useUserPresistStore(
+  const {
+    isLogin,
+    lang,
+    setLang,
+    sidebarCollapsed,
+    setSidebarCollapsed,
+    network,
+    showProgress,
+  } = useUserPresistStore(
     useShallow((state) => ({
       isLogin: state.isLogin,
       lang: state.lang,
       setLang: state.setLang,
       sidebarCollapsed: state.sidebarCollapsed,
       setSidebarCollapsed: state.setSidebarCollapsed,
+      network: state.network,
+      showProgress: state.showProgress,
     }))
   )
 
@@ -101,7 +121,32 @@ const Index = () => {
             {currentRoute?.enableHomeHeader && (
               <HomeHeader showMenuButton onMenuClick={() => setMobileNavOpen(true)} />
             )}
-            <main className="flex-1 w-full min-w-0 px-3 py-4 sm:px-4 sm:py-5 lg:p-6">
+
+            {isLogin && network === 'testnet' ? (
+              <div className="border-b border-amber-200 bg-amber-50 px-3 py-2 text-amber-900 sm:px-4 lg:px-6">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <FlaskConical className="h-4 w-4 shrink-0" />
+                  <span className="font-medium">Testnet mode</span>
+                  <span className="text-amber-800/80">
+                    Coins here have no real value.
+                  </span>
+                  <Link
+                    href="/freecoin"
+                    className="font-medium underline underline-offset-2 hover:text-amber-950"
+                  >
+                    Get free coins
+                  </Link>
+                </div>
+              </div>
+            ) : null}
+
+            <main
+              key={network}
+              className={cn(
+                'flex-1 w-full min-w-0 px-3 py-4 sm:px-4 sm:py-5 lg:p-6 transition-opacity duration-300',
+                showProgress ? 'opacity-40 pointer-events-none' : 'opacity-100'
+              )}
+            >
               {currentRoute?.component || null}
             </main>
             {currentRoute?.enableHomeFooter && <HomeFooter />}
@@ -109,10 +154,40 @@ const Index = () => {
         </div>
       ) : (
         <div className="flex flex-col min-h-screen">
-          <main className="flex-1 w-full min-w-0">{currentRoute?.component || null}</main>
+          <main key={network} className="flex-1 w-full min-w-0">
+            {currentRoute?.component || null}
+          </main>
           {currentRoute?.enableHomeFooter && <HomeFooter />}
         </div>
       )}
+
+      {showProgress ? (
+        <div className="fixed inset-0 z-[998] flex items-center justify-center bg-background/70 backdrop-blur-[2px]">
+          <div className="mx-4 flex max-w-sm flex-col items-center gap-3 rounded-2xl border bg-white px-6 py-7 text-center shadow-xl">
+            <div
+              className={cn(
+                'flex h-12 w-12 items-center justify-center rounded-full',
+                network === 'testnet' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+              )}
+            >
+              {network === 'testnet' ? (
+                <AlertTriangle className="h-6 w-6" />
+              ) : (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              )}
+            </div>
+            <div>
+              <p className="text-base font-semibold">
+                Switching to {network === 'testnet' ? 'Testnet' : 'Mainnet'}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Reloading wallets, invoices, and balances for this network…
+              </p>
+            </div>
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        </div>
+      ) : null}
 
       <div
         className={cn(

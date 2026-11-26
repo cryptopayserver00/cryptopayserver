@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { Info, ArrowLeft, Plus, Search } from 'lucide-react'
+import { ArrowLeft, Plus, Search } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -21,7 +21,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { PageHeader, PageShell } from '@/components/Layout/PageHeader'
 
 import InvoiceDataGrid from '../../DataList/InvoiceDataGrid'
 import { COINGECKO_IDS, CURRENCY, ORDER_TIME, ORDER_STATUS } from '@/packages/constants'
@@ -37,7 +37,6 @@ import { GetImgSrcByChain, GetImgSrcByCrypto } from '@/utils/qrcode'
 import { useShallow } from 'zustand/react/shallow'
 
 const PaymentInvoices = () => {
-  const [openExplain, setOpenExplain] = useState<boolean>(false)
   const [openCreateInvoice, setOpenCreateInvoice] = useState<boolean>(false)
 
   const [amount, setAmount] = useState<number>(0)
@@ -237,24 +236,22 @@ const PaymentInvoices = () => {
   }
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-6">
+    <PageShell>
       {openCreateInvoice ? (
         <div className="space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Create Invoice</h1>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={() => setOpenCreateInvoice(false)}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <Button
-                onClick={onClickCreateInvoice}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                Create
-              </Button>
-            </div>
-          </div>
+          <PageHeader
+            title="Create Invoice"
+            description="Issue a fixed-rate invoice that must be paid before it expires."
+            actions={
+              <>
+                <Button variant="outline" onClick={() => setOpenCreateInvoice(false)}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button onClick={onClickCreateInvoice}>Create</Button>
+              </>
+            }
+          />
 
           <Card>
             <CardHeader className="pb-4">
@@ -497,42 +494,22 @@ const PaymentInvoices = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex items-center justify-between pb-2 border-b">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Invoices</h1>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                onClick={() => setOpenExplain(!openExplain)}
-              >
-                <Info className="h-4 w-4" />
+          <PageHeader
+            title="Invoices"
+            description="Documents issued to buyers at a fixed exchange rate. They must be paid before expiry."
+            actions={
+              <Button onClick={() => setOpenCreateInvoice(true)} className="gap-1.5">
+                <Plus className="h-4 w-4" />
+                Create Invoice
               </Button>
-            </div>
-            <Button onClick={() => setOpenCreateInvoice(true)} className="gap-1.5">
-              <Plus className="h-4 w-4" />
-              Create Invoice
-            </Button>
-          </div>
+            }
+          />
 
-          {openExplain && (
-            <Alert className="bg-blue-50/50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
-              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <AlertTitle className="text-blue-800 dark:text-blue-300">Info</AlertTitle>
-              <AlertDescription className="text-blue-700 dark:text-blue-400 text-sm mt-1 leading-relaxed">
-                Invoices are documents issued by the seller to a buyer to collect payment.
-                <br />
-                An invoice must be paid within a defined time interval at a fixed exchange rate to
-                protect the issuer from price fluctuations.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex flex-col items-stretch gap-3 rounded-lg border bg-card p-3 sm:flex-row sm:items-center">
+            <div className="relative max-w-md flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search order id ..."
+                placeholder="Search order id…"
                 className="pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -568,17 +545,15 @@ const PaymentInvoices = () => {
             </div>
           </div>
 
-          <div className="pt-2">
-            <InvoiceDataGrid
-              source="none"
-              orderStatus={orderStatus}
-              orderId={search}
-              time={orderTime}
-            />
-          </div>
+          <InvoiceDataGrid
+            source="none"
+            orderStatus={orderStatus}
+            orderId={search}
+            time={orderTime}
+          />
         </div>
       )}
-    </div>
+    </PageShell>
   )
 }
 

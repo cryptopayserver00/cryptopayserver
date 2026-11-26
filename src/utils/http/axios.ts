@@ -1,10 +1,18 @@
 import axios from 'axios'
+import { clearClientAuthState, isAuthPagePath } from '@/utils/clear-client-auth'
 
 axios.defaults.withCredentials = true
 
+let redirectingToLogin = false
+
 axios.interceptors.request.use(
   (config) => {
-    if (!config.headers.get('Content-Type')) {
+    const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData
+
+    if (isFormData) {
+      // Browser/Node must set multipart boundary; never force JSON or bare multipart/form-data.
+      config.headers.delete('Content-Type')
+    } else if (!config.headers.get('Content-Type')) {
       config.headers.set('Content-Type', 'application/json; charset=utf-8')
     }
 
@@ -30,8 +38,14 @@ axios.interceptors.response.use(
   (error) => {
     const status = error.response?.status
     if (status === 401) {
-      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login'
+      // Cookie expired / invalid while local zustand still says logged in.
+      clearClientAuthState()
+      if (typeof window !== 'undefined' && !redirectingToLogin) {
+        const path = window.location.pathname
+        if (!isAuthPagePath(path)) {
+          redirectingToLogin = true
+          window.location.href = '/login'
+        }
       }
     }
     // Normalize rate-limit / CSRF failures so callers can show a stable message.

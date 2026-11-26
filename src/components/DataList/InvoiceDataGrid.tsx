@@ -70,6 +70,11 @@ export default function InvoiceDataGrid(props: GridType) {
 
   const init = async (currentNetwork: string, currentStoreId: number) => {
     try {
+      if (!currentStoreId) {
+        setRows([])
+        return
+      }
+
       const response: any = await axios.get(Http.find_invoice_by_store_id, {
         params: {
           store_id: currentStoreId,

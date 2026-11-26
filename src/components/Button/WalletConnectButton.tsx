@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react'
 import { Send, Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AppKitNetwork } from '@reown/appkit/networks'
-import { CHAINIDS, CHAINS } from '@/packages/constants/blockchain'
-import { GetWalletConnectNetwork, GetChainIds } from '@/utils/web3'
+import { CHAINS } from '@/packages/constants/blockchain'
+import {
+  GetWalletConnectNetwork,
+  GetChainIds,
+  IsEvmWalletConnectChain,
+} from '@/utils/web3'
 import { useAppKitAccount, useAppKit, useAppKitNetwork } from '@reown/appkit/react'
 import { useSendTransaction } from 'wagmi'
 import { ethers } from 'ethers'
@@ -28,7 +32,7 @@ interface WalletConnectType {
 
 const WalletConnectButton = (props: WalletConnectType) => {
   const [connectNetwork, setConnectNetwork] = useState<AppKitNetwork>()
-  const { chainId } = useAppKitNetwork()
+  const { chainId, switchNetwork } = useAppKitNetwork()
 
   const { setSnackSeverity, setSnackMessage, setSnackOpen } = useSnackPresistStore(
     useShallow((state) => ({
@@ -39,25 +43,43 @@ const WalletConnectButton = (props: WalletConnectType) => {
   )
 
   const { open } = useAppKit()
-  const { address, isConnected } = useAppKitAccount()
+  const { isConnected } = useAppKitAccount()
   const { data: hash, sendTransaction } = useSendTransaction()
+
+  const ensureCorrectNetwork = async (): Promise<boolean> => {
+    if (!connectNetwork) return false
+
+    if (String(connectNetwork.id) === String(chainId)) {
+      return true
+    }
+
+    try {
+      await switchNetwork(connectNetwork)
+      return true
+    } catch (e) {
+      console.error(e)
+      setSnackSeverity('error')
+      setSnackMessage(
+        `Please switch your wallet to ${connectNetwork.name} before sending`
+      )
+      setSnackOpen(true)
+      await open({ view: 'Networks' })
+      return false
+    }
+  }
 
   const handleSendTx = async () => {
     try {
       if (!connectNetwork) return
 
-      if (connectNetwork.id != chainId) {
-        setSnackSeverity('error')
-        setSnackMessage(
-          'The current network is incorrect, please switch to the correct network environment: ' +
-            connectNetwork.name
-        )
-        setSnackOpen(true)
-        await open()
+      if (!(await ensureCorrectNetwork())) {
         return
       }
 
       if (!IsHexAddress(props.address)) {
+        setSnackSeverity('error')
+        setSnackMessage('This payment address is not an EVM address')
+        setSnackOpen(true)
         return
       }
 
@@ -89,7 +111,12 @@ const WalletConnectButton = (props: WalletConnectType) => {
       if (isConnected) {
         await handleSendTx()
       } else {
-        await open()
+        try {
+          await switchNetwork(connectNetwork)
+        } catch {
+          // User may not be connected yet; open modal and ask them to pick the right chain
+        }
+        await open({ view: 'Connect' })
       }
     } catch (e) {
       console.error(e)
@@ -106,16 +133,23 @@ const WalletConnectButton = (props: WalletConnectType) => {
 
   useEffect(() => {
     if (!props.network || !props.chainId || !props.address) {
+      setConnectNetwork(undefined)
+      return
+    }
+
+    // wagmi AppKit can only send on EVM chains — hide for BTC/XRP/Solana/etc.
+    if (!IsEvmWalletConnectChain(props.chainId)) {
+      setConnectNetwork(undefined)
       return
     }
 
     const chainids = GetChainIds(props.network === 1, props.chainId)
-
-    if (!chainids) return
+    if (!chainids) {
+      setConnectNetwork(undefined)
+      return
+    }
 
     const network = GetWalletConnectNetwork(chainids)
-    if (!network) return
-
     setConnectNetwork(network)
   }, [props.network, props.chainId, props.address])
 

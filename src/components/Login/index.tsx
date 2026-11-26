@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import Link from 'next/link'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
+import { AuthShell } from '@/components/Auth/AuthShell'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -11,11 +12,11 @@ import {
   useUserPresistStore,
   useWalletPresistStore,
 } from '@/lib/store'
+import { useRedirectIfAuthenticated } from '@/hooks/useRedirectIfAuthenticated'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail, isValidPassword } from '@/utils/verify'
-import { SiteLogo } from '../Logo/SiteLogo'
 import { useShallow } from 'zustand/react/shallow'
 
 const Login = () => {
@@ -26,9 +27,10 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const { isLogin, setUserId, setUserEmail, setUsername, setIsLogin } = useUserPresistStore(
+  useRedirectIfAuthenticated()
+
+  const { setUserId, setUserEmail, setUsername, setIsLogin } = useUserPresistStore(
     useShallow((state) => ({
-      isLogin: state.isLogin,
       setUserId: state.setUserId,
       setUserEmail: state.setUserEmail,
       setUsername: state.setUsername,
@@ -36,7 +38,7 @@ const Login = () => {
     }))
   )
 
-  const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource, setIsStore } =
+  const { setStoreId, setStoreName, setStoreCurrency, setStorePriceSource, setIsStore, resetStore } =
     useStorePresistStore(
       useShallow((state) => ({
         setStoreId: state.setStoreId,
@@ -44,13 +46,15 @@ const Login = () => {
         setStoreCurrency: state.setStoreCurrency,
         setStorePriceSource: state.setStorePriceSource,
         setIsStore: state.setIsStore,
+        resetStore: state.resetStore,
       }))
     )
 
-  const { setWalletId, setIsWallet } = useWalletPresistStore(
+  const { setWalletId, setIsWallet, resetWallet } = useWalletPresistStore(
     useShallow((state) => ({
       setWalletId: state.setWalletId,
       setIsWallet: state.setIsWallet,
+      resetWallet: state.resetWallet,
     }))
   )
 
@@ -96,10 +100,14 @@ const Login = () => {
         if (wallet_resp.result) {
           setWalletId(wallet_resp.data.id)
           setIsWallet(true)
+        } else {
+          resetWallet()
         }
 
         window.location.href = '/dashboard'
       } else {
+        resetStore()
+        resetWallet()
         window.location.href = '/stores/create'
       }
     } else {
@@ -170,144 +178,124 @@ const Login = () => {
     }
   }
 
-  useEffect(() => {
-    if (isLogin) {
-      window.location.href = '/dashboard'
-    }
-  }, [isLogin])
-
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="mx-auto max-w-screen-sm px-4">
-        <div className="flex flex-col items-center pt-16 sm:pt-24">
-          <SiteLogo />
+    <AuthShell
+      title={requires2fa ? 'Two-factor check' : 'Sign in'}
+      subtitle={
+        requires2fa
+          ? 'Enter the 6-digit code from your authenticator app to finish signing in.'
+          : 'Open your merchant dashboard — invoices, wallets, and payouts stay on your infrastructure.'
+      }
+    >
+      {!requires2fa ? (
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="h-11 border-slate-200 bg-white"
+            />
+          </div>
 
-          <h1 className="mt-8 text-center text-2xl font-bold tracking-tight">
-            Welcome to your CryptoPay Server
-          </h1>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link
+                href="/forgot-password"
+                className="text-sm text-slate-500 transition-colors hover:text-teal-800"
+              >
+                Forgot password?
+              </Link>
+            </div>
 
-          <Card className="mt-8 w-full max-w-[450px] border-none shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-2xl">
-                {requires2fa ? 'Two-factor authentication' : 'Sign in'}
-              </CardTitle>
-            </CardHeader>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onLogin()
+                }}
+                className="h-11 border-slate-200 bg-white pr-10"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-700"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
 
-            <CardContent>
-              {!requires2fa ? (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                    />
-                  </div>
+          <Button
+            className="h-11 w-full bg-teal-800 text-white hover:bg-teal-700"
+            size="lg"
+            onClick={onLogin}
+            disabled={loading}
+          >
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Sign in
+          </Button>
 
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password">Password</Label>
-                      <Button
-                        variant="link"
-                        className="h-auto p-0 text-sm font-normal text-muted-foreground"
-                        onClick={() => {
-                          window.location.href = '/forgot-password'
-                        }}
-                      >
-                        Forgot password?
-                      </Button>
-                    </div>
-
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') onLogin()
-                        }}
-                        className="pr-10"
-                      />
-                      <button
-                        type="button"
-                        tabIndex={-1}
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <Button className="mt-6 w-full" size="lg" onClick={onLogin} disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Sign in
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="totp">Authenticator code</Label>
-                    <Input
-                      id="totp"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      value={totpCode}
-                      onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') onVerify2fa()
-                      }}
-                      placeholder="123456"
-                    />
-                  </div>
-
-                  <Button
-                    className="mt-6 w-full"
-                    size="lg"
-                    onClick={onVerify2fa}
-                    disabled={loading}
-                  >
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Verify
-                  </Button>
-
-                  <Button
-                    className="mt-2 w-full"
-                    size="lg"
-                    variant="ghost"
-                    onClick={() => {
-                      setRequires2fa(false)
-                      setTotpCode('')
-                    }}
-                  >
-                    Back
-                  </Button>
-                </>
-              )}
-
-              {!requires2fa &&
-                process.env.NEXT_PUBLIC_DISABLE_PUBLIC_REGISTRATION !== 'true' && (
-                <Button
-                  className="mt-2 w-full"
-                  size="lg"
-                  variant="ghost"
-                  onClick={() => {
-                    window.location.href = '/register'
-                  }}
-                >
-                  Create your account
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          {process.env.NEXT_PUBLIC_DISABLE_PUBLIC_REGISTRATION !== 'true' && (
+            <p className="text-center text-sm text-slate-500">
+              New here?{' '}
+              <Link href="/register" className="font-medium text-teal-800 hover:text-teal-700">
+                Create an account
+              </Link>
+            </p>
+          )}
         </div>
-      </div>
-    </div>
+      ) : (
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="totp">Authenticator code</Label>
+            <Input
+              id="totp"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onVerify2fa()
+              }}
+              placeholder="123456"
+              className="h-11 border-slate-200 bg-white text-center font-mono text-lg tracking-[0.35em]"
+            />
+          </div>
+
+          <Button
+            className="h-11 w-full bg-teal-800 text-white hover:bg-teal-700"
+            size="lg"
+            onClick={onVerify2fa}
+            disabled={loading}
+          >
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Verify & continue
+          </Button>
+
+          <Button
+            className="h-11 w-full"
+            size="lg"
+            variant="ghost"
+            onClick={() => {
+              setRequires2fa(false)
+              setTotpCode('')
+            }}
+          >
+            Back to sign in
+          </Button>
+        </div>
+      )}
+    </AuthShell>
   )
 }
 

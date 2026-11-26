@@ -131,18 +131,8 @@ export interface TransactionRequest {
   gasLimit?: number
   gasPrice?: number
 
-  // data?: BytesLike,
+  data?: string
   value?: BigNumberish
-  // chainId?: number
-
-  // type?: number;
-  // accessList?: AccessListish;
-
-  // maxPriorityFeePerGas?: BigNumberish;
-  // maxFeePerGas?: BigNumberish;
-
-  // customData?: Record<string, any>;
-  // ccipReadEnabled?: boolean;
 }
 
 export interface SendTransaction {

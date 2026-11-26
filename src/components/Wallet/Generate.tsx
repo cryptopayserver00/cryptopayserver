@@ -1,18 +1,26 @@
-import { useEffect } from 'react'
-import axios from '@/utils/http/axios'
-import { getApiErrorMessage } from '@/utils/http/api-error'
-import { Http } from '@/utils/http/http'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { HardDrive, Loader2, Sparkles } from 'lucide-react'
+
 import {
   useSnackPresistStore,
   useStorePresistStore,
   useUserPresistStore,
   useWalletPresistStore,
 } from '@/lib/store'
-import Link from 'next/link'
-import { Wallet, ChevronRight } from 'lucide-react'
+import axios from '@/utils/http/axios'
+import { getApiErrorMessage } from '@/utils/http/api-error'
+import { Http } from '@/utils/http/http'
 import { useShallow } from 'zustand/react/shallow'
+import { WalletOptionCard, WalletSetupLayout } from './WalletSetupLayout'
+
+const CREATE_STEPS = ['Choose', 'Create', 'Secure', 'Backup']
 
 const GenerateWallet = () => {
+  const router = useRouter()
+  const [creating, setCreating] = useState(false)
+
   const { userId } = useUserPresistStore(
     useShallow((state) => ({
       userId: state.userId,
@@ -26,8 +34,9 @@ const GenerateWallet = () => {
     }))
   )
 
-  const { setWalletId, setIsWallet } = useWalletPresistStore(
+  const { isWallet, setWalletId, setIsWallet } = useWalletPresistStore(
     useShallow((state) => ({
+      isWallet: state.isWallet,
       setWalletId: state.setWalletId,
       setIsWallet: state.setIsWallet,
     }))
@@ -41,26 +50,49 @@ const GenerateWallet = () => {
     }))
   )
 
-  const onClickMnemonicPhrase = async () => {
+  const showSnack = (severity: 'success' | 'error' | 'warning', message: string) => {
+    setSnackSeverity(severity)
+    setSnackMessage(message)
+    setSnackOpen(true)
+  }
+
+  const walletToBlockScan = async (walletId: string | number) => {
     try {
-      const response: any = await axios.get(Http.find_wallet, {
-        params: {
-          store_id: storeId,
-        },
+      const response: any = await axios.post(Http.create_wallet_to_block_scan, {
+        user_id: userId,
+        wallet_id: walletId,
+      })
+      if (!response.result) {
+        showSnack('error', 'Some addresses could not join block scanning. You can retry later.')
+      }
+    } catch (e) {
+      showSnack('error', 'Some addresses could not join block scanning. You can retry later.')
+      console.error(e)
+    }
+  }
+
+  const onClickMnemonicPhrase = async () => {
+    if (creating) return
+
+    try {
+      setCreating(true)
+
+      const existing: any = await axios.get(Http.find_wallet, {
+        params: { store_id: storeId },
       })
 
-      if (response.result) {
-        setWalletId(response.data.id)
+      if (existing.result) {
+        setWalletId(existing.data.id)
         setIsWallet(true)
-
-        setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 2000)
+        showSnack('success', 'This store already has a wallet')
+        router.push('/dashboard')
         return
       }
 
       const { promptAccountPassword } = await import('@/utils/wallet-password')
-      const accountPassword = await promptAccountPassword('Enter your account password to create wallet')
+      const accountPassword = await promptAccountPassword(
+        'Enter your account password to create wallet'
+      )
       if (accountPassword === null) return
 
       const create_wallet_resp: any = await axios.post(Http.create_wallet, {
@@ -69,114 +101,80 @@ const GenerateWallet = () => {
         account_password: accountPassword,
       })
 
-      if (create_wallet_resp.result) {
-        setWalletId(create_wallet_resp.data.walletId)
-        setIsWallet(true)
-
-        setSnackSeverity('success')
-        setSnackMessage('Created successfully!')
-        setSnackOpen(true)
-
-        await walletToBlockScan(create_wallet_resp.data.walletId)
-
-        setTimeout(() => {
-          window.location.href = '/wallet/setPassword'
-        }, 2000)
+      if (!create_wallet_resp.result) {
+        showSnack('error', create_wallet_resp.message || 'Failed to create wallet')
+        return
       }
+
+      setWalletId(create_wallet_resp.data.walletId)
+      setIsWallet(true)
+      showSnack('success', 'Wallet created')
+      await walletToBlockScan(create_wallet_resp.data.walletId)
+      router.push('/wallet/setPassword')
     } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage(getApiErrorMessage(e))
-      setSnackOpen(true)
+      showSnack('error', getApiErrorMessage(e))
       console.error(e)
+    } finally {
+      setCreating(false)
     }
-  }
-
-  const walletToBlockScan = async (walletId: string) => {
-    try {
-      const response: any = await axios.post(Http.create_wallet_to_block_scan, {
-        user_id: userId,
-        wallet_id: walletId,
-      })
-
-      if (response.result) {
-      } else {
-        setSnackSeverity('error')
-        setSnackMessage('Some addresses cannot join the Sweeping Quest, please try again')
-        setSnackOpen(true)
-      }
-    } catch (e) {
-      setSnackSeverity('error')
-      setSnackMessage('Some addresses cannot join the Sweeping Quest, please try again')
-      setSnackOpen(true)
-      console.error(e)
-    }
-  }
-
-  const onClickHardwareWallet = () => {
-    setSnackMessage('Not supported.')
-    setSnackSeverity('warning')
-    setSnackOpen(true)
   }
 
   useEffect(() => {
     if (!isStore) {
-      window.location.href = '/stores/create'
+      router.push('/stores/create')
+      return
     }
-  }, [isStore])
+    if (isWallet) {
+      router.push('/dashboard')
+    }
+  }, [isStore, isWallet, router])
 
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-4xl px-4">
-        <div className="mt-20 flex flex-col items-center">
-          <h1 className="text-3xl font-bold tracking-tight">Create wallet</h1>
-
-          <div className="mt-8 w-full max-w-[700px]">
-            <button
-              type="button"
-              onClick={onClickMnemonicPhrase}
-              className="w-full rounded-xl border bg-white p-6 text-left shadow-sm transition hover:bg-gray-50 hover:shadow-md"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-5">
-                  <Wallet className="h-8 w-8 text-gray-700" />
-                  <span className="text-xl font-semibold">Mnemonic phrase</span>
-                </div>
-                <ChevronRight className="h-6 w-6 text-gray-400" />
-              </div>
-            </button>
-          </div>
-
-          <div className="mt-8 w-full max-w-[700px]">
-            <button
-              type="button"
-              onClick={onClickHardwareWallet}
-              className="w-full rounded-xl border bg-white p-6 text-left shadow-sm transition hover:bg-gray-50 hover:shadow-md"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-5">
-                  <Wallet className="h-8 w-8 text-gray-700" />
-                  <span className="text-xl font-semibold">Hardware wallet</span>
-                </div>
-                <ChevronRight className="h-6 w-6 text-gray-400" />
-              </div>
-            </button>
-          </div>
-
-          <p className="mt-10 text-center text-sm text-gray-600">
-            Continuing implies agreeing to CryptoPayServer{' '}
-            <Link
-              href="https://docs.cryptopayserver.online"
-              target="_blank"
-              rel="noreferrer"
-              className="text-primary underline hover:opacity-80"
-            >
-              user agreement
-            </Link>
-            .
-          </p>
-        </div>
+    <WalletSetupLayout
+      title="Create a new wallet"
+      description="We’ll generate a mnemonic phrase for this store. Next you’ll set a wallet password and back up the phrase."
+      steps={CREATE_STEPS}
+      currentStep={2}
+      backHref="/wallet/create"
+      footer={
+        <p className="text-center text-xs text-muted-foreground">
+          Continuing implies agreeing to CryptoPayServer{' '}
+          <Link
+            href="https://docs.cryptopayserver.online"
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            user agreement
+          </Link>
+          .
+        </p>
+      }
+    >
+      <div className="space-y-3">
+        <WalletOptionCard
+          recommended
+          title={creating ? 'Creating wallet...' : 'Generate mnemonic phrase'}
+          description="One phrase covers Bitcoin, Lightning-ready chains, EVM, Solana, Tron, TON, XRP, and more."
+          icon={
+            creating ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Sparkles className="h-5 w-5" />
+            )
+          }
+          onClick={onClickMnemonicPhrase}
+          disabled={creating}
+        />
+        <WalletOptionCard
+          disabled
+          badge="Soon"
+          title="Hardware wallet"
+          description="Generate or connect with a hardware device. Not available yet."
+          icon={<HardDrive className="h-5 w-5" />}
+        />
       </div>
-    </div>
+    </WalletSetupLayout>
   )
 }
 

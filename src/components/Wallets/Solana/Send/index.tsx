@@ -120,12 +120,11 @@ const SolanaSend = () => {
           network: network === 'mainnet' ? 1 : 2,
         },
       })
-      if (response.result) {
-        setNetworkFee(response.data)
+      if (response.result && response.data != null) {
+        setNetworkFee(Number(response.data) || 0)
       }
     } catch (e) {
-      showSnack('error', getApiErrorMessage(e))
-      console.error(e)
+      console.warn('Solana fee rate unavailable', e)
     }
   }
 
