@@ -569,7 +569,7 @@ export default function PayoutDataGrid(props: GridType) {
                   await updateStatus(row.payoutId, PAYOUT_STATUS.Completed, 'Marked as paid', {
                     account_password: accountPassword,
                     tx: row.transaction,
-                    crypto_amount: row.cryptoAmount,
+                    crypto_amount: Number(row.cryptoAmount),
                   })
                   setPendingMarkPaid(null)
                 })()
