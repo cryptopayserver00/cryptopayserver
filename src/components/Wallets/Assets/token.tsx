@@ -16,6 +16,7 @@ import { Http } from '@/utils/http/http'
 import { BLOCKCHAIN, BLOCKCHAINNAMES, CHAINS, COINS } from '@/packages/constants/blockchain'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { COINPAIR, COINTOPAIR } from '@/packages/constants'
+import { FormatCryptoDisplay } from '@/utils/number'
 import { FormatNumberToEnglish, OmitMiddleString } from '@/utils/strings'
 import TradingViewWidget from '@/components/Widget/TradingViewWidget'
 import { GetImgSrcByChain } from '@/utils/qrcode'
@@ -240,7 +241,7 @@ const AssetsToken = () => {
               <p
                 className={cn('mt-1 font-bold', change >= 0 ? 'text-emerald-500' : 'text-red-500')}
               >
-                {parseFloat(String(activeCoin?.twentyFourHChange ?? 0)).toFixed(2)}%
+                {FormatCryptoDisplay(activeCoin?.twentyFourHChange ?? 0, { decimals: 2 })}%
               </p>
             </div>
             <div>
@@ -265,7 +266,7 @@ const AssetsToken = () => {
             <h3 className="text-lg font-bold">Holdings</h3>
             <span className="font-bold">
               {assetWallet?.currencySymbol}
-              {Number(assetWallet?.totalBalance ?? 0).toFixed(2)}
+              {FormatCryptoDisplay(assetWallet?.totalBalance ?? 0, { decimals: 2 })}
             </span>
           </div>
 
@@ -299,18 +300,18 @@ const AssetsToken = () => {
                   <div className="text-right">
                     <p className="font-bold">
                       {assetWallet?.currencySymbol}
-                      {parseFloat(
-                        String(
-                          assetWallet?.coins.find((findItem) => findItem.coin === item.name)
-                            ?.balance ?? 0
-                        )
-                      ).toFixed(2)}
+                      {FormatCryptoDisplay(
+                        assetWallet?.coins.find((findItem) => findItem.coin === item.name)
+                          ?.balance ?? 0,
+                        { decimals: 2 }
+                      )}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {(
+                      {FormatCryptoDisplay(
                         assetWallet?.coins.find((fintItem) => fintItem.coin === item.name)
-                          ?.number ?? 0
-                      ).toFixed(item.displayDecimals)}{' '}
+                          ?.number ?? 0,
+                        { decimals: item.displayDecimals, coin: item.name }
+                      )}{' '}
                       {item.name}
                     </p>
                   </div>

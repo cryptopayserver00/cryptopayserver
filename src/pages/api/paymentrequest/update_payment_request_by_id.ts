@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { PAYMENT_REQUEST_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
+import { BigIsPositive, FormatCryptoAmount } from '@/utils/number'
 import {
   rateLimit,
   forbidden,
@@ -141,11 +142,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           data: null,
         })
       }
-      const nextAmount = Number(req.body.amount)
-      if (!Number.isFinite(nextAmount) || nextAmount <= 0) {
+      if (!BigIsPositive(req.body.amount)) {
         return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
       }
-      updateData.amount = nextAmount
+      updateData.amount = Number(FormatCryptoAmount(req.body.amount, 12))
     }
 
     if (req.body.payment_request_status) {

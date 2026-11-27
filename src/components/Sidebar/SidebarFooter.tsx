@@ -46,6 +46,7 @@ import { cn } from '@/lib/utils'
 import { useShallow } from 'zustand/react/shallow'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { rememberLastStore } from '@/utils/last-store'
 
 type NetworkValue = 'mainnet' | 'testnet'
 
@@ -70,6 +71,8 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
   const [profileUrl, setProfileUrl] = useState('')
   const [pendingNetwork, setPendingNetwork] = useState<NetworkValue | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   const {
     userId,
@@ -174,6 +177,10 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
   }
 
   const onLogout = async () => {
+    if (loggingOut) return
+    setLoggingOut(true)
+    rememberLastStore(userId, useStorePresistStore.getState().storeId)
+
     try {
       await axios.post(Http.logout)
     } catch {
@@ -400,7 +407,10 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
             <Button
               variant="ghost"
               className="w-full justify-start gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={onLogout}
+              onClick={() => {
+                setOpen(false)
+                setLogoutConfirmOpen(true)
+              }}
             >
               <LogOut className="h-4 w-4" />
               Logout
@@ -408,6 +418,40 @@ export const SidebarFooter: React.FC<SidebarFooterProps> = ({
           </div>
         </PopoverContent>
       </Popover>
+
+      <AlertDialog
+        open={logoutConfirmOpen}
+        onOpenChange={(next) => {
+          if (loggingOut) return
+          setLogoutConfirmOpen(next)
+        }}
+      >
+        <AlertDialogContent size="default">
+          <AlertDialogHeader>
+            <AlertDialogMedia className="bg-rose-100 text-rose-700">
+              <LogOut className="h-5 w-5" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Sign out of CryptoPayServer?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will need to sign in again to manage invoices, wallets, and payouts. Your
+              current store will be restored the next time you log in.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loggingOut}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={loggingOut}
+              onClick={(e) => {
+                e.preventDefault()
+                void onLogout()
+              }}
+            >
+              {loggingOut ? 'Signing out...' : 'Sign out'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={confirmOpen}

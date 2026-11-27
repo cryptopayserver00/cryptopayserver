@@ -131,26 +131,30 @@ const XRP = () => {
       })
 
       if (response.result) {
-        const rows: XrpWalletType[] = (response.data ?? []).map((item: any) => ({
-          id: item.id,
-          address: item.address,
-          type: item.note,
-          balance: item.balance,
-          status: item.status,
-          txUrl: item.txUrl,
-          transactions: item.transactions,
-          trustLine: (item.trustLine ?? []).map((trustItem: any) => ({
-            account: trustItem.account,
-            balance: trustItem.balance,
-            currency: DecodeNonstandardCurrencyCode(trustItem.currency),
-            limit: trustItem.limit,
-            limitPeer: trustItem.limitPeer,
-            noRipple: trustItem.noRipple,
-            noRipplePeer: trustItem.noRipplePeer,
-            qualityIn: trustItem.qualityIn,
-            qualityOut: trustItem.qualityOut,
-          })),
-        }))
+        const rows: XrpWalletType[] = (response.data ?? []).map((item: any) => {
+          const rawLines = item.trustLine ?? item.trust_line ?? []
+          const lines = Array.isArray(rawLines) ? rawLines : []
+          return {
+            id: item.id,
+            address: item.address,
+            type: item.note,
+            balance: item.balance,
+            status: item.status,
+            txUrl: item.txUrl,
+            transactions: item.transactions,
+            trustLine: lines.map((trustItem: any) => ({
+              account: trustItem.account,
+              balance: trustItem.balance,
+              currency: DecodeNonstandardCurrencyCode(String(trustItem.currency || '')),
+              limit: trustItem.limit,
+              limitPeer: trustItem.limit_peer ?? trustItem.limitPeer,
+              noRipple: trustItem.no_ripple ?? trustItem.noRipple,
+              noRipplePeer: trustItem.no_ripple_peer ?? trustItem.noRipplePeer,
+              qualityIn: trustItem.quality_in ?? trustItem.qualityIn,
+              qualityOut: trustItem.quality_out ?? trustItem.qualityOut,
+            })),
+          }
+        })
 
         setWallet(rows)
       } else {
@@ -233,6 +237,19 @@ const XRP = () => {
 
   const onClickAddTrustLine = async (address: string) => {
     try {
+      if (!trustLineToken) {
+        showSnack('error', 'Select a token')
+        return
+      }
+      if (!trustLineLimit || trustLineLimit <= 0) {
+        showSnack('error', 'Enter a valid trustline limit')
+        return
+      }
+
+      const { promptWalletPasswordIfNeeded } = await import('@/utils/wallet-password')
+      const walletPassword = await promptWalletPasswordIfNeeded(walletId)
+      if (walletPassword === null) return
+
       const response: any = await axios.post(Http.create_token_trust_line, {
         wallet_id: walletId,
         user_id: userId,
@@ -240,12 +257,15 @@ const XRP = () => {
         network: network === 'mainnet' ? 1 : 2,
         address: address,
         coin: trustLineToken,
-        limit: trustLineLimit,
+        limit: String(trustLineLimit),
+        wallet_password: walletPassword,
       })
 
       if (response.result) {
         showSnack('success', 'Created successfully!')
         await init(walletId, storeId, userId, network)
+      } else {
+        showSnack('error', response.message || 'Failed to create trustline')
       }
     } catch (e) {
       showSnack('error', getApiErrorMessage(e))

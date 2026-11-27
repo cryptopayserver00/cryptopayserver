@@ -18,6 +18,7 @@ import { CHAINNAMES, CHAINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
+import { FormatCryptoDisplay } from '@/utils/number'
 import { OmitMiddleString } from '@/utils/strings'
 import { cn } from '@/lib/utils'
 import {
@@ -260,8 +261,8 @@ export default function TransactionDataGrid(props: GridType) {
 
                       <div className="min-w-0 space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold">
-                            {row.amount} {row.token}
+                          <p className="text-sm font-semibold" title={`${row.amount} ${row.token}`}>
+                            {FormatCryptoDisplay(row.amount, { coin: row.token })} {row.token}
                           </p>
                           {row.transactionType && (
                             <Badge variant="outline" className="font-normal capitalize">
@@ -430,7 +431,9 @@ function TxDialog(props: TxDialogProps) {
           </DetailRow>
           <DetailRow label="Transaction Type">{row.transactionType}</DetailRow>
           <DetailRow label="Amount" bold>
-            {row.amount}
+            <span title={`${row.amount} ${row.token}`}>
+              {FormatCryptoDisplay(row.amount, { coin: row.token })} {row.token}
+            </span>
           </DetailRow>
           <Separator className="my-2" />
           <DetailRow label="Block Timestamp">{row.blockTimestamp}</DetailRow>

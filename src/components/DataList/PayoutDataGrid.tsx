@@ -26,6 +26,7 @@ import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { OmitMiddleString } from '@/utils/strings'
+import { BigIsPositive, FormatCryptoAmount } from '@/utils/number'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -36,7 +37,7 @@ interface RowType {
   address: string
   createdDate: string
   crypto: string
-  cryptoAmount: number | null
+  cryptoAmount: string | null
   refunded: string
   sourceType: string
   externalPaymentId: number
@@ -192,8 +193,8 @@ export default function PayoutDataGrid(props: GridType) {
           refunded: CURRENCY_SYMBOLS[item.currency] + item.amount,
           crypto: item.crypto,
           cryptoAmount:
-            item.cryptoAmount != null && Number.isFinite(Number(item.cryptoAmount))
-              ? Number(item.cryptoAmount)
+            item.cryptoAmount != null && BigIsPositive(item.cryptoAmount)
+              ? FormatCryptoAmount(String(item.cryptoAmount), 12)
               : null,
           sourceType: item.sourceType,
           externalPaymentId: item.externalPaymentId,

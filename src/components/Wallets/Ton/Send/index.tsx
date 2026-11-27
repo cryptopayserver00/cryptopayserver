@@ -14,7 +14,14 @@ import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
-import { BigDiv } from '@/utils/number'
+import {
+  BigAdd,
+  BigDiv,
+  BigGt,
+  BigGte,
+  BigIsPositive,
+  FormatCryptoAmount,
+} from '@/utils/number'
 import { OmitMiddleString } from '@/utils/strings'
 import { GetBlockchainTxUrl } from '@/utils/chain/ton'
 import { COINGECKO_IDS, PAYOUT_STATUS } from '@/packages/constants'
@@ -157,9 +164,10 @@ const TonSend = () => {
         })
         if (rate_response.result) {
           const rate = rate_response.data[ids][response.data.currency.toLowerCase()]
-          const totalPrice = parseFloat(
-            BigDiv(Number(response.data.amount).toString(), rate)
-          ).toFixed(8)
+          const totalPrice = FormatCryptoAmount(
+            BigDiv(String(response.data.amount ?? 0), rate),
+            8
+          )
 
           setAmount(totalPrice)
           setCoin(response.data.crypto)
@@ -202,8 +210,8 @@ const TonSend = () => {
   const checkAmount = (): boolean => {
     if (
       amount &&
-      parseFloat(amount) > 0 &&
-      parseFloat(balance[String(coin)]) >= parseFloat(amount)
+      BigIsPositive(amount) &&
+      BigGte(balance[String(coin)], amount)
     ) {
       return true
     }
@@ -226,13 +234,13 @@ const TonSend = () => {
       if (
         !networkFee ||
         !amount ||
-        networkFee + parseFloat(amount) > parseFloat(balance[String(mainCoin)])
+        BigGt(BigAdd(String(networkFee || 0), amount), balance[String(mainCoin)])
       ) {
         showSnack('error', 'Insufficient balance or Insufficient gas fee')
         return
       }
     } else {
-      if (!networkFee || !amount || networkFee > parseFloat(balance[String(mainCoin)])) {
+      if (!networkFee || !amount || BigGt(String(networkFee), balance[String(mainCoin)])) {
         showSnack('error', 'Insufficient balance or Insufficient gas fee')
         return
       }
@@ -398,7 +406,7 @@ const TonSend = () => {
                 value={amount}
                 onChange={(e) => {
                   setAmount(e.target.value)
-                  if (parseFloat(e.target.value) > parseFloat(balance[String(coin)])) {
+                  if (BigGt(e.target.value, balance[String(coin)])) {
                     setAmountRed(true)
                   } else {
                     setAmountRed(false)

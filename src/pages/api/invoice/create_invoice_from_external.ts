@@ -1,6 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
-import { GenerateOrderIDByTime } from '@/utils/number'
+import {
+  BigAlmostEqual,
+  BigIsPositive,
+  FormatCryptoAmount,
+  GenerateOrderIDByTime,
+} from '@/utils/number'
 import { INVOICE_SOURCE_TYPE, ORDER_STATUS, PAYMENT_REQUEST_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/auth'
@@ -93,27 +98,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid network', result: false, data: null })
     }
 
-    const amount = Number(req.body.amount)
-    if (!amount || amount <= 0) {
+    const amountRaw = req.body.amount
+    if (amountRaw == null || amountRaw === '' || !BigIsPositive(amountRaw)) {
       return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
     }
     const allowCustom = paymentRequest.show_allow_custom_amount === 1
-    const expectedAmount = Number(paymentRequest.amount)
-    if (
-      !allowCustom &&
-      (!Number.isFinite(expectedAmount) ||
-        Math.abs(amount - expectedAmount) > Math.max(1e-8, Math.abs(expectedAmount) * 1e-9))
-    ) {
+    if (!allowCustom && !BigAlmostEqual(amountRaw, paymentRequest.amount, '1e-9', '1e-8')) {
       return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
     }
-
-    let crypto_amount = Number(req.body.crypto_amount)
-    if (!crypto_amount) {
+    if (
+      req.body.crypto_amount == null ||
+      req.body.crypto_amount === '' ||
+      !BigIsPositive(req.body.crypto_amount)
+    ) {
       return res.status(200).json({ message: 'Invalid crypto amount', result: false, data: null })
     }
 
-    let rate = Number(req.body.rate)
-    if (!rate) {
+    if (req.body.rate == null || req.body.rate === '' || !BigIsPositive(req.body.rate)) {
       return res.status(200).json({ message: 'Invalid rate', result: false, data: null })
     }
 
@@ -130,15 +131,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const priced = await resolveAndValidateInvoicePrice({
       crypto: String(crypto),
       currency,
-      amount,
-      clientRate: rate,
-      clientCryptoAmount: crypto_amount,
+      amount: amountRaw,
+      clientRate: req.body.rate,
+      clientCryptoAmount: req.body.crypto_amount,
     })
     if (!priced.ok) {
       return res.status(200).json({ message: priced.message, result: false, data: null })
     }
-    rate = priced.rate
-    crypto_amount = priced.cryptoAmount
+    const amount = Number(FormatCryptoAmount(amountRaw, 12))
+    const rate = Number(priced.rate)
+    const crypto_amount = Number(priced.cryptoAmount)
 
     const email = String(req.body.email || paymentRequest.email || '')
     if (!email) {

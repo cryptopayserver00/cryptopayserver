@@ -42,8 +42,8 @@ export const XRP_COINS: COIN[] = [
     name: COINS.XRP,
     isMainCoin: true,
     symbol: COINS.XRP,
-    decimals: 18,
-    displayDecimals: 8,
+    decimals: 6,
+    displayDecimals: 6,
     icon: require('@/assets/coin/xrp.svg'),
   },
   {
@@ -84,8 +84,8 @@ export const XRP_TESTNET_COINS: COIN[] = [
     name: COINS.XRP,
     isMainCoin: true,
     symbol: COINS.XRP,
-    decimals: 18,
-    displayDecimals: 8,
+    decimals: 6,
+    displayDecimals: 6,
     icon: require('@/assets/coin/xrp.svg'),
   },
   {
@@ -95,7 +95,8 @@ export const XRP_TESTNET_COINS: COIN[] = [
     symbol: COINS.USDT,
     decimals: 6,
     displayDecimals: 2,
-    contractAddress: 'rLRinWiaLFyZ9dr53h6JsVJg6LxUAxjLjP',
+    // Testnet faucet issuer (= node freecoin.xrp.public_key) so Claim Free Funds can mint IOUs.
+    contractAddress: 'rP9Wgj1nS93vmmCKDRga6qYotfCgQAwoVz',
     icon: require('@/assets/coin/usdt.svg'),
   },
 ]
@@ -1312,6 +1313,8 @@ export const BLOCKCHAINNAMES: BLOCKCHAIN[] = [
       ...(typeof process !== 'undefined' && process.env.SOLANA_RPC_DEVNET
         ? [process.env.SOLANA_RPC_DEVNET]
         : []),
+      // Official endpoint is often slow/blocked from some regions — keep multiple free mirrors.
+      'https://solana-devnet.api.onfinality.io/public',
       'https://api.devnet.solana.com',
     ],
     icon: require('@/assets/chain/solana.svg'),

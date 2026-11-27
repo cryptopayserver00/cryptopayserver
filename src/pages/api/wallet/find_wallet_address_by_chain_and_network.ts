@@ -1,10 +1,35 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { WEB3 } from '@/packages/web3'
-import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain'
+import { CHAINS, COINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain'
 import { prisma } from '@/lib/prisma'
 import { rateLimit, requireOwnedWallet } from '@/lib/auth'
-import { GetBlockchainAddressUrlByChainIds } from '@/utils/web3'
+import { FindTokenByChainIdsAndSymbol, GetBlockchainAddressUrlByChainIds } from '@/utils/web3'
+import { FormatCryptoAmount, GetDisplayDecimalsForSymbol } from '@/utils/number'
+
+function resolveDisplayDecimals(chainIds: number, coin: string): number {
+  try {
+    const meta = FindTokenByChainIdsAndSymbol(chainIds as any, coin as COINS)
+    if (meta?.displayDecimals != null && Number.isFinite(meta.displayDecimals)) {
+      return meta.displayDecimals
+    }
+  } catch {
+    // fall through
+  }
+  return GetDisplayDecimalsForSymbol(coin)
+}
+
+/** Trim raw chain balances (e.g. ETH 18dp) to display decimals for UI/API consumers. */
+function formatAssetBalance(
+  raw: Record<string, string | number> | null | undefined,
+  chainIds: number
+): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const [coin, amount] of Object.entries(raw || {})) {
+    out[coin] = FormatCryptoAmount(amount, resolveDisplayDecimals(chainIds, coin))
+  }
+  return out
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   try {
@@ -38,6 +63,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       dbChainId = CHAINS.ETHEREUM
     }
 
+    const isMainnet = network === 1
+    const chainIds = WEB3.getChainIds(isMainnet, chainId)
+
     const addresses = await prisma.addresses.findMany({
       where: {
         wallet_id: walletId,
@@ -56,18 +84,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     let newRows: any[] = []
     if (Array.isArray(addresses) && addresses.length > 0) {
       const promises = addresses.map(async (item: any) => {
+        const soft = async <T>(label: string, fn: () => Promise<T>, fallback: T): Promise<T> => {
+          try {
+            return await fn()
+          } catch (e) {
+            console.warn(`[wallet/address] ${label} failed for ${item.address}`, e)
+            return fallback
+          }
+        }
+
+        const rawBalance = await soft('balance', () => WEB3.getAssetBalance(isMainnet, chainId, item.address), {
+          // Keep page usable when a chain RPC is down.
+        } as any)
+
         return {
           id: item.id,
           address: item.address,
           note: item.note,
-          balance: await WEB3.getAssetBalance(network === 1, chainId, item.address),
-          status: (await WEB3.checkAccountStatus(network === 1, chainId, item.address)) ? 1 : 2,
+          balance: formatAssetBalance(rawBalance || {}, chainIds),
+          status: (await soft(
+            'status',
+            () => WEB3.checkAccountStatus(isMainnet, chainId, item.address),
+            false
+          ))
+            ? 1
+            : 2,
           // Public block-explorer address URL (never BlockScan/node API — those need X-API-Token)
-          txUrl: GetBlockchainAddressUrlByChainIds(network === 1, chainId, item.address),
-          transactions: await WEB3.getTransactions(network === 1, chainId, item.address),
-          resource: await WEB3.getAccountResource(network === 1, chainId, item.address),
-          trust_line: await WEB3.getTokenTrustLine(network === 1, chainId, item.address),
-          // transactions: [],
+          txUrl: GetBlockchainAddressUrlByChainIds(isMainnet, chainId, item.address),
+          transactions: await soft(
+            'transactions',
+            () => WEB3.getTransactions(isMainnet, chainId, item.address),
+            []
+          ),
+          resource: await soft(
+            'resource',
+            () => WEB3.getAccountResource(isMainnet, chainId, item.address),
+            null
+          ),
+          trust_line: await soft(
+            'trust_line',
+            async () => (await WEB3.getTokenTrustLine(isMainnet, chainId, item.address)) || [],
+            []
+          ),
         }
       })
       newRows = await Promise.all(promises)

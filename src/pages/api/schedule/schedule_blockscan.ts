@@ -22,6 +22,7 @@ import {
   unwrapLightningCredentials,
 } from '@/lib/crypto/lightning'
 import { assertSafeHttpUrl } from '@/lib/security/safe-url'
+import { BigAlmostEqual, BigIsPositive } from '@/utils/number'
 
 const BLOCKSCAN_BATCH_SIZE = 50
 
@@ -252,11 +253,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             String(txItem.token) === String(item.crypto) &&
             // Exact amount (float-safe). Overpay must not settle a smaller shared-address invoice.
             (() => {
-              const paid = Number(txItem.amount)
-              const due = Number(item.crypto_amount)
-              if (!Number.isFinite(paid) || !Number.isFinite(due) || due <= 0) return false
-              const tol = Math.max(1e-12, Math.abs(due) * 1e-9)
-              return Math.abs(paid - due) <= tol
+              if (item.crypto_amount == null || !BigIsPositive(item.crypto_amount)) return false
+              return BigAlmostEqual(txItem.amount, item.crypto_amount)
             })() &&
             new Date(txItem.block_timestamp).getTime() > item.created_at.getTime() &&
             (() => {
@@ -478,8 +476,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               txHash: String(payoutRow.tx),
               destination: payoutRow.address,
               crypto: payoutRow.crypto,
-              expectedAmount:
-                payoutRow.crypto_amount != null ? Number(payoutRow.crypto_amount) : null,
+              expectedAmount: payoutRow.crypto_amount != null ? payoutRow.crypto_amount : null,
             })
             if (!verified.ok) {
               // Stay InProgress until explorer confirms SUCCESS.

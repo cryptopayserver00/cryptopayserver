@@ -17,6 +17,8 @@ import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { IsValidEmail, isValidPassword } from '@/utils/verify'
+import { syncWalletForStore } from '@/utils/sync-wallet-for-store'
+import { pickPreferredStore, rememberLastStore } from '@/utils/last-store'
 import { useShallow } from 'zustand/react/shallow'
 
 const Login = () => {
@@ -50,10 +52,8 @@ const Login = () => {
       }))
     )
 
-  const { setWalletId, setIsWallet, resetWallet } = useWalletPresistStore(
+  const { resetWallet } = useWalletPresistStore(
     useShallow((state) => ({
-      setWalletId: state.setWalletId,
-      setIsWallet: state.setIsWallet,
       resetWallet: state.resetWallet,
     }))
   )
@@ -86,23 +86,16 @@ const Login = () => {
 
     if (store_resp.result) {
       if (store_resp.data.length > 0) {
-        setStoreId(store_resp.data[0].id)
-        setStoreName(store_resp.data[0].name)
-        setStoreCurrency(store_resp.data[0].currency)
-        setStorePriceSource(store_resp.data[0].priceSource)
+        const preferred = pickPreferredStore(user.id, store_resp.data as { id: number }[])
+        const store = preferred || store_resp.data[0]
+        setStoreId(store.id)
+        setStoreName(store.name)
+        setStoreCurrency(store.currency)
+        setStorePriceSource(store.priceSource)
         setIsStore(true)
+        rememberLastStore(user.id, store.id)
 
-        const wallet_resp: any = await axios.get(Http.find_wallet, {
-          params: {
-            store_id: store_resp.data[0].id,
-          },
-        })
-        if (wallet_resp.result) {
-          setWalletId(wallet_resp.data.id)
-          setIsWallet(true)
-        } else {
-          resetWallet()
-        }
+        await syncWalletForStore(store.id)
 
         window.location.href = '/dashboard'
       } else {

@@ -17,16 +17,23 @@ import BIP32Factory from 'bip32';
 import * as ecc from 'tiny-secp256k1';
 import { ECPairFactory } from 'ecpair';
 import axios from 'axios';
-import { BigAdd, BigSub, BigDiv, BigMul } from '@/utils/number';
+import { BigAdd, BigSub, BigDiv, BigMul, BigIsPositive, BigLt } from '@/utils/number';
 import { ethers } from 'ethers';
-import Big from 'big.js';
 import { GetBlockchainTxUrl, GetBlockstreamApi, GetNodeApi } from '@/utils/chain/btc';
+import {
+  mapEsploraTxToDetail,
+  mergeEsploraTxDetails,
+  satsToCoin,
+  summarizeAddressTx,
+} from './utxo_tx';
 
 export class BTC {
   static chain = CHAINS.BITCOIN;
 
+  // proxy:false — avoid system http_proxy breaking mempool/blockstream (ECONNRESET → fake 0 balance)
   static axiosInstance = axios.create({
     timeout: 50000,
+    proxy: false,
   });
 
   static getNetwork(isMainnet: boolean): bitcoin.Network {
@@ -322,51 +329,91 @@ export class BTC {
     return items;
   }
 
-  static async getBalance(isMainnet: boolean, address: string, toBTC: boolean = true): Promise<string> {
+  /** Esplora address balance in sats (confirmed + mempool), matching explorer totals. */
+  private static async fetchEsploraBalanceSats(baseUrl: string, address: string): Promise<string | null> {
     try {
-      const url = `${GetNodeApi(isMainnet)}/address/${address}/utxo`;
-      const response = await this.axiosInstance.get(url);
-
-      if (response && response.data && response.data.length > 0) {
-        let balance = '0';
-        response.data.forEach((utxo: any) => {
-          if (utxo.status.confirmed) {
-            balance = BigAdd(balance, parseInt(utxo.value).toString());
-          }
-        });
-
-        return toBTC ? BigDiv(balance, '100000000') : balance;
-      }
-
-      return '0';
+      const { data } = await this.axiosInstance.get(`${baseUrl}/address/${address}`)
+      const chain = data?.chain_stats || {}
+      const mempool = data?.mempool_stats || {}
+      const confirmed = BigSub(
+        String(chain.funded_txo_sum ?? 0),
+        String(chain.spent_txo_sum ?? 0)
+      )
+      const pending = BigSub(
+        String(mempool.funded_txo_sum ?? 0),
+        String(mempool.spent_txo_sum ?? 0)
+      )
+      return BigAdd(confirmed, pending)
     } catch (e) {
-      console.error(e);
-      return '0';
+      console.warn(`[BTC] address stats failed (${baseUrl})`, e)
+      return null
     }
   }
 
-  static async getAddressUtxo(isMainnet: boolean, address: string): Promise<UnspentTransactionOutput[]> {
+  private static async fetchEsploraUtxoBalanceSats(baseUrl: string, address: string): Promise<string | null> {
     try {
-      const url = `${GetNodeApi(isMainnet)}/address/${address}/utxo`;
-      const response = await this.axiosInstance.get(url);
-
-      if (response.data.length > 0) {
-        return response.data.map((utxo: any) => {
-          if (utxo.status.confirmed) {
-            return {
-              txid: utxo.txid,
-              vout: utxo.vout,
-              value: utxo.value,
-            };
-          }
-        });
+      const { data } = await this.axiosInstance.get(`${baseUrl}/address/${address}/utxo`)
+      if (!Array.isArray(data)) return null
+      let balance = '0'
+      for (const utxo of data) {
+        // Include unconfirmed so UI matches explorers; spend path still filters confirmed UTXOs.
+        balance = BigAdd(balance, String(utxo?.value ?? 0))
       }
-
-      return [];
+      return balance
     } catch (e) {
-      console.error(e);
-      throw new Error('can not get the utxo of btc');
+      console.warn(`[BTC] utxo balance failed (${baseUrl})`, e)
+      return null
     }
+  }
+
+  static async getBalance(isMainnet: boolean, address: string, toBTC: boolean = true): Promise<string> {
+    const bases = [GetNodeApi(isMainnet), GetBlockstreamApi(isMainnet)]
+    let sats: string | null = null
+    for (const base of bases) {
+      sats = await this.fetchEsploraBalanceSats(base, address)
+      if (sats != null) break
+      sats = await this.fetchEsploraUtxoBalanceSats(base, address)
+      if (sats != null) break
+    }
+    if (sats == null) {
+      console.error('[BTC] all balance endpoints failed', address)
+      return '0'
+    }
+    return toBTC ? BigDiv(sats, '100000000') : sats
+  }
+
+  private static parseEsploraUtxos(data: unknown, confirmedOnly = true): UnspentTransactionOutput[] {
+    if (!Array.isArray(data)) return []
+    const out: UnspentTransactionOutput[] = []
+    for (const utxo of data) {
+      if (!utxo?.txid || utxo.vout == null || utxo.value == null) continue
+      if (confirmedOnly && !utxo.status?.confirmed) continue
+      out.push({
+        txid: String(utxo.txid),
+        vout: Number(utxo.vout),
+        value: Number(utxo.value),
+      })
+    }
+    return out
+  }
+
+  static async getAddressUtxo(isMainnet: boolean, address: string): Promise<UnspentTransactionOutput[]> {
+    const bases = [GetNodeApi(isMainnet), GetBlockstreamApi(isMainnet)]
+    let lastError: unknown
+    for (const base of bases) {
+      try {
+        const { data } = await this.axiosInstance.get(`${base}/address/${address}/utxo`)
+        // Include unconfirmed so spendable set matches getBalance / explorers.
+        const all = this.parseEsploraUtxos(data, false)
+        if (all.length) return all
+        return this.parseEsploraUtxos(data, true)
+      } catch (e) {
+        lastError = e
+        console.warn(`[BTC] utxo fetch failed (${base})`, e)
+      }
+    }
+    console.error(lastError)
+    throw new Error('can not get the utxo of btc')
   }
 
   static async getRawTransaction(isMainnet: boolean, tx: string): Promise<string> {
@@ -434,95 +481,57 @@ export class BTC {
   }
 
   static async broadcastTransaction(isMainnet: boolean, data: string): Promise<string> {
-    try {
-      const url = `${GetNodeApi(isMainnet)}/tx`;
-      const response = await this.axiosInstance.post(url, data);
-
-      if (response.data) {
-        return response.data;
+    const bases = [GetNodeApi(isMainnet), GetBlockstreamApi(isMainnet)]
+    let lastError: unknown
+    for (const base of bases) {
+      try {
+        const response = await this.axiosInstance.post(`${base}/tx`, data, {
+          headers: { 'Content-Type': 'text/plain' },
+        })
+        if (response.data) {
+          return typeof response.data === 'string' ? response.data : String(response.data)
+        }
+      } catch (e) {
+        lastError = e
+        console.warn(`[BTC] broadcast failed (${base})`, e)
       }
-
-      throw new Error('can not broadcast tx of btc');
-    } catch (e) {
-      console.error(e);
-      throw new Error('can not broadcast tx of btc');
     }
+    console.error(lastError)
+    const detail =
+      lastError && typeof lastError === 'object' && 'response' in lastError
+        ? String((lastError as { response?: { data?: unknown } }).response?.data || '')
+        : ''
+    throw new Error(detail ? `can not broadcast tx of btc: ${detail}` : 'can not broadcast tx of btc')
   }
 
   static async getTransactions(isMainnet: boolean, address: string): Promise<TransactionDetail[]> {
     try {
-      const url = `${GetNodeApi(isMainnet)}/address/${address}/txs`;
-      const response = await this.axiosInstance.get(url);
-      if (response.data.length > 0) {
-        let txs: TransactionDetail[] = [];
-        response.data.forEach((item: any) => {
-          let status = TRANSACTIONSTATUS.PENDING;
-          if (item.status.confirmed) {
-            status = TRANSACTIONSTATUS.SUCCESS;
-          }
+      const base = GetNodeApi(isMainnet)
+      const [confirmedResp, mempoolResp] = await Promise.allSettled([
+        this.axiosInstance.get(`${base}/address/${address}/txs`),
+        this.axiosInstance.get(`${base}/address/${address}/txs/mempool`),
+      ])
 
-          let txType = TRANSACTIONTYPE.SEND;
-          let value = 0;
-          item.vin.forEach((vinItem: any) => {
-            if (
-              vinItem.prevout.scriptpubkey_address &&
-              address.toLowerCase() === vinItem.prevout.scriptpubkey_address.toLowerCase()
-            ) {
-              txType = TRANSACTIONTYPE.SEND;
-              value += parseInt(vinItem.prevout.value);
-            } else {
-              txType = TRANSACTIONTYPE.RECEIVED;
-            }
-          });
-
-          item.vout.forEach((voutItem: any) => {
-            if (txType === TRANSACTIONTYPE.SEND) {
-              if (
-                voutItem.scriptpubkey_address &&
-                address.toLowerCase() !== voutItem.scriptpubkey_address.toLowerCase()
-              ) {
-                value -= parseInt(voutItem.value);
-              }
-            } else if (txType === TRANSACTIONTYPE.RECEIVED) {
-              if (
-                voutItem.scriptpubkey_address &&
-                address.toLowerCase() === voutItem.scriptpubkey_address.toLowerCase()
-              ) {
-                value += parseInt(voutItem.value);
-              }
-            }
-          });
-
-          let blockTimestamp = 0,
-            blockNumber = 0;
-          if (item.status.confirmed) {
-            blockTimestamp = item.status.block_time;
-            blockNumber = item.status.block_height;
-          }
-
-          const url = GetBlockchainTxUrl(isMainnet, item.txid);
-
-          txs.push({
-            hash: item.txid,
-            value: value.toString(),
-            asset: COINS.BTC,
-            fee: item.fee,
-            type: txType,
-            status: status,
-            blockTimestamp: blockTimestamp,
-            blockNumber: blockNumber,
-            url: url,
-          });
-        });
-
-        return txs;
-      } else {
-        return [];
+      const raw: any[] = []
+      if (confirmedResp.status === 'fulfilled' && Array.isArray(confirmedResp.value.data)) {
+        raw.push(...confirmedResp.value.data)
       }
+      if (mempoolResp.status === 'fulfilled' && Array.isArray(mempoolResp.value.data)) {
+        raw.push(...mempoolResp.value.data)
+      }
+
+      const mapped = raw
+        .map((item) =>
+          mapEsploraTxToDetail(address, item, COINS.BTC, (txid) =>
+            GetBlockchainTxUrl(isMainnet, txid)
+          )
+        )
+        .filter((row): row is TransactionDetail => row != null)
+
+      return mergeEsploraTxDetails(mapped)
     } catch (e) {
-      console.error(e);
-      return [];
-      // throw new Error('can not get the transactions of btc');
+      console.error(e)
+      return []
     }
   }
 
@@ -536,34 +545,6 @@ export class BTC {
           status = TRANSACTIONSTATUS.SUCCESS;
         }
 
-        let txType;
-        let value = 0;
-
-        if (address) {
-          response.data.vin.forEach((vinItem: any) => {
-            if (
-              vinItem.prevout.scriptpubkey_address &&
-              address.toLowerCase() === vinItem.prevout.scriptpubkey_address.toLowerCase()
-            ) {
-              txType = TRANSACTIONTYPE.SEND;
-              value += parseInt(vinItem.prevout.value);
-            }
-          });
-
-          if (txType !== TRANSACTIONTYPE.SEND) {
-            txType = TRANSACTIONTYPE.RECEIVED;
-          }
-
-          response.data.vout.forEach((voutItem: any) => {
-            if (
-              voutItem.scriptpubkey_address &&
-              address.toLowerCase() === voutItem.scriptpubkey_address.toLowerCase()
-            ) {
-              value -= parseInt(voutItem.value);
-            }
-          });
-        }
-
         let blockTimestamp = 0,
           blockNumber = 0;
         if (response.data.status.confirmed) {
@@ -572,13 +553,15 @@ export class BTC {
         }
 
         const explorerUrl = GetBlockchainTxUrl(isMainnet, response.data.txid);
+        const feeCoin = satsToCoin(response.data.fee);
 
         if (address) {
+          const { type: txType, valueCoin } = summarizeAddressTx(address, response.data);
           return {
             hash: response.data.txid,
-            value: value.toString(),
+            value: valueCoin,
             asset: COINS.BTC,
-            fee: response.data.fee,
+            fee: feeCoin,
             type: txType,
             status: status,
             blockTimestamp: blockTimestamp,
@@ -589,7 +572,7 @@ export class BTC {
           return {
             hash: response.data.txid,
             asset: COINS.BTC,
-            fee: response.data.fee,
+            fee: feeCoin,
             status: status,
             blockTimestamp: blockTimestamp,
             blockNumber: blockNumber,
@@ -649,65 +632,75 @@ export class BTC {
 
       let totalBalance = '0';
       const utxos = await this.getAddressUtxo(isMainnet, req.from);
+      if (!utxos.length) {
+        throw new Error('No confirmed UTXOs available to spend');
+      }
 
-      if (utxos && utxos.length > 0) {
-        for (const item of utxos) {
-          totalBalance = BigAdd(totalBalance, item.value.toString());
-          switch (req.btcType) {
-            case BTCTYPE.NATIVESEGWIT:
-              txb.addInput({
-                hash: item.txid,
-                index: item.vout,
-                witnessUtxo: {
-                  script: script,
-                  value: item.value,
-                },
-              });
-              break;
-            case BTCTYPE.NESTEDSEGWIT:
-              txb.addInput({
-                hash: item.txid,
-                index: item.vout,
-                witnessUtxo: {
-                  script: script,
-                  value: item.value,
-                },
-                redeemScript: redeemScript,
-              });
-              break;
-            case BTCTYPE.TAPROOT:
-              txb.addInput({
-                hash: item.txid,
-                index: item.vout,
-                witnessUtxo: {
-                  script: script,
-                  value: item.value,
-                },
-                tapInternalKey: tapInternalKey,
-              });
-              break;
-            case BTCTYPE.LEGACY:
-              const rawTx = await this.getRawTransaction(isMainnet, item.txid);
-              txb.addInput({
-                hash: item.txid,
-                index: item.vout,
-                nonWitnessUtxo: Buffer.from(rawTx, 'hex'),
-              });
-              break;
+      for (const item of utxos) {
+        totalBalance = BigAdd(totalBalance, item.value.toString());
+        switch (req.btcType) {
+          case BTCTYPE.NATIVESEGWIT:
+            txb.addInput({
+              hash: item.txid,
+              index: item.vout,
+              witnessUtxo: {
+                script: script,
+                value: item.value,
+              },
+            });
+            break;
+          case BTCTYPE.NESTEDSEGWIT:
+            txb.addInput({
+              hash: item.txid,
+              index: item.vout,
+              witnessUtxo: {
+                script: script,
+                value: item.value,
+              },
+              redeemScript: redeemScript,
+            });
+            break;
+          case BTCTYPE.TAPROOT:
+            txb.addInput({
+              hash: item.txid,
+              index: item.vout,
+              witnessUtxo: {
+                script: script,
+                value: item.value,
+              },
+              tapInternalKey: tapInternalKey,
+            });
+            break;
+          case BTCTYPE.LEGACY: {
+            const rawTx = await this.getRawTransaction(isMainnet, item.txid);
+            txb.addInput({
+              hash: item.txid,
+              index: item.vout,
+              nonWitnessUtxo: Buffer.from(rawTx, 'hex'),
+            });
+            break;
           }
+          default:
+            throw new Error('can not create the transactions of btc');
         }
       }
 
-      const sendBalance = new Big(ethers.parseUnits(req.value, 8).toString()).toNumber();
-      const feeRate = req.feeRate ? req.feeRate : (await this.getCurrentFeeRate(isMainnet)).fastest;
+      const sendBalance = parseInt(ethers.parseUnits(req.value, 8).toString(), 10);
+      const feeRateNum = Number(req.feeRate);
+      const feeRate =
+        Number.isFinite(feeRateNum) && feeRateNum > 0
+          ? feeRateNum
+          : (await this.getCurrentFeeRate(isMainnet)).fastest;
       const numInputs = utxos.length;
       const numOutputs = 2;
       const size = this.estimateVirtualSize(numInputs, numOutputs);
-      const feeBalance = BigMul(size.toString(), feeRate.toString());
+      const feeBalance = BigMul(size.toString(), String(feeRate));
 
-      const remainValue = parseFloat(BigSub(BigSub(totalBalance, sendBalance.toString()), feeBalance));
-      if (remainValue < 0) {
-        throw new Error('can not create the transactions of btc');
+      const remainValue = BigSub(BigSub(totalBalance, String(sendBalance)), feeBalance);
+      if (BigLt(remainValue, '0')) {
+        throw new Error(
+          `Insufficient confirmed balance: need ${sendBalance} + ${feeBalance} sats, have ${totalBalance} sats`
+        );
       }
 
       txb.addOutput({
@@ -715,15 +708,15 @@ export class BTC {
         value: sendBalance,
       });
 
-      if (remainValue > 0) {
+      if (BigIsPositive(remainValue)) {
         txb.addOutput({
           address: req.from,
-          value: remainValue,
+          value: parseInt(remainValue, 10),
         });
       }
 
       switch (req.btcType) {
-        case BTCTYPE.TAPROOT:
+        case BTCTYPE.TAPROOT: {
           const tweakedKeyPair = keyPair.tweak(bitcoin.crypto.taggedHash('TapTweak', tapInternalKey));
 
           for (let i = 0; i < utxos.length; i++) {
@@ -731,6 +724,7 @@ export class BTC {
           }
 
           break;
+        }
         default:
           txb.signAllInputs(keyPair);
       }
@@ -742,6 +736,9 @@ export class BTC {
       return txid;
     } catch (e) {
       console.error(e);
+      if (e instanceof Error && e.message && !e.message.startsWith('can not send')) {
+        throw e;
+      }
       throw new Error('can not send the transactions of btc');
     }
   }

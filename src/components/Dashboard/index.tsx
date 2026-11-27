@@ -17,6 +17,7 @@ import PaymentAnalyticsChart from './PaymentAnalyticsChart'
 import { useStorePresistStore, useUserPresistStore, useWalletPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { Http } from '@/utils/http/http'
+import { syncWalletForStore } from '@/utils/sync-wallet-for-store'
 import { PAYOUT_STATUS } from '@/packages/constants'
 import InvoiceDataGrid from '@/components/DataList/InvoiceDataGrid'
 import PayoutDataGrid from '@/components/DataList/PayoutDataGrid'
@@ -44,8 +45,9 @@ const Dashboard = () => {
     }))
   )
 
-  const { storeName, isStore } = useStorePresistStore(
+  const { storeId, storeName, isStore } = useStorePresistStore(
     useShallow((state) => ({
+      storeId: state.storeId,
       storeName: state.storeName,
       isStore: state.isStore,
     }))
@@ -87,6 +89,13 @@ const Dashboard = () => {
       console.error(e)
     }
   }
+
+  useEffect(() => {
+    // Recover wallet after logout/login when local isWallet was cleared but DB still has it.
+    if (!isStore || !storeId) return
+    if (isWallet && walletId) return
+    void syncWalletForStore(storeId)
+  }, [isStore, storeId, isWallet, walletId])
 
   useEffect(() => {
     init(walletId)

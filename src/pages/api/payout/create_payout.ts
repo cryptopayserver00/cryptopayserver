@@ -1,6 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
-import { GenerateOrderIDByTime } from '@/utils/number'
+import {
+  BigCmp,
+  BigIsPositive,
+  BigSub,
+  FormatCryptoAmount,
+  GenerateOrderIDByTime,
+} from '@/utils/number'
 import { PAYOUT_SOURCE_TYPE, PAYOUT_STATUS, PULL_PAYMENT_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/auth'
@@ -30,10 +36,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid chainId', result: false, data: null })
     }
 
-    const amount = Number(req.body.amount)
-    if (!Number.isFinite(amount) || amount <= 0) {
+    if (req.body.amount == null || req.body.amount === '' || !BigIsPositive(req.body.amount)) {
       return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
     }
+    const amount = Number(FormatCryptoAmount(req.body.amount, 12))
 
     const externalPaymentId = Number(req.body.external_payment_id)
     if (!externalPaymentId) {
@@ -127,16 +133,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         },
         _sum: { amount: true },
       })
-      const poolAmount = Number(pull_payment.amount)
-      if (!Number.isFinite(poolAmount) || poolAmount <= 0) {
+      const poolAmount = String(pull_payment.amount ?? 0)
+      if (!BigIsPositive(poolAmount)) {
         return { error: 'Invalid pull payment amount' as const }
       }
-      const claimedTotal = Number(claimed._sum.amount || 0)
-      if (!Number.isFinite(claimedTotal) || claimedTotal < 0) {
+      const claimedTotal = String(claimed._sum.amount || 0)
+      if (BigCmp(claimedTotal, '0') < 0) {
         return { error: 'Invalid claimed total' as const }
       }
-      const remaining = poolAmount - claimedTotal
-      if (!Number.isFinite(remaining) || amount > remaining + 1e-12) {
+      const remaining = BigSub(poolAmount, claimedTotal)
+      if (BigCmp(req.body.amount, remaining) > 0) {
         return { error: 'Amount exceeds remaining pull payment balance' as const }
       }
 

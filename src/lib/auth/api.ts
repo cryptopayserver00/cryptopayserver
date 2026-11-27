@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '@/lib/prisma'
+import { CHAINS, ETHEREUM_CATEGORY_CHAINS } from '@/packages/constants/blockchain'
 import { assertSameOrigin } from './csrf'
 import { requireCronSecret } from './cron'
 
@@ -12,6 +13,15 @@ import {
 } from './rbac'
 import { getSessionFromRequest, type SessionPayload } from './session'
 import type { ResponseData } from '@/pages/api'
+
+/** EVM L2s share the Ethereum HD address row (chain_id = ETHEREUM). */
+function resolveAddressDbChainId(chainId?: number): number | undefined {
+  if (!chainId) return undefined
+  if (ETHEREUM_CATEGORY_CHAINS.includes(chainId as CHAINS)) {
+    return CHAINS.ETHEREUM
+  }
+  return chainId
+}
 
 export function unauthorized(res: NextApiResponse<ResponseData>, message = 'Unauthorized') {
   return res.status(401).json({ message, result: false, data: null })
@@ -107,18 +117,38 @@ export async function assertAddressOwnedByUser(
 ): Promise<boolean> {
   const addr = String(address || '').trim()
   if (!addr) return false
-  const row = await prisma.addresses.findFirst({
+
+  const dbChainId = resolveAddressDbChainId(opts?.chainId)
+  const isEvm = /^0x[0-9a-fA-F]{40}$/.test(addr)
+
+  // Exact match first (checksum / non-EVM addresses).
+  const exact = await prisma.addresses.findFirst({
     where: {
       user_id: userId,
       status: 1,
       address: addr,
-      ...(opts?.chainId ? { chain_id: opts.chainId } : {}),
+      ...(dbChainId ? { chain_id: dbChainId } : {}),
       ...(opts?.network ? { network: opts.network } : {}),
       ...(opts?.walletId ? { wallet_id: opts.walletId } : {}),
     },
     select: { id: true },
   })
-  return Boolean(row)
+  if (exact) return true
+
+  // MySQL has no Prisma `mode: insensitive`; EVM checksum casing can differ.
+  if (!isEvm) return false
+  const candidates = await prisma.addresses.findMany({
+    where: {
+      user_id: userId,
+      status: 1,
+      ...(dbChainId ? { chain_id: dbChainId } : {}),
+      ...(opts?.network ? { network: opts.network } : {}),
+      ...(opts?.walletId ? { wallet_id: opts.walletId } : {}),
+    },
+    select: { address: true },
+  })
+  const lower = addr.toLowerCase()
+  return candidates.some((r) => String(r.address).toLowerCase() === lower)
 }
 
 /**

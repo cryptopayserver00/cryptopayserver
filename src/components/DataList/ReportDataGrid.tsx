@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
 import { CURRENCY_SYMBOLS, REPORT_STATUS } from '@/packages/constants'
 import { FindChainNamesByChains } from '@/utils/web3'
+import { FormatCryptoDisplay } from '@/utils/number'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
@@ -93,7 +94,7 @@ export default function ReportDataGrid(props: GridType) {
             orderId: item.orderId,
             chainId: item.chainId,
             chain: FindChainNamesByChains(item.chainId),
-            cryptoAmount: item.cryptoAmount + ' ' + item.crypto,
+            cryptoAmount: `${FormatCryptoDisplay(item.cryptoAmount, { coin: item.crypto })} ${item.crypto}`,
             fiatAmount: CURRENCY_SYMBOLS[item.currency] + item.amount,
             rate: item.rate,
             description: item.description,

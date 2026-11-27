@@ -30,6 +30,7 @@ import {
   GetBlockchainTxUrlByChainIds,
 } from '@/utils/web3'
 import { CHAINS } from '@/packages/constants/blockchain'
+import { FormatCryptoDisplay } from '@/utils/number'
 import { OmitMiddleString } from '@/utils/strings'
 import { GetImgSrcByChain } from '@/utils/qrcode'
 import { useShallow } from 'zustand/react/shallow'
@@ -372,8 +373,12 @@ const PaymentInvoiceDetails = () => {
               <DetailRow
                 label="Total Due"
                 value={
-                  <span className="font-bold text-foreground">
-                    {order.cryptoAmount} {order.crypto}
+                  <span
+                    className="font-bold text-foreground"
+                    title={`${order.cryptoAmount} ${order.crypto}`}
+                  >
+                    {FormatCryptoDisplay(order.cryptoAmount, { coin: order.crypto })}{' '}
+                    {order.crypto}
                   </span>
                 }
               />

@@ -22,7 +22,7 @@ import { useSnackPresistStore } from '@/lib/store'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
-import { FormatCryptoAmount } from '@/utils/number'
+import { FormatCryptoAmount, FormatCryptoDisplay } from '@/utils/number'
 import { OmitMiddleString } from '@/utils/strings'
 import { CURRENCY_SYMBOLS, ORDER_STATUS } from '@/packages/constants'
 import { GetImgSrcByChain, GetImgSrcByCrypto } from '@/utils/qrcode'
@@ -436,7 +436,7 @@ const InvoiceDetails = () => {
               <div className="rounded-xl border bg-muted/30 px-4 py-5">
                 <p className="text-sm text-muted-foreground">Amount due</p>
                 <p className="mt-1 text-3xl font-bold tracking-tight">
-                  {FormatCryptoAmount(order.cryptoAmount, 12)}{' '}
+                  {FormatCryptoDisplay(order.cryptoAmount, { coin: order.crypto })}{' '}
                   <span className="text-2xl font-semibold">{order.crypto}</span>
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -680,7 +680,8 @@ const InvoiceDetails = () => {
                 <p className="mt-4 text-xs text-muted-foreground">
                   Send exactly{' '}
                   <span className="font-medium text-foreground">
-                    {FormatCryptoAmount(order.cryptoAmount, 12)} {order.crypto}
+                    {FormatCryptoDisplay(order.cryptoAmount, { coin: order.crypto })}{' '}
+                    {order.crypto}
                   </span>
                 </p>
 

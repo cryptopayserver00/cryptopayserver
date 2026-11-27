@@ -16,15 +16,21 @@ import * as ecc from 'tiny-secp256k1';
 import BIP32Factory from 'bip32';
 import { ECPairFactory } from 'ecpair';
 import { GetBlockchainTxUrl, GetNodeApi } from '@/utils/chain/ltc';
-import { BigAdd, BigDiv, BigMul, BigSub } from '@/utils/number';
-import Big from 'big.js';
+import { BigAdd, BigDiv, BigMul, BigSub, BigIsPositive, BigLt } from '@/utils/number';
 import { ethers } from 'ethers';
+import {
+  mapEsploraTxToDetail,
+  mergeEsploraTxDetails,
+  satsToCoin,
+  summarizeAddressTx,
+} from './utxo_tx';
 
 export class LTC {
   static chain = CHAINS.LITECOIN;
 
   static axiosInstance = axios.create({
     timeout: 50000,
+    proxy: false,
   });
 
   static getNetwork(isMainnet: boolean): bitcoin.Network {
@@ -214,49 +220,60 @@ export class LTC {
   }
 
   static async getBalance(isMainnet: boolean, address: string, toLTC: boolean = true): Promise<string> {
+    const base = GetNodeApi(isMainnet)
     try {
-      const url = `${GetNodeApi(isMainnet)}/address/${address}/utxo`;
-      const response = await this.axiosInstance.get(url);
-
-      if (response && response.data && response.data.length > 0) {
-        let balance = '0';
-        response.data.forEach((utxo: any) => {
-          if (utxo.status.confirmed) {
-            balance = BigAdd(balance, parseInt(utxo.value).toString());
-          }
-        });
-
-        return toLTC ? BigDiv(balance, '100000000') : balance;
-      }
-
-      return '0';
+      const { data } = await this.axiosInstance.get(`${base}/address/${address}`)
+      const chain = data?.chain_stats || {}
+      const mempool = data?.mempool_stats || {}
+      const confirmed = BigSub(
+        String(chain.funded_txo_sum ?? 0),
+        String(chain.spent_txo_sum ?? 0)
+      )
+      const pending = BigSub(
+        String(mempool.funded_txo_sum ?? 0),
+        String(mempool.spent_txo_sum ?? 0)
+      )
+      const sats = BigAdd(confirmed, pending)
+      return toLTC ? BigDiv(sats, '100000000') : sats
     } catch (e) {
-      console.error(e);
-      return '0';
+      console.warn('[LTC] address stats failed, trying utxo', e)
+    }
+
+    try {
+      const { data } = await this.axiosInstance.get(`${base}/address/${address}/utxo`)
+      if (!Array.isArray(data) || data.length === 0) {
+        return '0'
+      }
+      let balance = '0'
+      for (const utxo of data) {
+        balance = BigAdd(balance, String(utxo?.value ?? 0))
+      }
+      return toLTC ? BigDiv(balance, '100000000') : balance
+    } catch (e) {
+      console.error(e)
+      return '0'
     }
   }
 
   static async getAddressUtxo(isMainnet: boolean, address: string): Promise<UnspentTransactionOutput[]> {
     try {
-      const url = `${GetNodeApi(isMainnet)}/address/${address}/utxo`;
-      const response = await this.axiosInstance.get(url);
-
-      if (response.data.length > 0) {
-        return response.data.map((utxo: any) => {
-          if (utxo.status.confirmed) {
-            return {
-              txid: utxo.txid,
-              vout: utxo.vout,
-              value: utxo.value,
-            };
-          }
-        });
+      const url = `${GetNodeApi(isMainnet)}/address/${address}/utxo`
+      const response = await this.axiosInstance.get(url)
+      if (!Array.isArray(response.data)) return []
+      const out: UnspentTransactionOutput[] = []
+      for (const utxo of response.data) {
+        if (!utxo?.status?.confirmed) continue
+        if (!utxo.txid || utxo.vout == null || utxo.value == null) continue
+        out.push({
+          txid: String(utxo.txid),
+          vout: Number(utxo.vout),
+          value: Number(utxo.value),
+        })
       }
-
-      return [];
+      return out
     } catch (e) {
-      console.error(e);
-      throw new Error('can not get the utxo of ltc');
+      console.error(e)
+      throw new Error('can not get the utxo of ltc')
     }
   }
 
@@ -311,78 +328,32 @@ export class LTC {
 
   static async getTransactions(isMainnet: boolean, address: string): Promise<TransactionDetail[]> {
     try {
-      const url = `${GetNodeApi(isMainnet)}/address/${address}/txs`;
-      const response = await this.axiosInstance.get(url);
-      if (response.data.length > 0) {
-        let txs: TransactionDetail[] = [];
-        response.data.forEach((item: any) => {
-          let status = TRANSACTIONSTATUS.PENDING;
-          if (item.status.confirmed) {
-            status = TRANSACTIONSTATUS.SUCCESS;
-          }
+      const base = GetNodeApi(isMainnet)
+      const [confirmedResp, mempoolResp] = await Promise.allSettled([
+        this.axiosInstance.get(`${base}/address/${address}/txs`),
+        this.axiosInstance.get(`${base}/address/${address}/txs/mempool`),
+      ])
 
-          let txType = TRANSACTIONTYPE.SEND;
-          let value = 0;
-          item.vin.forEach((vinItem: any) => {
-            if (
-              vinItem.prevout.scriptpubkey_address &&
-              address.toLowerCase() === vinItem.prevout.scriptpubkey_address.toLowerCase()
-            ) {
-              txType = TRANSACTIONTYPE.SEND;
-              value += parseInt(vinItem.prevout.value);
-            } else {
-              txType = TRANSACTIONTYPE.RECEIVED;
-            }
-          });
-
-          item.vout.forEach((voutItem: any) => {
-            if (txType === TRANSACTIONTYPE.SEND) {
-              if (
-                voutItem.scriptpubkey_address &&
-                address.toLowerCase() !== voutItem.scriptpubkey_address.toLowerCase()
-              ) {
-                value -= parseInt(voutItem.value);
-              }
-            } else if (txType === TRANSACTIONTYPE.RECEIVED) {
-              if (
-                voutItem.scriptpubkey_address &&
-                address.toLowerCase() === voutItem.scriptpubkey_address.toLowerCase()
-              ) {
-                value += parseInt(voutItem.value);
-              }
-            }
-          });
-
-          let blockTimestamp = 0,
-            blockNumber = 0;
-          if (item.status.confirmed) {
-            blockTimestamp = item.status.block_time;
-            blockNumber = item.status.block_height;
-          }
-
-          const url = GetBlockchainTxUrl(isMainnet, item.txid);
-
-          txs.push({
-            hash: item.txid,
-            value: value.toString(),
-            asset: COINS.LTC,
-            fee: item.fee,
-            type: txType,
-            status: status,
-            blockTimestamp: blockTimestamp,
-            blockNumber: blockNumber,
-            url: url,
-          });
-        });
-
-        return txs;
-      } else {
-        return [];
+      const raw: any[] = []
+      if (confirmedResp.status === 'fulfilled' && Array.isArray(confirmedResp.value.data)) {
+        raw.push(...confirmedResp.value.data)
       }
+      if (mempoolResp.status === 'fulfilled' && Array.isArray(mempoolResp.value.data)) {
+        raw.push(...mempoolResp.value.data)
+      }
+
+      const mapped = raw
+        .map((item) =>
+          mapEsploraTxToDetail(address, item, COINS.LTC, (txid) =>
+            GetBlockchainTxUrl(isMainnet, txid)
+          )
+        )
+        .filter((row): row is TransactionDetail => row != null)
+
+      return mergeEsploraTxDetails(mapped)
     } catch (e) {
-      console.error(e);
-      return [];
-      // throw new Error('can not get the transactions of ltc');
+      console.error(e)
+      return []
     }
   }
 
@@ -396,34 +367,6 @@ export class LTC {
           status = TRANSACTIONSTATUS.SUCCESS;
         }
 
-        let txType;
-        let value = 0;
-
-        if (address) {
-          response.data.vin.forEach((vinItem: any) => {
-            if (
-              vinItem.prevout.scriptpubkey_address &&
-              address.toLowerCase() === vinItem.prevout.scriptpubkey_address.toLowerCase()
-            ) {
-              txType = TRANSACTIONTYPE.SEND;
-              value += parseInt(vinItem.prevout.value);
-            }
-          });
-
-          if (txType !== TRANSACTIONTYPE.SEND) {
-            txType = TRANSACTIONTYPE.RECEIVED;
-          }
-
-          response.data.vout.forEach((voutItem: any) => {
-            if (
-              voutItem.scriptpubkey_address &&
-              address.toLowerCase() === voutItem.scriptpubkey_address.toLowerCase()
-            ) {
-              value -= parseInt(voutItem.value);
-            }
-          });
-        }
-
         let blockTimestamp = 0,
           blockNumber = 0;
         if (response.data.status.confirmed) {
@@ -432,13 +375,15 @@ export class LTC {
         }
 
         const explorerUrl = GetBlockchainTxUrl(isMainnet, response.data.txid);
+        const feeCoin = satsToCoin(response.data.fee);
 
         if (address) {
+          const { type: txType, valueCoin } = summarizeAddressTx(address, response.data);
           return {
             hash: response.data.txid,
-            value: value.toString(),
+            value: valueCoin,
             asset: COINS.LTC,
-            fee: response.data.fee,
+            fee: feeCoin,
             type: txType,
             status: status,
             blockTimestamp: blockTimestamp,
@@ -449,7 +394,7 @@ export class LTC {
           return {
             hash: response.data.txid,
             asset: COINS.LTC,
-            fee: response.data.fee,
+            fee: feeCoin,
             status: status,
             blockTimestamp: blockTimestamp,
             blockNumber: blockNumber,
@@ -498,15 +443,15 @@ export class LTC {
         }
       }
 
-      const sendBalance = new Big(ethers.parseUnits(req.value, 8).toString()).toNumber();
+      const sendBalance = parseInt(ethers.parseUnits(req.value, 8).toString(), 10);
       const feeRate = req.feeRate ? req.feeRate : (await this.getCurrentFeeRate(isMainnet)).fastest;
       const numInputs = utxos.length;
       const numOutputs = 2;
       const size = this.estimateVirtualSize(numInputs, numOutputs);
       const feeBalance = BigMul(size.toString(), feeRate.toString());
 
-      const remainValue = parseFloat(BigSub(BigSub(totalBalance, sendBalance.toString()), feeBalance));
-      if (remainValue < 0) {
+      const remainValue = BigSub(BigSub(totalBalance, String(sendBalance)), feeBalance);
+      if (BigLt(remainValue, '0')) {
         throw new Error('can not create the transactions of ltc');
       }
 
@@ -515,10 +460,10 @@ export class LTC {
         value: sendBalance,
       });
 
-      if (remainValue > 0) {
+      if (BigIsPositive(remainValue)) {
         txb.addOutput({
           address: req.from,
-          value: remainValue,
+          value: parseInt(remainValue, 10),
         });
       }
 

@@ -1,6 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
-import { BtcToMsatoshis, BtcToSatoshis, GenerateOrderIDByTime } from '@/utils/number'
+import {
+  BigIsPositive,
+  BtcToMsatoshis,
+  BtcToSatoshis,
+  FormatCryptoAmount,
+  GenerateOrderIDByTime,
+} from '@/utils/number'
 import { INVOICE_SOURCE_TYPE, NOTIFICATION_TYPE, ORDER_STATUS } from '@/packages/constants'
 import { CHAINS, LIGHTNINGNAME } from '@/packages/constants/blockchain'
 import { LIGHTNING } from '@/packages/lightning'
@@ -76,18 +82,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(200).json({ message: 'Invalid network', result: false, data: null })
     }
 
-    const amount = Number(req.body.amount)
-    if (!amount) {
+    if (req.body.amount == null || req.body.amount === '' || !BigIsPositive(req.body.amount)) {
       return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
     }
-
-    let crypto_amount = Number(req.body.crypto_amount)
-    if (!crypto_amount) {
+    if (
+      req.body.crypto_amount == null ||
+      req.body.crypto_amount === '' ||
+      !BigIsPositive(req.body.crypto_amount)
+    ) {
       return res.status(200).json({ message: 'Invalid crypto amount', result: false, data: null })
     }
-
-    let rate = Number(req.body.rate)
-    if (!rate) {
+    if (req.body.rate == null || req.body.rate === '' || !BigIsPositive(req.body.rate)) {
       return res.status(200).json({ message: 'Invalid rate', result: false, data: null })
     }
 
@@ -102,15 +107,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const priced = await resolveAndValidateInvoicePrice({
       crypto: String(crypto),
       currency: String(currency),
-      amount,
-      clientRate: rate,
-      clientCryptoAmount: crypto_amount,
+      amount: req.body.amount,
+      clientRate: req.body.rate,
+      clientCryptoAmount: req.body.crypto_amount,
     })
     if (!priced.ok) {
       return res.status(200).json({ message: priced.message, result: false, data: null })
     }
-    rate = priced.rate
-    crypto_amount = priced.cryptoAmount
+    // Float DB columns: convert only after Big-validated decimal strings.
+    const amount = Number(FormatCryptoAmount(req.body.amount, 12))
+    const rate = Number(priced.rate)
+    const crypto_amount = Number(priced.cryptoAmount)
 
     if (notificationUrl) {
       const safeNotify = await assertSafeHttpUrl(notificationUrl)
@@ -211,7 +218,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               lightningInvoice = await LIGHTNING.addInvoice(
                 LIGHTNINGNAME.CLIGHTNING,
                 find_lightning_network.server,
-                BtcToMsatoshis(crypto_amount),
+                BtcToMsatoshis(priced.cryptoAmount),
                 lndDescription,
                 '',
                 '',
@@ -226,7 +233,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               lightningInvoice = await LIGHTNING.addInvoice(
                 LIGHTNINGNAME.LND,
                 find_lightning_network.server,
-                BtcToMsatoshis(crypto_amount),
+                BtcToMsatoshis(priced.cryptoAmount),
                 lndDescription,
                 '',
                 '',
@@ -276,7 +283,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               lightningInvoice = await LIGHTNING.addInvoice(
                 LIGHTNINGNAME.LNDHUB,
                 find_lightning_network.server,
-                BtcToSatoshis(Number(crypto_amount)),
+                BtcToSatoshis(priced.cryptoAmount),
                 lndDescription,
                 '',
                 access_token

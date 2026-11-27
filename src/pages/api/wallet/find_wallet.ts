@@ -41,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         user_id: access.ownerUserId,
         status: 1,
       },
+      orderBy: { id: 'desc' },
       select: {
         id: true,
       },

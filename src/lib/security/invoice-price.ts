@@ -1,11 +1,13 @@
 import { COINGECKO_IDS } from '@/packages/constants'
 import { COINS } from '@/packages/constants/blockchain'
 import { CRYPTOPRICE } from '@/packages/web3/crypto_price'
+import { BigDiv, BigIsPositive, FormatCryptoAmount } from '@/utils/number'
+import Big from 'big.js'
 
-const RATE_TOLERANCE = 0.025 // 2.5%
+const RATE_TOLERANCE = '0.025' // 2.5%
 
 export type InvoicePriceResult =
-  | { ok: true; rate: number; cryptoAmount: number }
+  | { ok: true; rate: string; cryptoAmount: string }
   | { ok: false; message: string }
 
 /**
@@ -15,16 +17,16 @@ export type InvoicePriceResult =
 export async function resolveAndValidateInvoicePrice(params: {
   crypto: string
   currency: string
-  amount: number
-  clientRate: number
-  clientCryptoAmount: number
+  amount: number | string
+  clientRate: number | string
+  clientCryptoAmount: number | string
 }): Promise<InvoicePriceResult> {
   const { crypto, currency, amount, clientRate, clientCryptoAmount } = params
 
-  if (!amount || amount <= 0) {
+  if (!BigIsPositive(amount)) {
     return { ok: false, message: 'Invalid amount' }
   }
-  if (!clientRate || clientRate <= 0 || !clientCryptoAmount || clientCryptoAmount <= 0) {
+  if (!BigIsPositive(clientRate) || !BigIsPositive(clientCryptoAmount)) {
     return { ok: false, message: 'Invalid rate or crypto amount' }
   }
 
@@ -41,19 +43,32 @@ export async function resolveAndValidateInvoicePrice(params: {
     return { ok: false, message: 'Unable to fetch market rate' }
   }
 
-  const marketRate = Number(market?.[geckoId]?.[vs])
-  if (!marketRate || marketRate <= 0) {
+  const marketRateRaw = market?.[geckoId]?.[vs]
+  if (!BigIsPositive(marketRateRaw ?? 0)) {
     return { ok: false, message: 'Unable to fetch market rate' }
   }
 
-  const expectedCrypto = amount / marketRate
-  const rateDrift = Math.abs(clientRate - marketRate) / marketRate
-  const amountDrift = Math.abs(clientCryptoAmount - expectedCrypto) / expectedCrypto
+  try {
+    const marketRate = new Big(String(marketRateRaw))
+    const expectedCrypto = new Big(BigDiv(String(amount), marketRate.toString()))
+    const rateDrift = new Big(String(clientRate)).minus(marketRate).abs().div(marketRate)
+    const amountDrift = new Big(String(clientCryptoAmount))
+      .minus(expectedCrypto)
+      .abs()
+      .div(expectedCrypto)
 
-  if (rateDrift > RATE_TOLERANCE || amountDrift > RATE_TOLERANCE) {
-    return { ok: false, message: 'Rate or crypto amount out of date' }
+    if (rateDrift.gt(RATE_TOLERANCE) || amountDrift.gt(RATE_TOLERANCE)) {
+      return { ok: false, message: 'Rate or crypto amount out of date' }
+    }
+
+    // Persist server-side values so settlement matches market at creation time.
+    // Keep as decimal strings; callers convert to Number only for Float DB columns.
+    return {
+      ok: true,
+      rate: FormatCryptoAmount(marketRate.toString(), 12),
+      cryptoAmount: FormatCryptoAmount(expectedCrypto.toString(), 12),
+    }
+  } catch {
+    return { ok: false, message: 'Invalid rate or crypto amount' }
   }
-
-  // Persist server-side values so settlement matches market at creation time.
-  return { ok: true, rate: marketRate, cryptoAmount: expectedCrypto }
 }

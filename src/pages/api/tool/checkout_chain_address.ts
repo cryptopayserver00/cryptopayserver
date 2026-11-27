@@ -32,7 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const result = await WEB3.checkAddress(network === 1, chainId, String(address))
 
-    return res.status(200).json({ message: '', result: result })
+    return res.status(200).json({
+      message: result ? '' : 'Invalid address',
+      result,
+      data: result,
+    })
   } catch (e) {
     console.error(e)
     return res.status(500).json({

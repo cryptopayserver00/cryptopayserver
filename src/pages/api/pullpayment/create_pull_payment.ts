@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
-import { GenerateOrderIDByTime } from '@/utils/number'
+import { BigIsPositive, FormatCryptoAmount, GenerateOrderIDByTime } from '@/utils/number'
 import { PULL_PAYMENT_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
 import { rateLimit, requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
@@ -36,10 +36,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const pullPaymentId = GenerateOrderIDByTime()
     const name = req.body.name
-    const amount = Number(req.body.amount)
-    if (!Number.isFinite(amount) || amount <= 0) {
+    if (req.body.amount == null || req.body.amount === '' || !BigIsPositive(req.body.amount)) {
       return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
     }
+    const amount = Number(FormatCryptoAmount(req.body.amount, 12))
     const currency = req.body.currency
     const showAutoApproveClaim = req.body.show_auto_approve_claim
     const description = req.body.description

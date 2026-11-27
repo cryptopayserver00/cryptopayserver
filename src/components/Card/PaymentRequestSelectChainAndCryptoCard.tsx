@@ -10,7 +10,7 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { useSnackPresistStore } from '@/lib/store'
 import { COINGECKO_IDS } from '@/packages/constants'
 import { BLOCKCHAIN, BLOCKCHAINNAMES, COIN } from '@/packages/constants/blockchain'
-import { BigDiv } from '@/utils/number'
+import { BigDiv, FormatCryptoAmount } from '@/utils/number'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
@@ -119,7 +119,7 @@ export default function PaymentRequestSelectChainAndCryptoCard(props: SelectType
           return
         }
         setRate(rate)
-        const totalPrice = parseFloat(BigDiv(amount.toString(), rate)).toFixed(selectName.decimals)
+        const totalPrice = FormatCryptoAmount(BigDiv(amount.toString(), rate), selectName.decimals)
         setCryptoAmount(totalPrice)
       }
     } catch (e) {

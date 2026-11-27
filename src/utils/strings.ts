@@ -68,14 +68,32 @@ export function NonstandardCurrencyCode(coin: string): string {
     .join('')
 }
 
+/**
+ * XRPL currency for IssuedCurrencyAmount:
+ * - 3-char ASCII codes (e.g. USD) stay as-is
+ * - longer symbols (USDT/USDC) become 40-char hex nonstandard codes
+ */
+export function ToXrpCurrencyCode(coin: string): string {
+  const symbol = String(coin || '').trim()
+  if (!symbol) {
+    throw new Error('empty xrp currency code')
+  }
+  if (/^[A-Za-z0-9\?\@\!]{3}$/.test(symbol)) {
+    return symbol.toUpperCase()
+  }
+  return NonstandardCurrencyCode(symbol)
+}
+
 export function DecodeNonstandardCurrencyCode(hex: string): string {
-  if (hex.length !== 40) {
-    throw new Error('Invalid nonstandard currency code: must be 40 characters')
+  const raw = String(hex || '').trim()
+  // Standard 3-char XRPL currency codes are returned as-is.
+  if (raw.length !== 40) {
+    return raw
   }
 
   const bytes = new Uint8Array(20)
   for (let i = 0; i < 20; i++) {
-    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16)
+    bytes[i] = parseInt(raw.slice(i * 2, i * 2 + 2), 16)
   }
 
   let result = ''
@@ -84,7 +102,7 @@ export function DecodeNonstandardCurrencyCode(hex: string): string {
     result += String.fromCharCode(bytes[i])
   }
 
-  return result
+  return result || raw
 }
 
 export function IsHexAddress(value: string): value is Hex {
@@ -115,7 +133,8 @@ export function FormatNumberToEnglish(num: number, decimals: number = 1): string
   for (const unit of units) {
     if (absNum >= unit.threshold) {
       const formatted = (absNum / unit.threshold).toFixed(decimals)
-      const cleaned = parseFloat(formatted).toString()
+      // Trim trailing zeros without re-parsing through IEEE float.
+      const cleaned = formatted.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0+$/, '')
       return `${sign}${cleaned}${unit.suffix}`
     }
   }

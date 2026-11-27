@@ -242,8 +242,8 @@ const Lightning = () => {
         setSnackOpen(true)
         return
       }
-      const balanceSats = BtcToSatoshis(Number(currentRow?.balance))
-      if (!Number.isFinite(balanceSats)) {
+      const balanceSats = BtcToSatoshis(String(currentRow?.balance ?? 0))
+      if (!Number.isFinite(balanceSats) || balanceSats <= 0) {
         setSnackSeverity('error')
         setSnackMessage('Could not read Lightning balance')
         setSnackOpen(true)

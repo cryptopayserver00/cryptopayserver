@@ -20,7 +20,16 @@ import {
 import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import { OmitMiddleString } from '@/utils/strings'
 import { COINGECKO_IDS, PAYOUT_STATUS } from '@/packages/constants'
-import { BigDiv, BigSub, FormatCryptoAmount } from '@/utils/number'
+import {
+  BigAdd,
+  BigDiv,
+  BigGt,
+  BigGte,
+  BigIsPositive,
+  BigMul,
+  BigSub,
+  FormatCryptoAmount,
+} from '@/utils/number'
 import { GetImgSrcByCrypto } from '@/utils/qrcode'
 import { FindChainNamesByChains } from '@/utils/web3'
 import { cn } from '@/lib/utils'
@@ -77,7 +86,7 @@ const UtxoSendPage = ({
   const [amount, setAmount] = useState<string>('')
   const [feeRate, setFeeRate] = useState<number>(0)
 
-  const [networkFee, setNetworkFee] = useState<number>(0)
+  const [networkFee, setNetworkFee] = useState<string>('0')
   const [blockExplorerLink, setBlockExplorerLink] = useState<string>('')
   const [coin, setCoin] = useState<COINS>()
 
@@ -139,7 +148,11 @@ const UtxoSendPage = ({
       if (response.result) {
         setFromAddress(response.data.address)
         setBalance(response.data.balance)
-        setMainCoin(response.data.mainCoin.name)
+        const nextMain = response.data.mainCoin?.name as COINS | undefined
+        if (nextMain) {
+          setMainCoin(nextMain)
+          setCoin((prev) => prev || nextMain)
+        }
       }
     } catch (e) {
       setSnackSeverity('error')
@@ -209,9 +222,9 @@ const UtxoSendPage = ({
           setCoin(response.data.crypto as COINS)
         }
 
-        const storedCryptoAmount = Number(response.data.cryptoAmount ?? response.data.crypto_amount)
-        if (Number.isFinite(storedCryptoAmount) && storedCryptoAmount > 0) {
-          setAmount(FormatCryptoAmount(storedCryptoAmount, 8))
+        const storedCryptoAmount = response.data.cryptoAmount ?? response.data.crypto_amount
+        if (storedCryptoAmount != null && BigIsPositive(storedCryptoAmount)) {
+          setAmount(FormatCryptoAmount(String(storedCryptoAmount), 8))
           setIsDisableDestinationAddress(true)
           setIsDisableAmount(true)
           return
@@ -278,15 +291,22 @@ const UtxoSendPage = ({
 
   const checkAmount = (): boolean =>
     !!(
+      coin &&
       amount &&
       networkFee &&
-      parseFloat(amount) > 0 &&
-      parseFloat(balance[String(coin)]) >= parseFloat(amount) + networkFee
+      BigIsPositive(amount) &&
+      BigGte(balance[String(coin)], BigAdd(amount, networkFee))
     )
 
   const checkFeeRate = (): boolean => !!(feeRate && feeRate > 0)
 
   const onClickSignTransaction = async () => {
+    if (!coin) {
+      setSnackSeverity('error')
+      setSnackMessage('Please select a coin')
+      setSnackOpen(true)
+      return
+    }
     if (!(await checkAddress())) {
       setSnackSeverity('error')
       setSnackMessage('The destination address cannot be empty or input errors')
@@ -310,7 +330,7 @@ const UtxoSendPage = ({
       if (
         !networkFee ||
         !amount ||
-        networkFee + parseFloat(amount) > parseFloat(balance[String(mainCoin)])
+        BigGt(BigAdd(networkFee || '0', amount), balance[String(mainCoin)])
       ) {
         setSnackSeverity('error')
         setSnackMessage('Insufficient balance or Insufficient gas fee')
@@ -318,7 +338,7 @@ const UtxoSendPage = ({
         return
       }
     } else {
-      if (!networkFee || !amount || networkFee > parseFloat(balance[String(mainCoin)])) {
+      if (!networkFee || !amount || BigGt(networkFee, balance[String(mainCoin)])) {
         setSnackSeverity('error')
         setSnackMessage('Insufficient balance or Insufficient gas fee')
         setSnackOpen(true)
@@ -326,7 +346,7 @@ const UtxoSendPage = ({
       }
     }
 
-    if (networkFee && networkFee > 0) setPage(2)
+    if (networkFee && BigIsPositive(networkFee)) setPage(2)
   }
 
   const onClickSignAndPay = async () => {
@@ -387,9 +407,14 @@ const UtxoSendPage = ({
 
   useEffect(() => {
     if (Number.isFinite(feeRate) && feeRate > 0) {
-      setNetworkFee((fee_byte_length * feeRate) / 100000000)
+      setNetworkFee(
+        FormatCryptoAmount(
+          BigDiv(BigMul(String(fee_byte_length), String(feeRate)), '100000000'),
+          8
+        )
+      )
     } else {
-      setNetworkFee(0)
+      setNetworkFee('0')
     }
   }, [feeRate])
 
@@ -488,7 +513,7 @@ const UtxoSendPage = ({
                 value={amount}
                 onChange={(e) => {
                   setAmount(e.target.value)
-                  setAmountRed(parseFloat(e.target.value) > parseFloat(balance[String(coin)]))
+                  setAmountRed(BigGt(e.target.value, balance[String(coin)]))
                 }}
                 disabled={isDisableAmount}
               />
@@ -520,7 +545,7 @@ const UtxoSendPage = ({
                 }}
               />
               <p className="text-sm text-muted-foreground">
-                Network fee: {Number.isFinite(networkFee) ? networkFee : 0}
+                Network fee: {networkFee || '0'}
               </p>
             </div>
 
@@ -567,8 +592,9 @@ const UtxoSendPage = ({
             <Row
               label="Output: (2)"
               value={OmitMiddleString(fromAddress)}
-              secondaryValue={String(
-                parseFloat(BigSub(balance[String(coin)], (Number(amount) + networkFee).toString()))
+              secondaryValue={FormatCryptoAmount(
+                BigSub(balance[String(coin)], BigAdd(amount, networkFee)),
+                8
               )}
               secondarySuffix={mainCoin}
             />

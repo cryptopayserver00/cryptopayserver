@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ResponseData, CorsMiddleware, CorsMethod, HttpMethod } from '..'
 import { PAYOUT_SOURCE_TYPE, PAYOUT_STATUS, PULL_PAYMENT_STATUS } from '@/packages/constants'
 import { prisma } from '@/lib/prisma'
+import { BigAdd, BigCmp, BigIsPositive, FormatCryptoAmount } from '@/utils/number'
 import {
   forbidden,
   getStoreAccess,
@@ -89,8 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           data: null,
         })
       }
-      const nextAmount = Number(req.body.amount)
-      if (!Number.isFinite(nextAmount) || nextAmount <= 0) {
+      if (req.body.amount == null || req.body.amount === '' || !BigIsPositive(req.body.amount)) {
         return res.status(200).json({ message: 'Invalid amount', result: false, data: null })
       }
 
@@ -106,15 +106,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         },
         select: { amount: true },
       })
-      const claimedTotal = claimed.reduce((sum, item) => sum + Number(item.amount || 0), 0)
-      if (nextAmount + 1e-12 < claimedTotal) {
+      const claimedTotal = claimed.reduce(
+        (sum, item) => BigAdd(sum, String(item.amount || 0)),
+        '0'
+      )
+      if (BigCmp(req.body.amount, claimedTotal) < 0) {
         return res.status(200).json({
           message: 'Amount cannot be below already claimed total',
           result: false,
           data: null,
         })
       }
-      updateData.amount = nextAmount
+      updateData.amount = Number(FormatCryptoAmount(req.body.amount, 12))
     }
 
     if (req.body.pull_payment_status) {

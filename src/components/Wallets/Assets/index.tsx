@@ -49,6 +49,7 @@ import {
 } from '@/packages/constants/blockchain'
 import { FindChainIdsByChainNames, GetBlockchainAddressUrlByChainIds } from '@/utils/web3'
 import { CURRENCY_SYMBOLS, WALLET_ITEM_TYPE } from '@/packages/constants'
+import { FormatCryptoDisplay } from '@/utils/number'
 import { OmitMiddleString } from '@/utils/strings'
 import { GetImgSrcByChain } from '@/utils/qrcode'
 import BitcoinSVG from '@/assets/chain/bitcoin.svg'
@@ -191,7 +192,7 @@ export default function MyAssets() {
           <h2 className="text-sm font-medium text-muted-foreground">My Assets</h2>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {assetWallet?.currencySymbol}
-            {assetWallet?.totalBalance ? assetWallet.totalBalance.toFixed(2) : '0.00'}
+            {FormatCryptoDisplay(assetWallet?.totalBalance ?? 0, { decimals: 2 })}
           </h1>
         </div>
 
@@ -280,7 +281,12 @@ export default function MyAssets() {
                       <div>
                         <p className="font-semibold leading-none">{coin.name}</p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {coinWallet ? coinWallet.number.toFixed(coin.displayDecimals) : '0'}{' '}
+                          {coinWallet
+                            ? FormatCryptoDisplay(coinWallet.number, {
+                                decimals: coin.displayDecimals,
+                                coin: coin.name,
+                              })
+                            : '0'}{' '}
                           {coin.name}
                         </p>
                       </div>
@@ -289,7 +295,7 @@ export default function MyAssets() {
                     <div className="text-right">
                       <p className="font-semibold">
                         {assetWallet?.currencySymbol}
-                        {parseFloat(String(coinWallet?.balance || 0)).toFixed(2)}
+                        {FormatCryptoDisplay(coinWallet?.balance || 0, { decimals: 2 })}
                       </p>
                       <div
                         className={`flex items-center justify-end text-xs font-medium ${
@@ -301,7 +307,7 @@ export default function MyAssets() {
                         ) : (
                           <TrendingDown className="mr-0.5 h-3 w-3" />
                         )}
-                        {parseFloat(String(changeNum)).toFixed(2)}%
+                        {FormatCryptoDisplay(changeNum, { decimals: 2 })}%
                       </div>
                     </div>
                   </div>
@@ -448,7 +454,10 @@ export default function MyAssets() {
                         ) : (
                           <TrendingDown className="h-3 w-3" />
                         )}
-                        {parseFloat(String(selectedCoinData?.twentyFourHChange || 0)).toFixed(2)}%
+                        {FormatCryptoDisplay(selectedCoinData?.twentyFourHChange || 0, {
+                          decimals: 2,
+                        })}
+                        %
                       </Badge>
                     </div>
                   </div>
@@ -512,10 +521,13 @@ export default function MyAssets() {
                 </p>
                 <p className="mt-2 text-3xl font-extrabold">
                   {assetWallet?.currencySymbol}
-                  {parseFloat(String(selectedCoinData?.balance || 0)).toFixed(2)}
+                  {FormatCryptoDisplay(selectedCoinData?.balance || 0, { decimals: 2 })}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {(selectedCoinData?.number ?? 0).toFixed(selectedCoinMeta?.displayDecimals || 4)}{' '}
+                  {FormatCryptoDisplay(selectedCoinData?.number ?? 0, {
+                    decimals: selectedCoinMeta?.displayDecimals || 4,
+                    coin: selectedCoinMeta?.name,
+                  })}{' '}
                   {selectCoin}
                 </p>
               </Card>

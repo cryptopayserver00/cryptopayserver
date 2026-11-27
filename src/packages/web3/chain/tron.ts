@@ -457,10 +457,15 @@ export class TRON {
       tronWeb.setPrivateKey(request.privateKey as string)
 
       const value = ethers.parseUnits(request.value, 6)
+      const sunStr = value.toString()
+      // TronWeb sendTrx expects a JS number (sun). Reject amounts outside safe integer range.
+      if (BigInt(sunStr) > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new Error('TRX amount exceeds precision-safe transfer range')
+      }
 
       const transaction = await tronWeb.transactionBuilder.sendTrx(
         request.to,
-        Number(value),
+        Number(sunStr),
         request.from
       )
 

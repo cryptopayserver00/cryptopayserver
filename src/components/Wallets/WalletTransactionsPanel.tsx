@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { FormatCryptoDisplay } from '@/utils/number'
 import { OmitMiddleString } from '@/utils/strings'
 import { GetBlockchainTxUrlByChainIds } from '@/utils/web3'
 import { CHAINS } from '@/packages/constants/blockchain'
@@ -119,7 +120,11 @@ export default function WalletTransactionsPanel({
             <ul className="divide-y">
               {rows.map((row, index) => {
                 const direction = normalizeDirection(row.type)
-                const amount = row.amount ?? row.value ?? '—'
+                const rawAmount = row.amount ?? row.value
+                const amount =
+                  rawAmount == null || rawAmount === ''
+                    ? '—'
+                    : FormatCryptoDisplay(rawAmount, { coin: row.asset })
                 const explorerUrl = GetBlockchainTxUrlByChainIds(
                   isMainnet,
                   Number(chainId) as CHAINS,
@@ -151,7 +156,10 @@ export default function WalletTransactionsPanel({
 
                       <div className="min-w-0 space-y-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold">
+                          <p
+                            className="text-sm font-semibold"
+                            title={rawAmount != null ? `${rawAmount} ${row.asset}` : undefined}
+                          >
                             {amount} {row.asset}
                           </p>
                           {row.type && (

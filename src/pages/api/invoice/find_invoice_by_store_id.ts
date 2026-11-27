@@ -4,6 +4,7 @@ import { ORDER_STATUS, ORDER_TIME } from '@/packages/constants'
 import { FindTokenByChainIdsAndSymbol } from '@/utils/web3'
 import { WEB3 } from '@/packages/web3'
 import { COINS } from '@/packages/constants/blockchain'
+import Big from 'big.js'
 import { prisma } from '@/lib/prisma'
 import { rateLimit, requireStorePermission, STORE_PERMISSION } from '@/lib/auth'
 
@@ -95,7 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             item.crypto as COINS
           )
           if (!token || item.crypto_amount == null) return null
-          return Number(item.crypto_amount).toFixed(token.decimals)
+          return new Big(String(item.crypto_amount)).toFixed(token.decimals)
         })(),
         rate: item.rate,
         lightningInvoice: item.lightning_invoice,

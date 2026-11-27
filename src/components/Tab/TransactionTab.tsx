@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { EthereumTransactionDetail } from '@/packages/web3/types'
 import { useUserPresistStore } from '@/lib/store'
+import { FormatCryptoDisplay } from '@/utils/number'
 import { GetBlockchainTxUrlByChainIds } from '@/utils/web3'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -45,7 +46,12 @@ export default function TransactionsTab({ rows }: { rows: EthereumTransactionDet
                     {row.hash}
                   </Link>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">{row.amount}</td>
+                <td
+                  className="px-6 py-4 whitespace-nowrap"
+                  title={row.amount != null ? String(row.amount) : undefined}
+                >
+                  {FormatCryptoDisplay(row.amount, { coin: row.asset })}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">{row.asset}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{row.type}</td>
                 {/* <td className="px-6 py-4">{row.contractAddress}</td> */}

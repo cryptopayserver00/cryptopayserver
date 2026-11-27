@@ -1,6 +1,7 @@
 import { CHAINS } from '@/packages/constants/blockchain'
 import { WEB3 } from '@/packages/web3'
 import { TRANSACTIONSTATUS } from '@/packages/web3/types'
+import { BigAlmostEqual, BigIsPositive } from '@/utils/number'
 
 function addressesMatch(a: string, b: string): boolean {
   return a === b || a.toLowerCase() === b.toLowerCase()
@@ -18,7 +19,7 @@ export async function verifyPayoutOnChain(opts: {
   txHash: string
   destination: string
   crypto: string
-  expectedAmount?: number | null
+  expectedAmount?: number | string | null
 }): Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'mismatch' }> {
   let detail: Awaited<ReturnType<typeof WEB3.getTransactionDetail>> | null = null
   try {
@@ -59,14 +60,12 @@ export async function verifyPayoutOnChain(opts: {
     }
   }
 
-  if (opts.expectedAmount != null && Number.isFinite(opts.expectedAmount) && opts.expectedAmount > 0) {
-    const paid = Number(detail.value)
-    const due = Number(opts.expectedAmount)
-    if (!Number.isFinite(paid)) {
+  if (opts.expectedAmount != null && opts.expectedAmount !== '' && BigIsPositive(opts.expectedAmount)) {
+    if (detail.value === undefined || detail.value === null || detail.value === '') {
       return { ok: false, reason: 'not_found' }
     }
-    const tol = Math.max(1e-12, Math.abs(due) * 1e-6)
-    if (Math.abs(paid - due) > tol) {
+    // 1e-6 relative tolerance covers explorer rounding without float epsilon hacks.
+    if (!BigAlmostEqual(detail.value, opts.expectedAmount, '1e-6', '1e-12')) {
       return { ok: false, reason: 'mismatch' }
     }
   }

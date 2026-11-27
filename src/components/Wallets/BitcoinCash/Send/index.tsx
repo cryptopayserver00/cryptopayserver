@@ -17,7 +17,14 @@ import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
-import { BigDiv } from '@/utils/number'
+import {
+  BigAdd,
+  BigDiv,
+  BigGt,
+  BigGte,
+  BigIsPositive,
+  FormatCryptoAmount,
+} from '@/utils/number'
 import { OmitMiddleString } from '@/utils/strings'
 import { GetBlockchainTxUrl } from '@/utils/chain/bch'
 import { COINGECKO_IDS, PAYOUT_STATUS } from '@/packages/constants'
@@ -131,9 +138,10 @@ const BitcoinCashSend = () => {
         })
         if (rate_response.result) {
           const rate = rate_response.data[ids][response.data.currency.toLowerCase()]
-          const totalPrice = parseFloat(
-            BigDiv(Number(response.data.amount).toString(), rate)
-          ).toFixed(8)
+          const totalPrice = FormatCryptoAmount(
+            BigDiv(String(response.data.amount ?? 0), rate),
+            8
+          )
           setAmount(totalPrice)
           setIsDisableDestinationAddress(true)
           setIsDisableAmount(true)
@@ -173,8 +181,8 @@ const BitcoinCashSend = () => {
     !!(
       amount &&
       networkFee &&
-      parseFloat(amount) > 0 &&
-      parseFloat(balance[String(coin)]) >= parseFloat(amount) + networkFee
+      BigIsPositive(amount) &&
+      BigGte(balance[String(coin)], BigAdd(amount, String(networkFee)))
     )
 
   const onClickSignTransaction = async () => {
@@ -196,7 +204,7 @@ const BitcoinCashSend = () => {
       if (
         !networkFee ||
         !amount ||
-        networkFee + parseFloat(amount) > parseFloat(balance[String(mainCoin)])
+        BigGt(BigAdd(String(networkFee || 0), amount), balance[String(mainCoin)])
       ) {
         setSnackSeverity('error')
         setSnackMessage('Insufficient balance or Insufficient gas fee')
@@ -204,7 +212,7 @@ const BitcoinCashSend = () => {
         return
       }
     } else {
-      if (!networkFee || !amount || networkFee > parseFloat(balance[String(mainCoin)])) {
+      if (!networkFee || !amount || BigGt(String(networkFee), balance[String(mainCoin)])) {
         setSnackSeverity('error')
         setSnackMessage('Insufficient balance or Insufficient gas fee')
         setSnackOpen(true)
@@ -375,7 +383,7 @@ const BitcoinCashSend = () => {
                 value={amount}
                 onChange={(e) => {
                   setAmount(e.target.value)
-                  setAmountRed(parseFloat(e.target.value) > parseFloat(balance[String(coin)]))
+                  setAmountRed(BigGt(e.target.value, balance[String(coin)]))
                 }}
                 disabled={isDisableAmount}
               />

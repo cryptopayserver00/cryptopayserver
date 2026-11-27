@@ -4,14 +4,20 @@ import { WEB3 } from '@/packages/web3'
 import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import { CRYPTOPRICE } from '@/packages/web3/crypto_price'
 import { COINGECKO_IDS, CURRENCY, CURRENCY_SYMBOLS } from '@/packages/constants'
-import { BigMul } from '@/utils/number'
+import {
+  BigAdd,
+  BigMul,
+  FormatCryptoAmount,
+  GetDisplayDecimalsForSymbol,
+} from '@/utils/number'
+import { FindTokenByChainIdsAndSymbol } from '@/utils/web3'
 import { prisma } from '@/lib/prisma'
 import { assertStoreOwnedByUser, forbidden, rateLimit, requireOwnedWallet } from '@/lib/auth'
 
 interface CoinType {
   coin: string
   price: string
-  number: number
+  number: string
   unit: string
   balance: string
   marketCap: string
@@ -21,13 +27,20 @@ interface CoinType {
 
 interface CoinMapItem {
   unit: string
-  number: number
-  price: number
-  balance: number
-  marketCap: number
-  twentyFourHVol: number
-  twentyFourHChange: number
-  lastUpdatedAt: number
+  /** Human-unit quantity kept as decimal string (no float). */
+  number: string
+}
+
+function resolveDisplayDecimals(chainIds: number, coin: string): number {
+  try {
+    const meta = FindTokenByChainIdsAndSymbol(chainIds as any, coin as COINS)
+    if (meta?.displayDecimals != null && Number.isFinite(meta.displayDecimals)) {
+      return meta.displayDecimals
+    }
+  } catch {
+    // fall through
+  }
+  return GetDisplayDecimalsForSymbol(coin)
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
@@ -121,7 +134,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     const address = find_address.address
-    const balance = await WEB3.getAssetBalance(network === 1, chainId, address)
+    const isMainnet = network === 1
+    const balance = await WEB3.getAssetBalance(isMainnet, chainId, address)
+    const chainIds = WEB3.getChainIds(isMainnet, chainId)
     const currency = CURRENCY['0']
     const currencySymbol = CURRENCY_SYMBOLS[currency]
 
@@ -129,22 +144,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const ids: string[] = []
 
     for (const [coin, amount] of Object.entries(balance)) {
-      const value = parseFloat(amount as string)
+      const amountStr = String(amount ?? '0')
 
       if (coinMaps[coin]) {
-        coinMaps[coin].number += value
+        coinMaps[coin].number = BigAdd(coinMaps[coin].number, amountStr)
         continue
       }
 
       coinMaps[coin] = {
         unit: currency,
-        number: value,
-        price: 0,
-        balance: 0,
-        marketCap: 0,
-        twentyFourHVol: 0,
-        twentyFourHChange: 0,
-        lastUpdatedAt: 0,
+        number: amountStr,
       }
 
       const geckoId = COINGECKO_IDS[coin as COINS]
@@ -153,37 +162,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       }
     }
 
-    const cryptoPrice = await CRYPTOPRICE.getCryptoPriceByCoinGecko(
-      String(ids.length > 1 ? ids.join(',') : ids[0]),
-      String(currency)
-    )
+    const cryptoPrice =
+      ids.length > 0
+        ? await CRYPTOPRICE.getCryptoPriceByCoinGecko(
+            String(ids.length > 1 ? ids.join(',') : ids[0]),
+            String(currency)
+          )
+        : {}
 
-    let totalBalance = 0
+    let totalBalance = '0'
 
     const coins: CoinType[] = Object.entries(coinMaps).map(([coin, info]) => {
-      const priceData = cryptoPrice[COINGECKO_IDS[coin as COINS]]
-      const price = priceData.usd
-      const balance = parseFloat(BigMul(info.number.toString(), price))
+      const priceData = cryptoPrice[COINGECKO_IDS[coin as COINS]] || {}
+      const price = String(priceData.usd ?? 0)
+      const displayDecimals = resolveDisplayDecimals(chainIds, coin)
+      const fiatBalance = FormatCryptoAmount(BigMul(info.number, price), 2)
+      const quantity = FormatCryptoAmount(info.number, displayDecimals)
 
-      info.unit = currency
-      info.price = price
-      info.balance = balance
-      info.marketCap = priceData.usd_market_cap
-      info.twentyFourHVol = priceData.usd_24h_vol
-      info.twentyFourHChange = priceData.usd_24h_change
-      info.lastUpdatedAt = priceData.last_updated_at
-
-      totalBalance += balance
+      totalBalance = BigAdd(totalBalance, fiatBalance)
 
       return {
         coin,
-        price,
+        price: FormatCryptoAmount(price, 8),
         unit: currency,
-        number: info.number,
-        balance: String(balance),
-        marketCap: priceData.usd_market_cap,
-        twentyFourHVol: priceData.usd_24h_vol,
-        twentyFourHChange: priceData.usd_24h_change,
+        number: quantity,
+        balance: fiatBalance,
+        marketCap: String(priceData.usd_market_cap ?? 0),
+        twentyFourHVol: String(priceData.usd_24h_vol ?? 0),
+        twentyFourHChange: FormatCryptoAmount(priceData.usd_24h_change ?? 0, 2),
       }
     })
 
@@ -196,7 +202,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         address: address,
         chainId: chainId,
         coins: coins,
-        totalBalance: totalBalance,
+        totalBalance: FormatCryptoAmount(totalBalance, 2),
         currency: currency,
         currencySymbol: currencySymbol,
       },

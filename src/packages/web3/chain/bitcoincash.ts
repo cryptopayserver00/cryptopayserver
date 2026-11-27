@@ -14,14 +14,29 @@ import { ethers } from 'ethers'
 import { FindTokenByChainIdsAndContractAddress } from '@/utils/web3'
 import { BigDiv } from '@/utils/number'
 import { BLOCKSCAN } from '../block_scan'
-import { GetBlockchainTxUrl } from '@/utils/chain/bch'
+import { GetBlockchainTxUrl, GetNodeApi } from '@/utils/chain/bch'
+import { mapEsploraTxToDetail, mergeEsploraTxDetails } from './utxo_tx'
 
 export class BITCOINCASH {
   static chain = CHAINS.BITCOINCASH
 
+  // proxy:false — avoid system http_proxy breaking bchexplorer
   static axiosInstance = axios.create({
     timeout: 50000,
+    proxy: false,
   })
+
+  /** Compare CashAddr with/without bitcoincash:|bchtest: prefix. */
+  static addressEqual(a?: string, b?: string): boolean {
+    const norm = (x: string) => {
+      let s = String(x || '').trim().toLowerCase()
+      const i = s.indexOf(':')
+      if (i >= 0) s = s.slice(i + 1)
+      return s
+    }
+    const na = norm(a || '')
+    return Boolean(na) && na === norm(b || '')
+  }
 
   static getChainIds(isMainnet: boolean): CHAINIDS {
     return isMainnet ? CHAINIDS.BITCOINCASH : CHAINIDS.BITCOINCASH_TESTNET
@@ -210,6 +225,18 @@ export class BITCOINCASH {
   }
 
   static async getTransactions(isMainnet: boolean, address: string): Promise<TransactionDetail[]> {
+    // Mainnet: Esplora (bchexplorer) first — same shape as BTC/LTC.
+    const base = GetNodeApi(isMainnet)
+    if (base) {
+      try {
+        const txs = await this.fetchEsploraTransactions(isMainnet, base, address)
+        if (txs.length > 0) return txs
+        // Empty history is valid; still try node for pending/indexer lag.
+      } catch (e) {
+        console.warn('[BCH] esplora getTransactions failed', e)
+      }
+    }
+
     try {
       if (!BLOCKSCAN.isConfigured) return []
       const url = `${BLOCKSCAN.baseUrl}/node/bch/getTransactions?chain_id=${this.getChainIds(
@@ -243,6 +270,76 @@ export class BITCOINCASH {
       console.error(e)
       return []
     }
+  }
+
+  private static async fetchEsploraTransactions(
+    isMainnet: boolean,
+    base: string,
+    address: string
+  ): Promise<TransactionDetail[]> {
+    // CashAddr contains ':'; try raw path (works on bchexplorer) then encoded.
+    const candidates = [address, encodeURIComponent(address)]
+    let confirmed: any[] = []
+    let mempool: any[] = []
+    let lastErr: unknown
+
+    for (const addrPath of candidates) {
+      try {
+        const [confirmedResp, mempoolResp] = await Promise.allSettled([
+          this.axiosInstance.get(`${base}/address/${addrPath}/txs`),
+          this.axiosInstance.get(`${base}/address/${addrPath}/txs/mempool`),
+        ])
+        if (confirmedResp.status === 'fulfilled' && Array.isArray(confirmedResp.value.data)) {
+          confirmed = confirmedResp.value.data
+          if (mempoolResp.status === 'fulfilled' && Array.isArray(mempoolResp.value.data)) {
+            mempool = mempoolResp.value.data
+          }
+          break
+        }
+        if (confirmedResp.status === 'rejected') lastErr = confirmedResp.reason
+      } catch (e) {
+        lastErr = e
+      }
+    }
+
+    if (!confirmed.length && !mempool.length && lastErr) {
+      throw lastErr instanceof Error ? lastErr : new Error(String(lastErr))
+    }
+
+    // Rewrite scriptpubkey_address for matching when explorer omits cashaddr prefix.
+    const normalizeTx = (item: any) => {
+      const fix = (a?: string) => a || ''
+      return {
+        ...item,
+        vin: (item.vin || []).map((vin: any) => ({
+          ...vin,
+          prevout: vin?.prevout
+            ? {
+                ...vin.prevout,
+                scriptpubkey_address: this.addressEqual(vin.prevout.scriptpubkey_address, address)
+                  ? address
+                  : fix(vin.prevout.scriptpubkey_address),
+              }
+            : vin?.prevout,
+        })),
+        vout: (item.vout || []).map((vout: any) => ({
+          ...vout,
+          scriptpubkey_address: this.addressEqual(vout.scriptpubkey_address, address)
+            ? address
+            : fix(vout.scriptpubkey_address),
+        })),
+      }
+    }
+
+    const mapped = [...mempool, ...confirmed]
+      .map((item) =>
+        mapEsploraTxToDetail(address, normalizeTx(item), COINS.BCH, (hash) =>
+          GetBlockchainTxUrl(isMainnet, hash)
+        )
+      )
+      .filter(Boolean) as TransactionDetail[]
+
+    return mergeEsploraTxDetails(mapped)
   }
 
   static async getTransactionDetail(

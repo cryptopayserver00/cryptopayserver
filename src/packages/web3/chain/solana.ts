@@ -24,7 +24,6 @@ import {
   PublicKey,
   SystemProgram,
   Transaction,
-  TransactionSignature,
 } from '@solana/web3.js'
 import { ethers } from 'ethers'
 import { RPC } from '../rpc'
@@ -39,7 +38,8 @@ import {
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token'
 import { GetBlockchainTxUrl } from '@/utils/chain/solana'
-import { BigMul } from '@/utils/number'
+import { BigDiv, BigMul } from '@/utils/number'
+import { BLOCKSCAN } from '../block_scan'
 import bs58 from 'bs58'
 
 export class SOLANA {
@@ -73,6 +73,14 @@ export class SOLANA {
         const connection = new Connection(url, {
           commitment: 'confirmed',
           confirmTransactionInitialTimeout: 60_000,
+          // Fail fast so we can rotate to the next RPC (default undici timeout is too long).
+          fetch: (input, init) => {
+            const signal =
+              typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
+                ? AbortSignal.timeout(8_000)
+                : init?.signal
+            return fetch(input, { ...init, signal: signal ?? init?.signal })
+          },
         })
         // Probe — fail fast on 429 / dead endpoints before callers do heavier work
         await connection.getSlot('processed')
@@ -232,30 +240,37 @@ export class SOLANA {
   }
 
   static async getAssetBalance(isMainnet: boolean, address: string): Promise<AssetBalance> {
+    const items = {} as AssetBalance
     try {
-      let items = {} as AssetBalance
       items.SOL = await this.getSolBalance(isMainnet, address)
+    } catch (e) {
+      // Soft-fail: public RPC outages must not 500 the wallet page.
+      console.warn('[SOLANA] getSolBalance failed, returning 0', e)
+      items.SOL = '0'
+    }
 
-      const coins = BLOCKCHAINNAMES.find(
-        (item) => item.chainId === this.getChainIds(isMainnet)
-      )?.coins
-      if (coins && coins.length > 0) {
-        const tokens = coins.filter((item) => !item.isMainCoin)
-
-        const promises = tokens.map(async (token) => {
-          if (token.contractAddress && token.contractAddress !== '') {
-            const balance = await this.getTokenBalance(isMainnet, address, token.contractAddress)
-            items[token.symbol] = balance
+    const coins = BLOCKCHAINNAMES.find(
+      (item) => item.chainId === this.getChainIds(isMainnet)
+    )?.coins
+    if (coins && coins.length > 0) {
+      const tokens = coins.filter((item) => !item.isMainCoin)
+      await Promise.all(
+        tokens.map(async (token) => {
+          if (!token.contractAddress) return
+          try {
+            items[token.symbol] = await this.getTokenBalance(
+              isMainnet,
+              address,
+              token.contractAddress
+            )
+          } catch (e) {
+            console.warn(`[SOLANA] token balance ${token.symbol} failed, returning 0`, e)
+            items[token.symbol] = '0'
           }
         })
-
-        await Promise.all(promises)
-      }
-      return items
-    } catch (e) {
-      console.error(e)
-      throw new Error('can not get the asset balance of solana')
+      )
     }
+    return items
   }
 
   static async getSolBalance(isMainnet: boolean, address: string): Promise<string> {
@@ -264,8 +279,8 @@ export class SOLANA {
       const balance = await connection.getBalance(new PublicKey(address))
       return ethers.formatUnits(balance, 9)
     } catch (e) {
-      console.error(e)
-      throw new Error('can not get the sol balance of solana')
+      console.warn('[SOLANA] getSolBalance error', e)
+      throw e
     }
   }
 
@@ -300,8 +315,8 @@ export class SOLANA {
 
       return '0'
     } catch (e) {
-      console.error(e)
-      throw new Error('can not get the token balance of solana')
+      console.warn('[SOLANA] getTokenBalance error', e)
+      throw e
     }
   }
 
@@ -373,150 +388,46 @@ export class SOLANA {
   static async getTransactions(
     isMainnet: boolean,
     address: string,
-    limit: number = 10
+    _limit: number = 10
   ): Promise<SolanaTransactionDetail[]> {
     try {
-      const connection = await this.getConnection(isMainnet)
-      const ownerAddress = new PublicKey(address)
-      const signatures = await connection.getSignaturesForAddress(ownerAddress, {
-        limit: limit,
-      })
-
-      let signaturesArray: TransactionSignature[] = []
-      let details: SolanaTransactionDetail[] = []
-
-      if (signatures && signatures.length > 0) {
-        signatures.forEach((item) => {
-          signaturesArray.push(item.signature)
-        })
-
-        const txs = await connection.getParsedTransactions(signaturesArray, {
-          commitment: 'confirmed',
-          maxSupportedTransactionVersion: 0,
-        })
-
-        if (txs && txs.length > 0) {
-          const promises = txs.map(async (tx: any) => {
-            for (const instruction of tx.transaction.message.instructions) {
-              let detail: SolanaTransactionDetail = {
-                chainId: this.getChainIds(isMainnet),
-                address: address,
-                hash: tx.transaction.signatures[0],
-                status: tx.meta?.err ? TRANSACTIONSTATUS.FAILED : TRANSACTIONSTATUS.SUCCESS,
-                blockTimestamp: tx.blockTime,
-                from: '',
-                to: '',
-                value: '',
-                contractAddress: '',
-                asset: '',
-                type: 'None',
-              }
-
-              if (instruction.programId.equals(PublicKey.default)) {
-                const parsed = instruction.parsed
-
-                if (parsed.type && parsed.type === 'transfer') {
-                  const from = parsed.info.source
-                  const to = parsed.info.destination
-                  const amount = parsed.info.lamports
-
-                  detail.from = new PublicKey(from).toBase58()
-                  detail.to = new PublicKey(to).toBase58()
-                  detail.value = ethers.formatUnits(amount, 9)
-                  detail.asset = 'SOL'
-                  if (new PublicKey(from).toString() === new PublicKey(address).toString()) {
-                    detail.type = 'Send'
-                  } else {
-                    detail.type = 'Received'
-                  }
-
-                  details.push(detail)
-                  break
-                }
-              } else if (instruction.programId.equals(TOKEN_PROGRAM_ID)) {
-                const parsed = instruction.parsed
-
-                if (parsed.type) {
-                  if (parsed.type === 'transferChecked') {
-                    const from = parsed.info.source
-                    const to = parsed.info.destination
-                    const mint = parsed.info.mint
-
-                    detail.from = new PublicKey(from).toBase58()
-                    detail.to = new PublicKey(to).toBase58()
-                    detail.value = ethers.formatUnits(
-                      parsed.info.tokenAmount.amount,
-                      parsed.info.tokenAmount.decimals
-                    )
-                    const token = FindTokenByChainIdsAndContractAddress(
-                      this.getChainIds(isMainnet),
-                      mint
-                    )
-                    detail.asset = token.symbol
-                    detail.contractAddress = token.contractAddress as string
-
-                    if (new PublicKey(from).toString() === new PublicKey(address).toString()) {
-                      detail.type = 'Send'
-                    } else {
-                      detail.type = 'Received'
-                    }
-
-                    details.push(detail)
-                    break
-                  } else if (parsed.type === 'transfer') {
-                    const from = parsed.info.authority
-                    const to = parsed.info.destination
-                    let mint = ''
-
-                    const accounts = await connection.getParsedTokenAccountsByOwner(
-                      new PublicKey(parsed.info.authority),
-                      {
-                        programId: TOKEN_PROGRAM_ID,
-                      }
-                    )
-
-                    accounts.value.forEach((item) => {
-                      if (item.pubkey.toString() === parsed.info.source.toString()) {
-                        mint = item.account.data.parsed.info.mint.toString()
-                      }
-                    })
-
-                    const token = FindTokenByChainIdsAndContractAddress(
-                      this.getChainIds(isMainnet),
-                      mint
-                    )
-
-                    detail.from = new PublicKey(from).toBase58()
-                    detail.to = new PublicKey(to).toBase58()
-                    detail.value = ethers.formatUnits(parsed.info.amount, token.decimals)
-                    detail.asset = token.symbol
-                    detail.contractAddress = token.contractAddress as string
-
-                    if (new PublicKey(from).toString() === new PublicKey(address).toString()) {
-                      detail.type = 'Send'
-                    } else {
-                      detail.type = 'Received'
-                    }
-
-                    details.push(detail)
-                    break
-                  }
-                }
-              }
-            }
-          })
-
-          await Promise.all(promises)
-        }
+      if (!BLOCKSCAN.isConfigured) {
+        return []
+      }
+      const url = `${BLOCKSCAN.baseUrl}/node/solana/getTransactions?chain_id=${this.getChainIds(
+        isMainnet
+      )}&address=${encodeURIComponent(address)}`
+      const response = await BLOCKSCAN.axiosInstance.get(url)
+      if (response.data.code !== 10200 || !Array.isArray(response.data.data)) {
+        return []
       }
 
-      details.sort((a, b) => b.blockTimestamp - a.blockTimestamp)
-
-      return details
+      return response.data.data.map((tx: any) => {
+        const amount = String(tx.amount ?? tx.value ?? '')
+        const typeRaw = String(tx.type || 'None')
+        const type: SolanaTransactionDetail['type'] =
+          typeRaw.toLowerCase().includes('send')
+            ? 'Send'
+            : typeRaw.toLowerCase().includes('receiv')
+              ? 'Received'
+              : 'None'
+        return {
+          chainId: Number(tx.chainId ?? this.getChainIds(isMainnet)),
+          address: String(tx.address || address),
+          hash: String(tx.hash || ''),
+          asset: String(tx.asset || 'SOL'),
+          contractAddress: String(tx.contractAddress || ''),
+          type,
+          status: tx.status === 'Failed' ? TRANSACTIONSTATUS.FAILED : TRANSACTIONSTATUS.SUCCESS,
+          blockTimestamp: Number(tx.blockTimestamp || 0),
+          value: amount,
+          from: '',
+          to: '',
+        } satisfies SolanaTransactionDetail
+      })
     } catch (e) {
       console.error(e)
       return []
-      // throw new Error('can not get the transactions of solana');
     }
   }
 
@@ -594,9 +505,7 @@ export class SOLANA {
 
       if (lamportsPerSignature) {
         const signatureCount = txParams.signatures.length
-        const estimatedFee = lamportsPerSignature * signatureCount
-
-        return estimatedFee
+        return Number(BigMul(String(lamportsPerSignature), String(signatureCount)))
       }
 
       throw new Error('can not get the fee of solana')
@@ -642,7 +551,8 @@ export class SOLANA {
       const response = await connection.getFeeForMessage(message, 'confirmed')
 
       if (response && response.value) {
-        return Number(ethers.formatUnits(response.value, 9))
+        // Numeric return for legacy getGasPrice/getFee; derive SOL via lamports string division.
+        return Number(BigDiv(String(response.value), '1000000000'))
       }
 
       console.warn('[SOLANA] getFeeForMessage empty, using default fee')

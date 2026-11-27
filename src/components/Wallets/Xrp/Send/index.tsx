@@ -14,7 +14,14 @@ import { CHAINS, COINS } from '@/packages/constants/blockchain'
 import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
-import { BigDiv } from '@/utils/number'
+import {
+  BigAdd,
+  BigDiv,
+  BigGt,
+  BigGte,
+  BigIsPositive,
+  FormatCryptoAmount,
+} from '@/utils/number'
 import { DecodeNonstandardCurrencyCode, OmitMiddleString } from '@/utils/strings'
 import { GetBlockchainAddressUrl, GetBlockchainTxUrl } from '@/utils/chain/xrp'
 import { COINGECKO_IDS, PAYOUT_STATUS } from '@/packages/constants'
@@ -209,9 +216,10 @@ const XrpSend = () => {
         })
         if (rate_response.result) {
           const rate = rate_response.data[ids][response.data.currency.toLowerCase()]
-          const totalPrice = parseFloat(
-            BigDiv(Number(response.data.amount).toString(), rate)
-          ).toFixed(8)
+          const totalPrice = FormatCryptoAmount(
+            BigDiv(String(response.data.amount ?? 0), rate),
+            8
+          )
 
           setAmount(totalPrice)
           setCoin(response.data.crypto)
@@ -254,8 +262,8 @@ const XrpSend = () => {
   const checkAmount = (): boolean => {
     if (
       amount &&
-      parseFloat(amount) > 0 &&
-      parseFloat(balance[String(coin)]) >= parseFloat(amount)
+      BigIsPositive(amount) &&
+      BigGte(balance[String(coin)], amount)
     ) {
       return true
     }
@@ -278,14 +286,48 @@ const XrpSend = () => {
       if (
         !networkFee ||
         !amount ||
-        networkFee + parseFloat(amount) > parseFloat(balance[String(mainCoin)])
+        BigGt(BigAdd(String(networkFee || 0), amount), balance[String(mainCoin)])
       ) {
         showSnack('error', 'Insufficient balance or Insufficient gas fee')
         return
       }
     } else {
-      if (!networkFee || !amount || networkFee > parseFloat(balance[String(mainCoin)])) {
+      if (coin !== mainCoin && !activeTrustLine) {
+        showSnack('error', `Your wallet has no TrustLine for ${coin}`)
+        return
+      }
+      if (!networkFee || !amount || BigGt(String(networkFee), balance[String(mainCoin)])) {
         showSnack('error', 'Insufficient balance or Insufficient gas fee')
+        return
+      }
+      // Destination must already trust this issuer — otherwise ledger returns tecPATH_DRY.
+      try {
+        const response: any = await axios.get(Http.find_token_trust_line, {
+          params: {
+            chain_id: CHAINS.XRP,
+            network: network === 'mainnet' ? 1 : 2,
+            address: destinationAddress,
+          },
+        })
+        const issuer = String(activeTrustLine?.account || '')
+        const rows = Array.isArray(response.data) ? response.data : []
+        const destHasLine = rows.some((item: any) => {
+          const cur = DecodeNonstandardCurrencyCode(String(item.currency || ''))
+          return (
+            String(cur).toUpperCase() === String(coin).toUpperCase() &&
+            String(item.account || '') === issuer &&
+            Number(item.limit) > 0
+          )
+        })
+        if (!destHasLine) {
+          showSnack(
+            'error',
+            `Destination has no TrustLine for ${coin} (issuer ${OmitMiddleString(issuer || '', 8)}). Ask them to add it first.`
+          )
+          return
+        }
+      } catch (e) {
+        showSnack('error', getApiErrorMessage(e))
         return
       }
     }
@@ -492,7 +534,7 @@ const XrpSend = () => {
                 value={amount}
                 onChange={(e) => {
                   setAmount(e.target.value)
-                  if (parseFloat(e.target.value) > parseFloat(balance[String(coin)])) {
+                  if (BigGt(e.target.value, balance[String(coin)])) {
                     setAmountRed(true)
                   } else {
                     setAmountRed(false)

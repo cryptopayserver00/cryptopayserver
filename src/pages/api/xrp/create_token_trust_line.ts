@@ -119,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       address: fromAddress,
       issuer: String(token.contractAddress),
       coin: coin,
-      limit: limit,
+      limit: String(limit),
     })
 
     if (!hash) {
@@ -137,8 +137,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     })
   } catch (e) {
     console.error(e)
-    return res.status(500).json({
-      message: 'Internal server error',
+    const message = e instanceof Error ? e.message : 'Internal server error'
+    return res.status(200).json({
+      message,
       result: false,
       data: null,
     })

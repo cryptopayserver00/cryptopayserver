@@ -234,7 +234,8 @@ export interface AddressBookRowType {
 export interface AssetCoinType {
   coin: string
   price: string
-  number: number
+  /** Human-unit quantity as decimal string (avoid JS float noise). */
+  number: string | number
   unit: string
   balance: string
   marketCap: string
@@ -248,7 +249,7 @@ export interface AssetWalletType {
   address: string
   chainId: CHAINS
   coins: AssetCoinType[]
-  totalBalance: number
+  totalBalance: string | number
   currency: string
   currencySymbol: string
 }

@@ -18,6 +18,8 @@ import {
 import { SiteLogo } from '../Logo/SiteLogo'
 import { useShallow } from 'zustand/react/shallow'
 import { StoreType } from '@/utils/types'
+import { syncWalletForStore } from '@/utils/sync-wallet-for-store'
+import { pickPreferredStore, rememberLastStore } from '@/utils/last-store'
 
 interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode
@@ -61,11 +63,9 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
     }))
   )
 
-  const { resetWallet, setWalletId, setIsWallet } = useWalletPresistStore(
+  const { resetWallet } = useWalletPresistStore(
     useShallow((state) => ({
       resetWallet: state.resetWallet,
-      setWalletId: state.setWalletId,
-      setIsWallet: state.setIsWallet,
     }))
   )
 
@@ -103,27 +103,23 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
           return
         }
 
-        // New / stale sessions may have storeId=0 while stores exist — pick the first.
-        const selected = list.find((item) => item.id === storeId) || list[0]
+        // Prefer current storeId, then last-used store for this user, then first in list.
+        const selected =
+          list.find((item) => item.id === storeId) ||
+          pickPreferredStore(currentUserId, list) ||
+          list[0]
         if (!selected) return
         if (selected.id !== storeId) {
           setStoreId(selected.id)
           setStoreName(selected.name)
           setStoreCurrency(selected.currency)
           setStorePriceSource(selected.priceSource)
-          setIsStore(true)
-          resetWallet()
-
-          const wallet_resp: any = await axios.get(Http.find_wallet, {
-            params: { store_id: selected.id },
-          })
-          if (wallet_resp.result) {
-            setWalletId(wallet_resp.data.id)
-            setIsWallet(true)
-          }
-        } else {
-          setIsStore(true)
         }
+        setIsStore(true)
+        rememberLastStore(currentUserId, selected.id)
+        // Always re-sync wallet from server: logout clears local wallet flags, and a matching
+        // storeId alone used to skip this path so newly created wallets looked "gone".
+        await syncWalletForStore(selected.id)
       } else {
         setSnackSeverity('error')
         setSnackMessage('Could not load data.')
@@ -178,17 +174,10 @@ export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
         setStoreName(response.data.name)
         setStoreCurrency(response.data.currency)
         setStorePriceSource(response.data.priceSource)
+        setIsStore(true)
+        rememberLastStore(userId, response.data.id)
 
-        resetWallet()
-
-        const wallet_resp: any = await axios.get(Http.find_wallet, {
-          params: { store_id: response.data.id },
-        })
-
-        if (wallet_resp.result) {
-          setWalletId(wallet_resp.data.id)
-          setIsWallet(true)
-        }
+        await syncWalletForStore(response.data.id)
 
         router.replace(router.asPath)
       } else {

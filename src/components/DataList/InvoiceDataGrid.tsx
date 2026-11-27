@@ -17,6 +17,7 @@ import axios from '@/utils/http/axios'
 import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { FindChainNamesByChains } from '@/utils/web3'
+import { FormatCryptoDisplay } from '@/utils/number'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -92,7 +93,9 @@ export default function InvoiceDataGrid(props: GridType) {
           sourceType: item.sourceType,
           fiatAmount: CURRENCY_SYMBOLS[item.currency] + item.amount,
           cryptoAmount:
-            item.cryptoAmount != null ? `${item.cryptoAmount} ${item.crypto}` : '—',
+            item.cryptoAmount != null
+              ? `${FormatCryptoDisplay(item.cryptoAmount, { coin: item.crypto })} ${item.crypto}`
+              : '—',
           chain: FindChainNamesByChains(item.chainId),
           createdDate: new Date(item.createdAt).toLocaleString(),
           expirationDate: new Date(item.expirationAt).toLocaleString(),

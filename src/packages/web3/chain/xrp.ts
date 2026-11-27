@@ -11,9 +11,10 @@ import {
   TRANSACTIONSTATUS,
   TRANSACTIONTYPE,
 } from '../types';
-import { Client, convertHexToString, dropsToXrp, isValidAddress, Wallet, xrpToDrops } from 'xrpl';
-import { NonstandardCurrencyCode, DecodeNonstandardCurrencyCode } from '@/utils/strings';
+import { Client, dropsToXrp, isValidAddress, Wallet, xrpToDrops } from 'xrpl';
+import { ToXrpCurrencyCode } from '@/utils/strings';
 import { FindTokenByChainIdsAndContractAddress } from '@/utils/web3';
+import { DropsToXrpStr } from '@/utils/number';
 import { ethers } from 'ethers';
 import { BLOCKSCAN } from '../block_scan';
 import { GetBlockchainTxUrl } from '@/utils/chain/xrp';
@@ -223,9 +224,15 @@ export class XRP {
 
     try {
       await client.connect();
-      const balance = await client.getXrpBalance(address);
-
-      return toXRP ? balance.toString() : xrpToDrops(balance);
+      // Use integer drops from account_info — client.getXrpBalance() returns a JS number
+      // and can introduce float noise (e.g. 53.99999 vs explorer-rounded 54).
+      const info = await client.request({
+        command: 'account_info',
+        account: address,
+        ledger_index: 'validated',
+      });
+      const drops = String(info.result.account_data?.Balance ?? '0');
+      return toXRP ? DropsToXrpStr(drops) : drops;
     } catch (e) {
       console.error(e);
       return '0';
@@ -260,6 +267,15 @@ export class XRP {
     if (!req.mnemonic || req.mnemonic === '') {
       throw new Error('can not get the mnemonic of xrp');
     }
+    if (!req.issuer || !isValidAddress(req.issuer)) {
+      throw new Error('invalid xrp token issuer');
+    }
+
+    // xrpl IssuedCurrencyAmount.value MUST be a string (number fails: "invalid LimitAmount")
+    const limit = String(req.limit ?? '').trim()
+    if (!limit || Number(limit) < 0 || !Number.isFinite(Number(limit))) {
+      throw new Error('invalid trustline limit');
+    }
 
     const client = this.getXrpClient(isMainnet);
 
@@ -267,20 +283,31 @@ export class XRP {
       await client.connect();
 
       const wallet = Wallet.fromMnemonic(req.mnemonic);
+      if (req.address && wallet.classicAddress !== req.address && wallet.address !== req.address) {
+        throw new Error('mnemonic does not match the from address');
+      }
 
       const transaction = await client.autofill({
         TransactionType: 'TrustSet',
-        Account: req.address,
+        Account: wallet.classicAddress || wallet.address,
         LimitAmount: {
-          currency: NonstandardCurrencyCode(req.coin),
+          currency: ToXrpCurrencyCode(String(req.coin)),
           issuer: req.issuer,
-          value: req.limit,
+          value: limit,
         },
       });
 
       const signed = wallet.sign(transaction);
 
       const tx = await client.submitAndWait(signed.tx_blob);
+      const meta: any = tx.result.meta
+      const engineResult =
+        (typeof meta === 'object' && meta?.TransactionResult) ||
+        (tx.result as any).engine_result ||
+        ''
+      if (engineResult && engineResult !== 'tesSUCCESS') {
+        throw new Error(`TrustSet failed: ${engineResult}`)
+      }
 
       if (tx.result.hash) {
         return tx.result.hash;
@@ -289,7 +316,8 @@ export class XRP {
       throw new Error('can not create the trust line of xrp');
     } catch (e) {
       console.error(e);
-      throw new Error('can not create the trust line of xrp');
+      const detail = e instanceof Error ? e.message : String(e)
+      throw new Error(`can not create the trust line of xrp: ${detail}`);
     } finally {
       await client.disconnect();
     }
@@ -389,6 +417,13 @@ export class XRP {
     }
 
     const token = FindTokenByChainIdsAndContractAddress(this.getChainIds(isMainnet), request.contractAddress);
+    if (!token) {
+      throw new Error('unknown xrp token contract');
+    }
+
+    const currency = ToXrpCurrencyCode(String(token.symbol || token.name));
+    const issuer = String(request.contractAddress);
+    const value = String(request.value);
 
     const client = this.getXrpClient(isMainnet);
 
@@ -396,22 +431,58 @@ export class XRP {
       const wallet = Wallet.fromMnemonic(request.mnemonic);
 
       await client.connect();
+
+      // IOU delivery requires the destination to have a TrustLine to this issuer+currency.
+      const lines = await client.request({
+        command: 'account_lines',
+        account: request.to,
+        ledger_index: 'validated',
+        peer: issuer,
+      });
+      const okLine = (lines.result.lines || []).some((line: any) => {
+        const lineCurrency = String(line.currency || '')
+        const currencyMatch =
+          lineCurrency === currency ||
+          lineCurrency.toUpperCase() === String(token.symbol || token.name).toUpperCase()
+        const limit = Number(line.limit)
+        return currencyMatch && Number.isFinite(limit) && limit > 0
+      })
+      if (!okLine) {
+        throw new Error(
+          `Destination has no TrustLine for ${token.symbol} (issuer ${issuer}). Ask the recipient to add a TrustLine first.`
+        )
+      }
+
+      const feeXrp = Number(request.feeRate)
+      const feeDrops = xrpToDrops(Number.isFinite(feeXrp) && feeXrp > 0 ? feeXrp : 0.00001)
+
       const transaction = await client.autofill({
         TransactionType: 'Payment',
-        Account: wallet.address,
+        Account: wallet.classicAddress || wallet.address,
         Amount: {
-          currency: NonstandardCurrencyCode(token.name),
-          value: request.value,
-          issuer: request.contractAddress,
+          currency,
+          value,
+          issuer,
         },
         Destination: request.to,
-        DestinationTag: 1,
-        Fee: xrpToDrops(Number(request.feeRate)),
+        Fee: feeDrops,
       });
 
       const signed = wallet.sign(transaction);
 
       const tx = await client.submitAndWait(signed.tx_blob);
+      const meta: any = tx.result.meta
+      const engineResult =
+        (typeof meta === 'object' && meta?.TransactionResult) ||
+        (tx.result as any).engine_result ||
+        ''
+      if (engineResult && engineResult !== 'tesSUCCESS') {
+        const hint =
+          engineResult === 'tecPATH_DRY'
+            ? ' (no liquidity path — usually missing destination TrustLine or sender balance)'
+            : ''
+        throw new Error(`Payment failed: ${engineResult}${hint}`)
+      }
 
       if (tx.result.hash) {
         return tx.result.hash;
@@ -420,7 +491,8 @@ export class XRP {
       throw new Error('can not send the transaction of xrp');
     } catch (e) {
       console.error(e);
-      throw new Error('can not send the transactions of xrp');
+      const detail = e instanceof Error ? e.message : String(e)
+      throw new Error(detail.startsWith('can not') ? detail : `can not send the transactions of xrp: ${detail}`);
     } finally {
       await client.disconnect();
     }

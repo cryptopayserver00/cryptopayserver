@@ -31,7 +31,7 @@ import { getApiErrorMessage } from '@/utils/http/api-error'
 import { Http } from '@/utils/http/http'
 import { CHAINNAMES, COIN, COINS } from '@/packages/constants/blockchain'
 import { useSnackPresistStore, useStorePresistStore, useUserPresistStore } from '@/lib/store'
-import { BigDiv } from '@/utils/number'
+import { BigDiv, FormatCryptoAmount } from '@/utils/number'
 import { FindChainIdsByChainNames, FindTokensByMainnetAndName } from '@/utils/web3'
 import { GetImgSrcByChain, GetImgSrcByCrypto } from '@/utils/qrcode'
 import { useShallow } from 'zustand/react/shallow'
@@ -101,7 +101,7 @@ const PaymentInvoices = () => {
           return
         }
         setRate(rate)
-        const totalPrice = parseFloat(BigDiv((amount as number).toString(), rate)).toFixed(8)
+        const totalPrice = FormatCryptoAmount(BigDiv((amount as number).toString(), rate), 8)
         setCryptoAmount(totalPrice)
       }
     } catch (e) {

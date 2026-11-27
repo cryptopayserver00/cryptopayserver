@@ -12,6 +12,7 @@ import {
   storeAccessHasPermission,
 } from '@/lib/auth'
 import { verifyPayoutOnChain } from '@/lib/payout/verify-on-chain'
+import { BigAdd, BigGte, BigIsPositive, FormatCryptoAmount } from '@/utils/number'
 
 const ALLOWED_TRANSITIONS: Record<string, ReadonlySet<string>> = {
   [PAYOUT_STATUS.AwaitingApproval]: new Set([
@@ -130,19 +131,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         })
       }
 
-      let expectedAmount: number | null = null
+      let expectedAmount: number | string | null = null
       if (req.body.crypto_amount !== undefined && req.body.crypto_amount !== null && req.body.crypto_amount !== '') {
-        const cryptoAmount = Number(req.body.crypto_amount)
-        if (!cryptoAmount || cryptoAmount <= 0) {
+        if (!BigIsPositive(req.body.crypto_amount)) {
           return res.status(200).json({ message: 'Invalid crypto amount', result: false, data: null })
         }
-        expectedAmount = cryptoAmount
-        updateData.crypto_amount = cryptoAmount
+        const cryptoAmountStr = FormatCryptoAmount(req.body.crypto_amount, 12)
+        expectedAmount = cryptoAmountStr
+        updateData.crypto_amount = Number(cryptoAmountStr)
       } else if (owned.crypto_amount != null) {
-        expectedAmount = Number(owned.crypto_amount)
+        expectedAmount = owned.crypto_amount
       }
 
-      if (expectedAmount == null || !Number.isFinite(expectedAmount) || expectedAmount <= 0) {
+      if (expectedAmount == null || !BigIsPositive(expectedAmount)) {
         return res.status(200).json({
           message: 'Crypto amount required to complete payout',
           result: false,
@@ -209,11 +210,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           data: null,
         })
       }
-      const cryptoAmount = Number(req.body.crypto_amount)
-      if (!cryptoAmount || cryptoAmount <= 0) {
+      if (!BigIsPositive(req.body.crypto_amount)) {
         return res.status(200).json({ message: 'Invalid crypto amount', result: false, data: null })
       }
-      updateData.crypto_amount = cryptoAmount
+      updateData.crypto_amount = Number(FormatCryptoAmount(req.body.crypto_amount, 12))
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -257,9 +257,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           },
         })
 
-        const settledAmount = payouts.reduce((sum, item) => sum + item.amount, 0)
+        const settledAmount = payouts.reduce(
+          (sum, item) => BigAdd(sum, String(item.amount || 0)),
+          '0'
+        )
 
-        if (settledAmount >= pull_payment.amount) {
+        if (BigGte(settledAmount, pull_payment.amount)) {
           await prisma.pull_payments.updateMany({
             data: {
               pull_payment_status: PULL_PAYMENT_STATUS.Settled,
